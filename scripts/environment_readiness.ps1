@@ -1,14 +1,10 @@
-param(
-  [switch]$SkipDocker,
-  [switch]$RequireDatabase
-)
-
 $ErrorActionPreference = 'Stop'
 $expectedRoot = 'C:\Users\kavig\Documents\Codex\mtg-magiccon'
 $expectedRemote = 'https://github.com/metavirus/mtg-magiccon.git'
 $expectedRef = 'pavjsexxbueuzhzgemgy'
 $forbiddenRef = 'pyvftzsodzwfqncjbmbc'
 $expectedMigrations = @('20260801184744', '20260801184828')
+$secretFile = '.secrets/database.env'
 $failures = @()
 
 function Resolve-Executable([string]$Name, [string[]]$Candidates) {
@@ -29,7 +25,7 @@ if ($branch -ne 'main' -and -not $branch.StartsWith('codex/')) { $failures += "U
 if (-not (Select-String -Quiet -LiteralPath '.env.example' -Pattern $expectedRef)) { $failures += 'Expected project ref missing from .env.example' }
 if (git grep -l $forbiddenRef -- ':!scripts/environment_readiness.ps1') { $failures += 'Reference-project Supabase ref appears in tracked project content' }
 
-foreach ($localSecret in @('.env.local', '.secrets/database.env')) {
+foreach ($localSecret in @('.env.local', $secretFile)) {
   if (Test-Path -LiteralPath $localSecret) {
     git check-ignore -q -- $localSecret
     if ($LASTEXITCODE -ne 0) { $failures += "$localSecret is not ignored" }
@@ -40,7 +36,6 @@ $nodeExe = Resolve-Executable 'node' @()
 $pnpmExe = Resolve-Executable 'pnpm' @((Join-Path $env:USERPROFILE 'scoop\shims\pnpm.cmd'))
 $supabaseExe = Resolve-Executable 'supabase' @((Join-Path $env:USERPROFILE 'scoop\shims\supabase.exe'))
 $psqlExe = Resolve-Executable 'psql' @('C:\Program Files\PostgreSQL\18\bin\psql.exe', 'C:\Program Files\PostgreSQL\17\bin\psql.exe')
-$dockerExe = Resolve-Executable 'docker' @((Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\resources\bin\docker.exe'), 'C:\Program Files\Docker\Docker\resources\bin\docker.exe')
 
 if (-not $nodeExe) { $failures += 'Node is unavailable' }
 if (-not $pnpmExe) { $failures += 'pnpm is unavailable' }
@@ -64,21 +59,8 @@ if ($supabaseExe -and (Test-Path -LiteralPath $linkedRefFile)) {
   }
 }
 
-if (-not $SkipDocker) {
-  if (-not $dockerExe) { $failures += 'Docker CLI is unavailable' }
-  else {
-    $savedErrorActionPreference = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    $dockerServer = (& $dockerExe info --format '{{.ServerVersion}}' 2>$null | Out-String).Trim()
-    $dockerExitCode = $LASTEXITCODE
-    $ErrorActionPreference = $savedErrorActionPreference
-    if ($dockerExitCode -ne 0 -or -not $dockerServer) { $failures += 'Docker engine is not running' }
-  }
-}
-
-$secretFile = '.secrets/database.env'
-if ($RequireDatabase -and -not (Test-Path -LiteralPath $secretFile)) { $failures += "Create ignored $secretFile as documented" }
-if (Test-Path -LiteralPath $secretFile) {
+if (-not (Test-Path -LiteralPath $secretFile)) { $failures += "Create ignored $secretFile as documented" }
+else {
   $line = Get-Content -LiteralPath $secretFile | Where-Object { $_ -match '^SUPABASE_DB_URL=' } | Select-Object -First 1
   if (-not $line) { $failures += "SUPABASE_DB_URL missing from $secretFile" }
   else {
@@ -87,11 +69,20 @@ if (Test-Path -LiteralPath $secretFile) {
     if ($dbUrl -notmatch ':5432/') { $failures += 'Database URL must use Session Pooler port 5432' }
     if ($dbUrl -notmatch 'sslmode=require') { $failures += 'Database URL must require SSL' }
     if ($psqlExe -and $failures.Count -eq 0) {
-      & $psqlExe $dbUrl -v ON_ERROR_STOP=1 -Atc "select current_database() = 'postgres'"
-      if ($LASTEXITCODE -ne 0) { $failures += 'Session Pooler database query failed' }
+      $proofSql = @"
+select
+  current_database() = 'postgres'
+  and (select relrowsecurity and relforcerowsecurity from pg_class where oid = 'public.personal_notes'::regclass)
+  and (select count(*) = 4 from pg_policies where schemaname = 'public' and tablename = 'personal_notes')
+  and (select qual is not null and with_check is not null from pg_policies where schemaname = 'public' and tablename = 'personal_notes' and policyname = 'owners_update_personal_notes')
+  and (select count(*) = 0 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'personal_notes' and grantee = 'anon')
+  and (select count(*) = 4 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'personal_notes' and grantee = 'authenticated');
+"@
+      $databaseProof = (& $psqlExe $dbUrl -v ON_ERROR_STOP=1 -Atc $proofSql 2>$null | Out-String).Trim()
+      if ($LASTEXITCODE -ne 0 -or $databaseProof -ne 't') { $failures += 'Hosted database identity/RLS/grant proof failed' }
     }
   }
 }
 
 if ($failures.Count) { $failures | ForEach-Object { Write-Error $_ }; exit 1 }
-Write-Output "Environment readiness: PASS ($expectedRef on $branch; Supabase link/migrations; psql; Docker=$(-not $SkipDocker))"
+Write-Output "Environment readiness: PASS ($expectedRef on $branch; hosted migrations; Session Pooler; RLS/grants)"

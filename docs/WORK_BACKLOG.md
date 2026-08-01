@@ -3,7 +3,7 @@
 ## Foundation acceptance
 
 - [ ] Confirm clean CI on the draft pull request.
-- [ ] Record live migration, harmless query, RLS proof, and advisor evidence.
+- [x] Record live migration, harmless query, RLS proof, and advisor evidence.
 - [ ] Confirm one owner account exists without storing its credentials in the repository.
 
 ## Next product tranche
@@ -19,3 +19,4 @@
 - Automated large-scale MagicCon ingestion.
 - Offline write queues and conflict resolution.
 - Production hosting.
+- Docker/WSL and a local Supabase replica unless a concrete isolation or migration-rehearsal need emerges.

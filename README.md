@@ -16,7 +16,7 @@ Private, mobile-first planning and personal-intelligence app for one attendee at
 2. Add the project URL and a publishable key. Never add secret/service-role keys.
 3. Run `pnpm install --frozen-lockfile` and `pnpm dev`.
 
-Run `pnpm readiness` before database or release work. See [environment readiness](docs/ENVIRONMENT_READINESS.md), [project context](docs/PROJECT_CONTEXT.md), and [current frontier](CURRENT_FRONTIER.md).
+Run `pnpm readiness` before database or release work. See [development architecture](docs/DEVELOPMENT_ARCHITECTURE.md), [environment readiness](docs/ENVIRONMENT_READINESS.md), [project context](docs/PROJECT_CONTEXT.md), and [current frontier](CURRENT_FRONTIER.md).
 
 ## Commands
 

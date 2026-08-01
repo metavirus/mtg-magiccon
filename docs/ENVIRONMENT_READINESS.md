@@ -1,28 +1,55 @@
 # Environment Readiness
 
-Run `pnpm readiness` before substantive work. A passing gate proves:
+This is a personal hobby application for one to three trusted users. Development uses the hosted Supabase project directly; readiness should protect identity, secrets, schema discipline, and deployable code without reproducing the hosted platform locally.
 
-- repository path and `origin` identity;
-- allowed branch (`main` for inspection, `codex/*` for changes);
-- clean-enough tracked state;
-- Node and pnpm availability;
-- Supabase CLI availability, exact local link identity, and linked migration parity;
-- PostgreSQL `psql` availability, including its standard Windows installation path;
-- a responsive Docker engine capable of running the local Supabase stack;
-- expected Supabase project reference in tracked configuration;
-- local secret files are ignored;
-- any supplied database URL names the expected project, uses SSL, and uses the preferred Session Pooler port 5432.
+Run `pnpm readiness` before substantive work. A pass proves:
+
+- the exact repository path, GitHub `origin`, and an allowed branch;
+- Node, pnpm, Supabase CLI, and PostgreSQL `psql` are available;
+- tracked configuration names only Supabase project `pavjsexxbueuzhzgemgy`;
+- the local Supabase CLI link resolves to that exact project;
+- checked-in migrations match the hosted migration history;
+- ignored local credential files remain ignored;
+- the project-specific Session Pooler URL uses port 5432 and requires SSL;
+- a harmless live query reaches database `postgres`;
+- the owner proof table still has forced RLS, four policies, update `USING` and `WITH CHECK`, no anonymous grants, and exactly the intended authenticated grants.
+
+Application build, tests, text integrity, and secret scanning remain separate acceptance commands so failures identify their actual layer:
+
+```powershell
+pnpm build
+pnpm test
+pnpm validate:text
+pnpm validate:secrets
+```
 
 ## Secure local setup
 
-Browser setup: copy `.env.example` to ignored `.env.local` and obtain only the URL and modern publishable key from the Supabase project Connect dialog.
+Browser configuration lives in ignored `.env.local` and contains only the project URL and modern publishable key. Never place a secret/service-role key in browser configuration.
 
-Direct database setup, only when required: create ignored `.secrets/database.env`, then place the project's Session Pooler URL in `SUPABASE_DB_URL`. Obtain it from the project Connect dialog. Do not paste the password into chat. The URL must use user `postgres.pavjsexxbueuzhzgemgy`, port `5432`, database `postgres`, and `sslmode=require`.
+Direct database verification uses ignored `.secrets/database.env`:
 
-The environment gate also rejects the reference project's project ref anywhere in tracked project content. Local credential files must be project-specific rather than ambiguous global variables. Automated CLI checks disable optional Supabase telemetry so telemetry delivery cannot turn a successful database check into a false failure.
+```dotenv
+SUPABASE_DB_URL=<project Session Pooler URL on port 5432 with sslmode=require>
+```
 
-Run `pnpm readiness:repair` only for bounded repair work while installing or starting Docker. It is not an acceptance result. Run `pnpm readiness:database` when the direct Session Pooler path must be proven; this executes a harmless `select current_database() = 'postgres'` query without printing credentials.
+Obtain the URL from the expected project's Connect dialog and enter it locally. Never paste it into chat or tracked files.
+
+## Deliberately excluded
+
+The readiness contract does not require:
+
+- Docker Desktop, WSL, or a local Supabase container stack;
+- a second local PostgreSQL database or replicated hosted data;
+- a backend application server, ORM, microservices, or Kubernetes;
+- secret/service-role keys in local application code;
+- Edge Functions, Realtime, background workers, or automated research ingestion before a proven need;
+- production hosting or deployment in the foundation tranche;
+- multi-writer offline synchronization;
+- enterprise staging environments, local/remote parity ceremony, or exhaustive schema scaffolding.
+
+Docker and WSL may exist on a developer machine for unrelated work, but this repository neither checks nor depends on them. Reconsider a separate development database only if destructive migration rehearsal, team concurrency, sensitive test isolation, or repeated hosted-development friction creates a concrete need.
 
 ## Failure behavior
 
-Never continue through an identity failure. Diagnose one bounded repair cycle, rerun the exact failed check, then report `ENVIRONMENT NOT READY` with the single external action needed. Docker absence or a stopped engine is a readiness defect to repair; it does not authorize an unverified remote workaround.
+Never continue through repository, remote, Supabase project, migration, URL, or RLS ambiguity. Run one bounded repair cycle, retest the exact capability, then report the single external action still required. Do not substitute a different project, unguarded URL, or elevated browser key.

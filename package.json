@@ -12,9 +12,7 @@
     "test": "vitest run",
     "validate:text": "powershell -ExecutionPolicy Bypass -File scripts/validate_text_integrity.ps1",
     "validate:secrets": "powershell -ExecutionPolicy Bypass -File scripts/check_secrets.ps1",
-    "readiness": "powershell -ExecutionPolicy Bypass -File scripts/environment_readiness.ps1",
-    "readiness:repair": "powershell -ExecutionPolicy Bypass -File scripts/environment_readiness.ps1 -SkipDocker",
-    "readiness:database": "powershell -ExecutionPolicy Bypass -File scripts/environment_readiness.ps1 -RequireDatabase"
+    "readiness": "powershell -ExecutionPolicy Bypass -File scripts/environment_readiness.ps1"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.55.0",

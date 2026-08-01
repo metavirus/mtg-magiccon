@@ -17,6 +17,7 @@ The app remains useful after the convention rather than treating the event date 
 ## Durable architecture
 
 - Supabase is canonical for authenticated data.
+- Development uses that single hosted project directly through guarded CLI and Session Pooler paths; no local Supabase replica is required.
 - The installable web app provides a fast mobile shell and safe read-only offline access to previously loaded critical itinerary information.
 - Network-confirmed writes only; offline mutations are disabled until an explicit conflict-safe design exists.
 - Public/source-backed information and private personal continuity are separate concerns.
@@ -34,4 +35,4 @@ The conceptual growth path is `Source -> Observation -> Normalized entity -> Per
 
 ## Boundaries
 
-This repository is not a fork of `mtg-events-chatgpt`. That repository is read-only methodology reference material. Do not copy its application, schema, migrations, records, secrets, users, exports, regional requirements, or Git history. No production deployment or bulk MagicCon ingestion belongs in this tranche.
+This repository is not a fork of `mtg-events-chatgpt`. That repository is read-only methodology reference material. Do not copy its application, schema, migrations, records, secrets, users, exports, regional requirements, or Git history. No production deployment or bulk MagicCon ingestion belongs in this tranche. Docker, WSL, a local Supabase stack, backend services, and enterprise environment promotion are outside the current architecture; see `docs/DEVELOPMENT_ARCHITECTURE.md`.
