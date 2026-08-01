@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$excluded = @('.git', 'node_modules', 'dist', '.secrets', '.supabase')
+$excluded = @('.git', 'node_modules', 'dist', '.secrets', '.supabase', '.temp')
 $extensions = @('.md', '.json', '.ts', '.tsx', '.js', '.css', '.html', '.yml', '.yaml', '.toml', '.sql', '.ps1', '.txt', '.example', '.editorconfig', '.gitattributes', '.gitignore')
 $failures = @()
 
