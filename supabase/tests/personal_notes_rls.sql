@@ -1,0 +1,12 @@
+begin;
+select plan(8);
+select has_table('public', 'personal_notes', 'personal_notes exists');
+select row_security_active('public.personal_notes'), 'RLS is active';
+select policies_are('public', 'personal_notes', array['owners_delete_personal_notes','owners_insert_personal_notes','owners_select_personal_notes','owners_update_personal_notes']);
+select table_privs_are('public', 'personal_notes', 'anon', array[]::text[], 'anon has no table grants');
+select table_privs_are('public', 'personal_notes', 'authenticated', array['DELETE','INSERT','SELECT','UPDATE'], 'authenticated grants are explicit');
+select policy_roles_are('public', 'personal_notes', 'owners_select_personal_notes', array['authenticated']);
+select policy_cmd_is('public', 'personal_notes', 'owners_update_personal_notes', 'UPDATE');
+select isnt((select with_check from pg_policies where schemaname='public' and tablename='personal_notes' and policyname='owners_update_personal_notes'), null, 'update has WITH CHECK');
+select * from finish();
+rollback;
