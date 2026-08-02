@@ -15,6 +15,7 @@ Updated: 2026-08-01
 - Ticketed-play discovery is synthesized around information translation, owner-centered relevance triage, nonrefundable commitment states, fixed versus flexible time semantics, sellout/change monitoring, and person-aware but owner-managed planning.
 - Cross-phase discovery now identifies the main product shape: contextual retrieval across fragmented sources, milestones as the quiet-period landing spine, MagicCon-specific friction only, robust preparation with lightweight use, first-class places, over-ingested store/prize surfaces, Wallet as operational reference, contextual notes, prudent offline cache hygiene, and post-event retrieval after neglect.
 - The next phase is scoped in `docs/NEXT_PHASE_SCOPE.md`: design the persistent cross-phase experience, settle decision/time/source language, test priority surfaces on mobile and desktop, and implement one narrow Black Lotus trust slice with change reconciliation and offline reading.
+- `docs/EXPERIENCE_ARCHITECTURE.md` now proposes the first design gate: five persistent destinations (Home, Plan, Explore, Wallet, Notes), Now as a contextual operational layer, Places as an Explore mode and first-class object, and Trip, Sources, and Remember as cross-cutting contexts. It remains a candidate pending owner review.
 
 ## Next safe lanes
 
