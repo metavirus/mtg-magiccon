@@ -1,7 +1,7 @@
 # Planning and Intelligence Model
 
 Updated: 2026-08-01
-Status: Direction accepted for decision, preference, and time semantics; conflict and source-state details remain under review
+Status: Planning-language gate accepted; screen behavior remains to be tested
 
 ## Purpose
 
@@ -57,6 +57,12 @@ Negative and cleanup actions carry different meaning:
 - **Skipped:** intended, committed, or purchased but not attended; an outcome rather than a taste signal.
 
 Not for me never erases source evidence. Similar objects may be de-emphasized but are not automatically rejected. Automatic deep-drawer placement requires either an explicit owner action or a stable owner-approved rule.
+
+## Tentatives as a synthesis layer
+
+Tentatives are a primary value surface, not weak commitments. They let the owner see and compare multiple serious contenders together without returning to separate source pages.
+
+Committing one overlapping event does not automatically change neighboring Tentatives to Passed or Hidden. They remain recoverable in context and become visibly displaced by the committed block. If the commitment changes, sells out before purchase, or loses appeal, the alternatives are still available without reconstructing the earlier comparison.
 
 ## Preference intelligence
 
@@ -200,13 +206,53 @@ Onsite Now may alert the owner approximately 15 minutes before it is time to beg
 
 Tentative events may show an in-app countdown but do not create a push alert unless explicitly requested.
 
-## Remaining design questions
+## Conflict hierarchy
 
-- Final conflict vocabulary and visual hierarchy for hard, soft, conditional, and adjacent pressure.
+- **Hard conflict:** two fixed Committed activities overlap. Committed is the only “cannot do both” planning state.
+- **Conditional overlap:** the combination works only by moving something flexible or leaving an event early.
+- **Schedule pressure:** back-to-back timing, long uninterrupted play, meal-window concern, or uncertain transition deserves attention but does not block the plan.
+- **Alternative:** Tentative contenders occupy the same time while the owner weighs them. This is expected planning work, not an error.
+
+Two overlapping Tentatives remain visible as alternatives. A Tentative overlapping a Commitment is visibly displaced. Flexible activities can overlap a Commitment with an explanation that they can move.
+
+Purchased staples an event into Plan and defaults it to Committed. Even if Leap permits removal from its display schedule, the app retains the block because entitlement and financial consequence remain. Only an explicit owner decision to skip or release the event frees the timeslot; the gold purchase record remains.
+
+The product does not need a separate claimable-item workflow for skipped events in this tranche. Event detail may retain included product information and accept a simple note such as “grab product only.”
+
+## Source-state presentation
+
+Normal publisher information receives no “normal” or Published badge. Visual attention is reserved for exceptions.
+
+- **Tentative:** publisher uncertainty remains visible.
+- **Changed:** amber attention state until reviewed; old and new values are inspectable.
+- **Canceled:** remains visibly exceptional.
+- **Contradicted:** preserves both supported claims and does not select a winner silently.
+- **Superseded:** retained in history rather than dominating the current card.
+
+Changed is an attention lifecycle, not a permanent identity. If it affects a Committed or Purchased event, it remains prominent until acknowledged. After review, the current value returns to ordinary presentation while the change remains in Activity and evidence history.
+
+Attention has three levels:
+
+- **Ambient cue:** subtle edge, tint, or dot worth noticing while scanning.
+- **Attention item:** clear Changed treatment and summary for an Interested or Tentative object.
+- **Active alert:** Now placement and possible notification only for real consequence to a Commitment, purchase, deadline, travel fact, or major milestone.
+
+Contradictions use a split-source treatment and present claims side by side. When the conflict affects app behavior, a guarded A/B prompt can ask the owner to choose an operational interpretation. That answer becomes definitive personal guidance without erasing or resolving publisher truth.
+
+Default suggestions may depend on the fact:
+
+- deadline conflict: suggest the earlier safer date;
+- schedule or location conflict: suggest the latest dated official observation;
+- never apply a consequential choice without owner input.
+
+The MVP should not rely on voluntary onsite reporting. Personal observations may remain possible as contextual notes, but the interface does not ask the owner to record room changes, queues, or operational reality. Current publisher information remains the default unless a captured update or explicit owner note provides something better.
+
+## Remaining screen questions
+
 - Whether Passed needs a frequent direct control or can live inside the negative-action menu.
-- How planning insights age when their underlying schedule or event description changes.
-- Source-state and freshness vocabulary that keeps AI interpretation visibly separate from publisher and observed truth.
+- How planning insights age visually when underlying schedule or event description changes.
 - Exact mobile controls for tentative placement, expected exit, and intelligence explanation.
+- How displaced Tentatives remain legible without overcrowding the contention canvas.
 
 ## Boundary
 

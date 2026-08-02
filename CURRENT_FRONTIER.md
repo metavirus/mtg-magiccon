@@ -16,13 +16,13 @@ Updated: 2026-08-01
 - Cross-phase discovery now identifies the main product shape: contextual retrieval across fragmented sources, milestones as the quiet-period landing spine, MagicCon-specific friction only, robust preparation with lightweight use, first-class places, over-ingested store/prize surfaces, Wallet as operational reference, contextual notes, prudent offline cache hygiene, and post-event retrieval after neglect.
 - The next phase is scoped in `docs/NEXT_PHASE_SCOPE.md`: design the persistent cross-phase experience, settle decision/time/source language, test priority surfaces on mobile and desktop, and implement one narrow Black Lotus trust slice with change reconciliation and offline reading.
 - The owner accepted the direction of `docs/EXPERIENCE_ARCHITECTURE.md` and refined it toward focused access: Home, Plan, Explore, Map, Wallet, Trip, and Notes are primary desktop destinations; Activity is a directly accessible utility with All, Changes, Sources, and Personal streams; Now is Home's phase-aware focus. The visual direction is a dark, layered convention-command-center language with semantic color, shading, and icons. Exact mobile navigation remains a screen-design question.
-- `docs/PLANNING_INTELLIGENCE_MODEL.md` captures accepted direction for the Interested/Tentative/Committed funnel, independent gold purchase lock, Hidden versus Not for me, inspectable sparkle intelligence, immediate versus daily-agent reasoning, guarded async AI feedback, flexible time, optional fuzzy endings, contextual adjacency, and committed/purchased departure alerts. Conflict hierarchy and source-state language remain open.
+- The planning-language gate in `docs/PLANNING_INTELLIGENCE_MODEL.md` is accepted: Tentatives form a synthesis layer; only overlapping fixed Commitments create a hard conflict; purchase staples an event into Plan; conditional overlap and schedule pressure remain advisory; normal source facts stay visually quiet; changes use graded attention; contradictions preserve both claims and may solicit a definitive personal operating choice. Voluntary onsite reporting is not an MVP dependency.
 
 ## Next safe lanes
 
 1. Confirm clean CI on the draft pull request.
-2. Finish conflict hierarchy and source-state language against the accepted planning and intelligence direction.
-3. Preserve direct mobile access to focused destinations when screen concepts begin; do not re-collapse the information architecture merely to fit a five-item bar.
+2. Begin incremental screen concepts with Home/Now, then Plan, event detail, Wallet, and Map.
+3. Preserve direct mobile access to focused destinations during screen design; do not re-collapse the information architecture merely to fit a five-item bar.
 4. Prove one changing Atlanta Black Lotus fact, one personal decision, one itinerary consequence, and one offline-readable critical view before adding broad domain tables.
 5. Define private Storage buckets and policies only when the first real artifact workflow is approved.
 

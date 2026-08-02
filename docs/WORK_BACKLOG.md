@@ -17,7 +17,7 @@
 - [x] Synthesize cross-phase value principles and onsite support surfaces.
 - [x] Scope the next design and trust-slice tranche without committing broad UI or schema.
 - [x] Accept the persistent surface-map direction, phase-aware Now, Activity framing, and dark visual language in `docs/EXPERIENCE_ARCHITECTURE.md`; defer exact mobile navigation treatment to screen design.
-- [ ] Finish the planning-language gate: decision, preference, intelligence, and time direction are accepted in `docs/PLANNING_INTELLIGENCE_MODEL.md`; conflict hierarchy and source-state language remain.
+- [x] Approve planning states, Tentative synthesis, time semantics, conflict hierarchy, preference intelligence, and source-state presentation in `docs/PLANNING_INTELLIGENCE_MODEL.md`.
 - [ ] Test priority mobile and desktop screen concepts against representative scenarios.
 - [ ] Derive and implement the minimal Black Lotus trust-slice contract only after design approval.
 - [ ] Prove source revision reconciliation and an offline-readable critical view.
