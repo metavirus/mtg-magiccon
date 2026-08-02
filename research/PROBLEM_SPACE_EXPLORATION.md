@@ -175,6 +175,18 @@ Before ticketed play appears, the app is still useful as a quiet trip dossier an
 
 In this period, receipts, badge confirmations, hotel bookings, and flight itineraries are valuable because they establish what exists, what is paid for, what dates constrain the trip, what is sensitive, and what may need offline reference. The app should display these facts pleasantly and preserve the evidence privately, while leaving specialized actions such as modifying bookings, selecting seats, managing hotel payments, or using airline tools to their authoritative providers.
 
+The app interface should be phase-stable rather than transforming when ticketed play appears. Hot, Trip, Wallet, Sources, Plan, and Remember should all be present from the start; each phase changes the density, priority, and affordances of those areas rather than replacing the interface. Before ticketed play, Plan can hold placeholders, rough intentions, readiness notes, and known fixed constraints. Remember can remain lightly populated with pre-event notes and prior-event lessons.
+
+The pre-ticketed-play home is an attention surface, not the whole app. Its quiet state should feel like success: a quick landing bubble can say nothing meaningful changed, when sources were last checked, whether the watch set is healthy enough to trust, and what the next known readiness date is. Non-actionable observations should be captured but collapsed into an easily expanded Observed layer so they remain available for discussion without cluttering the screen.
+
+Because signals are rare, email or push alerts are appropriate for real official changes, private trip disruptions, source contradictions, deadline proximity, or major inflection points such as ticketed play, artist lists, maps, VIP details, or merch becoming available. The app should avoid alerting for information already handled by known trip state; for example, a generic hotel-booking promo should be logged quietly when lodging is already known, unless it creates a concrete new issue.
+
+Watched sources should be grouped by purpose rather than presented as a raw URL list. Likely groups include Official News, Atlanta Core, Unlock Signals, Private Trip Evidence, and later External Leads. Source failures affect confidence, not relevance: one-off failures should stay in Sources, while only repeated or broad monitoring failures should degrade the Hot landing bubble.
+
+Rare steering input may be useful, but only as an escape hatch. The app may ask a tiny inline yes/no-style question when the item is already being reviewed, there is a real uncertainty, the answer changes future behavior, and ignoring the prompt is harmless. It should not ask engagement prompts, request abstract feedback, gamify attention, or flatter the user for routine choices. Prefer quiet inference and user actions.
+
+Small situated affordances are part of the product value. Prefer actions exactly where they help: a Maps link on a hotel card, copy affordance on a confirmation number, "Open in Delta" on a flight card, "Open Leap order" on a badge card, reveal/hide for sensitive credentials, and simple notes about which people are associated with which hotel nights or purchases. These should feel handy rather than obtrusive.
+
 ## Privacy and group boundaries
 
 The MVP is owner-only and private. Sensitive artifacts must remain authenticated and nonpublic. A later shared version may allow the small trusted group to see trip information with each person landing primarily on their own items, but no interpersonal permission model is required now. Credential-bearing artifacts should still remain distinguishable from ordinary plans so a later sharing decision does not require untangling opaque records.

@@ -12,7 +12,8 @@
 - [ ] Model a small itinerary slice from actual official evidence.
 - [ ] Design private Storage and retention rules for confirmations and receipts.
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
-- [ ] Review `research/PROBLEM_SPACE_EXPLORATION.md` and answer its next-conversation questions.
+- [x] Synthesize pre-ticketed-play usefulness and interface behavior.
+- [ ] Explore ticketed-play planning usefulness and interface behavior.
 
 ## Parked
 
