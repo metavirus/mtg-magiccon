@@ -15,13 +15,13 @@ Updated: 2026-08-01
 - Ticketed-play discovery is synthesized around information translation, owner-centered relevance triage, nonrefundable commitment states, fixed versus flexible time semantics, sellout/change monitoring, and person-aware but owner-managed planning.
 - Cross-phase discovery now identifies the main product shape: contextual retrieval across fragmented sources, milestones as the quiet-period landing spine, MagicCon-specific friction only, robust preparation with lightweight use, first-class places, over-ingested store/prize surfaces, Wallet as operational reference, contextual notes, prudent offline cache hygiene, and post-event retrieval after neglect.
 - The next phase is scoped in `docs/NEXT_PHASE_SCOPE.md`: design the persistent cross-phase experience, settle decision/time/source language, test priority surfaces on mobile and desktop, and implement one narrow Black Lotus trust slice with change reconciliation and offline reading.
-- `docs/EXPERIENCE_ARCHITECTURE.md` now proposes the first design gate: five persistent destinations (Home, Plan, Explore, Wallet, Notes), Now as a contextual operational layer, Places as an Explore mode and first-class object, and Trip, Sources, and Remember as cross-cutting contexts. It remains a candidate pending owner review.
+- The owner accepted the direction of `docs/EXPERIENCE_ARCHITECTURE.md` and refined it toward focused access: Home, Plan, Explore, Map, Wallet, Trip, and Notes are primary desktop destinations; Activity is a directly accessible utility with All, Changes, Sources, and Personal streams; Now is Home's phase-aware focus. The visual direction is a dark, layered convention-command-center language with semantic color, shading, and icons. Exact mobile navigation remains a screen-design question.
 
 ## Next safe lanes
 
 1. Confirm clean CI on the draft pull request.
-2. Begin the design tranche with the app surface map, phase-density behavior, and contextual-retrieval paths.
-3. Approve decision, time, conflict, relevance, and source-state language before deriving the Black Lotus trust-slice schema.
+2. Define and review decision, time, conflict, relevance, and source-state language against the accepted experience-architecture direction.
+3. Preserve direct mobile access to focused destinations when screen concepts begin; do not re-collapse the information architecture merely to fit a five-item bar.
 4. Prove one changing Atlanta Black Lotus fact, one personal decision, one itinerary consequence, and one offline-readable critical view before adding broad domain tables.
 5. Define private Storage buckets and policies only when the first real artifact workflow is approved.
 

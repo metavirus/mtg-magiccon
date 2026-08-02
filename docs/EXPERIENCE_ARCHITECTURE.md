@@ -1,7 +1,7 @@
 # Experience Architecture Candidate
 
 Updated: 2026-08-01
-Status: Candidate for owner review; not yet an approved UI or schema
+Status: Direction accepted; navigation and visual-language candidate under refinement
 
 ## Decision question
 
@@ -9,42 +9,47 @@ Can the app provide one stable, understandable home for every important MagicCon
 
 ## Recommendation
 
-Use five persistent destinations:
+Prefer focused, directly reachable destinations over an arbitrary tab limit:
 
-1. **Home** — attention, milestones, meaningful changes, and the next useful object.
-2. **Plan** — time, decisions, commitments, conflicts, and trip constraints.
-3. **Explore** — events, artists, stores, vendors, prizes, and places.
-4. **Wallet** — owned, paid, claimable, showable, and reference-worthy items.
-5. **Notes** — human-authored memory across every contextual object.
+1. **Home** — attention, milestones, meaningful changes, and the phase-aware focus.
+2. **Plan** — time, decisions, commitments, conflicts, and scheduling constraints.
+3. **Explore** — the catalog of events, artists, stores, vendors, and prizes.
+4. **Map** — places, spatial context, and eventually the interactive convention atlas.
+5. **Wallet** — owned, paid, claimable, showable, and reference-worthy items.
+6. **Trip** — flights, hotels, travelers, dates, and situated quality-of-life reference.
+7. **Notes** — human-authored memory across every contextual object.
 
-Treat **Now** as a focused operational layer rather than a sixth destination. It appears prominently when time makes an object immediately relevant and can be opened from Home or Plan. This keeps “what do I do next?” one gesture away without leaving an empty Now tab on the screen for months.
+Place **Activity** below a visual divider as an easily reached utility destination. It combines chronological history with top-level stream tabs such as All, Changes, Sources, and Personal. This is the natural home for monitoring history, source health, captured observations, ingestion actions, and owner activity without making source systems part of the primary product model.
 
-Treat **Places** as a first-class object and an Explore mode, not a separate primary destination. Any event, artist, vendor, pickup, or note can open its place directly. The eventual atlas can grow inside this mode without forcing users to navigate through a map to retrieve an object they already know.
+Treat **Now** as Home's phase-aware focus rather than another destination:
 
-Treat **Trip** as a cross-cutting MagicCon context:
+- during quiet monitoring, it presents trustworthy quiet, the next expected unlock, or a rare new signal;
+- during active planning, it presents the decision or contention that most deserves attention;
+- onsite, it becomes the immediate operational object: what, when, where, who, and what to show;
+- after the convention, it presents only useful residue such as a reimbursement or follow-up, then recedes.
 
-- dates and travel constraints belong in Plan;
-- confirmations, hotel and flight references, and receipts belong in Wallet;
-- urgent travel changes belong on Home;
-- place and route affordances open from the object itself.
+Map and Trip are direct destinations because they support distinct, recurring retrieval behaviors. Their facts still backlink into events, Wallet items, people, and notes rather than becoming isolated subsystems.
 
-Treat **Sources** as trust infrastructure rather than ordinary product navigation. Source health appears quietly on Home, while evidence drawers and a source register remain reachable from every supported fact. The owner should not need to browse by website or email system to find convention information.
+Sources remain trust infrastructure. They are directly reachable through Activity's Sources stream and through an evidence drawer on every supported fact. The owner should not need to browse by website or email system to find convention information.
 
 Treat **Remember** as an archival lens across Plan, Explore, Wallet, and Notes rather than a permanently sparse tab. After the convention, Home changes its emphasis to useful residue and the other surfaces default toward completed or historical objects.
 
-## Why five destinations
+## Why focused destinations
 
-Five destinations fit a conventional mobile bottom bar without hiding a core action behind a menu. The same destinations can form a desktop sidebar, leaving room for richer local modes and filters. More importantly, each destination answers a distinct owner question:
+The information architecture should not be compressed merely to fit a conventional five-item mobile bar. Each destination earns direct access by answering a distinct owner question. Mobile navigation should be designed around the approved architecture rather than forcing conceptual nesting too early.
 
 | Destination | Owner question | Does not become |
 | --- | --- | --- |
 | Home | What deserves attention now? | News feed or monitoring console |
 | Plan | What am I considering or doing, and what conflicts? | Leap clone or generic calendar |
-| Explore | What is available, relevant, or worth finding? | Flat brochure or source directory |
+| Explore | What exists and might interest me? | Flat brochure or source directory |
+| Map | Where is it, what is nearby, and what matters there? | Static image viewer or promised indoor GPS |
 | Wallet | What do I own, need, show, claim, or reference? | Booking or accounting platform |
+| Trip | What are the useful travel and lodging facts? | Travel-management platform |
 | Notes | What did I write down, and what was it about? | Machine activity stream |
+| Activity | What changed or happened in the app, and why? | Noisy telemetry console |
 
-The five-way split is intentionally object- and decision-shaped. Official News, Leap, Magic Companion, Gmail, airline, hotel, store, and map are sources or operational providers, not destinations in the owner's mental model.
+The split is intentionally object- and decision-shaped. Official News, Leap, Magic Companion, Gmail, airline, hotel, and store systems remain sources or operational providers, not destinations in the owner's mental model.
 
 ## Surface responsibilities
 
@@ -82,10 +87,26 @@ Explore owns the changing universe of things the convention offers:
 - artists and card-signing opportunities;
 - show store and vendor merchandise;
 - prize wall;
-- vendors and exclusives;
-- places and map context.
+- vendors and exclusives.
 
 It uses content-aware modes only when content exists. Before ticketed play or catalogs appear, absent modes do not consume visual space. Search and filters should operate across normalized objects while source detail stays behind evidence affordances.
+
+The Plan/Explore boundary is explicit:
+
+- Explore answers “what could I do?” and may show the entire available catalog.
+- Plan answers “how do the things I care about fit together?” and becomes the dense scheduling workspace.
+- Expressing interest, making a tentative, or owning an entitlement is the ordinary bridge from Explore into Plan.
+
+### Map
+
+Map owns the spatial convention model:
+
+- venue, floor, hall, zone, room, booth, table, and meetup context;
+- events, vendors, artists, pickups, exclusives, and notes associated with places;
+- official map versions and extracted labels;
+- direct links from a place to its related objects and back again.
+
+The first versions may be a place directory plus official-map references. The destination can later grow toward the interactive atlas without promising indoor positioning or forcing every map lookup through Explore.
 
 ### Wallet
 
@@ -100,6 +121,17 @@ Wallet owns operational possession and proof:
 
 Wallet shows pleasant extracted summaries but preserves the original artifact whenever a human may need to see it. Sensitive values are revealed deliberately and cached offline only under an approved policy.
 
+### Trip
+
+Trip owns pleasant, lightweight travel and lodging reference:
+
+- flight routes, dates, local times, travelers, and confirmation references;
+- hotel stays, nights, people, addresses, and check-in/out facts;
+- Maps and provider link-outs;
+- material changes such as cancellation or a consequential schedule shift.
+
+Travel constraints backlink into Plan, and original confirmations backlink into Wallet. Trip does not assess whether an adult has booked enough travel, manage reservations, or reproduce airline and hotel tools.
+
 ### Notes
 
 Notes defaults to human-authored content from anywhere in the app:
@@ -111,9 +143,22 @@ Notes defaults to human-authored content from anywhere in the app:
 
 Machine activity, source history, and balance changes remain optional drill-down logs. They do not compete with personal notes.
 
+### Activity
+
+Activity is the comprehensive historical and trust surface, positioned below a divider in desktop navigation. Its top stream tabs are initially:
+
+- **All:** a readable chronological union of meaningful activity;
+- **Changes:** added, changed, canceled, contradicted, or superseded facts;
+- **Sources:** source checks, captured observations, health, freshness, and exact URLs;
+- **Personal:** decisions, purchases, notes, balance adjustments, and other owner actions.
+
+Entries are human-readable and clickable into their context. Low-level diagnostics stay behind expansion. Notes remain separate because they are intentionally authored and retrieved; Activity explains what happened across the system.
+
 ### Now operational layer
 
-Now answers only immediate onsite questions:
+Now is the leading contextual focus on Home. Its content changes by operating period rather than becoming a separate navigation obligation.
+
+Onsite, it answers immediate questions:
 
 - what is next;
 - when it begins and when to leave;
@@ -123,24 +168,28 @@ Now answers only immediate onsite questions:
 - what changed or remains uncertain;
 - which artifact is available offline.
 
-Now is invoked by relevance, not by navigation obligation. Before the convention it may preview a genuinely imminent travel or deadline object, but it should otherwise remain absent.
+Before the convention it can express trustworthy quiet, a waiting milestone, a consequential new signal, or the next planning decision. Afterward it can briefly elevate useful cleanup. It is invoked by relevance, and may collapse entirely when no focus adds value.
 
 ## Navigation by form factor
 
 ### Mobile
 
-- Persistent bottom destinations: Home, Plan, Explore, Wallet, Notes.
-- A contextual Now card appears at the top of Home and Plan when active.
-- Tapping the Now card opens a focused full-screen layer with one dominant object and nearby fallback information.
+- Do not use a five-item constraint to decide which product concepts exist.
+- Home, Plan, Explore, Map, Wallet, Trip, Notes, and Activity must remain easy to reach without deep nesting.
+- The exact mobile navigation treatment remains a screen-design question. Candidate treatments should be tested for reachability, labeling, safe-area use, and one-handed access.
+- A contextual Now focus appears at the top of Home and may backlink into Plan, Map, Wallet, or Trip.
+- Tapping an actionable Now focus opens the relevant object or a focused layer with nearby fallback information.
 - Object cards open their details from the whole natural hit area; secondary icons perform recognizable direct actions.
-- Local modes such as Events, Artists, Store, Prizes, and Map appear within Explore only when populated.
+- Local modes such as Events, Artists, Store, and Prizes appear within Explore only when populated.
 
 ### Desktop
 
-- Persistent left navigation uses the same five destinations.
+- Persistent left navigation presents Home, Plan, Explore, Map, Wallet, Trip, and Notes as focused destinations.
+- Activity sits below a divider as a directly accessible utility rather than being buried in settings.
 - Local modes and view controls appear in each surface header.
 - Plan may use a wide contention canvas with an adjacent detail drawer.
 - Explore may use list/map or catalog/detail compositions.
+- Map may use atlas/detail or place-directory/detail compositions.
 - Evidence and notes appear in right-side drawers so the owner can retain planning context.
 
 Mobile and desktop share capabilities and object state. They do not need layout parity.
@@ -153,10 +202,13 @@ The shell does not transform between operating periods. Priority, ordering, and 
 | --- | --- | --- | --- | --- |
 | Home | Trustworthy quiet, milestones, rare change | Decisions, deadlines, newly available catalogs | Now entry, confirmed changes, immediate claims | Receipts, reimbursements, useful notes, archive summary |
 | Plan | Known trip boundaries, Black Lotus skeleton | Contention, interests, tentatives, purchases | Today agenda, live adjustments, paid consequences | Attended/skipped history and lessons |
-| Explore | Available official details; absent modes collapse | Events, artists, stores, vendors, places | Nearby/reference-first catalogs, fresh availability | Historical browse; low prominence |
+| Explore | Available official details; absent modes collapse | Events, artists, stores, vendors | Reference-first catalogs and fresh availability | Historical browse; low prominence |
+| Map | Known venue/place references | Rooms, booths, transition context | Navigation reference, nearby objects, meetup points | Archived place context; low prominence |
 | Wallet | Badges, orders, travel, hotel, entitlements | Purchased events, deadlines, pickup preparation | Showable artifacts, codes, receipts, Prize Tix | Receipts, reimbursement, durable proof |
+| Trip | Confirmed flights, hotels, people, useful links | Constraints and consequential changes | Quick reference and Maps/provider link-outs | Historical reference; low prominence |
 | Notes | Prior lessons and preparation notes | Decision notes attached in context | Very fast contextual capture | Primary cross-object memory and retrieval |
-| Now layer | Usually absent | Only a truly imminent deadline or trip object | Dominant immediate operational view | Absent |
+| Activity | Quiet source confidence and sparse history | Meaningful changes and decisions | Operational changes and personal actions | Searchable history with low-level detail recessed |
+| Now focus | Quiet status or next unlock | Next decision or consequential deadline | Dominant immediate operational view | Small useful cleanup, then recedes |
 
 ### Density rules
 
@@ -240,6 +292,42 @@ A quiet source/freshness line opens evidence and history. It should answer:
 
 Offline-capable objects show when their critical view was saved. Stale or unavailable information is explicit. Write controls are disabled or held outside the canonical workflow; the interface never implies a successful server write while offline.
 
+## Visual direction
+
+Use a restrained dark convention-command-center language with Magic-inspired accents rather than a generic corporate dashboard or a fantasy-card imitation.
+
+### Foundation
+
+- Near-black and deep navy surfaces provide the base.
+- Layered charcoal and blue-black shading separates navigation, content fields, cards, drawers, and selected rows.
+- Warm off-white primary text and cooler muted text preserve hierarchy without turning every surface bright.
+- Borders and shadows remain subtle but sufficient to make clickable regions legible.
+- Dense screens use color, shape, icon, spacing, and alignment together to reduce reading load.
+
+### Semantic color candidates
+
+- Violet: Black Lotus eligibility and programming.
+- Warm gold: committed, purchased, paid, or consequentially locked time.
+- Rose or magenta: personal interest and favorites.
+- Blue: tentative planning and neutral selection.
+- Amber: meaningful change, unresolved contradiction, or approaching decision.
+- Red: cancellation, invalid state, or lost entitlement requiring attention.
+- Green: personally confirmed, observed onsite, successfully claimed, or healthy saved state.
+- Stable person colors: Kavi, Chris, and Juan, always paired with initials or a face marker.
+
+These are candidate mappings to test in the state-language work. Color never communicates state alone and should not make routine publisher categories look urgent.
+
+### Icon and block language
+
+- Use recognizable icons for interest, commitment, ticket/entitlement, flexibility, people, place, map, evidence, note, change, and offline state.
+- Use custom owned lotus-inspired iconography for Black Lotus rather than copied card art.
+- Give time blocks, place blocks, wallet artifacts, and catalog items distinctive silhouettes and shading so screens do not become walls of identically shaped text cards.
+- Use icons as compact state carriers; preserve labels or accessible text wherever the meaning is not universal.
+
+### Design process
+
+Visual work should support stepwise product decisions. Do not present a polished whole site as a substitute for reasoning through navigation, state, density, and behavior. Each prototype pass should isolate a small set of decisions, explain the recommendation, and then incorporate owner feedback before increasing fidelity.
+
 ## Architectural boundaries implied by the candidate
 
 This design does not authorize a table per tab. Surfaces are read models across small, related concepts. Navigation organization and database organization must remain independent.
@@ -258,12 +346,12 @@ These pressures are inputs to the next design gate, not permission for a compreh
 
 ## Owner-review questions
 
-1. Does the five-destination split match how the owner would naturally go looking for something?
-2. Is Now stronger as a contextual layer than a permanent tab?
-3. Does folding Places into Explore preserve enough prominence for the eventual interactive atlas?
-4. Are Trip, Sources, and Remember better as cross-cutting contexts than top-level destinations?
-5. Is any important object forced into an unnatural destination?
+1. Does the focused desktop navigation match how the owner would naturally go looking for something?
+2. Which mobile navigation treatment preserves direct access without becoming cramped or obscure?
+3. Does phase-aware Now remain useful and calm in all four operating periods?
+4. Do Activity's initial streams cover provenance and history without competing with Notes?
+5. Is any important object still forced into an unnatural destination?
 
 ## Gate recommendation
 
-Approve this candidate if the five destinations feel stable and the contextual placements above feel natural. If approved, the next work should define planning state, time semantics, conflicts, relevance, and source status against this architecture before detailed screen concepts or database design.
+Approve this candidate when the focused destinations, phase-aware Now, Activity framing, and visual direction feel stable. Mobile navigation treatment can remain an explicit screen-design question rather than blocking the conceptual architecture. Once approved, the next work should define planning state, time semantics, conflicts, relevance, and source status against this architecture before detailed screen concepts or database design.

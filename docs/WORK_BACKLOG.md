@@ -16,7 +16,7 @@
 - [x] Explore ticketed-play planning usefulness and interface behavior.
 - [x] Synthesize cross-phase value principles and onsite support surfaces.
 - [x] Scope the next design and trust-slice tranche without committing broad UI or schema.
-- [ ] Review and approve the persistent surface map and phase-density behavior proposed in `docs/EXPERIENCE_ARCHITECTURE.md`.
+- [x] Accept the persistent surface-map direction, phase-aware Now, Activity framing, and dark visual language in `docs/EXPERIENCE_ARCHITECTURE.md`; defer exact mobile navigation treatment to screen design.
 - [ ] Approve planning states, time semantics, conflicts, relevance, and source-state language.
 - [ ] Test priority mobile and desktop screen concepts against representative scenarios.
 - [ ] Derive and implement the minimal Black Lotus trust-slice contract only after design approval.
