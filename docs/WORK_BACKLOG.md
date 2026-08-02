@@ -17,7 +17,7 @@
 - [x] Synthesize cross-phase value principles and onsite support surfaces.
 - [x] Scope the next design and trust-slice tranche without committing broad UI or schema.
 - [x] Accept the persistent surface-map direction, phase-aware Now, Activity framing, and dark visual language in `docs/EXPERIENCE_ARCHITECTURE.md`; defer exact mobile navigation treatment to screen design.
-- [ ] Approve planning states, time semantics, conflicts, relevance, and source-state language.
+- [ ] Finish the planning-language gate: decision, preference, intelligence, and time direction are accepted in `docs/PLANNING_INTELLIGENCE_MODEL.md`; conflict hierarchy and source-state language remain.
 - [ ] Test priority mobile and desktop screen concepts against representative scenarios.
 - [ ] Derive and implement the minimal Black Lotus trust-slice contract only after design approval.
 - [ ] Prove source revision reconciliation and an offline-readable critical view.
@@ -31,6 +31,7 @@
 - Full interactive convention atlas with clickable booths/rooms/zones.
 - True multi-user collaboration, shared schedules, voting, chat, and live sharing.
 - Synthetic event-day scenario suite.
+- Daily monitoring-agent “Codex sauce,” constrained resident intelligence, and AI Feedback review inbox.
 - Offline write queues and conflict resolution.
 - Production hosting.
 - Docker/WSL and a local Supabase replica unless a concrete isolation or migration-rehearsal need emerges.
