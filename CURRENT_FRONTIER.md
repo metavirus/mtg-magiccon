@@ -14,13 +14,15 @@ Updated: 2026-08-01
 - `research/PRE_TICKETED_PLAY_HYPOTHETICAL_HYDRATION.md` is captured as a bracketed paper artifact only; it is not a seed plan, schema, monitor, or production-data proposal.
 - Ticketed-play discovery is synthesized around information translation, owner-centered relevance triage, nonrefundable commitment states, fixed versus flexible time semantics, sellout/change monitoring, and person-aware but owner-managed planning.
 - Cross-phase discovery now identifies the main product shape: contextual retrieval across fragmented sources, milestones as the quiet-period landing spine, MagicCon-specific friction only, robust preparation with lightweight use, first-class places, over-ingested store/prize surfaces, Wallet as operational reference, contextual notes, prudent offline cache hygiene, and post-event retrieval after neglect.
+- The next phase is scoped in `docs/NEXT_PHASE_SCOPE.md`: design the persistent cross-phase experience, settle decision/time/source language, test priority surfaces on mobile and desktop, and implement one narrow Black Lotus trust slice with change reconciliation and offline reading.
 
 ## Next safe lanes
 
 1. Confirm clean CI on the draft pull request.
-2. Convert discovery into a small set of design candidate surfaces without treating the current synthesis as committed UI or schema.
-3. Prove one changing Atlanta source, one personal decision, one itinerary consequence, and one offline-readable critical view before adding broad domain tables.
-4. Define private Storage buckets and policies only when the first real artifact workflow is approved.
+2. Begin the design tranche with the app surface map, phase-density behavior, and contextual-retrieval paths.
+3. Approve decision, time, conflict, relevance, and source-state language before deriving the Black Lotus trust-slice schema.
+4. Prove one changing Atlanta Black Lotus fact, one personal decision, one itinerary consequence, and one offline-readable critical view before adding broad domain tables.
+5. Define private Storage buckets and policies only when the first real artifact workflow is approved.
 
 ## Active boundaries
 

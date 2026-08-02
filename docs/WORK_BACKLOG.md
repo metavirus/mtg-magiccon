@@ -15,7 +15,12 @@
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
 - [x] Synthesize cross-phase value principles and onsite support surfaces.
-- [ ] Convert discovery into design candidates before adding schema or UI.
+- [x] Scope the next design and trust-slice tranche without committing broad UI or schema.
+- [ ] Approve the persistent surface map and phase-density behavior.
+- [ ] Approve planning states, time semantics, conflicts, relevance, and source-state language.
+- [ ] Test priority mobile and desktop screen concepts against representative scenarios.
+- [ ] Derive and implement the minimal Black Lotus trust-slice contract only after design approval.
+- [ ] Prove source revision reconciliation and an offline-readable critical view.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
 
