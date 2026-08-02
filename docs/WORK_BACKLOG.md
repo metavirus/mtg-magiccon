@@ -14,12 +14,18 @@
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
-- [ ] Convert ticketed-play discovery into design candidates before adding schema or UI.
+- [x] Synthesize cross-phase value principles and onsite support surfaces.
+- [ ] Convert discovery into design candidates before adding schema or UI.
+- [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
+- [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
 
 ## Parked
 
 - Exhaustive event/travel/vendor/expense/people schema.
 - Automated large-scale MagicCon ingestion.
+- Full interactive convention atlas with clickable booths/rooms/zones.
+- True multi-user collaboration, shared schedules, voting, chat, and live sharing.
+- Synthetic event-day scenario suite.
 - Offline write queues and conflict resolution.
 - Production hosting.
 - Docker/WSL and a local Supabase replica unless a concrete isolation or migration-rehearsal need emerges.
