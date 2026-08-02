@@ -13,7 +13,8 @@
 - [ ] Design private Storage and retention rules for confirmations and receipts.
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
-- [ ] Explore ticketed-play planning usefulness and interface behavior.
+- [x] Explore ticketed-play planning usefulness and interface behavior.
+- [ ] Convert ticketed-play discovery into design candidates before adding schema or UI.
 
 ## Parked
 
