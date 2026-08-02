@@ -4,7 +4,7 @@
 
 - [ ] Confirm clean CI on the draft pull request.
 - [x] Record live migration, harmless query, RLS proof, and advisor evidence.
-- [ ] Confirm one owner account exists without storing its credentials in the repository.
+- [x] Confirm one owner account exists without storing its credentials in the repository.
 
 ## Next product tranche
 
@@ -12,6 +12,7 @@
 - [ ] Model a small itinerary slice from actual official evidence.
 - [ ] Design private Storage and retention rules for confirmations and receipts.
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
+- [ ] Review `research/PROBLEM_SPACE_EXPLORATION.md` and answer its next-conversation questions.
 
 ## Parked
 
