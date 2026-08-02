@@ -1,6 +1,6 @@
 # Next Phase Scope: Product Design and Trust Slice
 
-Updated: 2026-08-01
+Updated: 2026-08-02
 
 ## Phase outcome
 
@@ -35,17 +35,18 @@ The largest remaining uncertainty is no longer whether the idea has useful featu
 
 Produce a compact surface map and navigation model for the persistent app shell.
 
-The candidate primary surfaces are:
+The accepted primary surfaces are:
 
 - **Home:** quiet status, meaningful changes, milestones, and the next useful thing.
-- **Plan:** all time-bearing objects, event discovery, interest and commitment, overlap, and itinerary decisions.
-- **Now:** the next confirmed or relevant object with time, place, required artifact, freshness, and fallback.
+- **Calendar:** a scrollable stream of meaningful dates, milestones, travel, and convention-day summaries.
+- **Plan:** focused November 13–15 contention, Tentatives, commitments, and schedule consequences.
 - **Wallet:** badges, orders, entitlements, receipts, confirmations, pickup proof, and lightweight balances.
 - **Explore:** stores, prize wall, artists, vendors, and other ingested convention catalogs when they exist.
-- **Places:** rooms, zones, booths, tables, and map context, initially simple and eventually capable of supporting an interactive atlas.
+- **Map:** rooms, zones, booths, tables, and spatial context, initially simple and eventually capable of supporting an interactive atlas.
+- **Trip:** flights, hotels, travelers, dates, and situated reference.
 - **Notes:** human-authored notes first, linked back to their context; machine activity available only as a drill-down.
 
-Trip facts and watched sources are important, but the design pass should test whether they deserve permanent top-level destinations or work better as strong contextual sections reached from Home, Wallet, Plan, and evidence drawers. “Remember” should be evaluated as a post-event mode or filter rather than assumed to require a permanent empty tab before the event.
+**Now** is Home's phase-aware focus rather than a destination. **Activity** is directly reachable below a desktop navigation divider, with All, Changes, Sources, and Personal streams. “Remember” is an archival lens rather than a permanently sparse tab.
 
 ### Required artifacts
 

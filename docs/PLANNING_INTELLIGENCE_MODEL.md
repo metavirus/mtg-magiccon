@@ -35,14 +35,13 @@ Access is not the final planning state. It is an independent fact:
 - eligible through Black Lotus or another entitlement;
 - purchased.
 
-Purchased uses a warm-gold lock. It means money or entitlement is attached and remains consequential even if the event is removed from the working itinerary or ultimately skipped.
+Purchased uses a warm-gold lock. It means money or entitlement is attached and remains consequential even if the owner ultimately skips participation.
 
-Marking an event Purchased should default it to Committed because purchase is normally the strongest expression of intent. The owner can still choose “keep purchased, remove from working plan.” This preserves the distinction demonstrated by Leap: entitlement can remain while schedule placement changes.
+Marking an event Purchased staples it into Plan and defaults it to Committed because purchase is the strongest expression of intent. The event remains a fixed planning consequence until the owner explicitly marks it Skipped or otherwise releases the commitment. Leap removing it from a displayed schedule does not erase the purchase or free the time in this app.
 
 An event may therefore be:
 
 - purchased and committed;
-- purchased but unscheduled;
 - purchased and later skipped;
 - tentative but not purchased;
 - committed because it is included with Black Lotus.

@@ -21,6 +21,9 @@
 - [ ] Test priority mobile and desktop screen concepts against representative scenarios.
   - [ ] Review the Decide / Schedule focused Plan workspace in `docs/PLAN_WORKSPACE_CONCEPT.md`.
   - [ ] Review the scrollable meaningful-date Calendar surface and Calendar-to-Plan context shift in `docs/CALENDAR_SURFACE_CONCEPT.md`.
+  - [x] Audit accepted design state and prototype limitations in `docs/DESIGN_STATE_ASSESSMENT.md`.
+  - [ ] Test the deeper Plan visual grammar and state propagation on desktop.
+  - [ ] Translate the same Plan scenario to a deliberate mobile interaction.
 - [ ] Derive and implement the minimal Black Lotus trust-slice contract only after design approval.
 - [ ] Prove source revision reconciliation and an offline-readable critical view.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.

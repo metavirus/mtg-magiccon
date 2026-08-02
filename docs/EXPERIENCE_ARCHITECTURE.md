@@ -1,7 +1,7 @@
-# Experience Architecture Candidate
+# Experience Architecture
 
 Updated: 2026-08-02
-Status: Direction accepted; navigation and visual-language candidate under refinement
+Status: Core direction accepted; screen behavior and mobile navigation remain under review
 
 ## Decision question
 
@@ -322,7 +322,7 @@ Use a restrained dark convention-command-center language with Magic-inspired acc
 - Borders and shadows remain subtle but sufficient to make clickable regions legible.
 - Dense screens use color, shape, icon, spacing, and alignment together to reduce reading load.
 
-### Semantic color candidates
+### Semantic color direction
 
 - Violet: Black Lotus eligibility and programming.
 - Warm gold: committed, purchased, paid, or consequentially locked time.
@@ -333,7 +333,7 @@ Use a restrained dark convention-command-center language with Magic-inspired acc
 - Green: personally confirmed, observed onsite, successfully claimed, or healthy saved state.
 - Stable person colors: Kavi, Chris, and Juan, always paired with initials or a face marker.
 
-These are candidate mappings to test in the state-language work. Color never communicates state alone and should not make routine publisher categories look urgent.
+These mappings are the accepted starting language for screen testing. Color never communicates state alone and should not make routine publisher categories look urgent.
 
 ### Icon and block language
 
@@ -346,11 +346,11 @@ These are candidate mappings to test in the state-language work. Color never com
 
 Visual work should support stepwise product decisions. Do not present a polished whole site as a substitute for reasoning through navigation, state, density, and behavior. Each prototype pass should isolate a small set of decisions, explain the recommendation, and then incorporate owner feedback before increasing fidelity.
 
-## Architectural boundaries implied by the candidate
+## Architectural boundaries implied by the direction
 
 This design does not authorize a table per tab. Surfaces are read models across small, related concepts. Navigation organization and database organization must remain independent.
 
-The candidate does imply several durable modeling pressures to consider later:
+The direction does imply several durable modeling pressures to consider later:
 
 - people must remain distinct from authenticated users;
 - places need identity beyond free text;
@@ -362,14 +362,13 @@ The candidate does imply several durable modeling pressures to consider later:
 
 These pressures are inputs to the next design gate, not permission for a comprehensive schema.
 
-## Owner-review questions
+## Remaining screen questions
 
-1. Does the focused desktop navigation match how the owner would naturally go looking for something?
-2. Which mobile navigation treatment preserves direct access without becoming cramped or obscure?
-3. Does phase-aware Now remain useful and calm in all four operating periods?
-4. Do Activity's initial streams cover provenance and history without competing with Notes?
-5. Is any important object still forced into an unnatural destination?
+1. Which mobile navigation treatment preserves direct access without becoming cramped or obscure?
+2. How should the accepted semantic language behave at phone density?
+3. How should detail drawers and focused mobile layers preserve the user's comparison context?
+4. Which parts of Plan need visual state propagation before the Black Lotus trust slice can be specified safely?
 
 ## Gate recommendation
 
-Approve this candidate when the focused destinations, phase-aware Now, Activity framing, and visual direction feel stable. Mobile navigation treatment can remain an explicit screen-design question rather than blocking the conceptual architecture. Once approved, the next work should define planning state, time semantics, conflicts, relevance, and source status against this architecture before detailed screen concepts or database design.
+The surface map, phase-aware Now, Activity framing, Calendar/Plan separation, and dark visual direction are accepted. The next gate is behavioral screen evidence: a representative Plan interaction model, event detail, and mobile translation that preserve the accepted planning semantics. Database design remains downstream of that evidence.
