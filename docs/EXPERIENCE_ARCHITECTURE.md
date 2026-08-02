@@ -1,6 +1,6 @@
 # Experience Architecture Candidate
 
-Updated: 2026-08-01
+Updated: 2026-08-02
 Status: Direction accepted; navigation and visual-language candidate under refinement
 
 ## Decision question
@@ -12,12 +12,13 @@ Can the app provide one stable, understandable home for every important MagicCon
 Prefer focused, directly reachable destinations over an arbitrary tab limit:
 
 1. **Home** — attention, milestones, meaningful changes, and the phase-aware focus.
-2. **Plan** — time, decisions, commitments, conflicts, and scheduling constraints.
-3. **Explore** — the catalog of events, artists, stores, vendors, and prizes.
-4. **Map** — places, spatial context, and eventually the interactive convention atlas.
-5. **Wallet** — owned, paid, claimable, showable, and reference-worthy items.
-6. **Trip** — flights, hotels, travelers, dates, and situated quality-of-life reference.
-7. **Notes** — human-authored memory across every contextual object.
+2. **Calendar** — the broad visual stream of meaningful dates from now through Atlanta.
+3. **Plan** — focused November 13–15 decisions, commitments, conflicts, and time contention.
+4. **Explore** — the catalog of events, artists, stores, vendors, and prizes.
+5. **Map** — places, spatial context, and eventually the interactive convention atlas.
+6. **Wallet** — owned, paid, claimable, showable, and reference-worthy items.
+7. **Trip** — flights, hotels, travelers, dates, and situated quality-of-life reference.
+8. **Notes** — human-authored memory across every contextual object.
 
 Place **Activity** below a visual divider as an easily reached utility destination. It combines chronological history with top-level stream tabs such as All, Changes, Sources, and Personal. This is the natural home for monitoring history, source health, captured observations, ingestion actions, and owner activity without making source systems part of the primary product model.
 
@@ -41,6 +42,7 @@ The information architecture should not be compressed merely to fit a convention
 | Destination | Owner question | Does not become |
 | --- | --- | --- |
 | Home | What deserves attention now? | News feed or monitoring console |
+| Calendar | What meaningful thing happens when? | Generic month grid or dense contention planner |
 | Plan | What am I considering or doing, and what conflicts? | Leap clone or generic calendar |
 | Explore | What exists and might interest me? | Flat brochure or source directory |
 | Map | Where is it, what is nearby, and what matters there? | Static image viewer or promised indoor GPS |
@@ -68,16 +70,31 @@ Home is not a permanent feed of captured observations. Low-value observations re
 
 ### Plan
 
-Plan owns time-bearing personal decisions, not every published occurrence. It combines:
+Plan owns focused November 13–15 resource contention, not every dated object. It combines:
 
 - interests, tentatives, commitments, and purchases;
 - fixed and flexible activities;
 - Black Lotus, ticketed play, loose programming, and personal intentions;
-- travel boundaries, hotel transitions, pickup windows, and meaningful deadlines;
+- convention-day time pressure and meaningful operational windows;
 - hard conflicts, soft conflicts, and visible overlap;
 - person participation without requiring person accounts.
 
 Desktop may use a dense time canvas. Mobile must still support inspection, state changes, conflicts, and purchased details through a chronological agenda and focused day views.
+
+### Calendar
+
+Calendar owns the broad dated story from now through the trip:
+
+- milestones and expected information releases;
+- deadlines and shopping windows;
+- flights, hotel transitions, and travel dates;
+- November 12 Black Lotus preview programming;
+- November 13–15 convention-day summaries;
+- useful post-event follow-ups.
+
+Its default form is a vertically scrollable meaningful-date stream, not a conventional 30-day grid. Empty periods compress; month and week markers preserve orientation; dense periods naturally expand. A compact date navigator may support quick jumps.
+
+Clicking a convention day expands a readable summary inline. Committed and Purchased events may appear individually, while Tentatives are summarized. “Open in Plan” deliberately changes context into the dense contention workspace for that day.
 
 ### Explore
 
@@ -175,7 +192,7 @@ Before the convention it can express trustworthy quiet, a waiting milestone, a c
 ### Mobile
 
 - Do not use a five-item constraint to decide which product concepts exist.
-- Home, Plan, Explore, Map, Wallet, Trip, Notes, and Activity must remain easy to reach without deep nesting.
+- Home, Calendar, Plan, Explore, Map, Wallet, Trip, Notes, and Activity must remain easy to reach without deep nesting.
 - The exact mobile navigation treatment remains a screen-design question. Candidate treatments should be tested for reachability, labeling, safe-area use, and one-handed access.
 - A contextual Now focus appears at the top of Home and may backlink into Plan, Map, Wallet, or Trip.
 - Tapping an actionable Now focus opens the relevant object or a focused layer with nearby fallback information.
@@ -184,7 +201,7 @@ Before the convention it can express trustworthy quiet, a waiting milestone, a c
 
 ### Desktop
 
-- Persistent left navigation presents Home, Plan, Explore, Map, Wallet, Trip, and Notes as focused destinations.
+- Persistent left navigation presents Home, Calendar, Plan, Explore, Map, Wallet, Trip, and Notes as focused destinations.
 - Activity sits below a divider as a directly accessible utility rather than being buried in settings.
 - Local modes and view controls appear in each surface header.
 - Plan may use a wide contention canvas with an adjacent detail drawer.
@@ -201,7 +218,8 @@ The shell does not transform between operating periods. Priority, ordering, and 
 | Surface | Quiet monitoring | Active planning | During convention | After convention |
 | --- | --- | --- | --- | --- |
 | Home | Trustworthy quiet, milestones, rare change | Decisions, deadlines, newly available catalogs | Now entry, confirmed changes, immediate claims | Receipts, reimbursements, useful notes, archive summary |
-| Plan | Known trip boundaries, Black Lotus skeleton | Contention, interests, tentatives, purchases | Today agenda, live adjustments, paid consequences | Attended/skipped history and lessons |
+| Calendar | Milestones, deadlines, travel, sparse dated context | Broad agenda and convention-day summaries | Trip and convention-day chronological reference | Follow-ups and historical date retrieval |
+| Plan | Black Lotus reference with no manufactured contention | November 13–15 contention, Tentatives, and purchases | Focused day schedule and alternatives | Attended/skipped convention-plan history |
 | Explore | Available official details; absent modes collapse | Events, artists, stores, vendors | Reference-first catalogs and fresh availability | Historical browse; low prominence |
 | Map | Known venue/place references | Rooms, booths, transition context | Navigation reference, nearby objects, meetup points | Archived place context; low prominence |
 | Wallet | Badges, orders, travel, hotel, entitlements | Purchased events, deadlines, pickup preparation | Showable artifacts, codes, receipts, Prize Tix | Receipts, reimbursement, durable proof |

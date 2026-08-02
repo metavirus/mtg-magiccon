@@ -19,7 +19,8 @@
 - [x] Accept the persistent surface-map direction, phase-aware Now, Activity framing, and dark visual language in `docs/EXPERIENCE_ARCHITECTURE.md`; defer exact mobile navigation treatment to screen design.
 - [x] Approve planning states, Tentative synthesis, time semantics, conflict hierarchy, preference intelligence, and source-state presentation in `docs/PLANNING_INTELLIGENCE_MODEL.md`.
 - [ ] Test priority mobile and desktop screen concepts against representative scenarios.
-  - [ ] Review the Decide / Calendar / Agenda Plan workspace candidate in `docs/PLAN_WORKSPACE_CONCEPT.md`.
+  - [ ] Review the Decide / Schedule focused Plan workspace in `docs/PLAN_WORKSPACE_CONCEPT.md`.
+  - [ ] Review the scrollable meaningful-date Calendar surface and Calendar-to-Plan context shift in `docs/CALENDAR_SURFACE_CONCEPT.md`.
 - [ ] Derive and implement the minimal Black Lotus trust-slice contract only after design approval.
 - [ ] Prove source revision reconciliation and an offline-readable critical view.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.

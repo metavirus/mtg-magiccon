@@ -1,213 +1,156 @@
 # Plan Workspace Concept
 
-Updated: 2026-08-01
-Status: Deep design candidate for stepwise owner review; not an approved screen or schema
+Updated: 2026-08-02
+Status: Direction accepted; detailed visual behavior remains under review
 
-## Decision question
+## Purpose
 
-How should Plan support a sparse pre-release period, a dense contender-selection period, a mostly committed schedule, and fast onsite use without becoming four unrelated products?
+Plan is the focused resource-contention workspace for the three public convention days: Friday through Sunday, November 13–15, 2026. It answers:
 
-## Recommendation
+- Which activities are serious contenders?
+- Which contenders compete for the same time, energy, money, or experience?
+- What am I committing to?
+- What does each commitment displace?
+- How does the resulting convention weekend fit together?
 
-Plan is a stable workspace with three submodes:
+Plan is not a general calendar, trip itinerary, or month view. Broad dated context belongs in the primary Calendar surface.
+
+## Stable modes
+
+Plan has two stable submodes:
 
 1. **Decide** — synthesize candidates and resolve contention.
-2. **Calendar** — see time, overlap, flexibility, constraints, and the working schedule.
-3. **Agenda** — read the chosen day chronologically and operate it on mobile.
+2. **Schedule** — inspect the focused Friday–Sunday time canvas.
 
-The modes remain conceptually stable. The default mode and content density change with the operating period:
+During active event selection, Decide is the natural default. As commitments accumulate, Schedule may become the natural default. The owner can switch at any time.
 
-| Period | Default | Why |
-| --- | --- | --- |
-| Before ticketed play | Calendar | Shows the small number of known Black Lotus, travel, and deadline anchors without manufacturing candidate placeholders |
-| Active event selection | Decide | The main job is comparing contenders and understanding what each choice displaces |
-| Mostly committed | Calendar | The main job is validating the shape and pressure of the chosen days |
-| During convention | Agenda | The main job is reading today quickly; Now handles the immediate object |
-| After convention | Agenda/history | The main job is occasional retrieval of attended, skipped, and purchased context |
-
-Phase sensitivity changes the default, not the conceptual ownership of information. The owner may switch modes at any time.
-
-## Why three modes
-
-A single calendar is weak at comparing verbose events. A candidate list is weak at showing time. A chronological agenda is weak at resolving several overlapping possibilities. Each mode gives one job enough room without creating separate copies of personal state.
-
-The modes are different views over the same events, decisions, people, entitlements, and time semantics. Moving an event to Tentative in Decide immediately affects Calendar. Committing it in Calendar immediately resolves or displaces options in Decide. Agenda never becomes a separate schedule.
+November 12 Black Lotus preview programming may be referenced where useful, but it does not need the same contention machinery because access and the day's structure are already constrained. November 11 travel belongs in Calendar and Trip.
 
 ## Decide
 
-Decide is the high-value synthesis workspace during ticketed-play selection.
+Decide is the differentiated planning surface.
 
 ### Core composition
 
-- **Candidate pool:** Interested events that are worth retaining but have not yet been promoted to Tentative.
-- **Contention sets:** Tentative contenders grouped because they overlap, compete for the same energy or budget, or serve as alternatives for a similar experience.
-- **Commitment consequence:** a visible explanation of what committing one contender would displace.
-- **Selected-event detail:** a drawer or pane with translated description, intelligence rationale, price, duration, flexibility, people, access, notes, and source evidence.
+- **Candidate pool:** Interested events worth retaining but not yet promoted to Tentative.
+- **Contention sets:** Tentative contenders grouped because they overlap or otherwise compete.
+- **Commitment consequence:** a visual preview of what choosing one contender displaces.
+- **Selected-event detail:** an on-demand drawer or page with translated details, rationale, evidence, and notes.
 
-The candidate pool and contention sets may use a left/right composition on wide desktop or top/bottom composition at medium widths. The selected-event detail appears only when useful and should not permanently squeeze the comparison space.
+On wide desktop, the candidate pool can sit beside the dominant contention workspace. At medium widths it can move above or below. Event detail should open only on selection rather than permanently creating a crowded third pane.
 
-### Contention sets
+### At-a-glance event blocks
 
-Contention sets are more than time-conflict groups. They may represent:
+Multi-event views show only decision headlines:
+
+- title;
+- time and duration;
+- price or access;
+- planning state and gold purchase lock;
+- person markers where relevant;
+- one intelligence chiclet;
+- exceptional source state such as Changed, Canceled, or Sold out.
+
+The entire natural block opens detail. Desktop may retain comparison context with a drawer; mobile may use a focused page or sheet.
+
+### Visual contention sets
+
+Contention should not degrade into a ranked text list. Two or three contenders can be positioned against a shared mini time rail:
+
+- spatial position reveals overlap;
+- block shape and shading reveal fixed, flexible, and fuzzy time;
+- violet identifies Black Lotus context;
+- gold lock identifies purchase;
+- solid versus translucent fill distinguishes Commitment and Tentative;
+- person and interest markers remain compact;
+- selecting a contender emphasizes it and dims the time or opportunities it would displace.
+
+Desktop may compare contenders side by side. Mobile stacks the same visually encoded blocks while retaining the common time reference.
+
+### Contention sets beyond overlap
+
+A set may represent:
 
 - direct overlap;
-- a back-to-back sequence worth reviewing;
+- back-to-back pressure;
 - several attractive activities competing for one day;
-- a Black Lotus event versus a paid general event;
-- two variants of a similar format;
-- a group/person choice, even though MVP remains owner-managed.
+- Black Lotus versus paid general programming;
+- similar formats or experience substitutes;
+- a person/group tradeoff, while MVP remains owner-managed.
 
-The interface must label why the set exists. AI may suggest a set, but the owner can ignore, split, or regroup it without changing event state.
+The interface labels why a set exists. AI may propose a set, but cannot silently change event state.
 
-### Candidate ordering
+### Candidate ordering and filtering
 
-Default candidate ordering should be personal relevance, tempered by schedule consequence. Other available sorts can include:
+Default ordering is personal relevance tempered by schedule consequence. Optional sorts may include time, price, duration, newly published or changed, and scarcity.
 
-- start time;
-- price;
-- duration;
-- newly published or changed;
-- scarcity or sold-out state.
+Filters remain recessed until useful. Potential filters include day, state, program family, fixed/flexible, price, format, competitiveness, person, and availability. Do not permanently display a wall of filter chips before real inventory proves the need.
 
-Filters should be available but recessed behind a clear filter control rather than permanently consuming the toolbar. Candidate filters may include day, planning state, program/source family, fixed/flexible, price, format, competitiveness, person, and availability.
+## Schedule
 
-The app should avoid a wall of filter chips before real inventory proves which dimensions matter.
+Schedule is the detailed temporal view for November 13–15 only.
 
-### Commitment behavior
+### Range controls
 
-Committing a contender:
+- Friday;
+- Saturday;
+- Sunday;
+- all three days.
 
-- converts its time block to solid treatment;
-- creates a hard conflict only with another fixed Commitment;
-- visibly displaces overlapping Tentatives without changing their state;
-- recalculates intelligence chiclets and schedule pressure;
-- defaults to gold purchase lock as well if the event was marked Purchased.
+There is no generic month or week context inside Plan. Broad dates and travel days belong in Calendar.
 
-Displaced Tentatives remain attached to the relevant timeslot or contention set and can be restored without searching the catalog again.
+### Time layers
 
-## Calendar
-
-Calendar is the temporal truth surface for the owner's working plan.
-
-### Layers
-
-- **Constraints:** travel boundaries, hotel transitions, deadlines, and meaningful windows; visually recessed unless consequential.
 - **Committed blocks:** solid primary blocks; overlapping fixed Commitments are the only hard conflicts.
-- **Purchased overlay:** gold lock layered onto the event rather than a separate block type.
-- **Tentative blocks:** shaded or outlined blocks that can stack or offset when overlapping.
-- **Displaced Tentatives:** dimmed but visible alternatives associated with the committed timeslot.
-- **Flexible activities:** faint or movable blocks; published anchors remain distinguishable from personal placement.
-- **Fuzzy tails:** fading or hatched end regions when optional expected-exit information exists.
-- **Pressure cues:** adjacency, conditional overlap, long day, or meal-window intelligence shown subtly.
+- **Purchased overlay:** gold lock layered onto the event.
+- **Tentative blocks:** shaded or outlined blocks that can stack or offset.
+- **Displaced Tentatives:** dimmed but visible alternatives tied to the relevant timeslot.
+- **Flexible activities:** faint movable blocks with published anchors kept separate from personal placement.
+- **Fuzzy tails:** fading or hatched end regions only when contextual uncertainty is useful.
+- **Pressure cues:** adjacency, conditional overlap, long day, or meal-window intelligence.
 
-Interested-only events do not appear as full calendar blocks by default. A “show interests” option may place lightweight markers at their published times when the owner wants a broader scan.
+Interested-only events do not appear as full blocks by default. A later “show interests” option may add lightweight markers if useful.
 
-### Desktop density
+### Density and panes
 
-Desktop may provide:
+Desktop may provide a detailed day canvas, an all-three-days overview, an optional candidate tray, and an on-demand event drawer. The design must allow visible overlap instead of forcing every event into one nonoverlapping lane.
 
-- one-day and multi-day time canvases;
-- aligned vertical time axes;
-- side-by-side convention days when readable;
-- a candidate tray at the side or bottom;
-- an event detail drawer without losing the time context;
-- zoom or density controls only if real inventory demonstrates the need.
+Mobile may use a focused day timeline with Friday/Saturday/Sunday switching. It must preserve the ability to inspect overlaps, displaced Tentatives, flexibility, and detail even if the dense desktop canvas is not reproduced literally.
 
-The design should allow overlap visibly rather than forcing every event into a single nonoverlapping lane.
+## Relationship with Calendar
 
-### Sparse period
+Calendar is the broad meaningful-date stream. Plan is the focused convention scheduling workspace.
 
-Before ticketed play, Calendar should not render large empty day grids. It can use a compact known-anchors treatment:
+Calendar may show a November 13 date cluster with:
 
-- Black Lotus schedule skeleton;
-- flight and hotel boundaries when useful;
-- known deadlines and shopping windows;
-- a clear statement that ticketed-play inventory is not yet available.
+- Committed and Purchased events;
+- the count of Tentative contenders;
+- major schedule pressure;
+- a compact expanded preview.
 
-The Calendar mode still exists; its density reflects available information.
-
-## Agenda
-
-Agenda is the chronological reading and operating mode.
-
-### Before and during the event
-
-- Groups objects by day.
-- Presents Committed and Purchased events as the main sequence.
-- Shows Tentative alternatives in a compact subordinate area.
-- Makes flexible activities visibly movable.
-- Links the immediate event into Now.
-- Keeps location, person, artifact, intelligence, and notes one tap away.
-
-Agenda is likely the most natural mobile Plan view, but mobile must still be able to open Decide and Calendar behaviors in forms suited to the screen.
-
-### After the event
-
-Agenda can default to attended, skipped, and purchased history without requiring the owner to complete a retrospective workflow.
-
-## Shared toolbar and filters
-
-Plan's surface header should contain only stable, high-value controls:
-
-- Decide / Calendar / Agenda submode.
-- Day or date range.
-- Filter control with active-count indicator.
-- Search when inventory exists.
-
-Sorting belongs primarily to Decide's candidate pool. Calendar uses time ordering by definition. Agenda uses chronological ordering by definition.
-
-Person chips can filter or annotate participation without implying multi-user accounts. Black Lotus eligibility remains visible where it changes access or comparison.
-
-## Multipane behavior
-
-Multipane layout should follow the job:
-
-- **Decide, wide desktop:** candidate pool beside contention workspace; selected event in an on-demand drawer.
-- **Calendar, wide desktop:** time canvas plus optional candidate tray; selected event in a drawer.
-- **Medium desktop/tablet:** main workspace above, candidate tray or selected detail below.
-- **Mobile:** one dominant list/canvas at a time; detail and comparison use sheets or focused layers.
-
-The design should not permanently display three dense panes merely because the screen is wide. Each pane must support the current decision.
+Calendar does not reproduce the contention workspace. “Open Friday in Plan” changes context deliberately and opens Schedule or Decide with Friday selected.
 
 ## AI placement
 
-AI remains embedded rather than becoming a Plan subtab:
+AI remains embedded:
 
-- one sparkle intelligence chiclet per event;
+- one intelligence chiclet per event;
 - contention-set explanation;
-- consequence preview before committing;
-- conditional-overlap and schedule-pressure rationale;
-- rare A/B question in Now when owner input resolves real ambiguity.
+- consequence preview before commitment;
+- conditional-overlap and pressure rationale;
+- rare A/B feedback through Now when an answer materially improves planning.
 
-There is no AI Recommendations tab. The value is contextual synthesis inside the owner's existing decision surface.
+There is no AI, Conflicts, Purchased, Black Lotus, People, or Candidates subtab. Those are intelligence, states, treatments, filters, or panes inside Decide and Schedule.
 
-## States that should not become tabs
+## Remaining design sequence
 
-- Conflicts: a property of Calendar and Decide.
-- Candidates: a pool inside Decide.
-- Purchased: a filter and overlay across Plan.
-- Black Lotus: a program/eligibility treatment, not a separate schedule.
-- People: chips and filters in MVP; collaboration remains v2.
-- AI: embedded intelligence, not a destination.
-
-## Initial screen-design sequence
-
-Plan should be designed through bounded decisions rather than one polished mockup:
-
-1. Decide mode: candidate pool versus contention-set composition.
-2. Tentative stacking and displacement inside one contention set.
-3. Calendar layering for Committed, Tentative, flexible, fuzzy, and purchased states.
-4. Sparse pre-ticketed Calendar behavior.
-5. Mobile Agenda and access to comparison/detail.
-6. Toolbar, filters, and sorting only after the main workspaces are credible.
-
-## First owner-review questions
-
-1. Do Decide, Calendar, and Agenda describe genuinely distinct jobs?
-2. Should active event selection default to Decide rather than Calendar?
-3. Are contention sets a useful synthesis unit beyond literal overlaps?
-4. Should the sparse pre-ticketed Plan default to compact Calendar anchors?
+1. Candidate pool versus contention-set composition.
+2. Shared-time-rail contender comparison.
+3. Tentative stacking and displacement.
+4. Schedule layering and three-day overview.
+5. Mobile Decide and Schedule behavior.
+6. Toolbar, filters, and sorting after the main jobs are credible.
 
 ## Boundary
 
-This concept does not authorize a comprehensive event model, scheduling engine, automated grouping agent, monitoring, or screen implementation. It defines the workspace behavior to test before deriving the Black Lotus trust-slice contract.
+This concept does not authorize a comprehensive event model, scheduling engine, automated grouping agent, or screen implementation. It defines the focused workspace to test before deriving the Black Lotus trust-slice contract.
