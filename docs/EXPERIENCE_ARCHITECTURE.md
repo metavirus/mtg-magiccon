@@ -327,7 +327,7 @@ Use a restrained dark convention-command-center language with Magic-inspired acc
 - Violet: Black Lotus eligibility and programming.
 - Warm gold: committed, purchased, paid, or consequentially locked time.
 - Rose or magenta: personal interest and favorites.
-- Blue: tentative planning and neutral selection.
+- Cool blue: transient focus, selection, and consequence preview; it does not replace category identity.
 - Amber: meaningful change, unresolved contradiction, or approaching decision.
 - Red: cancellation, invalid state, or lost entitlement requiring attention.
 - Green: personally confirmed, observed onsite, successfully claimed, or healthy saved state.
@@ -341,6 +341,15 @@ These mappings are the accepted starting language for screen testing. Color neve
 - Use custom owned lotus-inspired iconography for Black Lotus rather than copied card art.
 - Give time blocks, place blocks, wallet artifacts, and catalog items distinctive silhouettes and shading so screens do not become walls of identically shaped text cards.
 - Use icons as compact state carriers; preserve labels or accessible text wherever the meaning is not universal.
+
+### Orthogonal event and person encoding
+
+- Event category supplies restrained base identity: violet for Black Lotus, indigo for ticketed play, teal for flexible/social programming, and neutral charcoal for loose programming.
+- Event planning state changes border style, opacity, solidity, and labels rather than replacing the category color.
+- Cool blue is reserved for current focus or preview. Warm gold is reserved for purchase or financial lock.
+- A compact lower-right person cluster shows only people with a relevant relationship to the event. Absence is implicit; the MVP does not render ineligibility.
+- Each person's stable circle fill plus white initial carries identity. The marker border carries that person's event state: none for Interested, dotted light for Tentative, solid light for Committed, and solid gold for Purchased.
+- Hover, keyboard focus, or tap reveals the precise person-to-event relationship. Kavi remains the owner-authoritative planning perspective in MVP; a later collaboration version may add a Together/Kavi/Chris/Juan viewing lens without introducing separate person lanes.
 
 ### Design process
 

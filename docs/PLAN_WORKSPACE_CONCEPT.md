@@ -53,6 +53,8 @@ Multi-event views show only decision headlines:
 
 The entire natural block opens detail. Desktop may retain comparison context with a drawer; mobile may use a focused page or sheet.
 
+Person markers remain a lightweight overlay rather than a collaboration subsystem. Stable fill color and white initial identify the person; border treatment shows Interested, Tentative, Committed, or Purchased. Markers sit away from the title and timing, preferably at the lower-right, and reveal exact involvement on hover, focus, or tap. People with no relevant relationship are omitted.
+
 ### Visual contention sets
 
 Contention should not degrade into a ranked text list. Two or three contenders can be positioned against a shared mini time rail:
