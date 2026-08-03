@@ -111,7 +111,7 @@ There is no generic month or week context inside Plan. Broad dates and travel da
 - **Fuzzy tails:** fading or hatched end regions only when contextual uncertainty is useful.
 - **Pressure cues:** adjacency, conditional overlap, long day, or meal-window intelligence.
 
-Interested-only events do not appear as full blocks by default. A later “show interests” option may add lightweight markers if useful.
+Interested events may remain as quiet full-size blocks so their duration and overlap stay legible. They use lower contrast than Tentatives and Commitments; promotion strengthens state treatment without changing temporal geometry. Do not add a separate “show interests” mode unless real schedule density later proves it necessary.
 
 ### Density and panes
 

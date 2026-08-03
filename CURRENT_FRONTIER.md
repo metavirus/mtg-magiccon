@@ -20,6 +20,7 @@ Updated: 2026-08-02
 - Calendar and Plan are now separate zoom levels. `docs/CALENDAR_SURFACE_CONCEPT.md` defines Calendar as a primary scrollable meaningful-date stream spanning milestones, deadlines, travel, Black Lotus preview day, convention summaries, and limited follow-up. `docs/PLAN_WORKSPACE_CONCEPT.md` narrows Plan to Decide and Schedule modes for November 13–15 contention. Convention-day clusters expand inline in Calendar and deep-link into Plan.
 - `docs/DESIGN_STATE_ASSESSMENT.md` reconciles the accepted product language with the exploratory visual artifacts. The existing Plan playground validates state propagation and the Decide/Schedule distinction, but it is not a visual baseline; the next pass must center a shared time canvas, Tentative synthesis, flexible/fuzzy time, and consequence preview.
 - Plan screen studies now support the accepted visual grammar: category tint remains stable; border/solidity carries planning state; cool blue is focus only; gold is purchase only; an original lotus glyph identifies Black Lotus; and compact person markers encode identity by fill and involvement by border without introducing multi-user behavior.
+- Interested events remain quiet full temporal blocks in Schedule rather than collapsing to point markers, because their duration and overlap are part of the planning value. No extra “show interests” mode is warranted yet.
 
 ## Next safe lanes
 
