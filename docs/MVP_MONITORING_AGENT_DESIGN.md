@@ -18,14 +18,20 @@ During the quiet period, days or weeks may pass with no visible app change. The 
 
 ## Inputs
 
+The detailed watch-set strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. That research note is the authority for source priority and search-radar shape; this file defines the agent behavior and safety contract.
+
 ### Initial watch set
 
-- MagicCon Atlanta official site home and major information pages.
-- Black Lotus VIP page.
+- MagicCon Atlanta official site tree, not merely the home page. Any new, removed, renamed, or materially changed page under `https://mcatlanta.mtgfestivals.com/en-us/` is a candidate observation.
+- Black Lotus VIP page, elevated as a Home-worthy target by default unless a diff is clearly cosmetic.
 - Ticketed play / event schedule placeholder surfaces.
 - MagicCon news page.
+- Leap order and ticketed-play schedule surfaces when access is available.
+- Official MagicCon social links as low-volume announcement radar.
+- Pastimes format/ticketed-play resources for interpreting event difficulty and mechanics.
 - Official artist, vendor, show store, map, and prize wall pages when URLs exist.
 - Gmail search results for MagicCon, Leap/Event Technology, Pastimes, Delta, hotel receipts, and store receipts, only when explicitly enabled.
+- Small external search radar for high-signal Atlanta terms such as ticketed play, Black Lotus, artist directory, show store, prize wall, map, exclusive playmat, and Dragon Shield.
 
 ### Later watch set expansion
 
@@ -79,6 +85,8 @@ Send to Home when the owner would plausibly be glad they did not have to manuall
 
 - ticketed play opens;
 - Black Lotus store window or details appear;
+- the Black Lotus VIP page materially changes;
+- the Atlanta official site tree gains a new planning-relevant page;
 - official artist directory appears;
 - official show catalog appears;
 - official map appears;
