@@ -1,7 +1,7 @@
 # Calendar Surface Concept
 
-Updated: 2026-08-02
-Status: Direction accepted; visual details remain under review
+Updated: 2026-08-03
+Status: Direction and first-pass density model accepted
 
 ## Purpose
 
@@ -21,6 +21,8 @@ Use a vertically scrollable calendar stream rather than a fixed 30-day grid:
 - Today and Atlanta are obvious jump targets.
 
 The surface can be thumbed forward and backward through time without manufacturing empty day cells.
+
+The implemented first pass adds **Upcoming** and **Past** modes. Upcoming is the default orientation stream. Past begins with the genuinely completed badge-sale milestone and its official purchasing link; representative event history is not invented merely to populate it.
 
 ## Date content
 
@@ -58,7 +60,11 @@ Collapsed convention-day content may show:
 
 Clicking the day expands a compact summary inline so the owner retains Calendar scroll position. It may show Committed/Purchased events individually, Tentatives as summarized alternatives, and one or two meaningful intelligence cues.
 
-The expanded view includes “Open in Plan,” which deliberately changes context to Decide or Schedule with the selected day active. Calendar never embeds the complete contention workspace.
+The expanded view includes “Open in Plan,” which deliberately changes context to the focused Plan workspace with the selected day active. Calendar never embeds the complete contention workspace.
+
+Rows are not dead summaries. Milestones and travel anchors open compact contextual detail; convention days open day context; captured events open a responsive detail drawer or sheet with reversible Interested, Tentative, and Committed controls. Removing a planning state is deliberate rather than a stray row tap, while purchased financial history remains separate when that model is introduced.
+
+Clickable rows expose a compact destination cue so the interaction is predictable: Details, Trip, Plan, Day, or Official. On narrow screens the same cue collapses to its vector icon. The first click preserves Calendar context; a primary action inside the resulting detail moves to the full destination when that surface exists.
 
 ## Milestones
 

@@ -9,6 +9,7 @@ Private, mobile-first planning and personal-intelligence app for one attendee at
 - Owner-scoped personal data protected by RLS and explicit Data API grants
 - Read-only offline shell; offline writes are intentionally disabled
 - Evidence, normalized facts, interpretation, personal state, and workflow proposals remain distinguishable
+- One bounded Black Lotus trust slice proves Source → Observation → Occurrence → Personal decision → Itinerary without broad ingestion
 
 ## Start
 
@@ -29,4 +30,6 @@ Run `pnpm readiness` before database or release work. See [development architect
 | `pnpm validate:secrets` | Tracked-file secret scan |
 | `pnpm readiness` | Identity and environment gate |
 
-No production deployment is configured in this tranche.
+The first live product slice is documented in [Black Lotus Trust Slice](docs/BLACK_LOTUS_TRUST_SLICE.md). It retains one official Atlanta claim, a reversible owner decision, a Plan placement, and a versioned owner-bound offline read model.
+
+A temporary GitHub Pages preview may be published for iPhone review. It is fixture-backed by default and not a production data deployment.

@@ -10,5 +10,7 @@ export const supabase = (() => {
   if (key.startsWith('sb_secret_') || key.split('.').length === 3) {
     throw new Error('Only a modern Supabase publishable key is permitted in browser configuration.')
   }
-  return createClient(url, key)
+  return createClient(url, key, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  })
 })()

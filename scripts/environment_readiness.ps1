@@ -3,7 +3,7 @@ $expectedRoot = 'C:\Users\kavig\Documents\Codex\mtg-magiccon'
 $expectedRemote = 'https://github.com/metavirus/mtg-magiccon.git'
 $expectedRef = 'pavjsexxbueuzhzgemgy'
 $forbiddenRef = 'pyvftzsodzwfqncjbmbc'
-$expectedMigrations = @('20260801184744', '20260801184828')
+$expectedMigrations = @('20260801184744', '20260801184828', '20260803173516')
 $secretFile = '.secrets/database.env'
 $failures = @()
 
@@ -32,7 +32,13 @@ foreach ($localSecret in @('.env.local', $secretFile)) {
   }
 }
 
-$nodeExe = Resolve-Executable 'node' @()
+$bundledNodeCandidates = @(
+  Get-ChildItem -LiteralPath (Join-Path $env:USERPROFILE '.cache\codex-runtimes') -Filter 'node.exe' -File -Recurse -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -like '*\dependencies\node\bin\node.exe' } |
+    Sort-Object LastWriteTime -Descending |
+    ForEach-Object FullName
+)
+$nodeExe = Resolve-Executable 'node' $bundledNodeCandidates
 $pnpmExe = Resolve-Executable 'pnpm' @((Join-Path $env:USERPROFILE 'scoop\shims\pnpm.cmd'))
 $supabaseExe = Resolve-Executable 'supabase' @((Join-Path $env:USERPROFILE 'scoop\shims\supabase.exe'))
 $psqlExe = Resolve-Executable 'psql' @('C:\Program Files\PostgreSQL\18\bin\psql.exe', 'C:\Program Files\PostgreSQL\17\bin\psql.exe')
@@ -53,9 +59,12 @@ if ($supabaseExe -and (Test-Path -LiteralPath $linkedRefFile)) {
   $migrationOutput = (& $supabaseExe migration list --linked 2>&1 | Out-String)
   $migrationExitCode = $LASTEXITCODE
   $ErrorActionPreference = $savedErrorActionPreference
-  if ($migrationExitCode -ne 0) { $failures += 'Supabase linked migration query failed' }
-  foreach ($migration in $expectedMigrations) {
-    if ($migrationOutput -notmatch $migration) { $failures += "Linked migration missing: $migration" }
+  if ($migrationExitCode -eq 0) {
+    foreach ($migration in $expectedMigrations) {
+      if ($migrationOutput -notmatch $migration) { $failures += "Linked migration missing: $migration" }
+    }
+  } elseif ($migrationOutput -notmatch 'LegacyPlatformAuthRequiredError|Access token not provided') {
+    $failures += 'Supabase linked migration query failed'
   }
 }
 
@@ -69,6 +78,14 @@ else {
     if ($dbUrl -notmatch ':5432/') { $failures += 'Database URL must use Session Pooler port 5432' }
     if ($dbUrl -notmatch 'sslmode=require') { $failures += 'Database URL must require SSL' }
     if ($psqlExe -and $failures.Count -eq 0) {
+      if ($migrationExitCode -ne 0 -and $migrationOutput -match 'LegacyPlatformAuthRequiredError|Access token not provided') {
+        $migrationProofSql = 'select version from supabase_migrations.schema_migrations order by version;'
+        $migrationProof = (& $psqlExe $dbUrl -v ON_ERROR_STOP=1 -Atc $migrationProofSql 2>$null | Out-String)
+        if ($LASTEXITCODE -ne 0) { $failures += 'Hosted migration proof failed through Session Pooler' }
+        foreach ($migration in $expectedMigrations) {
+          if ($migrationProof -notmatch $migration) { $failures += "Hosted migration missing: $migration" }
+        }
+      }
       $proofSql = @"
 select
   current_database() = 'postgres'
@@ -76,7 +93,18 @@ select
   and (select count(*) = 4 from pg_policies where schemaname = 'public' and tablename = 'personal_notes')
   and (select qual is not null and with_check is not null from pg_policies where schemaname = 'public' and tablename = 'personal_notes' and policyname = 'owners_update_personal_notes')
   and (select count(*) = 0 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'personal_notes' and grantee = 'anon')
-  and (select count(*) = 4 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'personal_notes' and grantee = 'authenticated');
+  and (select count(*) = 4 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'personal_notes' and grantee = 'authenticated')
+  and (select bool_and(relrowsecurity and relforcerowsecurity) and count(*) = 5 from pg_class where oid = any(array[
+    'public.sources'::regclass,
+    'public.source_observations'::regclass,
+    'public.occurrences'::regclass,
+    'public.personal_decisions'::regclass,
+    'public.itinerary_entries'::regclass
+  ]))
+  and (select count(*) = 20 from pg_policies where schemaname = 'public' and tablename in ('sources', 'source_observations', 'occurrences', 'personal_decisions', 'itinerary_entries'))
+  and (select count(*) = 0 from information_schema.role_table_grants where table_schema = 'public' and table_name in ('sources', 'source_observations', 'occurrences', 'personal_decisions', 'itinerary_entries') and grantee = 'anon')
+  and (select count(*) = 20 from information_schema.role_table_grants where table_schema = 'public' and table_name in ('sources', 'source_observations', 'occurrences', 'personal_decisions', 'itinerary_entries') and grantee = 'authenticated')
+  and (select count(*) = 5 from pg_policies where schemaname = 'public' and tablename in ('sources', 'source_observations', 'occurrences', 'personal_decisions', 'itinerary_entries') and cmd = 'UPDATE' and qual is not null and with_check is not null);
 "@
       $databaseProof = (& $psqlExe $dbUrl -v ON_ERROR_STOP=1 -Atc $proofSql 2>$null | Out-String).Trim()
       if ($LASTEXITCODE -ne 0 -or $databaseProof -ne 't') { $failures += 'Hosted database identity/RLS/grant proof failed' }

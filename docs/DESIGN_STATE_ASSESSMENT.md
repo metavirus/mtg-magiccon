@@ -3,6 +3,8 @@
 Updated: 2026-08-02
 Status: Audit complete; recommends the next behavioral-design tranche
 
+The cross-screen critical audit in `DESIGN_AUDIT_2026-08-02.md` supersedes any implication that the existing mockups form a shared visual baseline. It preserves their accepted interaction findings while adding a coherence gate: navigation, detail layering, reversible state changes, contextual backlinks, and offline language must work as one system before implementation contracts are derived.
+
 ## Assessment question
 
 After discovery, architecture decisions, and several interactive sketches, what is actually settled, what remains unproven, and what should the next design pass test?
@@ -11,7 +13,7 @@ After discovery, architecture decisions, and several interactive sketches, what 
 
 The product concept is coherent. The durable center is not monitoring, a calendar, or a brochure replacement in isolation. It is a personal convention command center that turns fragmented evidence into understandable options, preserves the owner's decisions, and retrieves the right operational fact without requiring recall of its original source.
 
-The information architecture and planning language are sufficiently settled to stop revisiting them abstractly. The weak point is now behavioral and visual proof. Calendar has a credible distinct role, while Plan has a credible conceptual model but not yet a sufficiently expressive prototype. The current Plan playground proves that one state change can affect both Decide and Schedule; it does not yet prove that the owner can visually understand a crowded field of alternatives and consequences.
+The information architecture and planning language are sufficiently settled to stop revisiting them abstractly. The weak point is now behavioral and visual proof. Calendar has a credible distinct role, while Plan has a credible conceptual model but not yet a sufficiently expressive prototype. The current Plan playground proves that one state change can affect both Decide and Schedule; it does not yet prove that the owner can visually understand a crowded field of alternatives and consequences. Map also gained a clearer MVP shape: a useful Trip-area landing now, with Event map intelligence separated until real 2026 floor evidence exists.
 
 No database or broad implementation work should begin from the current Plan sketch. The next safe move is a bounded Plan interaction study using representative, clearly fictionalized Vegas-shaped data.
 
@@ -30,6 +32,15 @@ No database or broad implementation work should begin from the current Plan sket
 - Plan is the focused November 13–15 resource-contention workspace.
 - November 11 travel and November 12 Black Lotus preview belong primarily in Calendar/Trip, not the dense Plan canvas.
 - Calendar summarizes convention days and deliberately deep-links to the selected day in Plan.
+
+### Map, Trip, and Wallet
+
+- Map is a direct destination, but its first landing should be the honest quiet-period Trip-area orientation rather than an empty or speculative convention atlas.
+- Event map is a top context within Map, not a replacement for Trip orientation. It becomes richer only after Atlanta 2026 map artifacts are captured.
+- Trip owns booking/travel reference; Wallet owns proof and originals; Map uses both to answer spatial questions.
+- Confirmed lodging should be displayed pleasantly and practically: hotel name, address, nights, people, cancellation deadline, hidden sensitive values, and Google Maps/provider actions.
+- Prior Atlanta 2025 maps can help reason about future floor-map surface types, but not become canonical 2026 place truth.
+- V2 location assistance may show approximate position, accuracy, floor correction, and destination highlights; it must not imply dependable indoor turn-by-turn navigation.
 
 ### Planning semantics
 
@@ -72,6 +83,7 @@ The older research hydration remains intentionally historical. Its Hot, Sources,
 - Home/Now established that quiet can be a successful state and milestones can carry the pre-event landing experience.
 - The playable Calendar concept established the broad-agenda versus focused-Plan context shift.
 - The Plan playground established a useful mechanical proposition: event state changes should propagate immediately into both comparison and schedule consequences.
+- The Map landing sketch established a better MVP framing: Trip area first, Event map second, real lodging evidence where available, and no placeholder booth fantasy before official map evidence.
 
 ### Why the Plan playground is not the design baseline
 
@@ -88,7 +100,7 @@ The artifact should therefore be retained as a mechanical sketch, not polished i
 
 ## Next behavioral-design tranche
 
-Build one deeper, still non-production Plan study around a representative Friday. It should test four questions only.
+Build one deeper, still non-production Plan study around a representative Friday. It remains the hardest interaction model and should test four questions only.
 
 ### 1. Can Tentatives act as a visual synthesis layer?
 
@@ -113,8 +125,9 @@ Desktop should use the shared temporal canvas as the dominant workspace. Mobile 
 3. Desktop Schedule validation: confirm the same state reads naturally as a day plan rather than a duplicate screen.
 4. Mobile translation of the same scenario and state; no new product semantics.
 5. Event-detail layer with the minimum decision brief, full-description access, one insight rationale, people, note, and evidence affordance.
+6. Map/Trip/Wallet retrieval check: from a quiet-period map card, retrieve the hotel address, lodging sequence, confirmation reference, original proof, venue link, and offline freshness without turning Map into a travel-management product.
 
-Do not begin with filters, sorting, drag-and-drop, all-three-day overview, AI feedback, monitoring, or polished animation. Those can follow only if the main visual grammar works.
+Do not begin with filters, sorting, drag-and-drop, all-three-day overview, AI feedback, monitoring, a full convention atlas, or polished animation. Those can follow only if the main visual grammar and retrieval paths work.
 
 ## Gate for the next step
 
@@ -127,5 +140,6 @@ The Plan design is ready to inform the Black Lotus trust-slice contract when the
 - recover a displaced Tentative;
 - open the chosen event's details and evidence;
 - perform the same essential state change on mobile.
+- retrieve confirmed place/trip/wallet facts from Map without remembering the source email or booking website.
 
 Until then, the project should remain in design evidence rather than schema expansion.
