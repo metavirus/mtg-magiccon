@@ -115,14 +115,16 @@ Stop before building the Gmail monitor, newsletter crawler, official-site watche
 
 ## MVP/POC finish path
 
+The operational glide path is now detailed in `docs/POC_FINISH_GLIDE_PATH.md`. That document controls how future agent-discovered news, email, site changes, and manual observations land in Home, Activity, Notes, Wallet, Trip, Explore, Calendar, or Map without becoming automatic canonical facts.
+
 The remaining MVP/POC work should converge rather than expand:
 
-1. **Finish the representative UI shell:** keep Home, Calendar, Explore, Trip, Wallet, Map scaffold, Notes, and Activity reachable; avoid polishing Plan beyond the v1.5 bracket.
-2. **Add the monitoring-alert intake lane:** implement fixture-backed alert cards and Activity streams so future Gmail/news/site checks have somewhere coherent to land.
+1. **Phone preview hardening:** confirm GitHub Pages opens reliably on iPhone, mobile navigation works, and the home-screen icon is usable.
+2. **Landing-route fixtures:** add representative site/newsletter/email/travel/note alert fixtures that demonstrate the routing contract without live automation.
 3. **Prove the trust-slice loop:** exercise one source-revision reconciliation path and confirm the changed fact is visible without erasing prior evidence or the owner's decision.
 4. **Prove offline retrieval:** verify the owner-bound critical view can reopen offline with visible freshness and no offline writes.
 5. **Resolve auth persistence:** fix magic-link callback/session persistence before treating real owner writes as reliable or consuming more email quota.
-6. **Run full handoff validation:** build, tests, text validation, secret scan, readiness, diff review, and docs check.
+6. **Run full handoff validation:** build, tests, text validation, secret scan, readiness, GitHub Pages preview smoke check, diff review, and docs check.
 
 ## Cross-tranche rules
 
