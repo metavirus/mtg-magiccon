@@ -2,6 +2,8 @@
 
 Updated: 2026-08-04
 
+Automation status: first conservative daily heartbeat created as `magiccon-atlanta-quiet-period-monitor`. It reports into the Codex task only. It is not authorized to write Supabase data, modify Gmail, send mail, create push notifications, or change app state.
+
 ## Purpose
 
 The MVP monitoring agent exists to remove the owner's need to manually check quiet-period MagicCon sources. It should notice rare meaningful changes and package them as reviewable observations that the app can display.
@@ -113,6 +115,8 @@ Use a deliberately simple scheduled Codex/automation workflow first:
 3. Emit a compact observation report.
 4. If any Home-worthy item exists, wake the thread or create an app alert payload.
 5. If nothing meaningful changed, record only a quiet Activity observation or no visible app update.
+
+The initial deployed heartbeat follows this shape and is intentionally limited to thread reporting.
 
 Do not start with:
 
