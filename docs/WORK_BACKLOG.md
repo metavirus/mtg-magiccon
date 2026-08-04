@@ -53,7 +53,7 @@
 - [x] **v1.5:** Establish the shared object-detail drawer/sheet pattern before continuing destination-specific polish.
 - [x] **v1.5:** Refine Home into a true command center that answers whether anything needs attention, rather than a general dashboard of collected facts.
 - [x] **v1.5:** Reframe Activity as a reviewed monitor inbox with Needs review / Changes / Sources / Personal / Archived streams and contextual backlinks.
-- [x] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. Prize Tix is now a compact hero chip that opens an onsite drawer/sheet with large count and `+100` / `-100` controls instead of forcing the page layout around a decorative ticket.
+- [x] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. Prize Tix is now a compact Wallet toolbar chip that opens an onsite drawer/sheet with large count and `+100` / `-100` controls instead of forcing the page layout around a decorative ticket or separate mobile column.
 - [ ] **v1.5:** Test Activity with real monitor output volume. Keep the stream useful and compact on mobile, with filters doing more work as alerts accumulate.
 - [x] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
 - [ ] **v1.5:** Decide whether navigation state should become URL-addressable again. The current POC click-through works, but direct hash routes are not the trust source for review; if sharing deep links becomes important, fix that deliberately.
