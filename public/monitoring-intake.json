@@ -14,13 +14,13 @@
       "severity": "notice",
       "destination": "Activity",
       "attention": "Source evidence",
-      "title": "MagicCon Atlanta email confirms quiet-period nudge",
-      "summary": "A July 31 ReedPop/MagicCon email nudges badge and hotel booking and lists application deadlines, but does not yet open ticketed play, artist browsing, store, map, or prize-wall work.",
+      "title": "MagicCon email route is ready",
+      "summary": "A representative MagicCon-related email can land as Activity evidence when it nudges badges, hotels, applications, or other quiet-period context without opening a major planning surface.",
       "object": "Newsletter · Atlanta",
-      "source": "Gmail · MagicCon@events.reedpop.com",
+      "source": "Gmail · MagicCon-specific query",
       "checkedAt": "Aug 4, 3:45 PM",
-      "status": "reviewable observation",
-      "rationale": "This proves Gmail belongs in the monitor loop, but the content is mostly already-handled context rather than a Home alert.",
+      "status": "sanitized preview route",
+      "rationale": "This proves Gmail belongs in the monitor loop, but public preview output should avoid sender IDs, message IDs, private links, and full email wording.",
       "nextAction": "Keep in Activity/Sources; update milestone reasoning if later emails announce actual planning unlocks."
     },
     {
