@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build --configLoader runner",
+    "build:pages": "pnpm build && powershell -ExecutionPolicy Bypass -File scripts/prepare_github_pages.ps1",
     "preview": "vite preview",
     "test": "vitest run --configLoader runner",
     "validate:text": "powershell -ExecutionPolicy Bypass -File scripts/validate_text_integrity.ps1",
