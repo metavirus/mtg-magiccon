@@ -1,6 +1,14 @@
 import type { TrustSlice } from './trustSlice'
 
 const ownerId = 'c930249d-01a9-468b-846c-2e5d0f6da233'
+const previewObservation = {
+  id: 'preview-observation',
+  source_id: 'preview-source',
+  retrieved_at: '2026-08-03T17:34:06.000Z',
+  observation_status: 'published',
+  exact_wording: '11:30 AM – 3:00 PM - WotC Casual Play Designers and members of the Commander Format Panel (CFP) present Planechase Unknown*. Commander Deck needed.',
+  supports: 'Supports the dated Black Lotus occurrence and Commander-deck preparation clue.',
+}
 
 export const DESIGN_PREVIEW_SLICE: TrustSlice = {
   ownerId,
@@ -11,14 +19,8 @@ export const DESIGN_PREVIEW_SLICE: TrustSlice = {
     canonical_url: 'https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html',
     access_state: 'available',
   },
-  observation: {
-    id: 'preview-observation',
-    source_id: 'preview-source',
-    retrieved_at: '2026-08-03T17:34:06.000Z',
-    observation_status: 'published',
-    exact_wording: '11:30 AM – 3:00 PM - WotC Casual Play Designers and members of the Commander Format Panel (CFP) present Planechase Unknown*. Commander Deck needed.',
-    supports: 'Supports the dated Black Lotus occurrence and Commander-deck preparation clue.',
-  },
+  observation: previewObservation,
+  observationHistory: [previewObservation],
   occurrence: {
     id: 'preview-occurrence',
     current_observation_id: 'preview-observation',

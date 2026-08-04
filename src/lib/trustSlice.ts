@@ -19,6 +19,7 @@ export type TrustSlice = {
     exact_wording: string
     supports: string
   }
+  observationHistory?: Array<TrustSlice['observation']>
   occurrence: {
     id: string
     current_observation_id: string
@@ -52,6 +53,65 @@ export type TrustSlice = {
     updated_at: string
   }
   savedAt: string
+}
+
+export type TrustSliceRevision = {
+  observation: TrustSlice['observation'] & {
+    supersedes_observation_id: string
+  }
+  occurrence: Partial<Pick<TrustSlice['occurrence'],
+    'title' | 'occurrence_state' | 'starts_at' | 'ends_at' | 'time_semantics' |
+    'location_label' | 'location_state' | 'access_label' | 'preparation_note'>>
+}
+
+export type ReconciledTrustSlice = {
+  previousObservation: TrustSlice['observation']
+  current: TrustSlice
+  changedOccurrenceFields: (keyof TrustSliceRevision['occurrence'])[]
+}
+
+export function reconcileTrustSliceRevision(
+  current: TrustSlice,
+  revision: TrustSliceRevision,
+  savedAt = new Date().toISOString(),
+): ReconciledTrustSlice {
+  if (revision.observation.source_id !== current.source.id) {
+    throw new Error('A revision must belong to the same source.')
+  }
+  if (revision.observation.supersedes_observation_id !== current.observation.id) {
+    throw new Error('A revision must explicitly supersede the current observation.')
+  }
+  if (revision.observation.id === current.observation.id) {
+    throw new Error('A revision must be retained as a new observation.')
+  }
+
+  const changedOccurrenceFields = Object.entries(revision.occurrence)
+    .filter(([key, value]) => current.occurrence[key as keyof TrustSlice['occurrence']] !== value)
+    .map(([key]) => key as keyof TrustSliceRevision['occurrence'])
+
+  return {
+    previousObservation: current.observation,
+    changedOccurrenceFields,
+    current: {
+      ...current,
+      observation: revision.observation,
+      observationHistory: [
+        revision.observation,
+        ...(current.observationHistory ?? [current.observation])
+          .filter(observation => observation.id !== revision.observation.id),
+      ],
+      occurrence: {
+        ...current.occurrence,
+        ...revision.occurrence,
+        current_observation_id: revision.observation.id,
+      },
+      // Personal state and itinerary remain unchanged until the owner reviews
+      // the publisher revision and chooses its planning consequence.
+      decision: current.decision,
+      itinerary: current.itinerary,
+      savedAt,
+    },
+  }
 }
 
 export function readTrustSliceCache(storage: Pick<Storage, 'getItem'> = localStorage): TrustSlice | null {

@@ -6,7 +6,7 @@ Updated: 2026-08-04
 
 Finish the POC as a useful quiet-period companion that is ready to receive rare, meaningful MagicCon signals from manual checks, Gmail review, newsletter review, or later automation.
 
-This does **not** mean building the full monitoring system yet. The POC should prove that when an agent uncovers information, the app has a clear place to put it, a clear attention level, and a clear path back to the affected object.
+The conservative daily heartbeat is now active and may hydrate the fixture-backed preview through the file contract below. This is still not the durable monitoring inbox: the POC proves where agent findings land, while `docs/V1_5_PATH.md` defines the reviewed Supabase-backed successor.
 
 The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`. The source-priority and search-radar strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. The POC file-based hydration seam is recorded in `docs/MONITORING_HYDRATION_CONTRACT.md`.
 
@@ -159,7 +159,7 @@ Use the existing Black Lotus trust slice to prove:
 
 ### POC-D — auth persistence
 
-Fix magic-link callback/session persistence after preview review. Do not consume more magic-link quota until the likely client-side storage/callback cause is identified.
+The client-side cause was identified on August 4: authenticated mode depended on the transient `?auth=1` query, and the callback discarded hosted subpaths. Persist the explicit app mode, preserve the deployment path in the callback URL, and verify refresh and installed-app launch before consuming additional magic-link quota.
 
 ### POC-E — handoff checkpoint
 
