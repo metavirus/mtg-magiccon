@@ -119,6 +119,7 @@ export default function App() {
   const [surface, setSurface] = useState<Surface>('home')
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [navNotice, setNavNotice] = useState('')
+  const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
@@ -169,6 +170,23 @@ export default function App() {
   }, [designPreview, online, session])
 
   useEffect(() => { void refresh() }, [refresh])
+
+  useEffect(() => {
+    if (!designPreview) return
+    let active = true
+    void fetch(`${import.meta.env.BASE_URL}monitoring-intake.json`, { cache: 'no-store' })
+      .then(response => response.ok ? response.json() : null)
+      .then(payload => {
+        if (!active || !payload || !Array.isArray(payload.alerts)) return
+        const incoming = payload.alerts.filter(isMonitoringAlert)
+        if (incoming.length > 0) setMonitorAlerts(incoming)
+      })
+      .catch(() => {
+        // The intake file is optional. If it is missing or malformed, keep the
+        // built-in fixture alerts so local design review never goes blank.
+      })
+    return () => { active = false }
+  }, [designPreview])
 
   async function requestMagicLink(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -298,7 +316,7 @@ export default function App() {
 
       {(message || navNotice) && <p role="status" className={message ? 'alert' : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
-        {surface === 'home' && <HomeSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} />}
+        {surface === 'home' && <HomeSurface slice={slice} alerts={monitorAlerts} onOpenPlan={() => openDestination('Plan', 'plan')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
         {surface === 'explore' && <ExploreSurface onOpenPlan={() => openDestination('Plan', 'plan')} />}
         {surface === 'wallet' && <WalletSurface />}
@@ -332,7 +350,7 @@ export default function App() {
           {!online && <div className="offline-lock">Read-only offline · reconnect to change state</div>}
         </section></>}
 
-        {surface === 'activity' && <ActivitySurface slice={slice} />}
+        {surface === 'activity' && <ActivitySurface slice={slice} alerts={monitorAlerts} />}
       </>}
 
       <footer><span>MagicCon Atlanta Companion</span><span>Last checked {lastChecked}</span></footer>
@@ -368,6 +386,19 @@ type MonitoringAlert = {
   status: string
   rationale: string
   nextAction: string
+}
+
+function isMonitoringAlert(value: unknown): value is MonitoringAlert {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Partial<Record<keyof MonitoringAlert, unknown>>
+  return typeof candidate.id === 'string'
+    && ['site', 'email', 'newsletter', 'manual'].includes(String(candidate.kind))
+    && ['hot', 'notice', 'quiet'].includes(String(candidate.severity))
+    && ['Home', 'Activity', 'Wallet', 'Trip', 'Explore', 'Calendar', 'Map', 'Notes'].includes(String(candidate.destination))
+    && typeof candidate.title === 'string'
+    && typeof candidate.summary === 'string'
+    && typeof candidate.source === 'string'
+    && typeof candidate.checkedAt === 'string'
 }
 type ContextNote = {
   id: string
@@ -1470,7 +1501,7 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
   </aside>
 }
 
-function HomeSurface({ slice, onOpenPlan }: { slice: TrustSlice; onOpenPlan: () => void }) {
+function HomeSurface({ slice, alerts, onOpenPlan }: { slice: TrustSlice; alerts: MonitoringAlert[]; onOpenPlan: () => void }) {
   return <div className="home-surface">
     <section className="next-milestone">
       <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
@@ -1511,7 +1542,7 @@ function HomeSurface({ slice, onOpenPlan }: { slice: TrustSlice; onOpenPlan: () 
         </button>
         <div className="timely-home">
           <span className="eyebrow">TIMELY SIGNALS</span>
-          {monitoringAlerts.filter(alert => alert.severity === 'hot').slice(0, 2).map(alert => <article key={alert.id} className={`signal-chip-card ${alert.severity}`}>
+          {alerts.filter(alert => alert.severity === 'hot').slice(0, 2).map(alert => <article key={alert.id} className={`signal-chip-card ${alert.severity}`}>
             <span><AlertKindIcon kind={alert.kind} /></span>
             <div><strong>{alert.title}</strong><small>{alert.destination} · {alert.attention}</small></div>
           </article>)}
@@ -1540,9 +1571,9 @@ function NotesSurface() {
   </section>
 }
 
-function ActivitySurface({ slice }: { slice: TrustSlice }) {
+function ActivitySurface({ slice, alerts: incomingAlerts }: { slice: TrustSlice; alerts: MonitoringAlert[] }) {
   const [stream, setStream] = useState<ActivityStream>('all')
-  const alerts = monitoringAlerts.filter(alert => stream === 'all' || (stream === 'changes' && alert.severity === 'hot') || (stream === 'sources' && alert.kind !== 'manual'))
+  const alerts = incomingAlerts.filter(alert => stream === 'all' || (stream === 'changes' && alert.severity === 'hot') || (stream === 'sources' && alert.kind !== 'manual'))
 
   return <section className="activity-surface" aria-label="Activity and alert intake">
     <div className="activity-tabs" role="tablist" aria-label="Activity stream">

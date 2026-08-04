@@ -8,7 +8,7 @@ Finish the POC as a useful quiet-period companion that is ready to receive rare,
 
 This does **not** mean building the full monitoring system yet. The POC should prove that when an agent uncovers information, the app has a clear place to put it, a clear attention level, and a clear path back to the affected object.
 
-The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`. The source-priority and search-radar strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`.
+The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`. The source-priority and search-radar strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. The POC file-based hydration seam is recorded in `docs/MONITORING_HYDRATION_CONTRACT.md`.
 
 ## Finish definition
 
@@ -37,7 +37,7 @@ Finish work:
 
 ### 2. Monitoring landing contract
 
-Current state: Home, Activity, and Notes can already display fixture-backed monitoring-style observations.
+Current state: Home, Activity, and Notes can already display fixture-backed monitoring-style observations. In design preview, the app now reads `public/monitoring-intake.json` so the daily agent can hydrate the POC without editing React source or writing canonical database facts.
 
 Finish work:
 
@@ -52,7 +52,7 @@ Finish work:
   - attention level;
   - current review status.
 - Add enough fixtures to demonstrate the main routes below.
-- Do not create live monitors yet.
+- The daily monitor may now read approved sources and Gmail and update the POC hydration file when there is something meaningful to show.
 - Do not let an agent mark facts canonical, update plans, hide events, or send notifications without a reviewed workflow.
 
 ## Landing places for information an agent uncovers
@@ -175,9 +175,9 @@ Run:
 
 ## Explicitly not POC
 
-- live Gmail monitor;
-- newsletter crawler;
-- official-site watcher;
+- canonical Gmail/Supabase ingestion;
+- continuous newsletter crawler;
+- continuous official-site watcher;
 - push notifications;
 - daily AI recomputation;
 - comprehensive event schema;
