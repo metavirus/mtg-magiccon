@@ -1,0 +1,57 @@
+{
+  "generatedAt": "2026-08-04T15:45:00-07:00",
+  "mode": "design-preview-intake",
+  "source": "manual-fixture",
+  "notes": [
+    "This file is the POC hydration seam for the daily monitoring agent.",
+    "The agent may replace alerts with reviewed observations and then publish the fixture-backed preview.",
+    "No alert in this file is canonical database truth."
+  ],
+  "alerts": [
+    {
+      "id": "gmail-atlanta-july-31",
+      "kind": "email",
+      "severity": "notice",
+      "destination": "Activity",
+      "attention": "Source evidence",
+      "title": "MagicCon email route is ready",
+      "summary": "A representative MagicCon-related email can land as Activity evidence when it nudges badges, hotels, applications, or other quiet-period context without opening a major planning surface.",
+      "object": "Newsletter · Atlanta",
+      "source": "Gmail · MagicCon-specific query",
+      "checkedAt": "Aug 4, 3:45 PM",
+      "status": "sanitized preview route",
+      "rationale": "This proves Gmail belongs in the monitor loop, but public preview output should avoid sender IDs, message IDs, private links, and full email wording.",
+      "nextAction": "Keep in Activity/Sources; update milestone reasoning if later emails announce actual planning unlocks."
+    },
+    {
+      "id": "atlanta-site-tree-watch",
+      "kind": "site",
+      "severity": "hot",
+      "destination": "Home",
+      "attention": "Canonical site tree",
+      "title": "Atlanta site tree is now watched",
+      "summary": "Any new or materially changed official Atlanta page can now hydrate the POC intake lane instead of waiting for manual page patrol.",
+      "object": "Sources · mcatlanta.mtgfestivals.com",
+      "source": "Atlanta official site tree",
+      "checkedAt": "Aug 4, 3:45 PM",
+      "status": "watch route active",
+      "rationale": "Prior MagicCon surfaces show that maps, app links, artists, store, prize wall, and operational details often land as page updates, not just news posts.",
+      "nextAction": "If the daily agent finds a meaningful page change, route it to Home plus Activity with exact URL, wording, and destination."
+    },
+    {
+      "id": "black-lotus-elevated-watch",
+      "kind": "site",
+      "severity": "hot",
+      "destination": "Home",
+      "attention": "Black Lotus priority",
+      "title": "Black Lotus page changes are big by default",
+      "summary": "The Black Lotus VIP page is treated as a high-signal source because it controls First Look, included events, store entitlement, pickup, and VIP logistics.",
+      "object": "Black Lotus · VIP page",
+      "source": "mcatlanta.mtgfestivals.com",
+      "checkedAt": "Aug 4, 3:45 PM",
+      "status": "watch route active",
+      "rationale": "The owner and Chris have Black Lotus badges; Juan does not. Changes here have direct planning and retrieval value.",
+      "nextAction": "Escalate material changes to Home unless clearly cosmetic; preserve previous and new source wording in Activity."
+    }
+  ]
+}
