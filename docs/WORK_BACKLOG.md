@@ -13,7 +13,7 @@
 - [ ] Design private Storage and retention rules for confirmations and receipts.
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
 - [ ] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects.
-- [ ] Fix and verify magic-link callback persistence across refresh and installed-app launch; auth logs prove successful owner login with no server-side logout, so diagnose client/browser storage before requesting more email links.
+- [ ] Verify the implemented authenticated-mode/callback persistence fix across refresh and installed-app launch on the real iPhone. The client now remembers explicit authenticated mode and preserves the hosted subpath; do not request repeated email links until this single verification run.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
 - [x] Synthesize cross-phase value principles and onsite support surfaces.
@@ -47,7 +47,8 @@
 - [ ] Later, evaluate approximate indoor-position support only as a v2 capability with visible uncertainty, manual correction, and no promise of reliable turn-by-turn navigation.
 - [ ] Expand `research/FORMAT_COMPLEXITY_EXPLORATION.md` into a reviewed all-format registry when Atlanta event ingest begins; refresh derived assessments only from captured source changes.
 - [x] Derive and implement the minimal Black Lotus trust-slice contract from the accepted baseline.
-- [ ] Prove source revision reconciliation and an offline-readable critical view.
+- [ ] Complete trust proof on device. Pure reconciliation now requires a new explicitly superseding observation, retains the prior observation, and preserves personal decision/itinerary state; live reviewed write/readback and real-iPhone offline reopening remain.
+- [x] Record the accepted cohesion-first v1.5 path in `docs/V1_5_PATH.md`, separating immediate trust/intake work from ticketed-play-triggered Plan work.
 - [ ] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. Current POC proves the idea, but the ticket art/border/placement and `+`/`-` controls should be rebuilt around onsite one-handed retrieval rather than desktop composition.
 - [ ] **v1.5:** Test Activity with real monitor output volume. Keep the stream useful and compact on mobile, with filters doing more work as alerts accumulate.
 - [ ] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.

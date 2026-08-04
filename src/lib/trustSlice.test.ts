@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatOccurrenceTime, readTrustSliceCache, TRUST_SLICE_CACHE_KEY, type TrustSlice } from './trustSlice'
+import { formatOccurrenceTime, readTrustSliceCache, reconcileTrustSliceRevision, TRUST_SLICE_CACHE_KEY, type TrustSlice } from './trustSlice'
 
 const fixture = {
   ownerId: 'owner',
@@ -20,5 +20,41 @@ describe('trust-slice offline read model', () => {
 
   it('formats the occurrence in its Atlanta timezone', () => {
     expect(formatOccurrenceTime(fixture)).toBe('Saturday, Nov 14 · 11:30 AM–3:00 PM')
+  })
+
+  it('retains prior evidence and preserves personal state during reconciliation', () => {
+    const reconciled = reconcileTrustSliceRevision(fixture, {
+      observation: {
+        ...fixture.observation,
+        id: 'observation-revision',
+        retrieved_at: '2026-08-04T17:34:06Z',
+        observation_status: 'changed',
+        exact_wording: 'Planechase Unknown now begins at noon.',
+        supersedes_observation_id: fixture.observation.id,
+      },
+      occurrence: {
+        occurrence_state: 'changed',
+        starts_at: '2026-11-14T17:00:00Z',
+      },
+    }, '2026-08-04T17:35:00Z')
+
+    expect(reconciled.previousObservation).toEqual(fixture.observation)
+    expect(reconciled.current.observation.id).toBe('observation-revision')
+    expect(reconciled.current.occurrence.current_observation_id).toBe('observation-revision')
+    expect(reconciled.current.observationHistory?.map(observation => observation.id)).toEqual(['observation-revision', 'observation'])
+    expect(reconciled.changedOccurrenceFields).toEqual(['occurrence_state', 'starts_at'])
+    expect(reconciled.current.decision).toBe(fixture.decision)
+    expect(reconciled.current.itinerary).toBe(fixture.itinerary)
+  })
+
+  it('rejects a revision that does not explicitly supersede current evidence', () => {
+    expect(() => reconcileTrustSliceRevision(fixture, {
+      observation: {
+        ...fixture.observation,
+        id: 'observation-revision',
+        supersedes_observation_id: 'some-other-observation',
+      },
+      occurrence: {},
+    })).toThrow(/explicitly supersede/)
   })
 })

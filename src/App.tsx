@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
+import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -87,10 +88,16 @@ async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
   if (sourceResult.error) throw sourceResult.error
   if (itineraryResult.error) throw itineraryResult.error
 
+  const historyResult = await supabase.from('source_observations').select('*')
+    .eq('owner_id', ownerId).eq('source_id', sourceResult.data.id)
+    .order('retrieved_at', { ascending: false })
+  if (historyResult.error) throw historyResult.error
+
   return {
     ownerId,
     source: sourceResult.data,
     observation: observationResult.data,
+    observationHistory: historyResult.data,
     occurrence: occurrenceResult.data,
     decision: decisionResult.data,
     itinerary: itineraryResult.data,
@@ -112,7 +119,12 @@ const destinations = [
 ]
 
 export default function App() {
-  const designPreview = (import.meta.env.DEV || import.meta.env.VITE_DESIGN_PREVIEW === '1') && !new URLSearchParams(window.location.search).has('auth')
+  const designPreview = resolveDesignPreviewMode({
+    search: window.location.search,
+    development: import.meta.env.DEV,
+    previewBuild: import.meta.env.VITE_DESIGN_PREVIEW === '1',
+    storage: window.localStorage,
+  })
   const [session, setSession] = useState<Session | null>(null)
   const [slice, setSlice] = useState<TrustSlice | null>(designPreview ? DESIGN_PREVIEW_SLICE : null)
   const [online, setOnline] = useState(navigator.onLine)
@@ -199,7 +211,7 @@ export default function App() {
     const { error } = await supabase.auth.signInWithOtp({
       email: String(form.get('email')),
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: authRedirectUrl(window.location),
         shouldCreateUser: false,
       },
     })
@@ -1642,6 +1654,7 @@ function ActivitySurface({ slice, alerts: incomingAlerts }: { slice: TrustSlice;
           <div><dt>Publisher</dt><dd>{slice.source.publisher_name}</dd></div>
           <div><dt>Retrieved</dt><dd>{new Date(slice.observation.retrieved_at).toLocaleString()}</dd></div>
           <div><dt>Status</dt><dd>{slice.observation.observation_status}</dd></div>
+          <div><dt>Evidence</dt><dd>{slice.observationHistory?.length ?? 1} retained observation{(slice.observationHistory?.length ?? 1) === 1 ? '' : 's'}</dd></div>
         </dl>
       </article>
     </div>

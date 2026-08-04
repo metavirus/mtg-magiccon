@@ -1,7 +1,7 @@
 # Black Lotus Trust Slice
 
 Updated: 2026-08-03  
-Status: Implemented against canonical Supabase; authenticated visual and device-offline review pending
+Status: Implemented against canonical Supabase; reconciliation logic proven locally; authenticated visual and device-offline review pending
 
 ## Decision question
 
@@ -79,12 +79,14 @@ After a successful authenticated server read, that bounded object may be stored 
 
 ## Reconciliation fixture
 
-The first change proof may use a clearly labeled local fixture rather than inventing a live publisher change. The fixture creates a second observation that differs in time, location, status, or wording, links to the earlier observation, and demonstrates:
+The first change proof uses a clearly labeled local fixture rather than inventing a live publisher change. The fixture creates a second observation that differs in time and wording, explicitly links to the earlier observation, and demonstrates:
 
 - earlier evidence remains readable;
 - the normalized occurrence points to the reviewed current observation;
 - the owner sees the consequence before accepting any operating choice;
 - the personal decision remains unchanged unless the owner changes it.
+
+The critical read model now retains the source's observation history alongside its reviewed current observation. A live revision is not written until publisher evidence actually changes or a rollback-only authenticated database exercise is approved.
 
 The fixture is test evidence, not an assertion about the current Atlanta page.
 
