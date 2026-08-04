@@ -12,7 +12,7 @@
 - [x] Model a small itinerary slice from actual official Atlanta Black Lotus evidence.
 - [ ] Design private Storage and retention rules for confirmations and receipts.
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
-- [ ] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects.
+- [x] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects. Auth is now fully parked for POC review; remaining mobile tension is design quality, especially Wallet Home/Prize Tix, not access.
 - [x] Disable client auth for the fixture-backed POC so local, GitHub Pages, and installed mobile review cannot be blocked by Supabase magic-link quota.
 - [ ] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC is no longer fighting mobile review. Prefer keeping magic link as a rare bootstrap path, and evaluate Google OAuth before spending more email quota.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
@@ -53,6 +53,7 @@
 - [ ] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. Current POC proves the idea, but the ticket art/border/placement and `+`/`-` controls should be rebuilt around onsite one-handed retrieval rather than desktop composition.
 - [ ] **v1.5:** Test Activity with real monitor output volume. Keep the stream useful and compact on mobile, with filters doing more work as alerts accumulate.
 - [ ] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
+- [ ] **v1.5:** Decide whether navigation state should become URL-addressable again. The current POC click-through works, but direct hash routes are not the trust source for review; if sharing deep links becomes important, fix that deliberately.
 - [ ] **v1.5:** Resume production Plan design only after representative ticketed-play data exists; preserve the current preview as disposable design evidence and do not derive planner schema from it.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
