@@ -35,6 +35,7 @@
   - [x] Design and implement the first Explore-to-Plan bridge with mixed events, concise relevance rationale, availability, and recoverable Hidden / Not for me states.
   - [x] Fix Explore event-detail Prize Tix box rendering so missing/empty prize metadata does not leave an awkward blank cell; incomplete decision-fact rows now collapse cleanly.
   - [x] Review the Map/Trip/Wallet retrieval cluster using confirmed Omni and Courtyard lodging facts as design fixtures.
+  - [x] Convert Map from a dead rail notice into an honest POC landing surface: Trip-area orientation now, official event-map intelligence later.
   - [x] Implement the first Trip retrieval slice with the shared Courtyard night, Thursday Black Lotus split, Omni assignment, verified property links, and restrained luggage-handoff insight.
   - [x] Test a dedicated showable-artifact direction and object-aware offline/freshness treatment conceptually; implementation proof remains in the trust slice.
   - [x] Structurally test a contextual note path and meaningful Activity change path, including rapid-action burst grouping.
@@ -47,6 +48,9 @@
 - [ ] Expand `research/FORMAT_COMPLEXITY_EXPLORATION.md` into a reviewed all-format registry when Atlanta event ingest begins; refresh derived assessments only from captured source changes.
 - [x] Derive and implement the minimal Black Lotus trust-slice contract from the accepted baseline.
 - [ ] Prove source revision reconciliation and an offline-readable critical view.
+- [ ] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. Current POC proves the idea, but the ticket art/border/placement and `+`/`-` controls should be rebuilt around onsite one-handed retrieval rather than desktop composition.
+- [ ] **v1.5:** Test Activity with real monitor output volume. Keep the stream useful and compact on mobile, with filters doing more work as alerts accumulate.
+- [ ] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
 - [ ] **v1.5:** Resume production Plan design only after representative ticketed-play data exists; preserve the current preview as disposable design evidence and do not derive planner schema from it.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
