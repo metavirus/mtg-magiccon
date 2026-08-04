@@ -23,6 +23,7 @@ function surfaceLabel(surface: Surface) {
     calendar: 'CALENDAR',
     plan: 'PLAN',
     explore: 'EXPLORE',
+    map: 'MAP',
     wallet: 'WALLET',
     trip: 'TRIP',
     notes: 'NOTES',
@@ -37,6 +38,7 @@ function surfaceTitle(surface: Surface) {
     calendar: 'The road to Atlanta.',
     plan: 'One known anchor.',
     explore: 'Find the keepers.',
+    map: 'Where things are.',
     wallet: 'Show, claim, remember.',
     trip: 'One shared night, then a split.',
     notes: 'Notes stay where they happened.',
@@ -51,6 +53,7 @@ function surfaceSubtitle(surface: Surface) {
     calendar: 'Only the dates that shape the trip.',
     plan: 'Bracketed interaction study for the ticketed-play phase.',
     explore: 'A compact intake lane for events worth comparing.',
+    map: 'Trip-area orientation now; official event map when Atlanta publishes it.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Who is staying where, and the one transition worth noticing.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
@@ -95,14 +98,14 @@ async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
   } as TrustSlice
 }
 
-type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'wallet' | 'trip' | 'notes' | 'activity'
+type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'wallet' | 'trip' | 'notes' | 'activity'
 
 const destinations = [
   { name: 'Home', icon: 'home' as NavIconName, surface: 'home' as Surface },
   { name: 'Calendar', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
   { name: 'Plan', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
   { name: 'Explore', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
-  { name: 'Map', icon: 'map' as NavIconName },
+  { name: 'Map', icon: 'map' as NavIconName, surface: 'map' as Surface },
   { name: 'Wallet', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
   { name: 'Trip', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
   { name: 'Notes', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
@@ -319,6 +322,7 @@ export default function App() {
         {surface === 'home' && <HomeSurface slice={slice} alerts={monitorAlerts} onOpenPlan={() => openDestination('Plan', 'plan')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
         {surface === 'explore' && <ExploreSurface onOpenPlan={() => openDestination('Plan', 'plan')} />}
+        {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface />}
         {surface === 'trip' && <TripSurface />}
         {surface === 'notes' && <NotesSurface />}
@@ -993,6 +997,34 @@ function ComplexityPill({ level }: { level: ComplexityLevel }) {
 
 function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris'> }) {
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person[0]}</span>)}</span>
+}
+
+function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
+  return <section className="map-surface" aria-label="Map">
+    <article className="map-card trip-area-card">
+      <span className="eyebrow">TRIP AREA</span>
+      <h2>Hotels and the convention center first.</h2>
+      <p>The honest quiet-period map is not a fake show floor. It is the small useful triangle: Courtyard, Omni, and Georgia World Congress Center.</p>
+      <div className="area-sketch" aria-label="Simplified Atlanta trip-area sketch">
+        <span className="pin courtyard">Courtyard<small>Nov 11</small></span>
+        <span className="route-line" />
+        <span className="pin gwcc">GWCC<small>MagicCon</small></span>
+        <span className="route-line bend" />
+        <span className="pin omni">Omni<small>Nov 12-15</small></span>
+      </div>
+      <button type="button" onClick={onOpenTrip}>Open Trip details ›</button>
+    </article>
+    <article className="map-card event-map-card">
+      <span className="eyebrow">EVENT MAP</span>
+      <h2>Waiting for Atlanta 2026 floor evidence.</h2>
+      <p>When the official map appears, this becomes the place for room, booth, vendor, artist, Wallet, and event backlinks. Prior Atlanta maps remain inspiration only.</p>
+      <ul>
+        <li>watch for official floor map publication;</li>
+        <li>attach map observations to Activity and Map;</li>
+        <li>keep interactive booth routing for v2 unless the evidence is ready.</li>
+      </ul>
+    </article>
+  </section>
 }
 
 function WalletSurface() {

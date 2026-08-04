@@ -143,6 +143,27 @@
 .trip-branches::before{display:none}
 @media(max-width:560px){.trip-branches{padding-top:8px}}
 
+/* Map: honest quiet-period orientation, not a fake floor map. */
+.map-surface{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(260px,.95fr);gap:12px;max-width:1180px}
+.map-card{display:grid;align-content:start;gap:11px;padding:16px;border:1px solid #2d415d;border-radius:16px;background:#0e1a2a}
+.map-card h2{margin:0;color:#e8eef7;font-size:19px;line-height:1.15}
+.map-card p{margin:0;color:#a7b5c7;font-size:12px;line-height:1.5}
+.map-card button{justify-self:start;min-height:29px;padding:0 10px;border:1px solid #3b526f;border-radius:8px;background:#122138;color:#b6c9e2;font-size:10px;cursor:pointer}
+.map-card button:hover{border-color:#79aaff;background:#1a3150;color:#fff}
+.trip-area-card{border-left:3px solid #70d8b1;background:linear-gradient(135deg,#0f2231,#101d2e)}
+.event-map-card{border-left:3px solid #6e9bd7}
+.event-map-card ul{display:grid;gap:6px;margin:0;padding-left:17px;color:#9eacc0;font-size:11px;line-height:1.4}
+.area-sketch{display:grid;grid-template-columns:1fr 50px 1fr 50px 1fr;align-items:center;min-height:150px;padding:14px;border:1px solid #2c425f;border-radius:14px;background:radial-gradient(circle at 50% 50%,rgba(112,216,177,.13),transparent 42%),#0b1625;overflow:hidden}
+.pin{z-index:1;display:grid;place-items:center;gap:2px;min-height:62px;padding:8px;border:1px solid #3c5876;border-radius:12px;background:#13243a;color:#e4edf8;font-size:13px;font-weight:800;text-align:center}
+.pin small{color:#91a4ba;font-size:9px;font-weight:700}
+.pin.courtyard{border-color:#6b83a4}
+.pin.gwcc{border-color:#dfb865;background:#222235}
+.pin.omni{border-color:#70d8b1}
+.route-line{height:3px;border-radius:999px;background:linear-gradient(90deg,#6b83a4,#dfb865)}
+.route-line.bend{background:linear-gradient(90deg,#dfb865,#70d8b1)}
+@media(max-width:900px){.map-surface{grid-template-columns:1fr}}
+@media(max-width:560px){.map-card{padding:12px}.area-sketch{grid-template-columns:1fr;gap:8px;min-height:0}.route-line{width:3px;height:22px;justify-self:center;background:linear-gradient(#6b83a4,#dfb865)}.route-line.bend{background:linear-gradient(#dfb865,#70d8b1)}}
+
 /* Wallet: proof and receipts as fast retrieval, not a bookkeeping system. */
 .wallet-surface{display:grid;gap:12px;max-width:1180px}
 .wallet-tabs{display:flex;gap:0;justify-self:start;padding:2px;border:1px solid #293c56;border-radius:999px;background:#0b1625}
