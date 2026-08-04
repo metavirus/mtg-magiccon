@@ -20,7 +20,7 @@ The POC is ready when:
 4. Important findings can reach Home as rare signals.
 5. Less urgent findings can settle into Activity, the affected object, or Notes without cluttering the default screen.
 6. The one live trust slice still proves Source → Observation → Occurrence → Personal decision → Itinerary.
-7. Offline read behavior and auth persistence are explicitly tested or explicitly left as open defects.
+7. Offline read behavior is explicitly tested or explicitly left as an open defect. Live auth is parked for v1.5 so the POC can remain reviewable on mobile without magic-link quota churn.
 
 ## What remains for POC
 
@@ -157,9 +157,9 @@ Use the existing Black Lotus trust slice to prove:
 - the app can reopen the cached critical view offline with freshness visible;
 - offline writes remain disabled.
 
-### POC-D — auth persistence
+### POC-D — auth parked for POC
 
-The client-side cause was identified on August 4: authenticated mode depended on the transient `?auth=1` query, and the callback discarded hosted subpaths. Persist the explicit app mode, preserve the deployment path in the callback URL, and verify refresh and installed-app launch before consuming additional magic-link quota.
+The client-side auth path was intentionally disabled on August 4 after Supabase magic-link quota became a design/testing blocker. The POC is fixture-backed on every route, clears the old sticky auth-mode flag, and should not ask for another magic link during mobile review. Version 1.5 should reintroduce low-friction auth as its own trust tranche.
 
 ### POC-E — handoff checkpoint
 

@@ -13,12 +13,11 @@ export function resolveDesignPreviewMode({
   previewBuild: boolean
   storage: ModeStorage
 }) {
-  const params = new URLSearchParams(search)
-
-  if (params.get('auth') === '1') storage.setItem(AUTH_MODE_KEY, 'authenticated')
-  if (params.get('preview') === '1') storage.removeItem(AUTH_MODE_KEY)
-
-  return (development || previewBuild) && storage.getItem(AUTH_MODE_KEY) !== 'authenticated'
+  void search
+  void development
+  void previewBuild
+  storage.removeItem(AUTH_MODE_KEY)
+  return true
 }
 
 export function authRedirectUrl(location: Pick<Location, 'href'>) {
@@ -27,4 +26,3 @@ export function authRedirectUrl(location: Pick<Location, 'href'>) {
   redirect.hash = ''
   return redirect.toString()
 }
-

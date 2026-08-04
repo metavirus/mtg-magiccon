@@ -11,10 +11,16 @@ function memoryStorage(initial?: string) {
 }
 
 describe('application mode', () => {
-  it('keeps authenticated mode after the auth query is gone', () => {
+  it('keeps the POC in fixture preview even when auth is requested', () => {
     const storage = memoryStorage()
-    expect(resolveDesignPreviewMode({ search: '?auth=1', development: true, previewBuild: false, storage })).toBe(false)
-    expect(resolveDesignPreviewMode({ search: '', development: true, previewBuild: false, storage })).toBe(false)
+    expect(resolveDesignPreviewMode({ search: '?auth=1', development: true, previewBuild: false, storage })).toBe(true)
+    expect(resolveDesignPreviewMode({ search: '', development: true, previewBuild: false, storage })).toBe(true)
+  })
+
+  it('clears prior authenticated mode so hosted preview cannot remain blocked', () => {
+    const storage = memoryStorage('authenticated')
+    expect(resolveDesignPreviewMode({ search: '', development: false, previewBuild: true, storage })).toBe(true)
+    expect(resolveDesignPreviewMode({ search: '?auth=1', development: false, previewBuild: true, storage })).toBe(true)
   })
 
   it('allows an explicit return to fixture preview', () => {
@@ -27,4 +33,3 @@ describe('application mode', () => {
       .toBe('https://metavirus.github.io/mtg-magiccon/?auth=1')
   })
 })
-

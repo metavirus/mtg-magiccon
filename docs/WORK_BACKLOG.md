@@ -13,7 +13,8 @@
 - [ ] Design private Storage and retention rules for confirmations and receipts.
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
 - [ ] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects.
-- [ ] Verify the implemented authenticated-mode/callback persistence fix across refresh and installed-app launch on the real iPhone. The client now remembers explicit authenticated mode and preserves the hosted subpath; do not request repeated email links until this single verification run.
+- [x] Disable client auth for the fixture-backed POC so local, GitHub Pages, and installed mobile review cannot be blocked by Supabase magic-link quota.
+- [ ] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC is no longer fighting mobile review. Prefer keeping magic link as a rare bootstrap path, and evaluate Google OAuth before spending more email quota.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
 - [x] Synthesize cross-phase value principles and onsite support surfaces.
