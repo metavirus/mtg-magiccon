@@ -1,4 +1,4 @@
-import { FormEvent, ReactNode, useCallback, useEffect, useState } from 'react'
+import { CSSProperties, FormEvent, ReactNode, useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
@@ -11,6 +11,8 @@ import {
   type PlanningState,
   type TrustSlice,
 } from './lib/trustSlice'
+
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`
 
 const states: { value: PlanningState; label: string; symbol: string }[] = [
   { value: 'interested', label: 'Interested', symbol: '♡' },
@@ -297,7 +299,7 @@ export default function App() {
   return <div className="app-shell">
     <aside className="rail">
       <button className="brand" type="button" onClick={() => openDestination('Home', 'home')} aria-label="MagicCon Atlanta home">
-        <img src="/magiccon-atlanta-peach.png" alt="" />
+        <img src={assetUrl('magiccon-atlanta-peach.png')} alt="" />
       </button>
       <nav aria-label="Primary navigation">
         {destinations.map(destination => <button
@@ -1112,7 +1114,11 @@ function WalletHomeTab({ tix, adjustTix, openModal }: { tix: number; adjustTix: 
     </section>
 
     <section className="tix-card tix-home-card">
-      <div className="tix-ticket-art" aria-label={`${tix.toLocaleString()} Prize Tix`}>
+      <div
+        className="tix-ticket-art"
+        style={{ '--ticket-art': `url("${assetUrl('prize-tix-ticket-art-v4.png')}")` } as CSSProperties}
+        aria-label={`${tix.toLocaleString()} Prize Tix`}
+      >
         <div className="tix-ticket-counter">
           <strong>{tix.toLocaleString()}</strong>
         </div>
@@ -1699,7 +1705,7 @@ function AccountMenu({ email, online, preview }: { email: string; online: boolea
     <div className="account-popover">
       <span>{email}</span>
       {preview
-        ? <button type="button" onClick={() => { window.location.search = 'auth=1' }}>Test sign-in</button>
+        ? <button type="button" disabled>Preview mode</button>
         : <button type="button" onClick={() => void supabase?.auth.signOut({ scope: 'local' })}>Sign out</button>}
     </div>
   </details>
@@ -1711,7 +1717,7 @@ function SetupCard() {
 
 function Login({ onSubmit, message }: { onSubmit: (event: FormEvent<HTMLFormElement>) => void; message: string }) {
   return <div className="login-shell"><form className="login-card" onSubmit={onSubmit}>
-    <img src="/magiccon-atlanta-peach.png" alt="MagicCon Atlanta" />
+    <img src={assetUrl('magiccon-atlanta-peach.png')} alt="MagicCon Atlanta" />
     <span className="kicker">PRIVATE FIELD GUIDE</span><h1>Welcome back.</h1>
     <p className="login-intro">Enter the owner email and we’ll send a one-click sign-in link.</p>
     <label>Email<input name="email" type="email" autoComplete="email" inputMode="email" required /></label>

@@ -200,7 +200,7 @@
 .qr-fixture{display:grid;grid-template-columns:repeat(3,28px);grid-auto-rows:28px;gap:5px;justify-self:start;padding:10px;border:1px solid #405674;border-radius:10px;background:#eef4fb}
 .qr-fixture span{background:#07101d}.qr-fixture span:nth-child(5){background:#eef4fb}.qr-fixture span:nth-child(2),.qr-fixture span:nth-child(6){background:#47698f}
 .tix-card{position:relative;display:grid;place-items:start center;align-self:start;min-height:0;padding:0;border:0;background:transparent;overflow:visible}
-.tix-ticket-art{position:relative;width:180px;max-width:100%;aspect-ratio:936/1667;background:url('/prize-tix-ticket-art-v4.png') top center/contain no-repeat;filter:drop-shadow(0 12px 20px rgba(0,0,0,.45))}
+.tix-ticket-art{position:relative;width:180px;max-width:100%;aspect-ratio:936/1667;background:var(--ticket-art) top center/contain no-repeat;filter:drop-shadow(0 12px 20px rgba(0,0,0,.45))}
 .tix-ticket-counter{position:absolute;top:4%;left:15.2%;display:grid;place-items:center;width:23.8%;aspect-ratio:1;text-align:center}
 .tix-ticket-counter strong{color:#fff;font-size:15px;font-weight:900;line-height:1;letter-spacing:-.07em;text-shadow:0 2px 5px rgba(0,0,0,.9)}
 .tix-ticket-buttons{position:absolute;left:50%;bottom:14.5%;z-index:1;display:flex;gap:7px;transform:translateX(-50%)}
