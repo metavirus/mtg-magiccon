@@ -12,6 +12,7 @@
 - [x] Model a small itinerary slice from actual official Atlanta Black Lotus evidence.
 - [ ] Design private Storage and retention rules for confirmations and receipts.
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
+- [ ] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects.
 - [ ] Fix and verify magic-link callback persistence across refresh and installed-app launch; auth logs prove successful owner login with no server-side logout, so diagnose client/browser storage before requesting more email links.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
@@ -50,6 +51,8 @@
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
 - [x] Define and implement the fixture-backed monitoring-alert intake contract for MVP/POC so future Gmail, newsletter, and official-page observations can land as reviewable alerts without becoming automatic canonical facts.
+- [x] Document the POC finish glide path and routing map for agent-discovered news, receipts, page changes, travel updates, notes, and future prompts in `docs/POC_FINISH_GLIDE_PATH.md`.
+- [ ] Add a small set of representative landing-route fixtures: Black Lotus page change, ticketed-play/newsletter milestone, email receipt import, travel change, and contextual user note.
 
 ## Parked
 
