@@ -7,6 +7,7 @@ dist/
 .secrets/
 .supabase/
 coverage/
+tmp/
 *.local
 *.log
 *.tsbuildinfo

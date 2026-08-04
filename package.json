@@ -7,9 +7,9 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build --configLoader runner",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --configLoader runner",
     "validate:text": "powershell -ExecutionPolicy Bypass -File scripts/validate_text_integrity.ps1",
     "validate:secrets": "powershell -ExecutionPolicy Bypass -File scripts/check_secrets.ps1",
     "readiness": "powershell -ExecutionPolicy Bypass -File scripts/environment_readiness.ps1"

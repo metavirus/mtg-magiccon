@@ -23,6 +23,8 @@ pnpm validate:text
 pnpm validate:secrets
 ```
 
+Current local note, August 3, 2026: after restarting the Codex desktop session, ordinary `node`, `pnpm`, and `pnpm readiness` are available on `PATH`; the previous Node PATH issue is not currently reproducing. The managed-sandbox Vite/esbuild config-resolution failure is fixed by using Vite/Vitest's `--configLoader runner` in the project scripts, which avoids bundling the config with esbuild before execution. Plain `pnpm build` and `pnpm test` should now pass inside the sandbox.
+
 ## Secure local setup
 
 Browser configuration lives in ignored `.env.local` and contains only the project URL and modern publishable key. Never place a secret/service-role key in browser configuration.
