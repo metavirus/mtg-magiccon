@@ -137,6 +137,15 @@ export default function App() {
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [navNotice, setNavNotice] = useState('')
   const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
+  const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
+  const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>(() => {
+    try {
+      const saved = window.localStorage.getItem('magiccon-alert-review-state')
+      return saved ? JSON.parse(saved) as Record<string, AlertReviewState> : {}
+    } catch {
+      return {}
+    }
+  })
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
@@ -204,6 +213,14 @@ export default function App() {
       })
     return () => { active = false }
   }, [designPreview])
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('magiccon-alert-review-state', JSON.stringify(alertReview))
+    } catch {
+      // Local POC review convenience only.
+    }
+  }, [alertReview])
 
   async function requestMagicLink(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -295,6 +312,13 @@ export default function App() {
     setNavNotice('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+  const openObjectDetail = (detail: ObjectDetail) => setObjectDetail(detail)
+  const closeObjectDetail = () => setObjectDetail(null)
+  const setAlertReviewState = (id: string, state: AlertReviewState) => setAlertReview(current => ({ ...current, [id]: state }))
+  const navigateFromObjectDetail = (destination: Surface) => {
+    closeObjectDetail()
+    openDestination(surfaceTitle(destination), destination)
+  }
 
   return <div className="app-shell">
     <aside className="rail">
@@ -333,13 +357,13 @@ export default function App() {
 
       {(message || navNotice) && <p role="status" className={message ? 'alert' : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
-        {surface === 'home' && <HomeSurface slice={slice} alerts={monitorAlerts} onOpenPlan={() => openDestination('Plan', 'plan')} />}
+        {surface === 'home' && <HomeSurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
-        {surface === 'explore' && <ExploreSurface onOpenPlan={() => openDestination('Plan', 'plan')} />}
+        {surface === 'explore' && <ExploreSurface onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'wallet' && <WalletSurface />}
-        {surface === 'trip' && <TripSurface />}
-        {surface === 'notes' && <NotesSurface />}
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} />}
+        {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
+        {surface === 'notes' && <NotesSurface onOpenObject={openObjectDetail} />}
         {surface === 'plan' && <><div className="plan-bracket-note"><span>V1.5 STUDY</span><p>Preserved as design evidence. Production planning waits for representative ticketed-play data.</p></div><section className="now-card" data-state={slice.decision.planning_state}>
           <div className="lotus-mark" aria-hidden="true">✦</div>
           <div className="event-copy">
@@ -368,16 +392,127 @@ export default function App() {
           {!online && <div className="offline-lock">Read-only offline · reconnect to change state</div>}
         </section></>}
 
-        {surface === 'activity' && <ActivitySurface slice={slice} alerts={monitorAlerts} />}
+        {surface === 'activity' && <ActivitySurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} onReviewChange={setAlertReviewState} onOpenObject={openObjectDetail} />}
       </>}
 
       <footer><span>MagicCon Atlanta Companion</span><span>Last checked {lastChecked}</span></footer>
     </main>
+    <ObjectDetailLayer detail={objectDetail} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} />
   </div>
 }
 
 type ForecastId = 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
 type CalendarDetail = ForecastId | 'arrival' | 'preview' | 'friday' | 'event' | 'airport' | 'sunday'
+
+function trustSliceToObjectDetail(slice: TrustSlice): ObjectDetail {
+  return {
+    id: `event-${slice.occurrence.id}`,
+    kind: 'event',
+    eyebrow: 'Black Lotus event',
+    title: slice.occurrence.title,
+    summary: 'Known included Black Lotus occurrence. Keep it visible as a planning anchor, but do not let it silently become a hard block until you commit.',
+    facts: [
+      { label: 'When', value: formatOccurrenceTime(slice) },
+      { label: 'Location', value: slice.occurrence.location_state === 'to_be_announced' ? 'To be announced' : slice.occurrence.location_label ?? 'To be announced' },
+      { label: 'State', value: slice.decision.planning_state },
+      { label: 'Prep', value: slice.occurrence.preparation_note ?? 'No prep note captured' },
+    ],
+    source: { label: slice.source.publisher_name, value: slice.source.canonical_url },
+    rationale: 'This is publisher truth plus your current personal planning state. The detail layer keeps those separate from any later onsite observation.',
+    actions: [{ label: 'View Plan', destination: 'plan' }, { label: 'Open Activity', destination: 'activity' }],
+    backlinks: [{ label: 'Calendar', destination: 'calendar' }, { label: 'Home', destination: 'home' }],
+  }
+}
+
+function alertToObjectDetail(alert: MonitoringAlert): ObjectDetail {
+  const destination = alert.destination.toLowerCase() as Surface
+  return {
+    id: `alert-${alert.id}`,
+    kind: 'alert',
+    eyebrow: `${alert.kind} · ${alert.severity}`,
+    title: alert.title,
+    summary: alert.summary,
+    facts: [
+      { label: 'Object', value: alert.object },
+      { label: 'Checked', value: alert.checkedAt },
+      { label: 'Status', value: alert.status },
+      { label: 'Destination', value: alert.destination },
+    ],
+    source: { label: 'Observed source', value: alert.source },
+    rationale: alert.rationale,
+    note: alert.nextAction,
+    actions: [{ label: `Open ${alert.destination}`, destination }],
+    backlinks: [{ label: 'Activity', destination: 'activity' }],
+  }
+}
+
+function exploreEventToObjectDetail(event: ExploreEvent): ObjectDetail {
+  return {
+    id: `explore-${event.id}`,
+    kind: 'event',
+    eyebrow: `${event.kind} · ${event.state === 'none' ? 'unmarked' : event.state}`,
+    title: event.title,
+    summary: event.fit,
+    facts: [
+      { label: 'When', value: `${event.day} · ${event.time}` },
+      { label: 'Price', value: event.price },
+      { label: 'Duration', value: event.window },
+      { label: 'Format', value: event.format },
+    ],
+    source: event.sourceNote ? { label: 'Source note', value: event.sourceNote } : undefined,
+    rationale: event.complexityWhy,
+    note: event.planEffect,
+    actions: [{ label: 'View Plan study', destination: 'plan' }, { label: 'Back to Explore', destination: 'explore' }],
+    backlinks: [{ label: 'Explore', destination: 'explore' }],
+  }
+}
+
+function noteToObjectDetail(note: ContextNote): ObjectDetail {
+  return {
+    id: `note-${note.id}`,
+    kind: 'note',
+    eyebrow: note.context,
+    title: note.title,
+    summary: note.body,
+    facts: [{ label: 'Updated', value: note.updatedAt }, { label: 'Backlink', value: note.backlink }],
+    note: 'V1.5 should let this open the exact object where the note was written, not merely the parent tab.',
+    backlinks: [{ label: note.backlink, destination: note.backlink.toLowerCase() as Surface }, { label: 'Notes', destination: 'notes' }],
+  }
+}
+
+function ObjectDetailLayer({ detail, onClose, onNavigate }: { detail: ObjectDetail | null; onClose: () => void; onNavigate: (destination: Surface) => void }) {
+  if (!detail) return null
+  return <div className="object-detail-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
+    <aside className={`object-detail object-detail-${detail.kind}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
+      <button className="detail-close object-detail-close" type="button" onClick={onClose} aria-label="Close detail">×</button>
+      <header className="object-detail-head">
+        <span className="eyebrow">{detail.eyebrow}</span>
+        <h2 id="object-detail-title">{detail.title}</h2>
+        <p>{detail.summary}</p>
+      </header>
+      {detail.facts && <section className="object-detail-section">
+        <h3>Key facts</h3>
+        <div className="object-fact-grid">{detail.facts.map(fact => <div key={fact.label} className="object-fact"><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>
+      </section>}
+      {detail.rationale && <section className="object-detail-section">
+        <h3>Why it matters</h3>
+        <p>{detail.rationale}</p>
+      </section>}
+      {detail.note && <section className="object-detail-section object-note-section">
+        <h3>Note / next action</h3>
+        <p>{detail.note}</p>
+      </section>}
+      {detail.source && <section className="object-detail-section">
+        <h3>Source</h3>
+        <p><strong>{detail.source.label}</strong><br />{detail.source.value}</p>
+      </section>}
+      {(detail.actions || detail.backlinks) && <footer className="object-detail-actions">
+        {detail.actions?.map(action => <button key={action.label} type="button" onClick={() => action.destination ? onNavigate(action.destination) : undefined}>{action.label}</button>)}
+        {detail.backlinks?.map(link => <button key={link.label} type="button" className="secondary" onClick={() => onNavigate(link.destination)}>{link.label}</button>)}
+      </footer>}
+    </aside>
+  </div>
+}
 type CalendarFilter = 'all' | 'convention' | 'travel'
 type ExploreMode = 'for-you' | 'all' | 'changed' | 'hidden'
 type ExploreType = 'all' | 'play' | 'info' | 'social' | 'other'
@@ -389,7 +524,22 @@ type MilestoneIconName = 'badges' | 'ticketed-play' | 'artists' | 'black-lotus-s
 type WalletTab = 'home' | 'play' | 'store' | 'other'
 type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
 type AlertSeverity = 'hot' | 'notice' | 'quiet'
-type ActivityStream = 'all' | 'changes' | 'sources' | 'personal'
+type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
+type ActivityStream = 'needs-review' | 'changes' | 'sources' | 'personal' | 'archived'
+type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'hotel' | 'note'
+type ObjectDetail = {
+  id: string
+  kind: ObjectDetailKind
+  eyebrow: string
+  title: string
+  summary: string
+  facts?: Array<{ label: string; value: string }>
+  source?: { label: string; value: string }
+  rationale?: string
+  actions?: Array<{ label: string; destination?: Surface }>
+  note?: string
+  backlinks?: Array<{ label: string; destination: Surface }>
+}
 type MonitoringAlert = {
   id: string
   kind: AlertKind
@@ -765,7 +915,7 @@ const exploreEvents: ExploreEvent[] = [
   },
 ]
 
-function ExploreSurface({ onOpenPlan }: { onOpenPlan: () => void }) {
+function ExploreSurface({ onOpenPlan, onOpenObject }: { onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [events, setEvents] = useState(exploreEvents)
   const [mode, setMode] = useState<ExploreMode>('for-you')
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
@@ -847,7 +997,7 @@ function ExploreSurface({ onOpenPlan }: { onOpenPlan: () => void }) {
         </section>}
       </div>
 
-      <ExploreDetail event={selected} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
+      <ExploreDetail event={selected} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} onOpenObject={onOpenObject} />
     </div>
   </section>
 }
@@ -897,7 +1047,7 @@ function getPriceTone(price: string) {
   return 'high'
 }
 
-function ExploreDetail({ event, open, onClose, onState, onOpenPlan }: { event: ExploreEvent; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void }) {
+function ExploreDetail({ event, open, onClose, onState, onOpenPlan, onOpenObject }: { event: ExploreEvent; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const planEnabled = event.state === 'interested' || event.state === 'tentative'
   return <aside className="explore-detail" data-open={open} aria-label={`${event.title} detail`}>
     <button className="detail-close explore-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
@@ -938,6 +1088,7 @@ function ExploreDetail({ event, open, onClose, onState, onOpenPlan }: { event: E
         <IconAction label="Hide from this list" icon="eyeOff" pressed={event.state === 'hidden'} onClick={() => onState('hidden')} />
         <IconAction label="Not for me" icon="thumbsDown" pressed={event.state === 'nope'} danger onClick={() => onState('nope')} />
       </div>
+      <button className="detail-plan-link secondary-detail-link" type="button" onClick={() => onOpenObject(exploreEventToObjectDetail(event))}>Open object detail <span aria-hidden="true">›</span></button>
       <button className="detail-plan-link" type="button" disabled={!planEnabled} onClick={onOpenPlan}>View Plan study <span aria-hidden="true">›</span></button>
     </footer>
   </aside>
@@ -1041,26 +1192,35 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   </section>
 }
 
-function WalletSurface() {
+function WalletSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(1700)
+  const [tixOpen, setTixOpen] = useState(false)
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode } | null>(null)
   const openModal = (eyebrow: string, title: string, body: ReactNode) => setModal({ eyebrow, title, body })
 
   return <section className="wallet-surface" aria-label="Wallet">
-    <div className="wallet-tabs" role="tablist" aria-label="Wallet section">
-      {([
-        ['home', 'Home'],
-        ['play', 'Play'],
-        ['store', 'Store'],
-        ['other', 'Other'],
-      ] as Array<[WalletTab, string]>).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={tab === value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}>{label}</button>)}
+    <div className="wallet-toolbar">
+      <div className="wallet-tabs" role="tablist" aria-label="Wallet section">
+        {([
+          ['home', 'Home'],
+          ['play', 'Play'],
+          ['store', 'Store'],
+          ['other', 'Other'],
+        ] as Array<[WalletTab, string]>).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={tab === value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}>{label}</button>)}
+      </div>
+      <button className="wallet-tix-launcher" type="button" onClick={() => setTixOpen(true)} aria-label={`Open Prize Tix controls, ${tix.toLocaleString()} tix`}>
+        <TicketMiniIcon />
+        <span>Prize Tix</span>
+        <strong>{tix.toLocaleString()}</strong>
+      </button>
     </div>
-    {tab === 'home' && <WalletHomeTab tix={tix} adjustTix={delta => setTix(value => Math.max(0, value + delta))} openModal={openModal} />}
+    {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab openModal={openModal} />}
     {tab === 'store' && <WalletStoreTab openModal={openModal} />}
     {tab === 'other' && <WalletOtherTab openModal={openModal} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
+    {tixOpen && <PrizeTixDrawer tix={tix} adjustTix={delta => setTix(value => Math.max(0, value + delta))} onClose={() => setTixOpen(false)} />}
   </section>
 }
 
@@ -1082,11 +1242,13 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
-function WalletHomeTab({ tix, adjustTix, openModal }: { tix: number; adjustTix: (delta: number) => void; openModal: (eyebrow: string, title: string, body: ReactNode) => void }) {
+function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   return <div className="wallet-home-command">
     <section className="wallet-hero-card">
       <div className="wallet-hero-copy">
-        <span className="eyebrow">READY TO SHOW</span>
+        <div className="wallet-hero-topline">
+          <span className="eyebrow">READY TO SHOW</span>
+        </div>
         <h2>Proof, ready to show.</h2>
         <p>Badges and original orders stay one tap away.</p>
       </div>
@@ -1113,22 +1275,6 @@ function WalletHomeTab({ tix, adjustTix, openModal }: { tix: number; adjustTix: 
       </div>
     </section>
 
-    <section className="tix-card tix-home-card">
-      <div
-        className="tix-ticket-art"
-        style={{ '--ticket-art': `url("${assetUrl('prize-tix-ticket-art-v4.png')}")` } as CSSProperties}
-        aria-label={`${tix.toLocaleString()} Prize Tix`}
-      >
-        <div className="tix-ticket-counter">
-          <strong>{tix.toLocaleString()}</strong>
-        </div>
-        <div className="tix-buttons tix-ticket-buttons" aria-label="Adjust Prize Tix">
-          <button type="button" aria-label="Subtract 100 Prize Tix" onClick={() => adjustTix(-100)}>−</button>
-          <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+</button>
-        </div>
-      </div>
-    </section>
-
     <section className="wallet-quick-grid" aria-label="Wallet quick checks">
       <button type="button" className="quick-proof black-lotus-proof" onClick={() => openModal('BADGE ORDER', 'Black Lotus order', <ProofPreview kind="receipt" note="Two Black Lotus VIP Early Bird badges. Total $2,025.26. QR key 9gLHU3mJ." />)}>
         <span className="wallet-kind"><EventKindIcon name="lotus" />Badge order</span>
@@ -1140,7 +1286,23 @@ function WalletHomeTab({ tix, adjustTix, openModal }: { tix: number; adjustTix: 
         <strong>Juan Premium</strong>
         <small>Forwarded to Juan · original saved</small>
       </button>
-      <button type="button" className="quick-proof store-proof" onClick={() => openModal('STORE RECEIPT', 'Magic Con #39Z8', <ProofPreview kind="receipt" note="Vegas Square receipt fixture: $255, nine items, forwarded to Chris. Store tab carries the line items." />)}>
+      <button type="button" className="quick-proof store-proof" onClick={() => onOpenObject({
+        id: 'receipt-39z8',
+        kind: 'receipt',
+        eyebrow: 'Recent receipt',
+        title: 'Magic Con #39Z8',
+        summary: 'Representative store receipt: $255, nine items, assignment-ready. This object should eventually hold extracted line items plus exact PNG/PDF proof.',
+        facts: [
+          { label: 'Total', value: '$255.00' },
+          { label: 'Items', value: '9 store items' },
+          { label: 'Status', value: 'assignment-ready' },
+          { label: 'Artifact', value: 'PNG now · PDF later' },
+        ],
+        source: { label: 'Gmail receipt', value: 'Receipt from Magic Con #39Z8' },
+        rationale: 'Receipts are useful because they answer “what did I buy, who was it for, and can I show the original if needed?” without digging through email.',
+        actions: [{ label: 'Open Wallet Store', destination: 'wallet' }, { label: 'Add note', destination: 'notes' }],
+        backlinks: [{ label: 'Wallet', destination: 'wallet' }, { label: 'Activity', destination: 'activity' }],
+      })}>
         <span className="wallet-kind"><NavIcon name="activity" />Recent receipt</span>
         <strong>Magic Con #39Z8</strong>
         <small>$255 · 9 store items · assignment-ready</small>
@@ -1152,6 +1314,34 @@ function WalletHomeTab({ tix, adjustTix, openModal }: { tix: number; adjustTix: 
       <div><b>Need to enter an event?</b><small>Open Play for codes and original ticketed-play receipts.</small></div>
       <div><b>Need pickup proof?</b><small>Open Store or Play depending on what was purchased.</small></div>
       <div><b>Need travel proof?</b><small>Other holds originals; Trip stays pleasant.</small></div>
+    </aside>
+  </div>
+}
+
+function PrizeTixDrawer({ tix, adjustTix, onClose }: { tix: number; adjustTix: (delta: number) => void; onClose: () => void }) {
+  return <div className="tix-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
+    <aside className="tix-drawer" role="dialog" aria-modal="true" aria-label="Prize Tix controls">
+      <button className="detail-close" type="button" onClick={onClose} aria-label="Close Prize Tix">×</button>
+      <div className="tix-drawer-copy">
+        <span className="eyebrow">PRIZE WALL WALLET</span>
+        <h2>Prize Tix</h2>
+        <p>Quick manual count for onsite spending. Later this can link straight into Prize Wall availability.</p>
+      </div>
+      <div
+        className="tix-ticket-art drawer-ticket"
+        style={{ '--ticket-art': `url("${assetUrl('prize-tix-ticket-art-v4.png')}")` } as CSSProperties}
+        aria-label={`${tix.toLocaleString()} Prize Tix`}
+      >
+        <div className="tix-ticket-counter">
+          <strong>{tix.toLocaleString()}</strong>
+        </div>
+      </div>
+      <div className="tix-stepper" aria-label="Adjust Prize Tix">
+        <button type="button" aria-label="Subtract 100 Prize Tix" onClick={() => adjustTix(-100)}>−100</button>
+        <strong>{tix.toLocaleString()}</strong>
+        <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+100</button>
+      </div>
+      <button className="tix-wall-link" type="button" disabled>Prize Wall link later</button>
     </aside>
   </div>
 }
@@ -1298,7 +1488,7 @@ function WalletOtherTab({ openModal }: { openModal: (eyebrow: string, title: str
   </div>
 }
 
-function TripSurface() {
+function TripSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   const [tab, setTab] = useState<'hotels' | 'flights'>('hotels')
 
   return <section className="trip-surface" aria-label="Atlanta trip overview">
@@ -1307,11 +1497,11 @@ function TripSurface() {
       <button type="button" role="tab" aria-selected={tab === 'flights'} className={tab === 'flights' ? 'active' : ''} onClick={() => setTab('flights')}>Flights</button>
     </div>
 
-    {tab === 'hotels' ? <HotelsTripTab /> : <FlightsTripTab />}
+    {tab === 'hotels' ? <HotelsTripTab onOpenObject={onOpenObject} /> : <FlightsTripTab />}
   </section>
 }
 
-function HotelsTripTab() {
+function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   return <>
     <div className="trip-layout">
       <section className="trip-flow-card" aria-labelledby="lodging-flow-title">
@@ -1352,7 +1542,41 @@ function HotelsTripTab() {
         <div className="hotel-facts"><span>Shared arrival night</span><span>3 travelers</span><span>Confirmation in Wallet later</span></div>
         <div className="hotel-links"><a href="https://www.google.com/maps/search/?api=1&query=Courtyard%20by%20Marriott%20Atlanta%20Downtown" target="_blank" rel="noreferrer"><NavIcon name="map" />Maps ↗</a><a href="https://www.marriott.com/en-us/hotels/atldo-courtyard-atlanta-downtown/overview/" target="_blank" rel="noreferrer">Official hotel ↗</a></div>
       </article>
-      <article className="hotel-card omni-card">
+      <article className="hotel-card omni-card object-card-button" role="button" tabIndex={0} onClick={() => onOpenObject({
+        id: 'hotel-omni',
+        kind: 'hotel',
+        eyebrow: 'Hotel · Nov 12-15',
+        title: 'Omni Atlanta Hotel at Centennial Park',
+        summary: 'Convention hotel for Kavi and Juan. Keep reservation proof in Wallet; Trip should stay focused on pleasant, usable logistics.',
+        facts: [
+          { label: 'Address', value: '190 Marietta St NW, Atlanta, GA 30303' },
+          { label: 'People', value: 'Kavi + Juan' },
+          { label: 'Check-in', value: '4 PM' },
+          { label: 'Check-out', value: '11 AM' },
+        ],
+        source: { label: 'Booking email + official property page', value: 'Omni Atlanta Hotel at Centennial Park' },
+        rationale: 'The useful value-add is quick address/map access and awareness of who is staying there, not rebuilding a hotel booking app.',
+        actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet proof', destination: 'wallet' }],
+        backlinks: [{ label: 'Calendar', destination: 'calendar' }],
+      })} onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') onOpenObject({
+          id: 'hotel-omni',
+          kind: 'hotel',
+          eyebrow: 'Hotel · Nov 12-15',
+          title: 'Omni Atlanta Hotel at Centennial Park',
+          summary: 'Convention hotel for Kavi and Juan. Keep reservation proof in Wallet; Trip should stay focused on pleasant, usable logistics.',
+          facts: [
+            { label: 'Address', value: '190 Marietta St NW, Atlanta, GA 30303' },
+            { label: 'People', value: 'Kavi + Juan' },
+            { label: 'Check-in', value: '4 PM' },
+            { label: 'Check-out', value: '11 AM' },
+          ],
+          source: { label: 'Booking email + official property page', value: 'Omni Atlanta Hotel at Centennial Park' },
+          rationale: 'The useful value-add is quick address/map access and awareness of who is staying there, not rebuilding a hotel booking app.',
+          actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet proof', destination: 'wallet' }],
+          backlinks: [{ label: 'Calendar', destination: 'calendar' }],
+        })
+      }}>
         <div className="hotel-card-head"><span className="hotel-icon"><NavIcon name="trip" /></span><TravelerDots people={['Kavi', 'Juan']} /></div>
         <span className="eyebrow">NOV 12-15 · 3 NIGHTS</span>
         <h2>Omni Atlanta Hotel at Centennial Park</h2>
@@ -1551,8 +1775,23 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
   </aside>
 }
 
-function HomeSurface({ slice, alerts, onOpenPlan }: { slice: TrustSlice; alerts: MonitoringAlert[]; onOpenPlan: () => void }) {
+function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; alerts: MonitoringAlert[]; alertReview: Record<string, AlertReviewState>; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+  const needsReview = alerts.filter(alert => (alertReview[alert.id] ?? 'needs-review') === 'needs-review')
+  const topSignal = needsReview.find(alert => alert.severity === 'hot') ?? needsReview[0]
   return <div className="home-surface">
+    <section className={`home-attention ${topSignal ? 'needs-review' : 'quiet'}`}>
+      <div>
+        <span className="eyebrow">{topSignal ? 'NEEDS REVIEW' : 'QUIET MONITORING'}</span>
+        <h2>{topSignal ? topSignal.title : 'Nothing needs you right now.'}</h2>
+        <p>{topSignal ? topSignal.summary : 'The watchlist has a place to land findings, and quiet days can stay quiet.'}</p>
+      </div>
+      <div className="home-attention-actions">
+        <span>{needsReview.length} open</span>
+        {topSignal && <button type="button" onClick={() => onOpenObject(alertToObjectDetail(topSignal))}>Review signal</button>}
+        <button type="button" onClick={onOpenActivity}>Activity</button>
+      </div>
+    </section>
+
     <section className="next-milestone">
       <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
       <div>
@@ -1583,7 +1822,7 @@ function HomeSurface({ slice, alerts, onOpenPlan }: { slice: TrustSlice; alerts:
 
       <section className="home-context" aria-labelledby="known-heading">
         <div><span className="eyebrow">ALREADY KNOWN</span><h2 id="known-heading">On the plan</h2></div>
-        <button className="anchor-row" type="button" onClick={onOpenPlan}>
+        <button className="anchor-row" type="button" onClick={() => onOpenObject(trustSliceToObjectDetail(slice))}>
           <span className="anchor-lotus" aria-hidden="true">✦</span>
           <span className="anchor-date"><small>NOV 14</small><strong>11:30–3</strong></span>
           <span className="anchor-copy"><small>BLACK LOTUS</small><strong>{slice.occurrence.title.replace('Black Lotus ', '')}</strong></span>
@@ -1592,17 +1831,21 @@ function HomeSurface({ slice, alerts, onOpenPlan }: { slice: TrustSlice; alerts:
         </button>
         <div className="timely-home">
           <span className="eyebrow">TIMELY SIGNALS</span>
-          {alerts.filter(alert => alert.severity === 'hot').slice(0, 2).map(alert => <article key={alert.id} className={`signal-chip-card ${alert.severity}`}>
+          {needsReview.slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alertToObjectDetail(alert))}>
             <span><AlertKindIcon kind={alert.kind} /></span>
             <div><strong>{alert.title}</strong><small>{alert.destination} · {alert.attention}</small></div>
-          </article>)}
+          </button>)}
+          {needsReview.length === 0 && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
+            <span><AlertKindIcon kind="manual" /></span>
+            <div><strong>No open monitor findings</strong><small>Activity keeps reviewed and archived items recoverable</small></div>
+          </button>}
         </div>
       </section>
     </div>
   </div>
 }
 
-function NotesSurface() {
+function NotesSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   return <section className="notes-surface" aria-label="Notes">
     <div className="notes-compose">
       <span className="eyebrow">QUICK NOTE</span>
@@ -1615,31 +1858,51 @@ function NotesSurface() {
         <div><span className="note-context">{note.context}</span><time>{note.updatedAt}</time></div>
         <h2>{note.title}</h2>
         <p>{note.body}</p>
-        <button type="button">Open {note.backlink} context <span aria-hidden="true">›</span></button>
+        <button type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Open note detail <span aria-hidden="true">›</span></button>
       </article>)}
     </div>
   </section>
 }
 
-function ActivitySurface({ slice, alerts: incomingAlerts }: { slice: TrustSlice; alerts: MonitoringAlert[] }) {
-  const [stream, setStream] = useState<ActivityStream>('all')
-  const alerts = incomingAlerts.filter(alert => stream === 'all' || (stream === 'changes' && alert.severity === 'hot') || (stream === 'sources' && alert.kind !== 'manual'))
+function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewChange, onOpenObject }: { slice: TrustSlice; alerts: MonitoringAlert[]; alertReview: Record<string, AlertReviewState>; onReviewChange: (id: string, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+  const [stream, setStream] = useState<ActivityStream>('needs-review')
+  const reviewState = (alert: MonitoringAlert) => alertReview[alert.id] ?? 'needs-review'
+  const needsReviewCount = incomingAlerts.filter(alert => reviewState(alert) === 'needs-review').length
+  const alerts = incomingAlerts.filter(alert => {
+    const state = reviewState(alert)
+    if (stream === 'needs-review') return state === 'needs-review'
+    if (stream === 'archived') return state === 'archived'
+    if (state === 'archived') return false
+    if (stream === 'changes') return alert.severity === 'hot'
+    if (stream === 'sources') return alert.kind !== 'manual'
+    return false
+  })
 
   return <section className="activity-surface" aria-label="Activity and alert intake">
+    <section className="activity-inbox-head">
+      <div>
+        <span className="eyebrow">REVIEW INBOX</span>
+        <h2>{needsReviewCount ? `${needsReviewCount} finding${needsReviewCount === 1 ? '' : 's'} need review` : 'Inbox is clear.'}</h2>
+        <p>Monitor discoveries land here as observations to review, route, or archive. They are not canonical facts just because an agent found them.</p>
+      </div>
+      <span className={needsReviewCount ? 'review-count active' : 'review-count'}>{needsReviewCount}</span>
+    </section>
     <div className="activity-tabs" role="tablist" aria-label="Activity stream">
       {([
-        ['all', 'All'],
+        ['needs-review', 'Needs review'],
         ['changes', 'Changes'],
         ['sources', 'Sources'],
         ['personal', 'Personal'],
+        ['archived', 'Archived'],
       ] as Array<[ActivityStream, string]>).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={stream === value} className={stream === value ? 'active' : ''} onClick={() => setStream(value)}>{label}</button>)}
     </div>
     <div className="activity-layout">
       <div className="activity-feed">
         {stream === 'personal' ? contextNotes.map(note => <article key={note.id} className="activity-card personal">
           <span className="activity-icon"><NavIcon name="notes" /></span>
-          <div><span className="eyebrow">PERSONAL NOTE</span><h2>{note.title}</h2><p>{note.body}</p><small>{note.updatedAt} · {note.context}</small></div>
-        </article>) : alerts.map(alert => <AlertCard key={alert.id} alert={alert} />)}
+          <div><span className="eyebrow">PERSONAL NOTE</span><h2>{note.title}</h2><p>{note.body}</p><small>{note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Open object</button></div>
+        </article>) : alerts.map(alert => <AlertCard key={alert.id} alert={alert} reviewState={reviewState(alert)} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
+        {alerts.length === 0 && stream !== 'personal' && <div className="activity-empty"><strong>No items here.</strong><span>{stream === 'archived' ? 'Archived findings will remain recoverable here.' : 'Quiet is a valid state.'}</span></div>}
       </div>
       <aside className="activity-contract">
         <span className="eyebrow">INTAKE CONTRACT</span>
@@ -1667,19 +1930,25 @@ function ActivitySurface({ slice, alerts: incomingAlerts }: { slice: TrustSlice;
   </section>
 }
 
-function AlertCard({ alert }: { alert: MonitoringAlert }) {
-  return <article className={`activity-card alert-${alert.severity}`}>
+function AlertCard({ alert, reviewState, onReviewChange, onOpenObject }: { alert: MonitoringAlert; reviewState: AlertReviewState; onReviewChange: (id: string, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+  return <article className={`activity-card alert-${alert.severity} review-${reviewState}`}>
     <span className="activity-icon"><AlertKindIcon kind={alert.kind} /></span>
     <div>
       <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
       <h2>{alert.title}</h2>
       <p>{alert.summary}</p>
-      <div className="activity-meta"><span>{alert.destination}</span><span>{alert.attention}</span><span>{alert.object}</span><span>{alert.source}</span><span>{alert.status}</span></div>
+      <div className="activity-meta"><span className={`review-badge ${reviewState}`}>{reviewState.replace('-', ' ')}</span><span>{alert.destination}</span><span>{alert.attention}</span><span>{alert.object}</span><span>{alert.source}</span><span>{alert.status}</span></div>
       <details>
         <summary>Why this matters</summary>
         <p>{alert.rationale}</p>
         <p>{alert.nextAction}</p>
       </details>
+      <div className="activity-review-actions">
+        <button type="button" onClick={() => onOpenObject(alertToObjectDetail(alert))}>Open object</button>
+        <button type="button" onClick={() => onReviewChange(alert.id, 'reviewed')}>Mark reviewed</button>
+        <button type="button" onClick={() => onReviewChange(alert.id, 'archived')}>Archive</button>
+        {reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert.id, 'needs-review')}>Reopen</button>}
+      </div>
     </div>
   </article>
 }

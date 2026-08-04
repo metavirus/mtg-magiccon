@@ -50,12 +50,12 @@
 - [x] Derive and implement the minimal Black Lotus trust-slice contract from the accepted baseline.
 - [ ] Complete trust proof on device. Pure reconciliation now requires a new explicitly superseding observation, retains the prior observation, and preserves personal decision/itinerary state; live reviewed write/readback and real-iPhone offline reopening remain.
 - [x] Record the updated cohesion-first v1.5 path in `docs/V1_5_PATH.md`, ordered by intelligent chunks: shared object-detail grammar, Home command center, Activity inbox/backlinks, Wallet mobile retrieval, trust/auth/storage, reviewed monitoring hydration, ticketed-play vertical slice, and production Plan only after real contention exists.
-- [ ] **v1.5:** Establish the shared object-detail drawer/sheet pattern before continuing destination-specific polish.
-- [ ] **v1.5:** Refine Home into a true command center that answers whether anything needs attention, rather than a general dashboard of collected facts.
-- [ ] **v1.5:** Reframe Activity as a reviewed monitor inbox with Needs review / Changes / Sources / Personal / Archived streams and contextual backlinks.
-- [ ] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. Current POC proves the idea, but the ticket art/border/placement and `+`/`-` controls should be rebuilt around onsite one-handed retrieval rather than desktop composition.
+- [x] **v1.5:** Establish the shared object-detail drawer/sheet pattern before continuing destination-specific polish.
+- [x] **v1.5:** Refine Home into a true command center that answers whether anything needs attention, rather than a general dashboard of collected facts.
+- [x] **v1.5:** Reframe Activity as a reviewed monitor inbox with Needs review / Changes / Sources / Personal / Archived streams and contextual backlinks.
+- [x] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. Prize Tix is now a compact hero chip that opens an onsite drawer/sheet with large count and `+100` / `-100` controls instead of forcing the page layout around a decorative ticket.
 - [ ] **v1.5:** Test Activity with real monitor output volume. Keep the stream useful and compact on mobile, with filters doing more work as alerts accumulate.
-- [ ] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
+- [x] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
 - [ ] **v1.5:** Decide whether navigation state should become URL-addressable again. The current POC click-through works, but direct hash routes are not the trust source for review; if sharing deep links becomes important, fix that deliberately.
 - [ ] **v1.5:** Resume production Plan design only after representative ticketed-play data exists; preserve the current preview as disposable design evidence and do not derive planner schema from it.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
