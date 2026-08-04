@@ -8,6 +8,8 @@ Finish the POC as a useful quiet-period companion that is ready to receive rare,
 
 This does **not** mean building the full monitoring system yet. The POC should prove that when an agent uncovers information, the app has a clear place to put it, a clear attention level, and a clear path back to the affected object.
 
+The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`.
+
 ## Finish definition
 
 The POC is ready when:

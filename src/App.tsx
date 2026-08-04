@@ -358,6 +358,8 @@ type MonitoringAlert = {
   id: string
   kind: AlertKind
   severity: AlertSeverity
+  destination: 'Home' | 'Activity' | 'Wallet' | 'Trip' | 'Explore' | 'Calendar' | 'Map' | 'Notes'
+  attention: string
   title: string
   summary: string
   object: string
@@ -402,21 +404,40 @@ type ExploreEvent = {
 const monitoringAlerts: MonitoringAlert[] = [
   {
     id: 'ticketed-play-watch',
+    kind: 'newsletter',
+    severity: 'hot',
+    destination: 'Home',
+    attention: 'Milestone signal',
+    title: 'Ticketed play announcement would open planning mode',
+    summary: 'Representative newsletter/site discovery: when ticketed play goes live, Home should announce it and Explore becomes the triage lane.',
+    object: 'Milestone · Ticketed play',
+    source: 'MagicCon news + ticketed-play page',
+    checkedAt: 'Aug 4, 8:28 AM',
+    status: 'watch route ready',
+    rationale: 'This is the highest-value quiet-period signal because ticketed play changes the app from watch mode into planning mode.',
+    nextAction: 'If observed live, show on Home, add a Calendar milestone, and open Explore with Play selected.',
+  },
+  {
+    id: 'black-lotus-page-change',
     kind: 'site',
     severity: 'hot',
-    title: 'Ticketed play page still says coming soon',
-    summary: 'The watched official Atlanta ticketed-play surface has not opened yet; keep the mid-late August forecast visible.',
-    object: 'Milestone · Ticketed play',
+    destination: 'Home',
+    attention: 'Watched-page change',
+    title: 'Black Lotus page change lands as a high-signal item',
+    summary: 'Representative official-page discovery: a change to the Black Lotus VIP page should preserve the new wording and link back to the affected BL object.',
+    object: 'Black Lotus · VIP page',
     source: 'mcatlanta.mtgfestivals.com',
-    checkedAt: 'Aug 4, 8:02 AM',
-    status: 'published unchanged',
-    rationale: 'This is the highest-value quiet-period signal because ticketed play changes the app from watch mode into planning mode.',
-    nextAction: 'Stay on Home only; no alert unless the page changes or an email announces the sale window.',
+    checkedAt: 'Aug 4, 8:29 AM',
+    status: 'route ready',
+    rationale: 'Black Lotus details are scarce, personally relevant, and likely worth reviewing even if the change later proves minor.',
+    nextAction: 'Show on Home until reviewed; keep both old and new observations in Activity and the object evidence drawer.',
   },
   {
     id: 'newsletter-watch',
     kind: 'newsletter',
     severity: 'notice',
+    destination: 'Activity',
+    attention: 'Source history',
     title: 'MagicCon news feed checked',
     summary: 'No Atlanta-specific artist, store, or ticketed-play post was detected in the representative watch set.',
     object: 'News · MagicCon',
@@ -427,17 +448,64 @@ const monitoringAlerts: MonitoringAlert[] = [
     nextAction: 'Keep in Activity; do not clutter the default surface.',
   },
   {
-    id: 'delta-receipt-captured',
+    id: 'receipt-import-route',
     kind: 'email',
     severity: 'quiet',
-    title: 'Delta trip evidence already captured',
-    summary: 'Flight confirmation HOGFBX is available in Trip; future Delta changes should attach to that object.',
-    object: 'Trip · Flights',
+    destination: 'Wallet',
+    attention: 'Proof captured',
+    title: 'Email receipt import lands in Wallet',
+    summary: 'Representative Gmail discovery: receipt artifacts should preserve the original and extract line items without becoming a Home alert.',
+    object: 'Wallet · Receipts',
+    source: 'Gmail · MagicCon / store receipt',
+    checkedAt: 'Aug 4, 8:30 AM',
+    status: 'route ready',
+    rationale: 'Receipts are valuable because they are annoying to find onsite, but most are retrieval objects rather than news.',
+    nextAction: 'Attach original image/PDF, extracted lines, assignments, and backlinks to Play, Store, Other, or Trip as appropriate.',
+  },
+  {
+    id: 'delta-change-route',
+    kind: 'email',
+    severity: 'notice',
+    destination: 'Trip',
+    attention: 'Consequential only',
+    title: 'Travel change stays under Trip unless it matters now',
+    summary: 'Representative Delta discovery: a changed flight time annotates the flight object and Calendar; only meaningful disruption reaches Home.',
+    object: 'Trip · Flights · HOGFBX',
     source: 'Gmail · Delta',
-    checkedAt: 'Aug 3, 10:34 PM',
-    status: 'personally useful',
-    rationale: 'A flight-change email would matter, but the app should not become a flight tracker.',
-    nextAction: 'Keep quiet unless a consequential change appears.',
+    checkedAt: 'Aug 4, 8:31 AM',
+    status: 'route ready',
+    rationale: 'Trip should be a pleasant reference and change surface, not a booking.com cosplay incident.',
+    nextAction: 'If departure/arrival changes, update Trip and Calendar; escalate to Home only if it affects lodging, event arrival, or airport departure timing.',
+  },
+  {
+    id: 'artist-list-route',
+    kind: 'site',
+    severity: 'notice',
+    destination: 'Explore',
+    attention: 'Opportunity discovery',
+    title: 'Artist list appears as an Explore opportunity',
+    summary: 'Representative official-page discovery: first artist directory should surface as a milestone and then become browsable by artist/card/signature usefulness.',
+    object: 'Explore · Artists',
+    source: 'MagicCon artists page',
+    checkedAt: 'Aug 4, 8:32 AM',
+    status: 'future route',
+    rationale: 'Artist info is useful only if the app translates it into lazy-friendly opportunities rather than a flat directory.',
+    nextAction: 'Show first appearance on Home; later changes stay in Activity unless they match known card/signature interest.',
+  },
+  {
+    id: 'venue-map-route',
+    kind: 'site',
+    severity: 'notice',
+    destination: 'Map',
+    attention: 'Context unlock',
+    title: 'Official map lands in Map, then backlinks outward',
+    summary: 'Representative map discovery: official 2026 floor artifacts should attach to Map and become useful through room, booth, vendor, Wallet, and event backlinks.',
+    object: 'Map · Event map',
+    source: 'MagicCon map page',
+    checkedAt: 'Aug 4, 8:33 AM',
+    status: 'future route',
+    rationale: 'The map is valuable when it helps answer “where do I go next?” rather than simply reproducing a giant image.',
+    nextAction: 'Keep first official map as a Home signal; put detailed extraction and OCR candidates in Map/Activity for review.',
   },
 ]
 
@@ -1443,9 +1511,9 @@ function HomeSurface({ slice, onOpenPlan }: { slice: TrustSlice; onOpenPlan: () 
         </button>
         <div className="timely-home">
           <span className="eyebrow">TIMELY SIGNALS</span>
-          {monitoringAlerts.slice(0, 2).map(alert => <article key={alert.id} className={`signal-chip-card ${alert.severity}`}>
+          {monitoringAlerts.filter(alert => alert.severity === 'hot').slice(0, 2).map(alert => <article key={alert.id} className={`signal-chip-card ${alert.severity}`}>
             <span><AlertKindIcon kind={alert.kind} /></span>
-            <div><strong>{alert.title}</strong><small>{alert.checkedAt} · {alert.status}</small></div>
+            <div><strong>{alert.title}</strong><small>{alert.destination} · {alert.attention}</small></div>
           </article>)}
         </div>
       </section>
@@ -1524,7 +1592,7 @@ function AlertCard({ alert }: { alert: MonitoringAlert }) {
       <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
       <h2>{alert.title}</h2>
       <p>{alert.summary}</p>
-      <div className="activity-meta"><span>{alert.object}</span><span>{alert.source}</span><span>{alert.status}</span></div>
+      <div className="activity-meta"><span>{alert.destination}</span><span>{alert.attention}</span><span>{alert.object}</span><span>{alert.source}</span><span>{alert.status}</span></div>
       <details>
         <summary>Why this matters</summary>
         <p>{alert.rationale}</p>

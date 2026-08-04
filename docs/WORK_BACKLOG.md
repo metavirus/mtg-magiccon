@@ -52,7 +52,9 @@
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
 - [x] Define and implement the fixture-backed monitoring-alert intake contract for MVP/POC so future Gmail, newsletter, and official-page observations can land as reviewable alerts without becoming automatic canonical facts.
 - [x] Document the POC finish glide path and routing map for agent-discovered news, receipts, page changes, travel updates, notes, and future prompts in `docs/POC_FINISH_GLIDE_PATH.md`.
-- [ ] Add a small set of representative landing-route fixtures: Black Lotus page change, ticketed-play/newsletter milestone, email receipt import, travel change, and contextual user note.
+- [x] Add a small set of representative landing-route fixtures: Black Lotus page change, ticketed-play/newsletter milestone, email receipt import, travel change, artist-list opportunity, map unlock, and contextual user note.
+- [x] Document the MVP monitoring-agent design, output contract, routing rules, and safe daily-run deployment shape in `docs/MVP_MONITORING_AGENT_DESIGN.md`.
+- [ ] Enable the first scheduled monitoring automation only after the fixture landing routes are reviewed on phone and the user explicitly approves live monitoring.
 
 ## Parked
 
