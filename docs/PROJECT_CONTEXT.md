@@ -27,12 +27,14 @@ The app remains useful after the convention rather than treating the event date 
 - Agent proposals and workflow requests are reviewable intake, never automatic canonical truth.
 - Sensitive receipts, confirmations, screenshots, and travel artifacts belong in private Storage in a later tranche.
 
-## Initial proof
+## Foundation proof and first trust slice
 
-The only initial domain table is `personal_notes`, an owner-scoped private record used to prove authentication, grants, and RLS. It is intentionally not a convention-domain model.
+The foundation table `personal_notes` remains an owner-scoped private record used to prove authentication, grants, and RLS. It is intentionally not a convention-domain model.
 
-The conceptual growth path is `Source -> Observation -> Normalized entity -> Personal decision -> Itinerary`. The next tranche should prove that path with one real official page and one change before considering monitoring or broad normalization.
+The first bounded convention-domain implementation is the Black Lotus trust slice in `docs/BLACK_LOTUS_TRUST_SLICE.md`. Five deliberately narrow owner-scoped tables prove source identity, retained observation, one normalized dated occurrence, a reversible personal decision, and one itinerary placement. This is a proof of the evidence-to-plan path, not authorization for a comprehensive convention schema.
+
+The conceptual growth path is `Source -> Observation -> Normalized entity -> Personal decision -> Itinerary`. The Black Lotus slice now proves the initial real-page path. A reviewed reconciliation fixture and real offline device test remain required before monitoring or broad normalization.
 
 ## Boundaries
 
-This repository is not a fork of `mtg-events-chatgpt`. That repository is read-only methodology reference material. Do not copy its application, schema, migrations, records, secrets, users, exports, regional requirements, or Git history. No production deployment or bulk MagicCon ingestion belongs in this tranche. Docker, WSL, a local Supabase stack, backend services, and enterprise environment promotion are outside the current architecture; see `docs/DEVELOPMENT_ARCHITECTURE.md`.
+This repository is not a fork of `mtg-events-chatgpt`. That repository is read-only methodology reference material. Do not copy its application, schema, migrations, records, secrets, users, exports, regional requirements, or Git history. Bulk MagicCon ingestion does not belong in this tranche. A temporary GitHub Pages preview is acceptable for iPhone review when it remains fixture-backed by default and clearly separate from production data deployment. Docker, WSL, a local Supabase stack, backend services, and enterprise environment promotion are outside the current architecture; see `docs/DEVELOPMENT_ARCHITECTURE.md`.

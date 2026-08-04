@@ -1,13 +1,15 @@
 # Experience Architecture
 
-Updated: 2026-08-02
-Status: Core direction accepted; screen behavior and mobile navigation remain under review
+Updated: 2026-08-03
+Status: Core direction and first-pass surface baseline accepted; mobile navigation remains under implementation review
 
 ## Decision question
 
 Can the app provide one stable, understandable home for every important MagicCon need without copying the fragmented navigation of its source systems or turning the landing page into an everything-dashboard?
 
 ## Recommendation
+
+`docs/DESIGN_BASELINE_2026-08-03.md` is the current cross-surface reconciliation of this architecture and the accepted screen studies. This document remains the durable responsibility map; the baseline records the latest visual, responsive, state, AI, and offline decisions.
 
 Prefer focused, directly reachable destinations over an arbitrary tab limit:
 
@@ -29,7 +31,7 @@ Treat **Now** as Home's phase-aware focus rather than another destination:
 - onsite, it becomes the immediate operational object: what, when, where, who, and what to show;
 - after the convention, it presents only useful residue such as a reimbursement or follow-up, then recedes.
 
-Map and Trip are direct destinations because they support distinct, recurring retrieval behaviors. Their facts still backlink into events, Wallet items, people, and notes rather than becoming isolated subsystems.
+Map and Trip are direct destinations because they support distinct, recurring retrieval behaviors. Trip owns the pleasant booking and travel reference. Map owns spatial orientation and place-centered retrieval. Their facts still backlink into events, Wallet items, people, and notes rather than becoming isolated subsystems.
 
 Sources remain trust infrastructure. They are directly reachable through Activity's Sources stream and through an evidence drawer on every supported fact. The owner should not need to browse by website or email system to find convention information.
 
@@ -125,6 +127,27 @@ Map owns the spatial convention model:
 
 The first versions may be a place directory plus official-map references. The destination can later grow toward the interactive atlas without promising indoor positioning or forcing every map lookup through Explore.
 
+For MVP, Map should be scaffolded rather than solved. The useful first shape is:
+
+- a direct Map destination in the shell;
+- two top contexts: **Trip area** and **Event map**;
+- a Trip-area landing that orients the owner around confirmed hotels, the convention center, travel transitions, and useful map/provider links before the official floor map exists;
+- a place directory that can hold hotels, venue entrances, rooms, zones, booths, vendor tables, artist tables, pickup points, meetup spots, and rough map references;
+- official Atlanta map artifacts captured as source evidence when they appear;
+- links from places to related Trip facts, events, vendors, artists, Wallet items, notes, and source observations;
+- an offline-readable place reference for confirmed personal commitments and important operational locations.
+
+Current quiet-period Map content should use confirmed personal evidence where available. As of this checkpoint, the lodging sequence is:
+
+- **Courtyard by Marriott Atlanta Downtown** — Nov 11-12, 2026; TicketsAtWork confirmation; 133 Carnegie Way NW.
+- **Omni Atlanta Hotel at Centennial Park** — Nov 12-15, 2026; Booking.com confirmation; 190 Marietta St NW.
+
+These are private Trip/Wallet facts surfaced in Map for orientation, not public convention facts. Sensitive booking values such as Booking.com PINs stay hidden until deliberately revealed.
+
+Prior Vegas maps and site behavior may inform expected surface types, but never the Atlanta layout. The prior Atlanta 2025 map is stronger as a venue-shape reference than Vegas, but it is still only historical evidence. Atlanta 2026 place facts remain source-led and dated; the app should not hardcode a venue topology, booth model, ticketed-play zone layout, or navigational assumption from another year's MagicCon.
+
+The v2 backlog owns the richer convention atlas: clickable map overlays, booth-level object linking, vendor-exclusive markers, artist-card-signing markers, route hints, proximity context, and higher-effort OCR/georeferencing. Indoor positioning and live turn-by-turn routing remain aspirational. A plausible v2 approach would combine browser geolocation, explicit accuracy radius, floor/manual correction, and tap-to-place fallback, then highlight next destinations without pretending to provide reliable indoor GPS.
+
 ### Wallet
 
 Wallet owns operational possession and proof:
@@ -146,6 +169,8 @@ Trip owns pleasant, lightweight travel and lodging reference:
 - hotel stays, nights, people, addresses, and check-in/out facts;
 - Maps and provider link-outs;
 - material changes such as cancellation or a consequential schedule shift.
+
+The working MVP shape is two top subtabs: **Hotels** and **Flights**. Hotels remains the default because it is the more useful quiet-period reference today. Flights should show real confirmation facts when available, but stay quiet and compact unless a receipt, change, or cancellation creates a practical decision.
 
 Travel constraints backlink into Plan, and original confirmations backlink into Wallet. Trip does not assess whether an adult has booked enough travel, manage reservations, or reproduce airline and hotel tools.
 
@@ -264,9 +289,17 @@ Backlinks should be real navigation, not decorative labels. A person chip, place
 
 ## Shared interaction vocabulary
 
+### Contextual find and jump
+
+Provide one compact app-wide retrieval affordance for the object types the app actually knows. It prioritizes current and recent events, places, Wallet entries, notes, and later artists or vendors. It is a direct object jump, not assistant chrome or a substitute for focused browsing. The MVP can prove the interaction with only trust-slice objects.
+
 ### Whole-card navigation
 
 The card body opens detail. Nested controls are reserved for frequent, unambiguous state changes such as favorite, reveal, add note, or Prize Tix adjustment. Dead card real estate is avoided without making every label look like a button.
+
+### Reversible state changes
+
+Interested, Tentative, Committed, Hidden, and Not for me are reversible personal states. Purchase is an independent access or financial fact that normally defaults the event to Committed, but it must not create an irreversible interface lock. A change updates every visible representation immediately and offers a short undo path where accidental activation is plausible.
 
 ### Detail drawer or focused layer
 
@@ -278,6 +311,16 @@ Desktop uses a side drawer when retaining surrounding context helps comparison. 
 4. translated details and practical requirements;
 5. notes and related objects;
 6. source evidence, wording, and history.
+
+Desktop uses one consistent drawer pattern. Mobile uses one focused layer or sheet at a time; proof, assignment, and state changes must not produce nested modal stacks.
+
+### Showable artifact mode
+
+A Wallet proof may open into a minimal, high-contrast view designed to be shown to event staff: QR code, receipt image, entitlement, or other preserved proof. Extracted context remains available outside that mode. Sensitive values use deliberate reveal and are concealed again when the focused view closes.
+
+### Offline and freshness
+
+Connection and cache state are quiet shell context. Critical Plan, Map, and Wallet objects may also show that the approved view is saved offline and when it was captured. Freshness appears prominently only when age can change a decision. Background refresh does not unexpectedly replace the object currently being read.
 
 ### Chips and icons
 

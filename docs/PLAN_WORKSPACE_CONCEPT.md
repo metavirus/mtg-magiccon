@@ -1,7 +1,13 @@
 # Plan Workspace Concept
 
-Updated: 2026-08-02
-Status: Direction accepted; detailed visual behavior remains under review
+Updated: 2026-08-03
+Status: Accepted interaction study; production implementation bracketed for v1.5
+
+## Implementation boundary
+
+Plan is deliberately outside the quiet-period MVP implementation path. The owner will not use dense scheduling until ticketed play exists, and a partial production scaffold would create more architectural risk than product value. Preserve this document and the working preview as design evidence, but do not derive Plan-specific schema, conflict machinery, scenario storage, drag/drop behavior, or responsive production contracts from it yet.
+
+Resume Plan only when representative ticketed-play data exposes actual Atlanta variation, or when a deliberately comprehensive structural fixture is approved. The existing narrow itinerary record remains part of the trust-slice proof; it is not the schema for this eventual workspace.
 
 ## Purpose
 
@@ -15,29 +21,22 @@ Plan is the focused resource-contention workspace for the three public conventio
 
 Plan is not a general calendar, trip itinerary, or month view. Broad dated context belongs in the primary Calendar surface.
 
-## Stable modes
+## One stable workspace
 
-Plan has two stable submodes:
+Plan does not split decision-making and scheduling into separate modes. The shared time canvas is the decision surface: selecting an event exposes its detail and reversible state controls without requiring a context change merely to mark it Interested, Tentative, Committed, or Purchased.
 
-1. **Decide** — synthesize candidates and resolve contention.
-2. **Schedule** — inspect the focused Friday–Sunday time canvas.
-
-During active event selection, Decide is the natural default. As commitments accumulate, Schedule may become the natural default. The owner can switch at any time.
+Calendar owns the broader onsite agenda and quick chronological glance. Plan owns focused Friday–Sunday contention, consequence preview, and recovery of displaced alternatives.
 
 November 12 Black Lotus preview programming may be referenced where useful, but it does not need the same contention machinery because access and the day's structure are already constrained. November 11 travel belongs in Calendar and Trip.
 
-## Decide
-
-Decide is the differentiated planning surface.
-
 ### Core composition
 
-- **Candidate pool:** Interested events worth retaining but not yet promoted to Tentative.
-- **Contention sets:** Tentative contenders grouped because they overlap or otherwise compete.
+- **Shared time canvas:** Interested events, Tentative contenders, Commitments, and purchases retain one temporal geometry.
+- **Compact candidate context:** retained events can be reached without creating a permanent shelf that competes with the time field.
 - **Commitment consequence:** a visual preview of what choosing one contender displaces.
 - **Selected-event detail:** an on-demand drawer or page with translated details, rationale, evidence, and notes.
 
-On wide desktop, the candidate pool can sit beside the dominant contention workspace. At medium widths it can move above or below. Event detail should open only on selection rather than permanently creating a crowded third pane.
+On desktop, the time field uses the available width. Event detail opens as a true overlay drawer rather than reflowing and compressing the later hours. It closes explicitly, with Escape, on day change, or when empty planning space receives attention. On mobile, detail is a bottom sheet or focused layer over a compact time ruler and readable event rows.
 
 ### At-a-glance event blocks
 
@@ -51,7 +50,7 @@ Multi-event views show only decision headlines:
 - one intelligence chiclet;
 - exceptional source state such as Changed, Canceled, or Sold out.
 
-The entire natural block opens detail. Desktop may retain comparison context with a drawer; mobile may use a focused page or sheet.
+The entire natural block opens detail. Narrow blocks use concise contextual labels while full identity remains in detail; the product does not sacrifice proportional time merely to fit a long organizer title.
 
 Person markers remain a lightweight overlay rather than a collaboration subsystem. Stable fill color and white initial identify the person; border treatment shows Interested, Tentative, Committed, or Purchased. Markers sit away from the title and timing, preferably at the lower-right, and reveal exact involvement on hover, focus, or tap. People with no relevant relationship are omitted.
 
@@ -88,10 +87,6 @@ Default ordering is personal relevance tempered by schedule consequence. Optiona
 
 Filters remain recessed until useful. Potential filters include day, state, program family, fixed/flexible, price, format, competitiveness, person, and availability. Do not permanently display a wall of filter chips before real inventory proves the need.
 
-## Schedule
-
-Schedule is the detailed temporal view for November 13–15 only.
-
 ### Range controls
 
 - Friday;
@@ -115,9 +110,21 @@ Interested events may remain as quiet full-size blocks so their duration and ove
 
 ### Density and panes
 
-Desktop may provide a detailed day canvas, an all-three-days overview, an optional candidate tray, and an on-demand event drawer. The design must allow visible overlap instead of forcing every event into one nonoverlapping lane.
+Desktop provides a detailed day canvas and an on-demand overlay drawer. The closed drawer restores the full horizontal time field. The design must allow visible overlap instead of forcing every event into one nonoverlapping lane.
 
-Mobile may use a focused day timeline with Friday/Saturday/Sunday switching. It must preserve the ability to inspect overlaps, displaced Tentatives, flexibility, and detail even if the dense desktop canvas is not reproduced literally.
+Mobile uses Friday/Saturday/Sunday switching, a thin shared time ruler for temporal relationships, and full-width event rows for reading and state changes. The ruler and rows select the same object. It must preserve overlaps, displaced Tentatives, flexibility, detail, and reversible controls without reproducing the desktop lanes literally.
+
+### Accepted visual state grammar
+
+- **Interested:** readable text, quiet/faded category fill, dotted border.
+- **Tentative:** full category fill, dotted border.
+- **Committed:** full category fill, solid border.
+- **Purchased:** Committed treatment plus a gold financial marker; purchase remains reversible and returns to the prior planning state when unmarked.
+- **Selected:** cool-blue focus treatment only; gold never doubles as focus.
+- **Displaced:** a separate rose consequence cue that does not erase or fade the underlying Tentative state.
+- **Person marker:** smaller stable fill and white initial identify the person; no border means Interested, dotted means Tentative, solid means Committed, and gold means Purchased.
+
+Free and included events do not show a purchase control. Obvious UI semantics should not be repeated in explanatory prose.
 
 ## Relationship with Calendar
 
@@ -130,7 +137,7 @@ Calendar may show a November 13 date cluster with:
 - major schedule pressure;
 - a compact expanded preview.
 
-Calendar does not reproduce the contention workspace. “Open Friday in Plan” changes context deliberately and opens Schedule or Decide with Friday selected.
+Calendar does not reproduce the contention workspace. “Open Friday in Plan” changes context deliberately and opens Plan with Friday selected.
 
 ## AI placement
 
@@ -142,16 +149,14 @@ AI remains embedded:
 - conditional-overlap and pressure rationale;
 - rare A/B feedback through Now when an answer materially improves planning.
 
-There is no AI, Conflicts, Purchased, Black Lotus, People, or Candidates subtab. Those are intelligence, states, treatments, filters, or panes inside Decide and Schedule.
+There is no AI, Conflicts, Purchased, Black Lotus, People, Candidates, Decide, or Schedule subtab. Those are intelligence, states, treatments, filters, or layers inside Plan.
 
 ## Remaining design sequence
 
-1. Candidate pool versus contention-set composition.
-2. Shared-time-rail contender comparison.
-3. Tentative stacking and displacement.
-4. Schedule layering and three-day overview.
-5. Mobile Decide and Schedule behavior.
-6. Toolbar, filters, and sorting after the main jobs are credible.
+1. Test the Explore-to-Plan handoff into Interested and Tentative.
+2. Test a denser real-data-like day without changing the accepted state grammar.
+3. Test the Calendar-to-Plan handoff and onsite Calendar agenda.
+4. Add filters or sorting only after actual inventory proves a need.
 
 ## Boundary
 

@@ -94,7 +94,7 @@ Design representative flows at enough fidelity to judge product behavior. This i
 3. **Event detail drawer:** translated decision information, full source description on demand, person chips, notes, evidence, and commitment consequence.
 4. **Now:** one calm operational card answering what is next, where, when to leave, what to show or bring, and what is still uncertain.
 5. **Wallet item:** extracted facts plus the showable original, deliberate sensitive-detail reveal, notes, and contextual links.
-6. **Place detail:** enough structure to connect a room, booth, vendor, artist, exclusive item, note, and map reference without attempting the full atlas.
+6. **Place detail and Map landing:** a quiet-period Trip-area orientation using confirmed hotel/venue facts, plus enough Event map structure to connect a room, booth, vendor, artist, exclusive item, note, and map reference later without attempting the full atlas.
 
 Explore, Prize Wall, artist matching, store catalog, receipts, and Notes should receive structural sketches sufficient to test their relationship to the shell. They do not need equally detailed prototypes in this phase.
 
@@ -106,6 +106,12 @@ Explore, Prize Wall, artist matching, store catalog, receipts, and Notes should 
 - Empty surfaces should collapse gracefully; the Plan tab can exist without filling the page with ticketed-play placeholders.
 - AI explanations should be concrete and inspectable, such as “de-emphasized: competitive qualifier” or “soft conflict: this league can be played later,” never manufactured excitement.
 - Tiny steering prompts are permitted only where one answer resolves a real ambiguity and changes future behavior.
+- Map should land on useful known facts during the quiet period: confirmed hotels, venue, travel transitions, offline freshness, and Maps/provider link-outs. Event-floor intelligence belongs behind an Event map context until 2026 map evidence exists.
+- Apply one shared shell and interaction vocabulary across the priority screens before treating any individual mockup as a visual baseline.
+- Include bounded contextual find/jump and real object backlinks in screen tests, beginning with only the proof-slice objects.
+- Make personal state changes reversible and propagate them through cards, time blocks, consequence explanations, and person-marker borders.
+- Treat offline state at shell and critical-object level: preserve readable cached facts, show consequential freshness, and avoid repetitive “offline ready” decoration.
+- Test a dedicated showable-artifact view for one Wallet proof without authorizing a generalized Storage or ingestion system.
 
 ### Decision gate
 
@@ -143,6 +149,8 @@ A real publisher change is ideal but cannot be scheduled. The phase should there
 - Receipt or QR artifact uploads.
 - Broad event, person, place, travel, store, artist, or prize-wall tables.
 - Multi-user accounts or shared writes.
+
+Confirmed travel/lodging evidence may be used as design context and fixture content for Map/Trip/Wallet concepts. It does not authorize a private-email ingestion workflow, Storage artifact pipeline, or travel schema in the Black Lotus trust slice.
 
 ### Acceptance checks
 
@@ -199,6 +207,7 @@ The design should be tested against a short, reusable scenario set:
 - A flexible league appears to overlap a fixed event but should not block it.
 - An interested event sells out; a purchased event sells out; a purchased event is canceled.
 - The owner is onsite with weak connectivity and needs the next event, place clue, and showable artifact.
+- The owner is in the quiet period and uses Map to retrieve the Omni stay, Courtyard transition, convention-center context, and original confirmation path without searching Gmail.
 - A store or vendor item is favorited and later changes availability.
 - A contextual note must be found later without remembering whether it was attached to an event, place, or receipt.
 
