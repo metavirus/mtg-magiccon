@@ -2,11 +2,11 @@
 
 Updated: 2026-08-04
 
-Automation status: first conservative daily heartbeat created as `magiccon-atlanta-quiet-period-monitor`. It reports into the Codex task only. It is not authorized to write Supabase data, modify Gmail, send mail, create push notifications, or change app state.
+Automation status: daily heartbeat `magiccon-atlanta-quiet-period-monitor` is active. It may read approved public sources and Gmail search results, report into the Codex task, and update the fixture-backed POC hydration file when a finding is ready for review. It is not authorized to write Supabase data, modify Gmail, send mail, create push notifications, or change canonical app state.
 
 ## Purpose
 
-The MVP monitoring agent exists to remove the owner's need to manually check quiet-period MagicCon sources. It should notice rare meaningful changes and package them as reviewable observations that the app can display.
+The MVP monitoring agent exists to remove the owner's need to manually check quiet-period MagicCon sources. It should notice rare meaningful changes and package them as reviewable observations that the app can display through `public/monitoring-intake.json`.
 
 It is not a broad crawler, a daily content farm, a travel-monitoring service, or an autonomous decision-maker.
 
@@ -30,7 +30,7 @@ The detailed watch-set strategy is recorded in `research/MONITORING_SOURCE_STRAT
 - Official MagicCon social links as low-volume announcement radar.
 - Pastimes format/ticketed-play resources for interpreting event difficulty and mechanics.
 - Official artist, vendor, show store, map, and prize wall pages when URLs exist.
-- Gmail search results for MagicCon, Leap/Event Technology, Pastimes, Delta, hotel receipts, and store receipts, only when explicitly enabled.
+- Gmail search results for MagicCon-specific mail, Leap/Event Technology, Pastimes, Delta, hotel receipts, and store receipts. Generic Wizards/Magic marketing is out of scope unless the message itself mentions MagicCon, MTG Festivals, Atlanta 2026, ReedPop, Leap, or Pastimes.
 - Small external search radar for high-signal Atlanta terms such as ticketed play, Black Lotus, artist directory, show store, prize wall, map, exclusive playmat, and Dragon Shield.
 
 ### Later watch set expansion
@@ -45,7 +45,9 @@ Examples:
 - ticketed-play schedule once Atlanta inventory appears;
 - venue map PDF/image once published.
 
-## Output contract
+## Output and hydration contract
+
+The POC hydration contract is documented in `docs/MONITORING_HYDRATION_CONTRACT.md`.
 
 Each run may emit zero or more reviewable observations with:
 
@@ -60,7 +62,7 @@ Each run may emit zero or more reviewable observations with:
 - review status;
 - whether the finding appears to supersede, contradict, or merely supplement prior evidence.
 
-The agent must never silently normalize, overwrite, hide, commit, purchase, or notify external systems.
+The agent may replace `public/monitoring-intake.json` with these observations when there is something useful to show in the GitHub Pages preview. The agent must never silently normalize, overwrite, hide, commit, purchase, or notify external systems.
 
 ## Routing rules
 
@@ -124,7 +126,7 @@ Use a deliberately simple scheduled Codex/automation workflow first:
 4. If any Home-worthy item exists, wake the thread or create an app alert payload.
 5. If nothing meaningful changed, record only a quiet Activity observation or no visible app update.
 
-The initial deployed heartbeat follows this shape and is intentionally limited to thread reporting.
+The deployed heartbeat follows this shape and may also refresh the fixture-backed preview hydration file when there is a meaningful finding. Routine quiet checks remain thread-only.
 
 Do not start with:
 
@@ -140,7 +142,7 @@ Do not start with:
 1. Confirm project identity and current watch set.
 2. Check official site/watch URLs for changed text, new links, or removed "coming soon" language.
 3. Check MagicCon news for new posts.
-4. If Gmail is enabled, search only narrow MagicCon/Leap/Pastimes/Delta/hotel/store queries since the last run.
+4. Search Gmail using narrow MagicCon-specific, Leap, Pastimes, Delta, hotel, and store queries since the last run. Do not search standalone `Wizards`; require MagicCon/MTG Festivals context.
 5. Classify each finding into the routing map.
 6. Produce a short report:
    - Home-worthy findings;

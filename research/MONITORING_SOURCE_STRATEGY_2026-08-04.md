@@ -18,7 +18,7 @@ The Atlanta official site tree is itself a canonical watch target. The monitor s
 
 These are the sources most likely to contain decision-changing information.
 
-- Gmail messages mentioning MagicCon, Magic Con, MTG Festivals, ReedPop, Wizards, Leap/Event Technology, Pastimes, Delta, Omni, Courtyard, Booking/KAYAK, official store, prize wall, QR codes, confirmations, or receipts.
+- Gmail messages about MagicCon or the Atlanta trip: MagicCon, Magic Con, MTG Festivals, ReedPop MagicCon mail, Leap/Event Technology, Pastimes, Delta, Omni, Courtyard, Booking/KAYAK, official store, prize wall, QR codes, confirmations, or receipts. Generic Wizards/Magic marketing is out of scope unless the same message also mentions MagicCon, MTG Festivals, Atlanta 2026, ReedPop, Leap, or Pastimes.
 - Atlanta official site tree: `https://mcatlanta.mtgfestivals.com/en-us.html` and all discovered `mcatlanta.mtgfestivals.com/en-us/` pages.
 - Atlanta Black Lotus VIP page: `https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html`.
 - Global MagicCon news index: `https://www.mtgfestivals.com/global/en-us/magiccon-news.html`.
@@ -92,11 +92,13 @@ Each target should store:
 
 These are read-only discovery queries, not authorization to create a live Gmail monitor.
 
-- `after:2026/06/01 (MagicCon OR "Magic Con" OR mtgfestivals OR ReedPop OR Wizards OR Leap OR leapevent OR Pastimes)`
+- `after:2026/06/01 (MagicCon OR "Magic Con" OR mtgfestivals OR ReedPop OR Leap OR leapevent OR Pastimes)`
 - `after:2026/06/01 ("MagicCon: Atlanta" OR "Atlanta 2026")`
 - `after:2026/06/01 (subject:(confirmation OR receipt OR order OR ticket OR badge) (MagicCon OR Leap OR leapevent))`
 - `after:2026/06/01 ("Black Lotus" OR "online store" OR "show store" OR "Prize Tix" OR "prize wall")`
 - `after:2026/06/01 (Delta OR "HOGFBX" OR Omni OR Courtyard OR Booking.com OR KAYAK) (Atlanta OR ATL OR MagicCon)`
+
+Do not use a standalone `Wizards` query. It catches ordinary Magic marketing and creates noise. If Wizards-origin mail becomes relevant, it should match a MagicCon-specific query such as `(from:(wizards.com) (MagicCon OR mtgfestivals OR "Magic Con"))`.
 
 Older Vegas and Amsterdam messages may be searched manually for timing clues, but they should not pollute Atlanta facts.
 
