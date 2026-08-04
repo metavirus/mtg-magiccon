@@ -30,7 +30,7 @@ The detailed watch-set strategy is recorded in `research/MONITORING_SOURCE_STRAT
 - Official MagicCon social links as low-volume announcement radar.
 - Pastimes format/ticketed-play resources for interpreting event difficulty and mechanics.
 - Official artist, vendor, show store, map, and prize wall pages when URLs exist.
-- Gmail search results for MagicCon-specific mail, Leap/Event Technology, Pastimes, Delta, hotel receipts, and store receipts. Generic Wizards/Magic marketing is out of scope unless the message itself mentions MagicCon, MTG Festivals, Atlanta 2026, ReedPop, Leap, or Pastimes.
+- Gmail search results for MagicCon-specific mail, Leap Conventions/leapevent, Pastimes, Delta, hotel receipts, and store receipts. Generic Wizards/Magic marketing and standalone Leap wording are out of scope unless the message itself mentions MagicCon, MTG Festivals, Atlanta 2026, ReedPop, Leap Conventions, leapevent, or Pastimes.
 - Small external search radar for high-signal Atlanta terms such as ticketed play, Black Lotus, artist directory, show store, prize wall, map, exclusive playmat, and Dragon Shield.
 
 ### Later watch set expansion
@@ -142,7 +142,7 @@ Do not start with:
 1. Confirm project identity and current watch set.
 2. Check official site/watch URLs for changed text, new links, or removed "coming soon" language.
 3. Check MagicCon news for new posts.
-4. Search Gmail using narrow MagicCon-specific, Leap, Pastimes, Delta, hotel, and store queries since the last run. Do not search standalone `Wizards`; require MagicCon/MTG Festivals context.
+4. Search Gmail using narrow MagicCon-specific, Leap Conventions/leapevent, Pastimes, Delta, hotel, and store queries since the last run. Do not search standalone `Wizards` or standalone `Leap`; require MagicCon/MTG Festivals context for broad vendor/operator terms.
 5. Classify each finding into the routing map.
 6. Produce a short report:
    - Home-worthy findings;
