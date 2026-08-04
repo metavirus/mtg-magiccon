@@ -8,7 +8,7 @@ Finish the POC as a useful quiet-period companion that is ready to receive rare,
 
 This does **not** mean building the full monitoring system yet. The POC should prove that when an agent uncovers information, the app has a clear place to put it, a clear attention level, and a clear path back to the affected object.
 
-The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`.
+The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`. The source-priority and search-radar strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`.
 
 ## Finish definition
 
@@ -62,6 +62,7 @@ The app should route discoveries by usefulness, not by where they came from.
 | Discovery | Default landing | If important | Why |
 | --- | --- | --- | --- |
 | Official page changed but consequence unclear | Activity → Changes | Home timely signal if it affects a milestone, purchased event, known plan, trip fact, or deadline | Preserves watch duty without turning Home into a diff log |
+| New/changed Atlanta official-site page | Activity → Sources or Changes | Home if it unlocks ticketed play, Black Lotus, artists, show store, prize wall, map, mobile app, meet-and-greets, or an operational deadline | The event site tree is canonical; new pages are often the first sign a surface exists |
 | Newsletter post | Activity → Sources | Home if it announces ticketed play, artists, catalog, Black Lotus store, map, policy, or schedule availability | News is rare enough to matter, but not every post deserves alarm styling |
 | Gmail receipt or confirmation | Wallet tab matching object type | Home only if it creates a near-term action or missing proof item | Receipts are mostly retrieval artifacts, not news |
 | Ticketed-play event inventory appears | Explore | Home milestone signal and Calendar marker | This is a major phase change; Explore becomes the browse/triage surface |
