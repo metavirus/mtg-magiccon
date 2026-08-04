@@ -32,4 +32,4 @@ Run `pnpm readiness` before database or release work. See [development architect
 
 The first live product slice is documented in [Black Lotus Trust Slice](docs/BLACK_LOTUS_TRUST_SLICE.md). It retains one official Atlanta claim, a reversible owner decision, a Plan placement, and a versioned owner-bound offline read model.
 
-A temporary GitHub Pages preview may be published for iPhone review. It is fixture-backed by default and not a production data deployment.
+A temporary GitHub Pages preview is available for iPhone review at https://metavirus.github.io/mtg-magiccon/. It is fixture-backed by default and not a production data deployment.
