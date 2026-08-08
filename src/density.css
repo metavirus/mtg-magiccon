@@ -7,6 +7,7 @@
 /* Tranche 1: shared shell and quiet Home. */
 .brand{padding:0;border:0;background:transparent;cursor:pointer}
 .rail nav button,.activity-link{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:10px;background:transparent;color:#9cabbe;font-size:14px;font-weight:540;text-align:left;cursor:pointer}
+html,body{max-width:100%;overflow-x:hidden}
 .rail nav button:hover,.activity-link:hover,.rail nav button.active,.activity-link.active{color:#f4f7fb;background:#182a44}
 .rail nav button.active{font-weight:680}
 .rail nav button span,.activity-link span{width:19px;color:#83adf0;font-size:18px;text-align:center}
@@ -168,6 +169,68 @@
 .activity-review-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.activity-review-actions button{min-height:27px;padding:0 9px;border:1px solid #3b526f;border-radius:8px;background:#122138;color:#b6c9e2;font-size:10px;cursor:pointer}.activity-review-actions button:hover{border-color:#79aaff;color:#fff}.activity-review-actions button:nth-child(2){border-color:#3d806b;color:#78d7b2}.activity-review-actions button:nth-child(3){color:#9aa8ba}
 .activity-empty{display:grid;gap:3px;padding:18px;border:1px dashed #334861;border-radius:13px;background:#0d1828;color:#8293a9}.activity-empty strong{color:#c4cfdd;font-size:14px}.activity-empty span{font-size:11px}
 @media(max-width:560px){.home-attention{grid-template-columns:30px minmax(0,1fr);gap:9px}.home-attention-actions{grid-column:1/-1;justify-content:flex-start;overflow-x:auto}.home-status-orb{width:29px;height:29px}.home-priority-card{grid-template-columns:34px minmax(0,1fr);gap:9px;padding:11px}.priority-icon{width:31px;height:31px}.priority-route{grid-column:2;justify-self:start}.priority-copy strong,.priority-copy small{white-space:normal}.activity-inbox-head{grid-template-columns:1fr;gap:10px}.activity-inbox-head .review-count{position:absolute;right:24px;margin-top:-12px;width:34px;height:34px;font-size:17px}.activity-review-actions{gap:5px}.activity-review-actions button{padding:0 8px}}
+
+/* V1.5 Activity polish: make this a working inbox, not a spec panel. */
+.activity-surface{max-width:1120px}
+.activity-inbox-head{padding:11px 13px;border-radius:12px}
+.activity-inbox-head h2{font-size:17px}
+.activity-inbox-head p{max-width:760px;font-size:11px}
+.review-count{width:36px;height:36px;border-radius:11px;font-size:18px}
+.activity-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));justify-self:stretch;width:100%;max-width:740px;border-radius:12px}
+.activity-tabs button{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;height:31px;padding:0 8px;border-radius:10px;font-weight:650}
+.activity-tabs button b{display:grid;place-items:center;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#17283f;color:#b9c7d8;font-size:9px;font-weight:800}
+.activity-tabs button.active b{background:#2c4d75;color:#fff}
+.activity-tab-icon{display:grid;place-items:center;width:14px;height:14px;color:#85a9d7}
+.activity-tab-icon .nav-icon,.activity-tab-icon .alert-kind-icon{width:14px;height:14px}
+.activity-layout{grid-template-columns:minmax(0,1fr) minmax(230px,.32fr)}
+.activity-card{grid-template-columns:30px minmax(0,1fr);gap:9px;padding:10px 12px;border-radius:11px}
+.activity-card h2{font-size:14px}
+.activity-card p{font-size:11px}
+.activity-card>div>p{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.activity-icon{width:27px;height:27px;border-radius:8px}
+.activity-icon .nav-icon,.activity-icon .alert-kind-icon{width:15px;height:15px}
+.activity-meta{gap:4px;margin-top:7px}
+.activity-meta span{max-width:100%;padding:2px 6px;font-size:8px}
+.activity-card details{margin-top:7px;padding-top:7px}
+.activity-review-actions{margin-top:8px}
+.activity-review-actions button{min-height:25px;padding:0 8px;border-radius:7px}
+.activity-rail{display:grid;gap:8px;align-content:start}
+.activity-route-card,.activity-context-card{border:1px solid #2d415d;border-radius:11px;background:#0e1a2a}
+.activity-route-card{display:grid;grid-template-columns:29px minmax(0,1fr);gap:9px;align-items:center;width:100%;padding:10px 11px;color:inherit;text-align:left;cursor:pointer}
+.activity-route-card:hover{border-color:#6f562f;background:#151c2c}
+.activity-route-icon{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#30291e;color:#f0cc7e}
+.activity-route-icon .alert-kind-icon{width:15px;height:15px}
+.activity-route-card strong{display:block;color:#e8eef7;font-size:12px}
+.activity-route-card small{display:block;margin-top:2px;color:#96a8bd;font-size:10px;line-height:1.35}
+.activity-context-card{padding:9px 10px}
+.activity-context-card summary{color:#b9c9dc;font-size:11px;font-weight:750;cursor:pointer}
+.activity-context-card p{margin:8px 0 0;color:#9eacc0;font-size:10px;line-height:1.45}
+.activity-context-card blockquote{margin:8px 0;padding:8px 9px;border-left:3px solid #a77ac7;background:#15243a;color:#d4deeb;font-size:10px;line-height:1.4}
+.activity-context-card dl{display:grid;gap:0;margin:8px 0 0}
+.activity-context-card dl div{display:grid;grid-template-columns:68px minmax(0,1fr);gap:8px;padding:5px 0;border-top:1px solid #263850}
+.activity-context-card dt{color:#7f92aa;font-size:8px;text-transform:uppercase}
+.activity-context-card dd{margin:0;color:#c5d2e2;font-size:9px}
+@media(max-width:760px){
+  .activity-layout{grid-template-columns:1fr}
+  .activity-rail{grid-row:1;grid-template-columns:1fr}
+  .activity-route-card{display:none}
+  .activity-context-card{padding:8px 10px}
+}
+@media(max-width:560px){
+  .activity-inbox-head{position:relative;padding:10px 12px}
+  .activity-inbox-head h2{padding-right:40px;font-size:15px}
+  .activity-inbox-head p{font-size:10px}
+  .activity-inbox-head .review-count{position:absolute;top:10px;right:12px;margin:0;width:30px;height:30px;border-radius:9px;font-size:15px}
+  .activity-tabs{grid-template-columns:repeat(5,minmax(42px,1fr));overflow:visible}
+  .activity-tabs button{height:30px;padding:0 3px;font-size:8px}
+  .activity-tab-icon{width:12px;height:12px}
+  .activity-tab-icon .nav-icon,.activity-tab-icon .alert-kind-icon{width:12px;height:12px}
+  .activity-tabs button b{min-width:16px;height:16px;font-size:8px}
+  .activity-card{grid-template-columns:27px minmax(0,1fr);padding:10px 11px}
+  .activity-card-head small{font-size:9px}
+  .activity-meta span:nth-child(n+4){display:none}
+  .activity-review-actions button{min-height:26px}
+}
 
 /* The lodging split reads better as adjacent destination cards; the connector line was colliding visually. */
 .trip-branches{padding-top:9px}
