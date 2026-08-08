@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   base: './',
   plugins: [react(), VitePWA({
-    registerType: 'prompt',
+    registerType: 'autoUpdate',
     includeAssets: ['icon.svg', 'apple-touch-icon.png', 'app-icon-1024.png', 'magiccon-atlanta-peach.png'],
     manifest: {
       name: 'MagicCon Atlanta Companion', short_name: 'MagicCon', start_url: '.', display: 'standalone',
@@ -16,7 +16,9 @@ export default defineConfig({
       ]
     },
     workbox: {
+      clientsClaim: true,
       navigateFallback: 'index.html',
+      skipWaiting: true,
       runtimeCaching: [{
         urlPattern: /^https:\/\/pavjsexxbueuzhzgemgy\.supabase\.co\/rest\/v1\//,
         handler: 'NetworkOnly'
