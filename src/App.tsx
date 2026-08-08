@@ -45,7 +45,7 @@ function surfaceTitle(surface: Surface) {
     wallet: 'Show, claim, remember.',
     trip: 'One shared night, then a split.',
     notes: 'Notes stay where they happened.',
-    activity: 'Signals, sources, and changes.',
+    activity: 'Monitor inbox.',
   }
   return titles[surface]
 }
@@ -60,7 +60,7 @@ function surfaceSubtitle(surface: Surface) {
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Who is staying where, and the one transition worth noticing.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
-    activity: 'A reviewable landing zone for future email, newsletter, and site monitoring.',
+    activity: 'Review what changed, what landed, and what can be ignored.',
   }
   return subtitles[surface]
 }
@@ -1897,6 +1897,13 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
   const [stream, setStream] = useState<ActivityStream>('needs-review')
   const reviewState = (alert: MonitoringAlert) => alertReview[alert.id] ?? 'needs-review'
   const needsReviewCount = incomingAlerts.filter(alert => reviewState(alert) === 'needs-review').length
+  const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
+    { value: 'needs-review', label: 'Review', icon: <AlertKindIcon kind="site" />, count: needsReviewCount },
+    { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && alert.severity === 'hot').length },
+    { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && alert.kind !== 'manual').length },
+    { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: contextNotes.length },
+    { value: 'archived', label: 'Archive', icon: <NavIcon name="activity" />, count: incomingAlerts.filter(alert => reviewState(alert) === 'archived').length },
+  ]
   const alerts = incomingAlerts.filter(alert => {
     const state = reviewState(alert)
     if (stream === 'needs-review') return state === 'needs-review'
@@ -1912,18 +1919,16 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
       <div>
         <span className="eyebrow">REVIEW INBOX</span>
         <h2>{needsReviewCount ? `${needsReviewCount} finding${needsReviewCount === 1 ? '' : 's'} need review` : 'Inbox is clear.'}</h2>
-        <p>Monitor discoveries land here as observations to review, route, or archive. They are not canonical facts just because an agent found them.</p>
+        <p>New MagicCon signals land here first. Review what matters, archive what does not, and open the affected object when you need context.</p>
       </div>
       <span className={needsReviewCount ? 'review-count active' : 'review-count'}>{needsReviewCount}</span>
     </section>
     <div className="activity-tabs" role="tablist" aria-label="Activity stream">
-      {([
-        ['needs-review', 'Needs review'],
-        ['changes', 'Changes'],
-        ['sources', 'Sources'],
-        ['personal', 'Personal'],
-        ['archived', 'Archived'],
-      ] as Array<[ActivityStream, string]>).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={stream === value} className={stream === value ? 'active' : ''} onClick={() => setStream(value)}>{label}</button>)}
+      {streamDefs.map(item => <button key={item.value} type="button" role="tab" aria-selected={stream === item.value} className={stream === item.value ? 'active' : ''} onClick={() => setStream(item.value)}>
+        <span className="activity-tab-icon">{item.icon}</span>
+        <span>{item.label}</span>
+        <b>{item.count}</b>
+      </button>)}
     </div>
     <div className="activity-layout">
       <div className="activity-feed">
@@ -1933,28 +1938,25 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
         </article>) : alerts.map(alert => <AlertCard key={alert.id} alert={alert} reviewState={reviewState(alert)} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
         {alerts.length === 0 && stream !== 'personal' && <div className="activity-empty"><strong>No items here.</strong><span>{stream === 'archived' ? 'Archived findings will remain recoverable here.' : 'Quiet is a valid state.'}</span></div>}
       </div>
-      <aside className="activity-contract">
-        <span className="eyebrow">INTAKE CONTRACT</span>
-        <h2>What future monitors can send</h2>
-        <ol>
-          <li>source reference and retrieval time;</li>
-          <li>exact observed wording or receipt artifact pointer;</li>
-          <li>AI summary and rationale, visibly separate;</li>
-          <li>suggested destination: Home, Activity, Wallet, Trip, Explore, or Notes.</li>
-        </ol>
-        <p>Nothing becomes canonical until reviewed or normalized by a later workflow.</p>
+      <aside className="activity-rail" aria-label="Activity context">
+        <button className="activity-route-card" type="button" onClick={() => onOpenObject(alertToObjectDetail(incomingAlerts.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingAlerts[0]))}>
+          <span className="activity-route-icon"><AlertKindIcon kind="site" /></span>
+          <span><strong>Highest watch</strong><small>Black Lotus page changes route to Home.</small></span>
+        </button>
+        <details className="activity-context-card">
+          <summary>What can land here</summary>
+          <p>Exact source, retrieval time, useful wording, AI summary, rationale, suggested destination, and review state.</p>
+        </details>
+        <details className="activity-context-card">
+          <summary>Current proof object</summary>
+          <blockquote>{slice.observation.exact_wording}</blockquote>
+          <dl>
+            <div><dt>Publisher</dt><dd>{slice.source.publisher_name}</dd></div>
+            <div><dt>Retrieved</dt><dd>{new Date(slice.observation.retrieved_at).toLocaleString()}</dd></div>
+            <div><dt>Status</dt><dd>{slice.observation.observation_status}</dd></div>
+          </dl>
+        </details>
       </aside>
-      <article className="activity-trace">
-        <span className="eyebrow">CURRENT SOURCE PROOF</span>
-        <h2>Black Lotus observation</h2>
-        <blockquote>{slice.observation.exact_wording}</blockquote>
-        <dl>
-          <div><dt>Publisher</dt><dd>{slice.source.publisher_name}</dd></div>
-          <div><dt>Retrieved</dt><dd>{new Date(slice.observation.retrieved_at).toLocaleString()}</dd></div>
-          <div><dt>Status</dt><dd>{slice.observation.observation_status}</dd></div>
-          <div><dt>Evidence</dt><dd>{slice.observationHistory?.length ?? 1} retained observation{(slice.observationHistory?.length ?? 1) === 1 ? '' : 's'}</dd></div>
-        </dl>
-      </article>
     </div>
   </section>
 }
@@ -1966,16 +1968,16 @@ function AlertCard({ alert, reviewState, onReviewChange, onOpenObject }: { alert
       <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
       <h2>{alert.title}</h2>
       <p>{alert.summary}</p>
-      <div className="activity-meta"><span className={`review-badge ${reviewState}`}>{reviewState.replace('-', ' ')}</span><span>{alert.destination}</span><span>{alert.attention}</span><span>{alert.object}</span><span>{alert.source}</span><span>{alert.status}</span></div>
+      <div className="activity-meta"><span className={`review-badge ${reviewState}`}>{reviewState.replace('-', ' ')}</span><span>{alert.destination}</span><span>{alert.object}</span><span>{alert.source}</span></div>
       <details>
         <summary>Why this matters</summary>
         <p>{alert.rationale}</p>
         <p>{alert.nextAction}</p>
       </details>
       <div className="activity-review-actions">
-        <button type="button" onClick={() => onOpenObject(alertToObjectDetail(alert))}>Details</button>
-        <button type="button" onClick={() => onReviewChange(alert.id, 'reviewed')}>Mark reviewed</button>
-        <button type="button" onClick={() => onReviewChange(alert.id, 'archived')}>Archive</button>
+        <button type="button" onClick={() => onOpenObject(alertToObjectDetail(alert))}>Open</button>
+        {reviewState !== 'reviewed' && <button type="button" onClick={() => onReviewChange(alert.id, 'reviewed')}>Reviewed</button>}
+        {reviewState !== 'archived' && <button type="button" onClick={() => onReviewChange(alert.id, 'archived')}>Archive</button>}
         {reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert.id, 'needs-review')}>Reopen</button>}
       </div>
     </div>
