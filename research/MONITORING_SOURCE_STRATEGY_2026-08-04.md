@@ -36,6 +36,7 @@ These sources are first-party or operator-adjacent and often become more useful 
 - Pastimes event-format resources and ticketed-play explainers, especially when Leap descriptions use hard-to-interpret format language.
 - Official MagicCon social profiles linked from the event site: Facebook, X, Instagram, and Bluesky. These are announcement radar; official pages or email still win for canonical details.
 - The official MagicCon mobile app page/app feed once Atlanta 2026 publishes one.
+- Official Wizards Magic news, narrowly filtered to articles that mention MagicCon, MTG Festivals, Atlanta, Black Lotus, Festival in a Box, Mystery Booster, ticketed play, event products, or other convention-relevant terms. This is official product/context evidence, not a general Magic-news subscription.
 
 ### P2 — value-add discovery radar
 
@@ -50,6 +51,8 @@ These are not canonical, but they may reveal things worth checking.
   - `"MagicCon Atlanta" "map"`
   - `"MagicCon Atlanta" "exclusive" "playmat"`
   - `"MagicCon Atlanta" "Dragon Shield"`
+- Wizards Magic news filtered search:
+  - `site:magic.wizards.com/en/news (MagicCon OR "MTG Festivals" OR "Festival in a Box" OR "Mystery Booster") (Atlanta OR MagicCon OR convention)`
 - Vendor and sponsor channels only after the official exhibitor/vendor list exists, with special attention to con-exclusive merch such as playmats, sleeves, deck boxes, promos, pins, and limited-quantity products.
 - Artist pages/social only after the official artist list exists, and only to enrich signature/card planning rather than generating fan-noise.
 - Reddit and community posts as weak radar for timing, sellouts, store drops, app changes, and operational pain points. Community claims require a canonical follow-up before becoming app facts.
@@ -87,6 +90,7 @@ Prior and current MagicCon pages show that important information lands across ma
 - The Vegas 2026 map page demonstrates that a later event site can publish show maps, level highlights, room/area locations, Black Lotus lounge and fulfillment locations, ticketed play HQ, Magic Marketplace, Art of Magic, show-store routing, and pickup instructions.
 - The Vegas 2026 mobile-app page demonstrates that some event schedules, maps, exhibitors, bookmarks, reminders, app-game surfaces, and timely push notifications may live in the official app layer.
 - The global MagicCon news feed has historically announced feature previews, ticketed-play readiness, Art of Magic artists, schedule links, and other “planning season starts now” facts.
+- Official Wizards news can provide product and rules context that the event site does not explain well. For example, Wizards' Mystery Booster 2 articles describe pack contents, Future Sight-frame cards, playtest-card legality, and MagicCon/Festival in a Box availability; those are useful Explore-detail annotations when Atlanta events mention Mystery Booster, but they do not by themselves confirm Atlanta schedule inventory.
 - The Amsterdam 2026 Black Lotus page shows a comparable Black Lotus pattern: lounge schedule, included events, online shopping entitlement, meet-and-greet placeholders, and “more information closer to show” language.
 
 ## Watch-set shape
@@ -114,7 +118,7 @@ These are read-only discovery queries, not authorization to create a live Gmail 
 - `after:2026/06/01 ("Black Lotus" OR "online store" OR "show store" OR "Prize Tix" OR "prize wall")`
 - `after:2026/06/01 (Delta OR "HOGFBX" OR Omni OR Courtyard OR Booking.com OR KAYAK) (Atlanta OR ATL OR MagicCon)`
 
-Do not use standalone `Wizards` or standalone `Leap` queries. `Wizards` catches ordinary Magic marketing; `Leap` catches unrelated mail such as books, jobs, and generic travel wording. If either becomes relevant, it should match a MagicCon-specific query such as `(from:(wizards.com) (MagicCon OR mtgfestivals OR "Magic Con"))` or `("Leap Conventions" OR leapevent OR (Leap MagicCon))`.
+Do not use standalone `Wizards` or standalone `Leap` queries. `Wizards` catches ordinary Magic marketing; `Leap` catches unrelated mail such as books, jobs, and generic travel wording. If either becomes relevant, it should match a MagicCon-specific query such as `(from:(wizards.com) (MagicCon OR mtgfestivals OR "Magic Con"))` or `("Leap Conventions" OR leapevent OR (Leap MagicCon))`. Likewise, official Wizards news should be filtered by MagicCon/product/event terms rather than monitored as a broad feed.
 
 Older Vegas and Amsterdam messages may be searched manually for timing clues, but they should not pollute Atlanta facts.
 
@@ -135,6 +139,7 @@ Older Vegas and Amsterdam messages may be searched manually for timing clues, bu
 - Cosmetic official page changes.
 - Generic newsletters without Atlanta-specific planning consequence.
 - New links that are plausible but not yet useful.
+- Wizards product/context articles that explain a relevant format or product but do not create an Atlanta-specific planning action.
 - Receipt imports and extracted metadata.
 - Community chatter without canonical confirmation.
 
@@ -150,6 +155,7 @@ The monitor should run breadth-first but report sparse:
 2. Check the Black Lotus page as a separately elevated target.
 3. Check the global news index for new MagicCon posts.
 4. If Gmail is enabled, run the narrow query set and extract only candidate confirmations, receipts, travel changes, or announcement emails.
-5. Run a small external-search radar set for new high-signal Atlanta mentions.
-6. Route findings to Home, Activity, Wallet, Trip, Explore, Calendar, Map, or Notes under `docs/POC_FINISH_GLIDE_PATH.md`.
-7. Preserve exact URLs, retrieval time, useful wording, and confidence. Do not write canonical facts or app state without a reviewed workflow.
+5. Check narrowly filtered official Wizards news/search results only for MagicCon-relevant product/context evidence.
+6. Run a small external-search radar set for new high-signal Atlanta mentions.
+7. Route findings to Home, Activity, Wallet, Trip, Explore, Calendar, Map, or Notes under `docs/POC_FINISH_GLIDE_PATH.md`.
+8. Preserve exact URLs, retrieval time, useful wording, and confidence. Do not write canonical facts or app state without a reviewed workflow.
