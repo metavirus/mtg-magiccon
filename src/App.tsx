@@ -29,6 +29,7 @@ function surfaceLabel(surface: Surface) {
     map: 'MAP',
     wallet: 'WALLET',
     trip: 'TRIP',
+    artists: 'ARTISTS',
     notes: 'NOTES',
     activity: 'ACTIVITY',
   }
@@ -44,6 +45,7 @@ function surfaceTitle(surface: Surface) {
     map: 'Where things are.',
     wallet: 'Show, claim, remember.',
     trip: 'One shared night, then a split.',
+    artists: 'Who might be worth finding.',
     notes: 'Notes stay where they happened.',
     activity: 'Monitor inbox.',
   }
@@ -59,6 +61,7 @@ function surfaceSubtitle(surface: Surface) {
     map: 'Trip-area orientation now; official event map when Atlanta publishes it.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Who is staying where, and the one transition worth noticing.',
+    artists: 'Historical MagicCon seeds now; Atlanta-confirmed artists later.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
     activity: 'Review what changed, what landed, and what can be ignored.',
   }
@@ -107,9 +110,9 @@ async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
   } as TrustSlice
 }
 
-type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'wallet' | 'trip' | 'notes' | 'activity'
+type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity'
 
-const surfaces: Surface[] = ['home', 'calendar', 'plan', 'explore', 'map', 'wallet', 'trip', 'notes', 'activity']
+const surfaces: Surface[] = ['home', 'calendar', 'plan', 'explore', 'map', 'wallet', 'trip', 'artists', 'notes', 'activity']
 
 export function surfaceFromHash(hash: string): Surface {
   const candidate = hash.replace(/^#/, '').trim().toLowerCase()
@@ -128,6 +131,7 @@ const destinations = [
   { name: 'Map', icon: 'map' as NavIconName, surface: 'map' as Surface },
   { name: 'Wallet', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
   { name: 'Trip', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
+  { name: 'Artists', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
   { name: 'Notes', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
 ]
 
@@ -380,7 +384,7 @@ export default function App() {
         <button className={['calendar', 'plan', 'explore'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'events'} onClick={() => setMobileNavMenu(menu => menu === 'events' ? null : 'events')}><span aria-hidden="true"><NavIcon name="calendar" /></span>Events</button>
         <button className={surface === 'map' ? 'active' : ''} type="button" onClick={() => openDestination('Map', 'map')}><span aria-hidden="true"><NavIcon name="map" /></span>Map</button>
         <button className={surface === 'wallet' ? 'active' : ''} type="button" onClick={() => openDestination('Wallet', 'wallet')}><span aria-hidden="true"><NavIcon name="wallet" /></span>Wallet</button>
-        <button className={['trip', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
+        <button className={['trip', 'artists', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
       </nav>
       <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity</button>
     </aside>
@@ -395,6 +399,7 @@ export default function App() {
             { name: 'Calendar', note: 'Agenda', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
           ] : [
             { name: 'Trip', note: 'Hotels & flights', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
+            { name: 'Artists', note: 'Historical seeds', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
             { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
             { name: 'Activity', note: 'Signals & changes', icon: 'activity' as NavIconName, surface: 'activity' as Surface },
           ]).map(destination => <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
@@ -428,6 +433,7 @@ export default function App() {
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
+        {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface onOpenObject={openObjectDetail} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} />}
 
@@ -519,6 +525,69 @@ function noteToObjectDetail(note: ContextNote): ObjectDetail {
   }
 }
 
+type ArtistSeed = {
+  id: string
+  title: string
+  status: string
+  signal: string
+  summary: string
+  facts: Array<{ label: string; value: string }>
+}
+
+const artistSeeds: ArtistSeed[] = [
+  {
+    id: 'historical-import',
+    title: 'Historical MagicCon artist seed',
+    status: 'Not Atlanta-confirmed',
+    signal: 'Prior-event candidate list',
+    summary: 'A future import can hold prior Vegas, Amsterdam, and Atlanta artist appearances with a clear historical flag until the official Atlanta 2026 artist directory confirms or rejects them.',
+    facts: [
+      { label: 'Truth state', value: 'Historical only' },
+      { label: 'Use now', value: 'Watch target' },
+      { label: 'Confirm later', value: 'Official Atlanta artist directory' },
+    ],
+  },
+  {
+    id: 'card-match',
+    title: 'ManaBox card matching',
+    status: 'Future import',
+    signal: 'Collection-aware value',
+    summary: 'Once artists are confirmed and your collection is imported, this can surface cards you own, cards worth bringing, and a tiny shortlist for signatures instead of a giant artist database.',
+    facts: [
+      { label: 'Input', value: 'ManaBox export' },
+      { label: 'Output', value: 'Cards to bring' },
+      { label: 'Default posture', value: 'Lightweight shortlist' },
+    ],
+  },
+  {
+    id: 'signature-shortlist',
+    title: 'Signature shortlist',
+    status: 'Empty',
+    signal: 'Only the cards that matter',
+    summary: 'The useful end state is probably one or two good targets with booth/location context, not an overwhelming binder-management system.',
+    facts: [
+      { label: 'Current count', value: '0 cards' },
+      { label: 'Future link', value: 'Artists + Map + Notes' },
+      { label: 'Noise guard', value: 'Hide the long tail' },
+    ],
+  },
+]
+
+function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
+  return {
+    id: `artist-${seed.id}`,
+    kind: 'artist',
+    eyebrow: seed.signal,
+    title: seed.title,
+    summary: seed.summary,
+    facts: seed.facts,
+    source: { label: 'POC routing status', value: seed.status },
+    rationale: 'This keeps artist planning useful without treating old MagicCon appearances as Atlanta 2026 facts.',
+    actions: [{ label: 'Open Artists', destination: 'artists' }, { label: 'Review source signals', destination: 'activity' }],
+    backlinks: [{ label: 'Artists', destination: 'artists' }, { label: 'Activity', destination: 'activity' }],
+  }
+}
+
 function ObjectDetailLayer({ detail, onClose, onNavigate }: { detail: ObjectDetail | null; onClose: () => void; onNavigate: (destination: Surface) => void }) {
   if (!detail) return null
   return <div className="object-detail-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
@@ -562,6 +631,7 @@ function detailKindLabel(kind: ObjectDetailKind) {
     alert: 'Signal',
     receipt: 'Proof',
     hotel: 'Place',
+    artist: 'Artist',
     note: 'Note',
   }
   return labels[kind]
@@ -579,7 +649,7 @@ type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
 type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
 type ActivityStream = 'needs-review' | 'changes' | 'sources' | 'personal' | 'archived'
-type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'hotel' | 'note'
+type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'hotel' | 'artist' | 'note'
 type ObjectDetail = {
   id: string
   kind: ObjectDetailKind
@@ -597,7 +667,7 @@ type MonitoringAlert = {
   id: string
   kind: AlertKind
   severity: AlertSeverity
-  destination: 'Home' | 'Activity' | 'Wallet' | 'Trip' | 'Explore' | 'Calendar' | 'Map' | 'Notes'
+  destination: 'Home' | 'Activity' | 'Wallet' | 'Trip' | 'Explore' | 'Calendar' | 'Map' | 'Artists' | 'Notes'
   attention: string
   title: string
   summary: string
@@ -619,7 +689,7 @@ function isMonitoringAlert(value: unknown): value is MonitoringAlert {
   return typeof candidate.id === 'string'
     && ['site', 'email', 'newsletter', 'manual'].includes(String(candidate.kind))
     && ['hot', 'notice', 'quiet'].includes(String(candidate.severity))
-    && ['Home', 'Activity', 'Wallet', 'Trip', 'Explore', 'Calendar', 'Map', 'Notes'].includes(String(candidate.destination))
+    && ['Home', 'Activity', 'Wallet', 'Trip', 'Explore', 'Calendar', 'Map', 'Artists', 'Notes'].includes(String(candidate.destination))
     && typeof candidate.title === 'string'
     && typeof candidate.summary === 'string'
     && typeof candidate.source === 'string'
@@ -730,18 +800,18 @@ const monitoringAlerts: MonitoringAlert[] = [
     source: 'Gmail · Delta',
     checkedAt: 'Aug 4, 8:31 AM',
     status: 'route ready',
-    rationale: 'Trip should be a pleasant reference and change surface, not a booking.com cosplay incident.',
+    rationale: 'Trip should be a pleasant reference and change surface, not a booking-management system.',
     nextAction: 'If departure/arrival changes, update Trip and Calendar; escalate to Home only if it affects lodging, event arrival, or airport departure timing.',
   },
   {
     id: 'artist-list-route',
     kind: 'site',
     severity: 'notice',
-    destination: 'Explore',
+    destination: 'Artists',
     attention: 'Opportunity discovery',
-    title: 'Artist list appears as an Explore opportunity',
+    title: 'Artist list appears as a signature-planning opportunity',
     summary: 'Representative official-page discovery: first artist directory should surface as a milestone and then become browsable by artist/card/signature usefulness.',
-    object: 'Explore · Artists',
+    object: 'Artists · Directory',
     source: 'MagicCon artists page',
     checkedAt: 'Aug 4, 8:32 AM',
     status: 'future route',
@@ -1898,6 +1968,45 @@ function FlightsTripTab() {
       <div><span className="eyebrow">QUIET CHECK</span><h2>No travel action needed</h2><p>The flight window matches the hotel plan: arrive before the shared Courtyard night, depart after Sunday events and Omni check-out. Only a Delta change or cancellation email should interrupt this quiet state.</p></div>
     </aside>
   </div>
+}
+
+function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+  return <section className="artists-surface" aria-label="Artists">
+    <section className="artists-status-card">
+      <div className="artist-status-icon" aria-hidden="true"><NavIcon name="artists" /></div>
+      <div>
+        <span className="eyebrow">ATLANTA 2026</span>
+        <h2>No confirmed artist list yet.</h2>
+        <p>Keep the official artist directory on watch. Historical MagicCon appearances can seed research later, but they stay marked unconfirmed until Atlanta publishes.</p>
+      </div>
+      <button type="button" onClick={onOpenActivity}>Watch activity</button>
+    </section>
+
+    <div className="artists-layout">
+      <section className="artist-seed-list" aria-label="Artist planning seeds">
+        {artistSeeds.map(seed => <button key={seed.id} type="button" className="artist-seed-card" onClick={() => onOpenObject(artistSeedToObjectDetail(seed))}>
+          <span className="artist-seed-mark"><NavIcon name={seed.id === 'historical-import' ? 'activity' : seed.id === 'card-match' ? 'wallet' : 'artists'} /></span>
+          <span>
+            <small>{seed.status}</small>
+            <strong>{seed.title}</strong>
+            <em>{seed.signal}</em>
+          </span>
+          <b aria-hidden="true">›</b>
+        </button>)}
+      </section>
+
+      <aside className="artists-intel-card">
+        <span className="eyebrow">USEFUL LATER</span>
+        <h2>Artist work should collapse into a tiny bring-list.</h2>
+        <p>The likely value is finding overlap between confirmed guests, cards you own, visual preference, booth location, and signing effort. The long historical list belongs behind this page, not in your face.</p>
+        <dl>
+          <div><dt>Historical</dt><dd>Prior MagicCon only</dd></div>
+          <div><dt>Confirmed</dt><dd>Official Atlanta 2026 source</dd></div>
+          <div><dt>Matched</dt><dd>Collection/art relevance</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
 }
 
 function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online, saving }: { slice: TrustSlice; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean }) {

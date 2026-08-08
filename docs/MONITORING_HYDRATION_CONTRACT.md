@@ -37,7 +37,7 @@ This is the POC hydration path. It is intentionally file-based so it can be repl
 - `id`;
 - `kind`: `site`, `email`, `newsletter`, or `manual`;
 - `severity`: `hot`, `notice`, or `quiet`;
-- `destination`: `Home`, `Activity`, `Wallet`, `Trip`, `Explore`, `Calendar`, `Map`, or `Notes`;
+- `destination`: `Home`, `Activity`, `Wallet`, `Trip`, `Explore`, `Calendar`, `Map`, `Artists`, or `Notes`;
 - `attention`;
 - `title`;
 - `summary`;
