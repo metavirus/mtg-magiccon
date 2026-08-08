@@ -196,7 +196,7 @@
       "attention": "Consequential only",
       "title": "Delta changes stay under Trip unless timing breaks",
       "summary": "Flight-time changes should annotate Trip and Calendar; only meaningful disruption reaches Home.",
-      "object": "Trip · Flights · HOGFBX",
+      "object": "Trip · Flights · Delta confirmation",
       "source": "Gmail · Delta",
       "checkedAt": "Aug 8, 10:58 AM",
       "status": "route ready",
