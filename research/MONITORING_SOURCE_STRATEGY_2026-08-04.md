@@ -1,6 +1,6 @@
 # MagicCon Atlanta Monitoring Source Strategy
 
-Updated: 2026-08-04
+Updated: 2026-08-08
 
 ## Decision question
 
@@ -53,14 +53,30 @@ These are not canonical, but they may reveal things worth checking.
 - Vendor and sponsor channels only after the official exhibitor/vendor list exists, with special attention to con-exclusive merch such as playmats, sleeves, deck boxes, promos, pins, and limited-quantity products.
 - Artist pages/social only after the official artist list exists, and only to enrich signature/card planning rather than generating fan-noise.
 - Reddit and community posts as weak radar for timing, sellouts, store drops, app changes, and operational pain points. Community claims require a canonical follow-up before becoming app facts.
+- MagicCon Black Lotus VIP Discord, now specifically identified by Kavi as high-signal radar. The most useful channels are likely `#questions-for-staff` and Black Lotus community channels such as `#magiccon-discussion`, `#deckbuilding-and-theorycrafting`, and `#trades`. Treat staff answers, official links, and "article just released" chatter as leads to preserve and verify; treat ordinary community discussion as Activity-worthy context, not canonical fact.
 
 ### P3 — deliberately not monitored for MVP
 
 - Broad continuous social scraping.
 - Flight-status monitoring beyond consequential email changes already in Gmail.
 - Hotel-price, restaurant, rideshare, booking-management, or tourist-guide monitoring.
-- Unofficial Discord monitoring unless Kavi later identifies a specific channel as high-signal.
+- Broad unofficial Discord monitoring outside the identified MagicCon Black Lotus VIP server/channels.
 - Browser-session scraping of logged-in Leap pages without a separate reviewed design.
+
+## Black Lotus Discord handling
+
+Kavi identified the MagicCon Black Lotus VIP Discord as a valuable monitoring surface on August 8. Kavi's handle is `Metavirus`; Chris is `Gremmy`. Preserve those identities only when they materially affect the observation, such as distinguishing Kavi's own question from Chris's lead. Public preview fixtures should otherwise sanitize ordinary usernames.
+
+Discord is a radar and context source, not publisher truth by default. The safe handling model is:
+
+- Staff/organizer answers in `#questions-for-staff`: higher-confidence operational observations, but still preserve channel, timestamp, author role, and exact wording; confirm against official page/email before normalizing consequential facts when possible.
+- Community posts that link official articles/pages: useful leads; follow the official link and promote the first-party source as canonical if it supports the claim.
+- Community chatter without first-party support: Activity-only unless it materially suggests a page to check, an urgent Black Lotus window, a sold-out/changed event, or a vendor/exclusive merch lead.
+- Personal/community coordination, trades, and off-topic chatter: do not ingest by default.
+
+High-value Black Lotus Discord signals include store-window alerts, pickup logistics, included-event clarifications, official article links, product/card-pool details, event-date confirmations, schedule conflicts, sellout reports, app/Companion-code issues, and community-discovered vendor or merch exclusives.
+
+The August 8 manually supplied screenshot is the template: Chris (`Gremmy`) asked whether Atlanta would have Mystery Booster Commander events or in-the-box product, and the thread suggested that an article had just been released. That belongs in Activity as a friend-signal lead and should drive a search for the official article; it should not directly create confirmed Atlanta event facts.
 
 ## Prior-event clues from web research
 

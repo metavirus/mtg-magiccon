@@ -73,6 +73,7 @@ The app should route discoveries by usefulness, not by where they came from.
 | Prize wall list appears | Wallet / future Prize Wall surface | Home during convention, not necessarily before | Mostly useful onsite and tied to Prize Tix |
 | Hotel, flight, or travel change email | Trip object + Activity → Changes | Home only if consequential | Travel should be pleasant reference, not a flight-management system |
 | Map or venue layout appears | Map → Event map | Home if first official 2026 map or known destination changes | Useful because it unlocks onsite navigation context |
+| Black Lotus Discord staff answer or official-link lead | Activity → Sources/Changes, then affected object if confirmed | Home only for urgent BL store windows, included-event/logistics changes, ticketed-play/sellout signals, or other time-sensitive owner impact | High-signal radar, but Discord chatter must not silently become publisher truth |
 | User-authored note | Notes + linked object | Never by default | Notes are memory and context, not alerts |
 | Agent suggestion or uncertainty prompt | Activity → Personal / future AI Feedback | Home only if a rare yes/no answer would materially improve classification or alerting | Keeps “Son of Codex” useful without becoming clingy |
 

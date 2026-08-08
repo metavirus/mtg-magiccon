@@ -1,6 +1,6 @@
 # MVP Monitoring Agent Design
 
-Updated: 2026-08-04
+Updated: 2026-08-08
 
 Automation status: daily heartbeat `magiccon-atlanta-quiet-period-monitor` is active. It may read approved public sources and Gmail search results, report into the Codex task, and update the fixture-backed POC hydration file when a finding is ready for review. It is not authorized to write Supabase data, modify Gmail, send mail, create push notifications, or change canonical app state.
 
@@ -28,6 +28,7 @@ The detailed watch-set strategy is recorded in `research/MONITORING_SOURCE_STRAT
 - MagicCon news page.
 - Leap order and ticketed-play schedule surfaces when access is available.
 - Official MagicCon social links as low-volume announcement radar.
+- MagicCon Black Lotus VIP Discord as a bounded manual/radar source, especially `#questions-for-staff` and Black Lotus discussion channels. It is high-signal for leads and staff/community context, but not canonical publisher truth unless supported by staff/organizer wording or a first-party link.
 - Pastimes format/ticketed-play resources for interpreting event difficulty and mechanics.
 - Official artist, vendor, show store, map, and prize wall pages when URLs exist.
 - Gmail search results for MagicCon-specific mail, Leap Conventions/leapevent, Pastimes, Delta, hotel receipts, and store receipts. Generic Wizards/Magic marketing and standalone Leap wording are out of scope unless the message itself mentions MagicCon, MTG Festivals, Atlanta 2026, ReedPop, Leap Conventions, leapevent, or Pastimes.
@@ -61,6 +62,8 @@ Each run may emit zero or more reviewable observations with:
 - attention level;
 - review status;
 - whether the finding appears to supersede, contradict, or merely supplement prior evidence.
+
+For Discord-origin observations, the exact reference should include server, channel, message timestamp, and message link or screenshot/export pointer when available. Usernames should be minimized in public fixtures; retain `Metavirus` as Kavi and `Gremmy` as Chris only when identity matters to the app's interpretation.
 
 The agent may replace `public/monitoring-intake.json` with these observations when there is something useful to show in the GitHub Pages preview. The agent must never silently normalize, overwrite, hide, commit, purchase, or notify external systems.
 
@@ -143,13 +146,14 @@ Do not start with:
 2. Check official site/watch URLs for changed text, new links, or removed "coming soon" language.
 3. Check MagicCon news for new posts.
 4. Search Gmail using narrow MagicCon-specific, Leap Conventions/leapevent, Pastimes, Delta, hotel, and store queries since the last run. Do not search standalone `Wizards` or standalone `Leap`; require MagicCon/MTG Festivals context for broad vendor/operator terms.
-5. Classify each finding into the routing map.
-6. Produce a short report:
+5. Review any manually supplied or connector-available Black Lotus Discord observations as radar. Follow official links before promoting claims; keep unsupported community chatter in Activity unless it indicates an urgent Black Lotus, ticketed-play, store, sellout, map, or vendor/exclusive lead.
+6. Classify each finding into the routing map.
+7. Produce a short report:
    - Home-worthy findings;
    - object annotations;
    - Activity-only observations;
    - unclear items needing a rare yes/no prompt.
-7. Do not ask the owner anything unless the answer changes future classification, recommendation, or alerting.
+8. Do not ask the owner anything unless the answer changes future classification, recommendation, or alerting.
 
 ## First deployable automation prompt
 
