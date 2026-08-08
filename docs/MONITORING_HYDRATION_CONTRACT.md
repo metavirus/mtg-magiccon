@@ -60,3 +60,5 @@ Publish the GitHub Pages preview only when at least one of these is true:
 - the source strategy or monitor behavior changed and needs visual review.
 
 Routine quiet checks should report in the Codex task only.
+
+In the fixture-backed POC, `quiet` alerts are displayed as already reviewed unless the owner reopens them. Use `notice` or `hot` only when the item deserves human review.

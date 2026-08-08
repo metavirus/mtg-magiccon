@@ -597,6 +597,10 @@ type MonitoringAlert = {
   nextAction: string
 }
 
+function defaultAlertReviewState(alert: MonitoringAlert): AlertReviewState {
+  return alert.severity === 'quiet' ? 'reviewed' : 'needs-review'
+}
+
 function isMonitoringAlert(value: unknown): value is MonitoringAlert {
   if (!value || typeof value !== 'object') return false
   const candidate = value as Partial<Record<keyof MonitoringAlert, unknown>>
@@ -1789,10 +1793,11 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
 }
 
 function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; alerts: MonitoringAlert[]; alertReview: Record<string, AlertReviewState>; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
-  const needsReview = alerts.filter(alert => (alertReview[alert.id] ?? 'needs-review') === 'needs-review')
-  const topSignal = needsReview.find(alert => alert.severity === 'hot') ?? needsReview[0]
+  const needsReview = alerts.filter(alert => (alertReview[alert.id] ?? defaultAlertReviewState(alert)) === 'needs-review')
+  const homeSignals = needsReview.filter(alert => alert.severity === 'hot' && alert.destination === 'Home')
+  const topSignal = homeSignals[0]
   const status = topSignal ? 'Review needed' : 'All quiet'
-  const statusCopy = topSignal ? 'One monitored finding is worth a look.' : 'No new MagicCon signal needs attention.'
+  const statusCopy = topSignal ? `${homeSignals.length} Home-worthy signal${homeSignals.length === 1 ? '' : 's'} surfaced from the monitor.` : 'No new MagicCon signal needs attention.'
   return <div className="home-surface">
     <section className={`home-attention ${topSignal ? 'needs-review' : 'quiet'}`}>
       <div className="home-status-orb" aria-hidden="true">{topSignal ? <AlertKindIcon kind={topSignal.kind} /> : <MilestoneIcon name="badges" />}</div>
@@ -1802,7 +1807,7 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
         <p>{statusCopy}</p>
       </div>
       <div className="home-attention-actions">
-        <span>{needsReview.length} open</span>
+        <span>{homeSignals.length || needsReview.length} open</span>
         <button type="button" onClick={onOpenActivity}>Activity</button>
       </div>
     </section>
@@ -1860,13 +1865,13 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
         </button>
         <div className="timely-home">
           <div className="timely-home-head"><span className="eyebrow">TIMELY SIGNALS</span><button type="button" onClick={onOpenActivity}>Review all</button></div>
-          {needsReview.filter(alert => alert.id !== topSignal?.id).slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alertToObjectDetail(alert))}>
+          {homeSignals.filter(alert => alert.id !== topSignal?.id).slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alertToObjectDetail(alert))}>
             <span><AlertKindIcon kind={alert.kind} /></span>
             <div><strong>{alert.title}</strong><small>{alert.destination} · {alert.attention}</small></div>
           </button>)}
-          {needsReview.length <= (topSignal ? 1 : 0) && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
+          {homeSignals.length <= (topSignal ? 1 : 0) && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
             <span><AlertKindIcon kind="manual" /></span>
-            <div><strong>{topSignal ? 'No other open findings' : 'No open monitor findings'}</strong><small>Reviewed and archived items stay recoverable</small></div>
+            <div><strong>{topSignal ? `${Math.max(needsReview.length - homeSignals.length, 0)} other findings in Activity` : 'No open Home signals'}</strong><small>Activity keeps the quieter review work</small></div>
           </button>}
         </div>
       </section>
@@ -1895,7 +1900,7 @@ function NotesSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) =
 
 function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewChange, onOpenObject }: { slice: TrustSlice; alerts: MonitoringAlert[]; alertReview: Record<string, AlertReviewState>; onReviewChange: (id: string, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [stream, setStream] = useState<ActivityStream>('needs-review')
-  const reviewState = (alert: MonitoringAlert) => alertReview[alert.id] ?? 'needs-review'
+  const reviewState = (alert: MonitoringAlert) => alertReview[alert.id] ?? defaultAlertReviewState(alert)
   const needsReviewCount = incomingAlerts.filter(alert => reviewState(alert) === 'needs-review').length
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
     { value: 'needs-review', label: 'Review', icon: <AlertKindIcon kind="site" />, count: needsReviewCount },
