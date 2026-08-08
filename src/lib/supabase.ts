@@ -11,6 +11,11 @@ export const supabase = (() => {
     throw new Error('Only a modern Supabase publishable key is permitted in browser configuration.')
   }
   return createClient(url, key, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'implicit',
+    },
   })
 })()

@@ -34,4 +34,4 @@ The first live product slice is documented in [Black Lotus Trust Slice](docs/BLA
 
 A temporary GitHub Pages preview is available for iPhone review at https://metavirus.github.io/mtg-magiccon/. It is fixture-backed by default and not a production data deployment.
 
-As of the August 8 fixture-backed 1.5 pass, the preview is accepted as a coherent quiet-period review surface. Auth remains intentionally disabled in the client until a separate trust/session tranche restores it deliberately.
+As of the August 8 fixture-backed 1.5 pass, the preview is accepted as a coherent quiet-period review surface. Google OAuth is now the deliberate live-auth path at `?auth=1`; the default Pages URL remains fixture-backed for unblocked review. See [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md).
