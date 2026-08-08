@@ -1807,7 +1807,7 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
         <p>{statusCopy}</p>
       </div>
       <div className="home-attention-actions">
-        <span>{homeSignals.length || needsReview.length} open</span>
+        <span>{homeSignals.length ? `${homeSignals.length} open` : needsReview.length ? `${needsReview.length} in Activity` : '0 open'}</span>
         <button type="button" onClick={onOpenActivity}>Activity</button>
       </div>
     </section>
