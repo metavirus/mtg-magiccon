@@ -1,12 +1,12 @@
 # POC Finish Glide Path
 
-Updated: 2026-08-04
+Updated: 2026-08-08
 
 ## Goal
 
 Finish the POC as a useful quiet-period companion that is ready to receive rare, meaningful MagicCon signals from manual checks, Gmail review, newsletter review, or later automation.
 
-The conservative daily heartbeat is now active and may hydrate the fixture-backed preview through the file contract below. This is still not the durable monitoring inbox: the POC proves where agent findings land, while `docs/V1_5_PATH.md` defines the reviewed Supabase-backed successor.
+The conservative daily heartbeat is now active and may hydrate the fixture-backed preview through the file contract below. The fixture-backed 1.5 UI pass has also proved where findings land: Home for rare breakthroughs, Activity for review, and destination objects for context. This is still not the durable monitoring inbox; the Supabase-backed successor remains future trust work.
 
 The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`. The source-priority and search-radar strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. The POC file-based hydration seam is recorded in `docs/MONITORING_HYDRATION_CONTRACT.md`.
 
@@ -22,18 +22,28 @@ The POC is ready when:
 6. The one live trust slice still proves Source → Observation → Occurrence → Personal decision → Itinerary.
 7. Offline read behavior is explicitly tested or explicitly left as an open defect. Live auth is parked for v1.5 so the POC can remain reviewable on mobile without magic-link quota churn.
 
-## What remains for POC
+## POC status after mobile review
+
+The POC/fixture-backed 1.5 preview is accepted as a useful quiet-period companion. Kavi completed a mobile flip-through on August 8 and reported that it is looking good. Further fixture UI polish should stop unless a real defect appears.
+
+The remaining work is no longer "make the POC feel real." It is trust/data work:
+
+- restore low-friction authenticated continuity deliberately;
+- design private Storage for original receipts, QR/proof screenshots, and travel artifacts;
+- graduate monitoring observations from file-backed preview intake to reviewed app data;
+- wait for real Atlanta ticketed-play inventory before building the production Plan engine.
+
+## What remains after POC
 
 ### 1. Phone preview hardening
 
-Current state: GitHub Pages preview is live and fixture-backed by default.
+Current state: GitHub Pages preview is live, fixture-backed by default, reachable on iPhone, and accepted for the current tranche.
 
-Finish work:
+Follow-up only if defects appear:
 
-- Confirm the iPhone preview opens after the Pages asset-path fix.
-- Confirm the horizontal mobile destination strip works across Home, Calendar, Explore, Wallet, Trip, Notes, and Activity.
-- Confirm the page can be saved to the iPhone home screen with the peach icon.
-- Record any mobile layout defects as POC polish or v1.5 backlog, not as reasons to widen scope.
+- record mobile layout defects as targeted polish;
+- do not reopen broad fixture-design tweaking;
+- do not reintroduce auth as a gate to mobile review.
 
 ### 2. Monitoring landing contract
 
@@ -129,16 +139,17 @@ Examples:
 
 ## Next build tranches
 
-### POC-A — polish the existing phone preview
+### Completed — phone preview and landing routes
 
-Do only enough to make the deployed preview trustworthy for review:
+The deployed preview is trustworthy enough for review:
 
-- confirm mobile navigation;
-- fix obvious blank/dead states;
-- keep density compact;
-- record v1.5 visual issues rather than chasing them indefinitely.
+- mobile navigation is grouped into Home / Events / Map / Wallet / More;
+- Activity is a review inbox rather than a placeholder log;
+- Home carries rare signals without becoming noisy;
+- Plan-lite uses known Black Lotus anchors and promoted contenders;
+- Wallet uses a simple Prize Tix counter rather than the parked decorative ticket concept.
 
-### POC-B — make landing routes demonstrable
+### Completed — make landing routes demonstrable
 
 Add a tiny set of representative alert fixtures that prove routing:
 
@@ -150,7 +161,7 @@ Add a tiny set of representative alert fixtures that prove routing:
 
 Each fixture should have a visible source, check time, rationale, and destination.
 
-### POC-C — trust and offline proof
+### Next — trust and offline proof
 
 Use the existing Black Lotus trust slice to prove:
 
@@ -159,11 +170,11 @@ Use the existing Black Lotus trust slice to prove:
 - the app can reopen the cached critical view offline with freshness visible;
 - offline writes remain disabled.
 
-### POC-D — auth parked for POC
+### Still true — auth parked for POC
 
 The client-side auth path was intentionally disabled on August 4 after Supabase magic-link quota became a design/testing blocker. The POC is fixture-backed on every route, clears the old sticky auth-mode flag, and should not ask for another magic link during mobile review. Version 1.5 should reintroduce low-friction auth as its own trust tranche.
 
-### POC-E — handoff checkpoint
+### Handoff checkpoint
 
 Run:
 

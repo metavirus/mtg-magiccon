@@ -25,7 +25,7 @@
   - [x] Apply `docs/DESIGN_AUDIT_2026-08-02.md`; reconcile the resulting direction in `docs/DESIGN_BASELINE_2026-08-03.md`.
   - [x] Implement the accepted desktop shell and test one stable mobile navigation candidate against working behavior.
   - [x] Replace the overflowing mobile destination strip with fixed Home / Events / Map / Wallet / More navigation; keep Explore / Plan / Calendar and Trip / Artists / Notes / Activity one compact drawer away.
-  - [ ] Accept the implemented meaningful-date Calendar stream and Calendar-to-Plan handoff after live desktop and phone review.
+  - [x] Accept the implemented meaningful-date Calendar stream and Calendar-to-Plan handoff after live desktop and phone review.
   - [ ] Test bounded contextual find/jump and real backlinks across the proof-slice objects.
   - [x] Replace the Decide / Schedule split with one focused Plan workspace in `docs/PLAN_WORKSPACE_CONCEPT.md`.
   - [x] Review the scrollable meaningful-date Calendar density and Calendar-to-Plan context shift in `docs/CALENDAR_SURFACE_CONCEPT.md`.
@@ -67,7 +67,7 @@
 - [x] **v1.5:** Hydrate the known official Black Lotus schedule into the fixture-backed UI. Thursday early-access programming, weekend league, Friday under-construction play, Saturday Planechase, Sunday drafts, and Sunday feedback now appear in Explore/Calendar with TBD/location/change caveats preserved.
 - [x] **v1.5:** Replace the disconnected Plan study with a bounded working Plan-lite surface. Explore and Plan now share POC-session decisions; Thursday-Sunday groupings show official Black Lotus anchors plus promoted contenders; Interested / Tentative / Committed actions are reversible; only Commitments count as hard blocks; contextual details and flexible/change signals remain visible.
 - [x] **v1.5:** Give Plan-lite a final quiet-period usefulness pass before freezing it. The board now distinguishes official Black Lotus anchors, promoted contenders, and watch/TBD items at a glance, and rows carry compact time/BL signals without adding a fake contention engine.
-- [ ] **v1.5:** Continue the no-placeholder pass on a real phone and public preview, especially labels that still imply future persistence or real artifacts where the POC is fixture-backed.
+- [x] **v1.5:** Complete the no-placeholder phone/public-preview acceptance pass for this tranche. Kavi flipped through on iPhone on Aug 8 and reported the preview looks good; future UI changes should be driven by real defects or real data.
 - [ ] **v1.5:** Resume the production contention-engine design only after representative Atlanta ticketed-play data exists. Treat Plan-lite as a useful interaction proof, not a persistence/schema contract.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.

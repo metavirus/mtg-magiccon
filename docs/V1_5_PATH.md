@@ -1,17 +1,39 @@
 # Version 1.5 Path
 
-Updated: 2026-08-04  
-Status: Updated direction after POC closeout
+Updated: 2026-08-08  
+Status: Fixture-backed 1.5 coherence pass accepted; future 1.5 work should be trust/data plumbing, not more placeholder polish
 
 ## Outcome
 
-Version 1.5 should move the app out of "good POC" territory and into a coherent private field guide. The POC proved the main destinations. Version 1.5 should prove that those destinations behave like one connected product: objects are understandable, monitor findings route somewhere useful, Wallet works one-handed on a phone, and trust/auth/storage return deliberately rather than as a drag on design review.
+Version 1.5 moved the fixture-backed app out of "good POC" territory and into a coherent private field guide. The main destinations now behave like one connected product: objects are understandable, monitor findings route somewhere useful, Wallet is one-handed enough for quiet-period review, and mobile navigation is no longer fighting the information architecture.
 
 The guiding shift is:
 
 > v1 proved we have tabs. v1.5 proves the app understands convention objects and gets Kavi to the right place at the right time.
 
-Do not use 1.5 to broaden the app into every future feature. The important work is integration, object detail, retrieval, and source trust.
+Do not use the remainder of 1.5 to broaden the app into every future feature. The fixture/UI side is now pinned unless real phone defects appear. The important remaining work is trust, auth/session continuity, private artifacts, reviewed monitoring hydration, and eventually real ticketed-play data.
+
+## Accepted fixture-backed 1.5 state
+
+- Shared object-detail drawer/sheet grammar works across representative events, alerts, receipts, hotels, notes, and monitor-discovered objects.
+- Home is a command center: it distinguishes quiet status from review-worthy signals and avoids becoming a dump of every monitored fact.
+- Activity is a reviewed monitor inbox with Review, Changes, Sources, Notes, and Archive streams. It has been volume-tested with representative monitoring output and is frozen for this tranche.
+- Wallet Home uses a simple compact Prize Tix counter with `-100` / `+100`; decorative ticket art and drawer ideas are parked.
+- Mobile navigation uses five primary destinations: Home, Events, Map, Wallet, and More. Events opens Explore / Plan / Calendar; More opens Trip / Artists / Notes / Activity.
+- Explore and Calendar contain the known official Atlanta Black Lotus schedule as fixture-backed, source-caveated data.
+- Plan-lite is legitimate for the quiet period: it distinguishes official Black Lotus anchors, promoted contenders, and watch/TBD items without pretending to be the future contention engine.
+- Artists exists as an honest top-level destination ready for future confirmed artist data, historical unconfirmed seeds, and later ManaBox matching.
+- Public GitHub Pages mobile review is working and the latest iPhone pass looked good.
+
+## Lessons from the 1.5 pass
+
+- The product feels strongest when surfaces are organized by owner task, not by source system.
+- "Clickable by default" is a useful design law, but every click needs a destination that earns it; fake future controls erode trust quickly.
+- Mobile should preserve direct access to the main mental modes, not hide everything inside a tiny tab bar. The Events / More grouping is a better compromise than a horizontally scrolling rail.
+- Activity should remain quiet and review-oriented. If it starts feeling like a social feed or a generic log, it has drifted.
+- Plan should not be overbuilt before ticketed-play inventory exists. The app can represent Black Lotus anchors and promoted contenders now; the real contention model should wait for real event variation.
+- Wallet should optimize retrieval under stress, not decorative charm first. Cute art can return later after the interaction is solid.
+- Monitoring output must remain reviewable observation. The app can route and explain findings without silently changing canonical plans.
 
 ## Design principles for 1.5
 
@@ -55,6 +77,8 @@ Goal: make the POC feel like one app instead of separate mockup panels.
 - Mobile detail does not obscure the key browse context longer than necessary.
 - Visual density feels intentionally compact rather than merely shrunk.
 
+Status: accepted for representative fixture-backed objects.
+
 ## Chunk 2 — Home as command center
 
 Goal: make Home answer "do I need to care?" in seconds.
@@ -77,6 +101,8 @@ Goal: make Home answer "do I need to care?" in seconds.
 - In alert state, exactly one or a very small number of items get prominence.
 - Every surfaced alert has a clear route into Activity or the affected object.
 - Home does not become the dumping ground for all monitoring output.
+
+Status: accepted for quiet-period preview and monitoring fixtures.
 
 ## Chunk 3 — Activity as a reviewed monitor inbox
 
@@ -105,6 +131,8 @@ Goal: convert monitor output from "log entries" into useful reviewable observati
 - A representative email receipt opens Activity and then Wallet.
 - A representative travel change opens Activity and then Trip/Calendar.
 - A dismissed item remains recoverable without staying noisy.
+
+Status: accepted and frozen for this tranche; revisit only for real findings or defects.
 
 ## Chunk 4 — Wallet mobile-first retrieval
 
@@ -139,6 +167,8 @@ Goal: make Wallet useful onsite, not just visually interesting.
 - The original artifact and extracted metadata remain clearly separate.
 - Receipt assignment persists in the POC state or explicitly declares that persistence is not yet implemented.
 - Wallet no longer depends on a desktop-wide composition to look coherent.
+
+Status: adequate for fixture review after simplifying Prize Tix. Private artifact capture/storage remains open.
 
 ## Chunk 5 — trust, auth, offline, and private artifacts
 
@@ -265,19 +295,15 @@ Goal: resume Plan only when there is real scheduling pressure.
 - Flexible league-style events can remain visible without hard-blocking.
 - Calendar and Plan hand off cleanly.
 
-## Recommended execution order
+## Recommended execution order from here
 
-1. **Shared object-detail drawer/sheet.**
-2. **Home command-center refinement.**
-3. **Activity as monitor inbox with backlinks.**
-4. **Wallet mobile-first retrieval and Prize Tix redesign.**
-5. **Low-friction auth/session continuity and offline proof.**
-6. **Private artifact proof for badge/travel/receipt originals.**
-7. **Reviewed monitoring hydration into real app objects.**
-8. **One real ticketed-play vertical slice when Atlanta data appears.**
-9. **Production Plan only after representative contention exists.**
+1. **Low-friction auth/session continuity and offline proof.**
+2. **Private artifact proof for badge/travel/receipt originals.**
+3. **Reviewed monitoring hydration into real app objects.**
+4. **One real ticketed-play vertical slice when Atlanta data appears.**
+5. **Production Plan only after representative contention exists.**
 
-This order is deliberate: make the app coherent before adding more data; make retrieval trustworthy before broad monitoring; and make Plan real only after the event inventory earns it.
+The original first four chunks are accepted. The remaining order is deliberate: restore trust without breaking mobile review, make retrieval private and durable, then let real monitoring and ticketed-play data drive the next product shape.
 
 ## Explicitly deferred
 

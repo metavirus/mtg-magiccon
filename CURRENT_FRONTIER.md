@@ -75,6 +75,7 @@ Updated: 2026-08-08
 - Official Wizards Magic news is now allowed only as a narrowly filtered product/context source. It can explain event products such as Mystery Booster or Festival in a Box, but the monitor must not become a general Magic news reader.
 - Activity has received its final planned closeout pass for this tranche. It is accepted as the reviewed monitor inbox: default Review stays sparse, Sources/Changes carry broader monitoring evidence, object details preserve routing/provenance, and the public preview label now reads "Fixture preview" rather than implying a local-only build. Further Activity tweaks should wait for real findings, real phone defects, or the Supabase-backed review intake tranche.
 - Plan-lite received a final 1.5 usefulness pass around the known Black Lotus schedule. It now exposes a compact status strip for official Black Lotus anchors, promoted contenders, and watch-sensitive/TBD items; rows carry tighter time chips and stronger BL/source-watch signals. This keeps Plan legitimate for the quiet period without pretending the real ticketed-play contention engine exists yet.
+- The fixture-backed 1.5 mobile review is accepted. Kavi flipped through the public preview on iPhone on August 8 and reported it looks good. Treat Home, Activity, Wallet, Plan-lite, Explore, Calendar, Trip, Map, Artists, and Notes as sufficiently coherent for the current tranche; further UI tweaks should be defect- or real-data-driven rather than exploratory polish.
 - The fixture-backed GitHub Pages preview was republished to `gh-pages` on August 4 after the Wallet mobile Prize Tix correction. The source branch `codex/initial-foundation` is pushed at `568d231`; the Pages branch is pushed at `9ddae23`. When reviewing on iPhone, Safari/PWA service-worker cache may briefly show the prior layout until the tab is refreshed or reopened.
 - A pure trust-slice reconciliation path now proves the intended fail-safe semantics in tests: a revision must be a new observation that explicitly supersedes the current observation; the prior observation remains recoverable; supported normalized fields may change; and personal decision plus itinerary remain untouched until owner review. A live reviewed write/readback is still required.
 - Live verification proves the owner can read all five records while another authenticated identity reads none and cannot update the decision or delete the itinerary. Schema lint is clean. Supabase advisors report only the existing account-level warning that leaked-password protection is disabled.
@@ -82,18 +83,15 @@ Updated: 2026-08-08
 ## Next safe lanes
 
 1. Confirm clean CI on the draft pull request.
-2. Treat the fixture-backed GitHub Pages preview as the POC review target. Reintroduce the authenticated trust-slice surface only in v1.5.
-3. Preserve direct mobile access to focused destinations during screen design; do not re-collapse the information architecture merely to fit a five-item bar.
+2. Keep the fixture-backed GitHub Pages preview as the review surface, but stop polishing it unless real defects appear.
+3. Reintroduce authenticated continuity only as an explicit trust tranche; do not spend more magic-link quota casually.
 4. Exercise the reviewed reconciliation fixture and confirm the changed-fact consequence without altering the owner's decision.
-5. Define private Storage buckets and policies only when the first real artifact workflow is approved.
-6. Expand the bounded format-complexity comparison into a reviewed source-backed registry only when real Atlanta ticketed-play data creates demand; do not start broad monitoring first.
-7. When Map enters implementation, start with a small place-reference model, a Trip-area orientation view, and offline-readable confirmed-location details; do not begin with a full interactive atlas.
-8. Keep the implemented shell thin until the trust-slice visual, reconciliation, and device-offline checks pass.
-9. Resolve exact mobile navigation, offline-field selection, and compact identity treatment against working behavior and a real phone rather than more isolated screen studies.
-10. Defer Wallet Home optimization to v1.5; keep the current ticket/receipt POC as interaction evidence, then redesign from onsite mobile retrieval outward before refining desktop.
-11. Review the fixture-backed monitoring-alert intake/display contract on desktop and phone, then decide whether the active thread-reporting heartbeat should graduate to app-visible reviewed observations.
-12. Start the v1.5 run with the ordered chunk plan in `docs/V1_5_PATH.md`: shared object-detail grammar, Home command center, Activity inbox/backlinks, Wallet mobile retrieval, then trust/auth/storage and reviewed monitoring hydration.
-13. Before pinning 1.5, run one public-preview phone pass focused on no-placeholder/no-dead-control behavior, then stop polishing fixture UI until real Atlanta ticketed-play or monitor findings demand it.
+5. Define private Storage buckets and policies for the first real badge/travel/receipt artifact workflow.
+6. Prove a critical offline read pack on a real device: upcoming anchors, selected proofs, Trip facts, notes, freshness, and disabled writes.
+7. Graduate monitoring hydration from file-backed preview observations to reviewed app data only after auth/storage trust is ready.
+8. Expand the bounded format-complexity comparison into a reviewed source-backed registry only when real Atlanta ticketed-play data creates demand.
+9. Resume production Plan design only after representative Atlanta ticketed-play inventory creates real contention.
+10. Keep Map as Trip-area orientation plus official artifact receiver until Atlanta 2026 floor-map evidence exists; do not begin the v2 atlas early.
 
 ## Active boundaries
 
