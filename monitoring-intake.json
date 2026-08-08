@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T10:48:00-07:00",
+  "generatedAt": "2026-08-08T12:27:11-07:00",
   "mode": "poc-monitoring-intake",
   "source": "monitoring-readiness-fixture",
   "notes": [
@@ -144,6 +144,36 @@
       "nextAction": "Keep radar leads in Activity/Explore until confirmed by first-party source or inbox evidence."
     },
     {
+      "id": "black-lotus-discord-radar",
+      "kind": "manual",
+      "severity": "notice",
+      "destination": "Activity",
+      "attention": "Community radar",
+      "title": "Black Lotus Discord is now an approved radar source",
+      "summary": "The VIP Discord can surface staff answers, official article links, event hints, product details, pickup logistics, and community-discovered operational issues before they are obvious elsewhere.",
+      "object": "Sources · Black Lotus Discord",
+      "source": "Discord · MagicCon Black Lotus VIP",
+      "checkedAt": "Aug 8, 12:27 PM",
+      "status": "radar route added",
+      "rationale": "Discord is high-signal for Black Lotus leads, but ordinary community chatter should not become canonical app facts without staff wording, official links, inbox evidence, or later source confirmation.",
+      "nextAction": "Route staff answers and official-link leads to Activity and affected objects; escalate to Home only for urgent Black Lotus store windows, schedule/logistics changes, sellout signals, or entitlements."
+    },
+    {
+      "id": "chris-mystery-booster-discord-lead",
+      "kind": "manual",
+      "severity": "notice",
+      "destination": "Activity",
+      "attention": "Friend signal",
+      "title": "Chris flagged Mystery Booster Commander as worth checking",
+      "summary": "Chris asked in the Black Lotus Discord whether Atlanta will have Mystery Booster Commander events or in-the-box product, and the thread suggested an official article had just been released.",
+      "object": "Explore · Mystery Booster Commander lead",
+      "source": "Discord · MagicCon Black Lotus VIP #magiccon-discussion",
+      "checkedAt": "Aug 8, 12:27 PM",
+      "status": "manual screenshot lead",
+      "rationale": "This is useful group-planning context and a good example of Discord surfacing a source to verify. It should not become a confirmed Atlanta event fact until the official article or event page is captured.",
+      "nextAction": "Look for the referenced official article or Atlanta event page; if confirmed, route the supported facts to Explore and keep this Discord note as source context."
+    },
+    {
       "id": "gmail-receipt-import-route",
       "kind": "email",
       "severity": "quiet",
@@ -196,7 +226,7 @@
       "attention": "Consequential only",
       "title": "Delta changes stay under Trip unless timing breaks",
       "summary": "Flight-time changes should annotate Trip and Calendar; only meaningful disruption reaches Home.",
-      "object": "Trip · Flights · HOGFBX",
+      "object": "Trip · Flights · Delta confirmation",
       "source": "Gmail · Delta",
       "checkedAt": "Aug 8, 10:58 AM",
       "status": "route ready",
