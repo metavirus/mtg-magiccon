@@ -1258,6 +1258,9 @@ function PlanSurface({ events, slice, onUpdateEvent, onChangeSliceState, onOpenO
   const dayEvents = planEvents.filter(event => event.day === activeDay)
   const [selectedId, setSelectedId] = useState(planEvents[0]?.id ?? '')
   const selected = planEvents.find(event => event.id === selectedId) ?? dayEvents[0] ?? planEvents[0]
+  const officialBlCount = planEvents.filter(event => event.kind === 'Black Lotus').length
+  const contenderCount = planEvents.filter(event => event.kind !== 'Black Lotus').length
+  const watchCount = planEvents.filter(event => event.availability === 'changed' || event.complexity === 'unknown').length
 
   const setState = (event: ExploreEvent, state: ExploreState) => {
     if (event.id === 'bl-planechase') onChangeSliceState(state as PlanningState)
@@ -1269,6 +1272,18 @@ function PlanSurface({ events, slice, onUpdateEvent, onChangeSliceState, onOpenO
       <div><span className="eyebrow">PLANNING BOARD</span><h2>Shape the convention days</h2><p>Official Black Lotus anchors and the contenders promoted from Explore. Only committed events become hard blocks.</p></div>
       <div className="plan-lite-links"><button type="button" onClick={onOpenExplore}>Explore events</button><button type="button" onClick={onOpenCalendar}>Open agenda</button></div>
     </header>
+
+    <div className="plan-lite-status" aria-label="Plan status">
+      <button type="button" onClick={() => setActiveDay('Thu')}><span>Official BL anchors</span><strong>{officialBlCount}</strong><small>real Atlanta schedule items</small></button>
+      <button type="button" onClick={onOpenExplore}><span>Promoted contenders</span><strong>{contenderCount}</strong><small>from Explore, reversible</small></button>
+      <button type="button" onClick={() => {
+        const watchItem = planEvents.find(event => event.availability === 'changed' || event.complexity === 'unknown')
+        if (watchItem) {
+          setActiveDay(watchItem.day)
+          setSelectedId(watchItem.id)
+        }
+      }}><span>Watch items</span><strong>{watchCount}</strong><small>TBD / source-change sensitive</small></button>
+    </div>
 
     <nav className="plan-day-tabs" aria-label="Convention planning days">
       {days.map(day => {
@@ -1283,8 +1298,9 @@ function PlanSurface({ events, slice, onUpdateEvent, onChangeSliceState, onOpenO
         {dayEvents.map(event => <article key={event.id} className={`plan-row state-${event.state} ${selected?.id === event.id ? 'selected' : ''}`}>
           <button className="plan-row-main" type="button" onClick={() => setSelectedId(event.id)}>
             <span className={`plan-kind type-${event.type}`} aria-hidden="true"><EventKindIcon name={event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'} /></span>
+            <span className="plan-time-chip">{event.day}<b>{event.time}</b></span>
             <span className="plan-row-copy"><strong>{event.title}</strong><small>{event.time} · {event.window}</small></span>
-            <span className="plan-row-signal">{planPressure(event)}</span>
+            <span className="plan-row-signal">{event.kind === 'Black Lotus' && <i>BL</i>}{planPressure(event)}</span>
             <span className="plan-people" aria-label={event.kind === 'Black Lotus' ? 'Kavi and Chris' : 'Kavi'}><i>K</i>{event.kind === 'Black Lotus' && <i>C</i>}</span>
           </button>
           <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
