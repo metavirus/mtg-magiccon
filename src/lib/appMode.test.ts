@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { surfaceFromHash } from '../App'
 import { AUTH_MODE_KEY, authRedirectUrl, resolveDesignPreviewMode } from './appMode'
 
 function memoryStorage(initial?: string) {
@@ -31,5 +32,12 @@ describe('application mode', () => {
   it('preserves a hosted subpath in the callback URL', () => {
     expect(authRedirectUrl({ href: 'https://metavirus.github.io/mtg-magiccon/#wallet' } as Location))
       .toBe('https://metavirus.github.io/mtg-magiccon/?auth=1')
+  })
+
+  it('maps stable surface hashes and falls back to Home', () => {
+    expect(surfaceFromHash('#activity')).toBe('activity')
+    expect(surfaceFromHash('#Wallet')).toBe('wallet')
+    expect(surfaceFromHash('#calendar-con')).toBe('home')
+    expect(surfaceFromHash('')).toBe('home')
   })
 })

@@ -58,7 +58,7 @@
 - [x] **v1.5:** Move Activity away from forced placeholder framing and into a compact reviewed inbox: count-aware streams, cleaner alert cards, reversible reviewed/archive actions, object opening, and mobile-safe supporting context.
 - [x] **v1.5:** Test Activity with realistic monitor output volume. The POC now uses a 20-item sanitized intake fixture; Home only breaks glass for hot Home-worthy signals, while Activity keeps broader review/source volume manageable.
 - [x] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
-- [ ] **v1.5:** Decide whether navigation state should become URL-addressable again. The current POC click-through works, but direct hash routes are not the trust source for review; if sharing deep links becomes important, fix that deliberately.
+- [x] **v1.5:** Make primary navigation URL-addressable. Surface hashes now load directly, survive refresh, update during navigation, and support browser back/forward for Home, Calendar, Plan, Explore, Map, Wallet, Trip, Notes, and Activity.
 - [ ] **v1.5:** Resume production Plan design only after representative ticketed-play data exists; preserve the current preview as disposable design evidence and do not derive planner schema from it.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
