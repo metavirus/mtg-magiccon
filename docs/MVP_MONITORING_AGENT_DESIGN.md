@@ -29,6 +29,7 @@ The detailed watch-set strategy is recorded in `research/MONITORING_SOURCE_STRAT
 - Leap order and ticketed-play schedule surfaces when access is available.
 - Official MagicCon social links as low-volume announcement radar.
 - MagicCon Black Lotus VIP Discord as a bounded manual/radar source, especially `#questions-for-staff` and Black Lotus discussion channels. It is high-signal for leads and staff/community context, but not canonical publisher truth unless supported by staff/organizer wording or a first-party link.
+- Official Wizards Magic news as a narrowly filtered product/context source. Do not monitor the broad Wizards news feed; check it only when article text or search terms intersect MagicCon, MTG Festivals, Atlanta, Black Lotus, Festival in a Box, Mystery Booster, ticketed play, or event products.
 - Pastimes format/ticketed-play resources for interpreting event difficulty and mechanics.
 - Official artist, vendor, show store, map, and prize wall pages when URLs exist.
 - Gmail search results for MagicCon-specific mail, Leap Conventions/leapevent, Pastimes, Delta, hotel receipts, and store receipts. Generic Wizards/Magic marketing and standalone Leap wording are out of scope unless the message itself mentions MagicCon, MTG Festivals, Atlanta 2026, ReedPop, Leap Conventions, leapevent, or Pastimes.
@@ -64,6 +65,27 @@ Each run may emit zero or more reviewable observations with:
 - whether the finding appears to supersede, contradict, or merely supplement prior evidence.
 
 For Discord-origin observations, the exact reference should include server, channel, message timestamp, and message link or screenshot/export pointer when available. Usernames should be minimized in public fixtures; retain `Metavirus` as Kavi and `Gremmy` as Chris only when identity matters to the app's interpretation.
+
+## Discord method borrowed from the reference app
+
+The nearby `mtg-events-chatgpt` project already proved a useful Discord pattern. Reuse its principles, not its schema or broad scope:
+
+- Maintain a small watch map instead of rediscovering Discord each run: server, channel, purpose, priority, cadence, expected signal types, safe access mode, last checked marker, and last useful signal.
+- Keep access mode explicit. The default for this project is `manual_open_required`: Kavi opens the channel or supplies a screenshot/paste, and Codex analyzes only visible content.
+- Future automation should require a dedicated read-only Discord profile plus mechanical guards before any agent-driven browsing: no typing, pasting, reactions, posting, joining, role changes, settings changes, uploads, or DMs.
+- Check high-yield surfaces first: staff Q&A, announcements, event/product/logistics threads, then Black Lotus discussion. Do not browse ordinary chat history.
+- Classify findings as `staff_answer`, `official_link_lead`, `friend_signal`, `community_activity`, `event_or_product_lead`, `logistics_change`, `sellout_or_availability`, or `noise`.
+- Preserve channel, timestamp, role/identity only when useful, source wording, and a verification target. Unsupported community chatter stays Activity-only.
+- Quiet Discord checks are run observations, not Home alerts and not permanent source downgrades.
+
+For MagicCon Atlanta, the initial Discord watch-map candidate is:
+
+| Server | Channel | Role | Expected signal | Default route |
+| --- | --- | --- | --- | --- |
+| MagicCon Black Lotus VIP | `#questions-for-staff` | staff/organizer clarification | BL logistics, entitlements, schedule clarifications, policy answers | Activity → affected object; Home if urgent |
+| MagicCon Black Lotus VIP | `#magiccon-discussion` | community/friend radar | official-link leads, friend questions, event/product chatter, sellout/logistics leads | Activity |
+| MagicCon Black Lotus VIP | `#deckbuilding-and-theorycrafting` | event prep texture | deck/product clues for included events or Mystery Booster-like formats | Explore/Activity |
+| MagicCon Black Lotus VIP | `#trades` | low-priority community surface | possible meetups/trades only if Kavi later cares | ignored by default |
 
 The agent may replace `public/monitoring-intake.json` with these observations when there is something useful to show in the GitHub Pages preview. The agent must never silently normalize, overwrite, hide, commit, purchase, or notify external systems.
 
@@ -146,14 +168,15 @@ Do not start with:
 2. Check official site/watch URLs for changed text, new links, or removed "coming soon" language.
 3. Check MagicCon news for new posts.
 4. Search Gmail using narrow MagicCon-specific, Leap Conventions/leapevent, Pastimes, Delta, hotel, and store queries since the last run. Do not search standalone `Wizards` or standalone `Leap`; require MagicCon/MTG Festivals context for broad vendor/operator terms.
-5. Review any manually supplied or connector-available Black Lotus Discord observations as radar. Follow official links before promoting claims; keep unsupported community chatter in Activity unless it indicates an urgent Black Lotus, ticketed-play, store, sellout, map, or vendor/exclusive lead.
-6. Classify each finding into the routing map.
-7. Produce a short report:
+5. Check narrowly filtered official Wizards news only when it intersects MagicCon-relevant product/context terms.
+6. Review any manually supplied or connector-available Black Lotus Discord observations as radar. Follow official links before promoting claims; keep unsupported community chatter in Activity unless it indicates an urgent Black Lotus, ticketed-play, store, sellout, map, or vendor/exclusive lead.
+7. Classify each finding into the routing map.
+8. Produce a short report:
    - Home-worthy findings;
    - object annotations;
    - Activity-only observations;
    - unclear items needing a rare yes/no prompt.
-8. Do not ask the owner anything unless the answer changes future classification, recommendation, or alerting.
+9. Do not ask the owner anything unless the answer changes future classification, recommendation, or alerting.
 
 ## First deployable automation prompt
 
