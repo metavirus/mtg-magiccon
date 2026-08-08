@@ -12,7 +12,7 @@ import {
   type TrustSlice,
 } from './lib/trustSlice'
 
-const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`
+const assetUrl = (path: string) => new URL(path, window.location.href).toString()
 
 const states: { value: PlanningState; label: string; symbol: string }[] = [
   { value: 'interested', label: 'Interested', symbol: '♡' },
