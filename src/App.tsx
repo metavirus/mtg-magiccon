@@ -471,9 +471,22 @@ function trustSliceToObjectDetail(slice: TrustSlice): ObjectDetail {
 
 function alertToObjectDetail(alert: MonitoringAlert): ObjectDetail {
   const destination = alert.destination.toLowerCase() as Surface
+  const destinationKinds: Partial<Record<Surface, ObjectDetailKind>> = {
+    calendar: 'event',
+    explore: 'event',
+    map: 'place',
+    wallet: 'receipt',
+    trip: 'place',
+    artists: 'artist',
+    notes: 'note',
+  }
+  const kind = destinationKinds[destination] ?? 'alert'
+  const destinationLabel = alert.destination === 'Home' || alert.destination === 'Activity'
+    ? 'Review signal'
+    : `Open ${alert.destination}`
   return {
     id: `alert-${alert.id}`,
-    kind: 'alert',
+    kind,
     eyebrow: `${alert.kind} · ${alert.severity}`,
     title: alert.title,
     summary: alert.summary,
@@ -486,7 +499,7 @@ function alertToObjectDetail(alert: MonitoringAlert): ObjectDetail {
     source: { label: 'Observed source', value: alert.source },
     rationale: alert.rationale,
     note: alert.nextAction,
-    actions: [{ label: `Open ${alert.destination}`, destination }],
+    actions: [{ label: destinationLabel, destination }],
     backlinks: [{ label: 'Activity', destination: 'activity' }],
   }
 }
@@ -630,6 +643,7 @@ function detailKindLabel(kind: ObjectDetailKind) {
     event: 'Event',
     alert: 'Signal',
     receipt: 'Proof',
+    place: 'Place',
     hotel: 'Place',
     artist: 'Artist',
     note: 'Note',
@@ -649,7 +663,7 @@ type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
 type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
 type ActivityStream = 'needs-review' | 'changes' | 'sources' | 'personal' | 'archived'
-type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'hotel' | 'artist' | 'note'
+type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
 type ObjectDetail = {
   id: string
   kind: ObjectDetailKind
@@ -2380,7 +2394,7 @@ function AlertCard({ alert, reviewState, onReviewChange, onOpenObject }: { alert
         <p>{alert.nextAction}</p>
       </details>
       <div className="activity-review-actions">
-        <button type="button" onClick={() => onOpenObject(alertToObjectDetail(alert))}>Open</button>
+        <button type="button" onClick={() => onOpenObject(alertToObjectDetail(alert))}>Open object</button>
         {reviewState !== 'reviewed' && <button type="button" onClick={() => onReviewChange(alert.id, 'reviewed')}>Reviewed</button>}
         {reviewState !== 'archived' && <button type="button" onClick={() => onReviewChange(alert.id, 'archived')}>Archive</button>}
         {reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert.id, 'needs-review')}>Reopen</button>}
