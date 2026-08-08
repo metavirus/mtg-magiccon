@@ -109,6 +109,17 @@ async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
 
 type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'wallet' | 'trip' | 'notes' | 'activity'
 
+const surfaces: Surface[] = ['home', 'calendar', 'plan', 'explore', 'map', 'wallet', 'trip', 'notes', 'activity']
+
+export function surfaceFromHash(hash: string): Surface {
+  const candidate = hash.replace(/^#/, '').trim().toLowerCase()
+  return surfaces.includes(candidate as Surface) ? candidate as Surface : 'home'
+}
+
+function hashForSurface(next: Surface) {
+  return next === 'home' ? '' : `#${next}`
+}
+
 const destinations = [
   { name: 'Home', icon: 'home' as NavIconName, surface: 'home' as Surface },
   { name: 'Calendar', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
@@ -133,7 +144,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
-  const [surface, setSurface] = useState<Surface>('home')
+  const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [mobileNavMenu, setMobileNavMenu] = useState<'events' | 'more' | null>(null)
   const [navNotice, setNavNotice] = useState('')
@@ -223,6 +234,20 @@ export default function App() {
     }
   }, [alertReview])
 
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setMobileNavMenu(null)
+      setNavNotice('')
+      setSurface(surfaceFromHash(window.location.hash))
+    }
+    window.addEventListener('hashchange', handleLocationChange)
+    window.addEventListener('popstate', handleLocationChange)
+    return () => {
+      window.removeEventListener('hashchange', handleLocationChange)
+      window.removeEventListener('popstate', handleLocationChange)
+    }
+  }, [])
+
   async function requestMagicLink(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!supabase) return
@@ -301,6 +326,8 @@ export default function App() {
       if (next !== surface) setPreviousSurface(surface)
       setSurface(next)
       setNavNotice('')
+      const nextHash = hashForSurface(next)
+      if (window.location.hash !== nextHash) window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`)
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
@@ -312,6 +339,8 @@ export default function App() {
     setPreviousSurface(surface)
     setSurface(destination)
     setNavNotice('')
+    const nextHash = hashForSurface(destination)
+    if (window.location.hash !== nextHash) window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const openObjectDetail = (detail: ObjectDetail) => setObjectDetail(detail)
