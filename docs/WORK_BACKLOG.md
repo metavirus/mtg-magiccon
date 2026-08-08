@@ -14,7 +14,8 @@
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
 - [x] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects. Auth is now fully parked for POC review; remaining mobile tension is design quality, especially Wallet Home/Prize Tix, not access.
 - [x] Disable client auth for the fixture-backed POC so local, GitHub Pages, and installed mobile review cannot be blocked by Supabase magic-link quota.
-- [ ] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC is no longer fighting mobile review. Prefer keeping magic link as a rare bootstrap path, and evaluate Google OAuth before spending more email quota.
+- [x] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC is no longer fighting mobile review. Google OAuth is now the primary live-auth path behind `?auth=1`; magic-link UI is parked.
+- [ ] **v1.5:** Complete Google/Supabase dashboard configuration and prove Google OAuth on desktop plus iPhone refresh/reopen. Use `docs/GOOGLE_OAUTH_SETUP.md` as the checklist.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
 - [x] Synthesize cross-phase value principles and onsite support surfaces.

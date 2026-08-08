@@ -1,4 +1,4 @@
-import { FormEvent, ReactNode, useCallback, useEffect, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
@@ -266,19 +266,17 @@ export default function App() {
     }
   }, [])
 
-  async function requestMagicLink(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function signInWithGoogle() {
     if (!supabase) return
-    const form = new FormData(event.currentTarget)
-    setMessage('Sending your sign-in link…')
-    const { error } = await supabase.auth.signInWithOtp({
-      email: String(form.get('email')),
+    setMessage('Opening Google sign-in…')
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
       options: {
-        emailRedirectTo: authRedirectUrl(window.location),
-        shouldCreateUser: false,
+        redirectTo: authRedirectUrl(window.location),
+        queryParams: { access_type: 'offline', prompt: 'select_account' },
       },
     })
-    setMessage(error?.message ?? 'Check your email. The link will bring you back here signed in.')
+    if (error) setMessage(error.message)
   }
 
   async function changeState(requested: PlanningState) {
@@ -334,7 +332,7 @@ export default function App() {
 
   if (!supabase) return <SetupCard />
   if (loading && !session && !slice) return <div className="boot">Opening your field guide…</div>
-  if (!session && !designPreview) return <Login onSubmit={requestMagicLink} message={message} />
+  if (!session && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} />
 
   const daysToAtlanta = Math.max(0, Math.ceil((new Date('2026-11-13T00:00:00-08:00').getTime() - Date.now()) / 86_400_000))
   const lastChecked = slice ? new Date(slice.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not yet'
@@ -2484,12 +2482,13 @@ function SetupCard() {
   return <div className="center-card"><span className="kicker">LOCAL SETUP</span><h1>Project connection needed.</h1><p>Add the canonical Supabase URL and publishable key to <code>.env.local</code>.</p></div>
 }
 
-function Login({ onSubmit, message }: { onSubmit: (event: FormEvent<HTMLFormElement>) => void; message: string }) {
-  return <div className="login-shell"><form className="login-card" onSubmit={onSubmit}>
+function Login({ onGoogleSignIn, message }: { onGoogleSignIn: () => void; message: string }) {
+  return <div className="login-shell"><section className="login-card" aria-label="Sign in">
     <img src={assetUrl('magiccon-atlanta-peach.png')} alt="MagicCon Atlanta" />
     <span className="kicker">PRIVATE FIELD GUIDE</span><h1>Welcome back.</h1>
-    <p className="login-intro">Enter the owner email and we’ll send a one-click sign-in link.</p>
-    <label>Email<input name="email" type="email" autoComplete="email" inputMode="email" required /></label>
-    <button type="submit">Email me a magic link</button>{message && <p role="status" className="alert">{message}</p>}
-  </form></div>
+    <p className="login-intro">Use Google OAuth for a persistent Supabase session. Magic links stay parked so we do not burn email quota during testing.</p>
+    <button type="button" className="oauth-button" onClick={onGoogleSignIn}><span aria-hidden="true">G</span>Continue with Google</button>
+    <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Open fixture preview instead</a>
+    {message && <p role="status" className="alert">{message}</p>}
+  </section></div>
 }

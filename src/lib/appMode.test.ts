@@ -12,16 +12,22 @@ function memoryStorage(initial?: string) {
 }
 
 describe('application mode', () => {
-  it('keeps the POC in fixture preview even when auth is requested', () => {
+  it('uses live auth only when explicitly requested', () => {
     const storage = memoryStorage()
-    expect(resolveDesignPreviewMode({ search: '?auth=1', development: true, previewBuild: false, storage })).toBe(true)
-    expect(resolveDesignPreviewMode({ search: '', development: true, previewBuild: false, storage })).toBe(true)
+    expect(resolveDesignPreviewMode({ search: '?auth=1', development: true, previewBuild: false, storage })).toBe(false)
+    expect(resolveDesignPreviewMode({ search: '', development: true, previewBuild: false, storage })).toBe(false)
   })
 
-  it('clears prior authenticated mode so hosted preview cannot remain blocked', () => {
-    const storage = memoryStorage('authenticated')
+  it('keeps hosted preview fixture-backed unless auth was requested', () => {
+    const storage = memoryStorage()
     expect(resolveDesignPreviewMode({ search: '', development: false, previewBuild: true, storage })).toBe(true)
-    expect(resolveDesignPreviewMode({ search: '?auth=1', development: false, previewBuild: true, storage })).toBe(true)
+    expect(resolveDesignPreviewMode({ search: '?auth=1', development: false, previewBuild: true, storage })).toBe(false)
+  })
+
+  it('remembers authenticated mode until fixture preview is explicitly requested', () => {
+    const storage = memoryStorage('authenticated')
+    expect(resolveDesignPreviewMode({ search: '', development: false, previewBuild: true, storage })).toBe(false)
+    expect(resolveDesignPreviewMode({ search: '?preview=1', development: false, previewBuild: true, storage })).toBe(true)
   })
 
   it('allows an explicit return to fixture preview', () => {
