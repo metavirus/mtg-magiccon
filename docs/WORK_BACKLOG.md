@@ -24,6 +24,7 @@
 - [ ] Test priority mobile and desktop screen concepts against representative scenarios.
   - [x] Apply `docs/DESIGN_AUDIT_2026-08-02.md`; reconcile the resulting direction in `docs/DESIGN_BASELINE_2026-08-03.md`.
   - [x] Implement the accepted desktop shell and test one stable mobile navigation candidate against working behavior.
+  - [x] Replace the overflowing mobile destination strip with fixed Home / Events / Map / Wallet / More navigation; keep Explore / Plan / Calendar and Trip / Notes / Activity one compact drawer away.
   - [ ] Accept the implemented meaningful-date Calendar stream and Calendar-to-Plan handoff after live desktop and phone review.
   - [ ] Test bounded contextual find/jump and real backlinks across the proof-slice objects.
   - [x] Replace the Decide / Schedule split with one focused Plan workspace in `docs/PLAN_WORKSPACE_CONCEPT.md`.
@@ -53,7 +54,7 @@
 - [x] **v1.5:** Establish the shared object-detail drawer/sheet pattern before continuing destination-specific polish.
 - [x] **v1.5:** Refine Home into a true command center that answers whether anything needs attention, rather than a general dashboard of collected facts.
 - [x] **v1.5:** Reframe Activity as a reviewed monitor inbox with Needs review / Changes / Sources / Personal / Archived streams and contextual backlinks.
-- [x] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. Prize Tix is now a compact Wallet toolbar chip that opens an onsite drawer/sheet with large count and `+100` / `-100` controls instead of forcing the page layout around a decorative ticket or separate mobile column.
+- [x] **v1.5:** Redesign Wallet Home mobile-first, especially Prize Tix. The MVP now uses a compact, always-visible counter with `-100` / `+100`; the decorative ticket and drawer are parked for later refinement.
 - [ ] **v1.5:** Test Activity with real monitor output volume. Keep the stream useful and compact on mobile, with filters doing more work as alerts accumulate.
 - [x] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
 - [ ] **v1.5:** Decide whether navigation state should become URL-addressable again. The current POC click-through works, but direct hash routes are not the trust source for review; if sharing deep links becomes important, fix that deliberately.
@@ -70,6 +71,7 @@
 
 ## Parked
 
+- Decorative Prize Tix ticket art/drawer; reconsider only after the simple onsite counter proves useful.
 - Exhaustive event/travel/vendor/expense/people schema.
 - Automated large-scale MagicCon ingestion.
 - Full interactive convention atlas with clickable booths/rooms/zones.
