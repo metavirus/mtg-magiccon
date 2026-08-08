@@ -484,10 +484,15 @@ function alertToObjectDetail(alert: MonitoringAlert): ObjectDetail {
   const destinationLabel = alert.destination === 'Home' || alert.destination === 'Activity'
     ? 'Review signal'
     : `Open ${alert.destination}`
+  const attentionLabel = alert.severity === 'hot'
+    ? 'Breakthrough'
+    : alert.severity === 'notice'
+      ? 'Review'
+      : 'Quiet'
   return {
     id: `alert-${alert.id}`,
     kind,
-    eyebrow: `${alert.kind} · ${alert.severity}`,
+    eyebrow: `${alert.kind} · ${attentionLabel}`,
     title: alert.title,
     summary: alert.summary,
     facts: [
@@ -697,6 +702,16 @@ function defaultAlertReviewState(alert: MonitoringAlert): AlertReviewState {
   return alert.severity === 'quiet' ? 'reviewed' : 'needs-review'
 }
 
+function isChangeLikeAlert(alert: MonitoringAlert) {
+  const haystack = `${alert.title} ${alert.summary} ${alert.attention} ${alert.status} ${alert.nextAction}`.toLowerCase()
+  return alert.severity === 'hot'
+    || haystack.includes('change')
+    || haystack.includes('changed')
+    || haystack.includes('appears')
+    || haystack.includes('unlocks')
+    || haystack.includes('goes live')
+}
+
 function isMonitoringAlert(value: unknown): value is MonitoringAlert {
   if (!value || typeof value !== 'object') return false
   const candidate = value as Partial<Record<keyof MonitoringAlert, unknown>>
@@ -749,7 +764,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     destination: 'Home',
     attention: 'Milestone signal',
     title: 'Ticketed play announcement would open planning mode',
-    summary: 'Representative newsletter/site discovery: when ticketed play goes live, Home should announce it and Explore becomes the triage lane.',
+    summary: 'When Atlanta ticketed play goes live, Home should announce it and Explore becomes the triage lane.',
     object: 'Milestone · Ticketed play',
     source: 'MagicCon news + ticketed-play page',
     checkedAt: 'Aug 4, 8:28 AM',
@@ -764,7 +779,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     destination: 'Home',
     attention: 'Watched-page change',
     title: 'Black Lotus page change lands as a high-signal item',
-    summary: 'Representative official-page discovery: a change to the Black Lotus VIP page should preserve the new wording and link back to the affected BL object.',
+    summary: 'A change to the Black Lotus VIP page should preserve the new wording and link back to the affected BL object.',
     object: 'Black Lotus · VIP page',
     source: 'mcatlanta.mtgfestivals.com',
     checkedAt: 'Aug 4, 8:29 AM',
@@ -779,7 +794,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     destination: 'Activity',
     attention: 'Source history',
     title: 'MagicCon news feed checked',
-    summary: 'No Atlanta-specific artist, store, or ticketed-play post was detected in the representative watch set.',
+    summary: 'No Atlanta-specific artist, store, or ticketed-play post was detected in the readiness watch set.',
     object: 'News · MagicCon',
     source: 'MagicCon news',
     checkedAt: 'Aug 4, 8:02 AM',
@@ -794,7 +809,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     destination: 'Wallet',
     attention: 'Proof captured',
     title: 'Email receipt import lands in Wallet',
-    summary: 'Representative Gmail discovery: receipt artifacts should preserve the original and extract line items without becoming a Home alert.',
+    summary: 'MagicCon receipt artifacts should preserve the original and extract line items without becoming a Home alert.',
     object: 'Wallet · Receipts',
     source: 'Gmail · MagicCon / store receipt',
     checkedAt: 'Aug 4, 8:30 AM',
@@ -809,7 +824,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     destination: 'Trip',
     attention: 'Consequential only',
     title: 'Travel change stays under Trip unless it matters now',
-    summary: 'Representative Delta discovery: a changed flight time annotates the flight object and Calendar; only meaningful disruption reaches Home.',
+    summary: 'A changed flight time should annotate the flight object and Calendar; only meaningful disruption reaches Home.',
     object: 'Trip · Flights · HOGFBX',
     source: 'Gmail · Delta',
     checkedAt: 'Aug 4, 8:31 AM',
@@ -824,7 +839,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     destination: 'Artists',
     attention: 'Opportunity discovery',
     title: 'Artist list appears as a signature-planning opportunity',
-    summary: 'Representative official-page discovery: first artist directory should surface as a milestone and then become browsable by artist/card/signature usefulness.',
+    summary: 'The first artist directory should surface as a milestone and then become browsable by artist/card/signature usefulness.',
     object: 'Artists · Directory',
     source: 'MagicCon artists page',
     checkedAt: 'Aug 4, 8:32 AM',
@@ -839,7 +854,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     destination: 'Map',
     attention: 'Context unlock',
     title: 'Official map lands in Map, then backlinks outward',
-    summary: 'Representative map discovery: official 2026 floor artifacts should attach to Map and become useful through room, booth, vendor, Wallet, and event backlinks.',
+    summary: 'Official 2026 floor artifacts should attach to Map and become useful through room, booth, vendor, Wallet, and event backlinks.',
     object: 'Map · Event map',
     source: 'MagicCon map page',
     checkedAt: 'Aug 4, 8:33 AM',
@@ -2316,10 +2331,12 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
   const [stream, setStream] = useState<ActivityStream>('needs-review')
   const reviewState = (alert: MonitoringAlert) => alertReview[alert.id] ?? defaultAlertReviewState(alert)
   const needsReviewCount = incomingAlerts.filter(alert => reviewState(alert) === 'needs-review').length
+  const sourceCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && alert.kind !== 'manual').length
+  const changeCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && isChangeLikeAlert(alert)).length
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
     { value: 'needs-review', label: 'Review', icon: <AlertKindIcon kind="site" />, count: needsReviewCount },
-    { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && alert.severity === 'hot').length },
-    { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && alert.kind !== 'manual').length },
+    { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: changeCount },
+    { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: sourceCount },
     { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: contextNotes.length },
     { value: 'archived', label: 'Archive', icon: <NavIcon name="activity" />, count: incomingAlerts.filter(alert => reviewState(alert) === 'archived').length },
   ]
@@ -2328,7 +2345,7 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
     if (stream === 'needs-review') return state === 'needs-review'
     if (stream === 'archived') return state === 'archived'
     if (state === 'archived') return false
-    if (stream === 'changes') return alert.severity === 'hot'
+    if (stream === 'changes') return isChangeLikeAlert(alert)
     if (stream === 'sources') return alert.kind !== 'manual'
     return false
   })
