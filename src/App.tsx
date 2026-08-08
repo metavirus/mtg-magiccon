@@ -458,7 +458,7 @@ export default function App() {
 }
 
 type ForecastId = 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
-type CalendarDetail = ForecastId | 'arrival' | 'preview' | 'friday' | 'event' | 'airport' | 'sunday'
+type CalendarDetail = ForecastId | 'arrival' | 'preview' | 'friday' | 'event' | 'airport' | 'sunday' | 'bl-thursday' | 'bl-friday' | 'bl-sunday'
 
 function trustSliceToObjectDetail(slice: TrustSlice): ObjectDetail {
   return {
@@ -653,7 +653,7 @@ type ContextNote = {
 type ExploreEvent = {
   id: string
   title: string
-  day: 'Fri' | 'Sat' | 'Sun'
+  day: 'Thu' | 'Fri' | 'Sat' | 'Sun'
   time: string
   window: string
   price: string
@@ -830,6 +830,121 @@ const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title
 
 const exploreEvents: ExploreEvent[] = [
   {
+    id: 'bl-progressive-sealed',
+    title: 'BL Progressive Sealed League',
+    day: 'Thu',
+    time: '12 PM start',
+    window: 'Weekend-long league',
+    price: 'included',
+    kind: 'Black Lotus',
+    type: 'play',
+    format: 'Progressive sealed league',
+    tags: ['official atlanta', 'included', 'league', 'pickup'],
+    state: 'tentative',
+    availability: 'open',
+    complexity: 'focused',
+    complexityWhy: 'Sealed deckbuilding plus daily games creates some ongoing attention, but the league structure is flexible and included with Black Lotus.',
+    fit: 'Real Atlanta Black Lotus anchor: product pickup and daily league play are exactly the kind of included benefit worth keeping visible.',
+    detail: 'Pick up 4 Reality Fracture play boosters starting Thursday, build a 40-card deck, play at least 2 games each day Friday through Sunday, and earn additional Collector Boosters through Sunday.',
+    formatHelp: 'A progressive sealed league starts with a small sealed pool and adds product over time. Here, daily play unlocks extra Reality Fracture Collector Boosters.',
+    decisionFacts: [
+      { label: 'Access', value: 'Black Lotus included' },
+      { label: 'Starts', value: 'Thu 12 PM pickup/play' },
+      { label: 'Daily ask', value: '2 games Fri-Sun' },
+      { label: 'Final claim', value: 'Sun 5 PM' },
+    ],
+    moreDetails: [
+      { label: 'Reward path', value: 'Playing 6 games by Sunday earns three total Collector Boosters. Final booster-prize claim is Sunday at 5:00 PM.' },
+      { label: 'Location', value: 'Event locations will be announced closer to the event.' },
+    ],
+    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
+    planEffect: 'Keep as an included weekend thread, not a hard fixed block except for pickup and final claim timing.',
+  },
+  {
+    id: 'bl-first-look-thursday',
+    title: 'BL First Look Thursday',
+    day: 'Thu',
+    time: '1-8 PM',
+    window: 'Program block',
+    price: 'included',
+    kind: 'Black Lotus',
+    type: 'info',
+    format: 'First Look / panels',
+    tags: ['official atlanta', 'included', 'first look', 'tbd'],
+    state: 'interested',
+    availability: 'changed',
+    complexity: 'easy',
+    complexityWhy: 'Mostly informational/social programming; several content slots are explicitly TBD, so the effort is attention rather than rules complexity.',
+    fit: 'High relevance because this is the whole reason Thursday exists for Black Lotus, but parts of the schedule are still placeholders.',
+    detail: 'Behind the Card Frame & First Look runs 1:00-8:00 PM, with TBD content slots at 2:00, 3:00, and 5:30, a Planechase-card design session at 4:15, and Paint & Sip at 6:30.',
+    decisionFacts: [
+      { label: 'Known block', value: '1:00-8:00 PM' },
+      { label: 'TBD slots', value: '2:00, 3:00, 5:30' },
+      { label: 'Known activity', value: 'Design Unknown Planechase Card' },
+    ],
+    moreDetails: [
+      { label: 'Lounge opens', value: '12:00 PM Welcome to MagicCon First Look Thursday.' },
+      { label: 'Location', value: 'Event locations will be announced closer to the event.' },
+    ],
+    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
+    planEffect: 'Thursday is a BL-only day; keep this as a known program shell and monitor for TBD slot replacements.',
+  },
+  {
+    id: 'bl-welcome-reception',
+    title: 'BL Welcome Reception + First Look',
+    day: 'Thu',
+    time: '8-11 PM',
+    window: '3 hours',
+    price: 'included',
+    kind: 'Black Lotus',
+    type: 'social',
+    format: 'Reception',
+    tags: ['official atlanta', 'included', 'social', 'guests'],
+    state: 'interested',
+    availability: 'open',
+    complexity: 'easy',
+    complexityWhy: 'Social mixer, light food, no-host bar; no rules or deck prep.',
+    fit: 'Worth keeping visible because it is a social opportunity with Wizards staff/special guests after the First Look block.',
+    detail: 'Casual mixer with Wizards of the Coast members and special guests. Light food provided and a no-host bar.',
+    decisionFacts: [
+      { label: 'Time', value: 'Thu 8:00-11:00 PM' },
+      { label: 'Food', value: 'Light food provided' },
+      { label: 'Bar', value: 'No-host bar' },
+    ],
+    moreDetails: [{ label: 'Location', value: 'Event locations will be announced closer to the event.' }],
+    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
+    planEffect: 'Late social anchor after Thursday programming; useful for energy planning, not a contention problem yet.',
+  },
+  {
+    id: 'bl-friday-play-event',
+    title: 'BL Friday Play Event with Special Guests',
+    day: 'Fri',
+    time: '2-6 PM',
+    window: '4 hours',
+    price: 'included',
+    kind: 'Black Lotus',
+    type: 'play',
+    format: 'TBD play event',
+    tags: ['official atlanta', 'included', 'tbd', 'special guests'],
+    state: 'interested',
+    availability: 'changed',
+    complexity: 'unknown',
+    complexityWhy: 'The official page says the event is under construction; not enough rules detail exists yet to assess difficulty.',
+    fit: 'Real Atlanta BL slot, but the content is not settled. This is exactly the kind of thing the monitor should watch.',
+    detail: 'Officially listed as “PLAY EVENT* with Special Guests,” with a note that the event is under construction and being workshopped based on Black Lotus feedback.',
+    decisionFacts: [
+      { label: 'Time', value: 'Fri 2:00-6:00 PM' },
+      { label: 'Rules', value: 'TBD / under construction' },
+      { label: 'Access', value: 'Black Lotus' },
+    ],
+    moreDetails: [
+      { label: 'Official caveat', value: 'Stay tuned and check back here for updates.' },
+      { label: 'Location', value: 'Event locations will be announced closer to the event.' },
+    ],
+    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
+    planEffect: 'Hold as a meaningful Friday contender, but do not over-rank until the official format is published.',
+  },
+  {
     id: 'commander-cocktails',
     title: 'Commander & Cocktails',
     day: 'Fri',
@@ -950,6 +1065,59 @@ const exploreEvents: ExploreEvent[] = [
     planEffect: 'Interested would place a soft visual block after Planar Sealed without treating it like a paid lock.',
   },
   {
+    id: 'bl-mystery-booster-drafts',
+    title: 'BL Mystery Booster 2 Drafts',
+    day: 'Sun',
+    time: '1-5 PM',
+    window: 'On-demand drafts',
+    price: 'included',
+    kind: 'Black Lotus',
+    type: 'play',
+    format: 'Mystery Booster 2 draft',
+    tags: ['official atlanta', 'included', 'draft', 'wizards guests'],
+    state: 'interested',
+    availability: 'open',
+    complexity: 'focused',
+    complexityWhy: 'Drafting Mystery Booster 2 asks for real card-reading bandwidth, but there are no pairings or prizes and drafts fire casually.',
+    fit: 'Potentially fun because it is chaotic and included, with the option to play against Wizards for extra boosters.',
+    detail: 'Drafts fire whenever 8 players gather starting at 1:00 PM Sunday. Limit 2 per person. Last draft fires at 4:00 PM regardless of participants. No pairings or prizes.',
+    formatHelp: 'Draft means selecting cards from packs and building a deck on the spot. Mystery Booster products add novelty and many unfamiliar cards.',
+    decisionFacts: [
+      { label: 'Fires', value: '8 players gathered' },
+      { label: 'Limit', value: '2 drafts/person' },
+      { label: 'Last fire', value: 'Sun 4:00 PM' },
+      { label: 'Prizes', value: 'No pairings/prizes' },
+    ],
+    moreDetails: [{ label: 'Opportunity', value: 'Play against Wizards for a chance at extra boosters.' }],
+    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
+    planEffect: 'Flexible Sunday play window; useful to keep near the airport-leaving calculation but not a fixed commitment yet.',
+  },
+  {
+    id: 'bl-feedback-session',
+    title: 'BL Meet & Greet / Feedback Session',
+    day: 'Sun',
+    time: '3-4 PM',
+    window: '1 hour',
+    price: 'included',
+    kind: 'Black Lotus',
+    type: 'social',
+    format: 'Meet & greet',
+    tags: ['official atlanta', 'included', 'feedback', 'wizards'],
+    state: 'interested',
+    availability: 'open',
+    complexity: 'easy',
+    complexityWhy: 'Conversation session rather than gameplay; low prep unless there is something specific you want to ask.',
+    fit: 'Could be useful as a low-effort final-day touchpoint with the event team, especially if Thursday/Friday programming changes.',
+    detail: 'Meet & Greet / Feedback Session with Wizards of the Coast Event Team.',
+    decisionFacts: [
+      { label: 'Time', value: 'Sun 3:00-4:00 PM' },
+      { label: 'Type', value: 'Feedback/social' },
+      { label: 'Access', value: 'Black Lotus' },
+    ],
+    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
+    planEffect: 'Small Sunday anchor that may overlap with drafts; easy to choose later.',
+  },
+  {
     id: 'rcq',
     title: 'Regional Championship Qualifier',
     day: 'Sun',
@@ -1028,7 +1196,7 @@ function ExploreSurface({ onOpenPlan, onOpenObject }: { onOpenPlan: () => void; 
     <div className="explore-toolbar">
       <label className="explore-search"><span aria-hidden="true">⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Find event, format, guest" /></label>
       <div className="explore-days" aria-label="Event days">
-        {(['all', 'Fri', 'Sat', 'Sun'] as const).map(value => <button key={value} type="button" className={day === value ? 'active' : ''} onClick={() => setDay(value)}>{value === 'all' ? 'All days' : value}</button>)}
+        {(['all', 'Thu', 'Fri', 'Sat', 'Sun'] as const).map(value => <button key={value} type="button" className={day === value ? 'active' : ''} onClick={() => setDay(value)}>{value === 'all' ? 'All days' : value}</button>)}
       </div>
     </div>
 
@@ -1056,7 +1224,7 @@ function ExploreSurface({ onOpenPlan, onOpenObject }: { onOpenPlan: () => void; 
 
     <div className="explore-layout">
       <div className="event-list" aria-label="Representative event results">
-        <div className="event-list-summary"><strong>{visible.length}</strong><span>shown from 127-event fixture</span></div>
+        <div className="event-list-summary"><strong>{visible.length}</strong><span>shown from official BL + representative event set</span></div>
         {visible.map(event => <ExploreEventRow key={event.id} event={event} selected={selected.id === event.id} onSelect={() => { setSelectedId(event.id); setDetailOpen(true) }} onState={state => updateEvent(event.id, state)} />)}
         {visible.length === 0 && <div className="event-empty">Nothing in this slice. Try All or clear search.</div>}
         {mode !== 'hidden' && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
@@ -1732,6 +1900,13 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="notes" />Details</span>
     </button>}
+    {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-thursday')}>
+      <div className="agenda-date"><strong>12</strong><span>THU</span><em>12 PM</em></div>
+      <div className="agenda-icon lotus-mini">✦</div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus schedule</span><h2>Lounge, league pickup, First Look, reception</h2><p>12 PM lounge/league pickup; 1-8 PM First Look block; 8-11 PM welcome reception.</p></div>
+      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
+      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
+    </button>}
 
     {showConvention && <div className="calendar-month compact" id="calendar-con"><span>NOV 13–15</span><strong>MagicCon weekend</strong></div>}
 
@@ -1741,6 +1916,13 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       <div className="agenda-copy"><span className="agenda-kind">Convention · Day 1</span><h2>Planning surface opens here</h2><p>No committed events captured yet.</p></div>
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="plan" />Plan</span>
+    </button>}
+    {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-friday')}>
+      <div className="agenda-date"><strong>13</strong><span>FRI</span><em>8:30 AM</em></div>
+      <div className="agenda-icon lotus-mini">✦</div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus schedule</span><h2>Lounge, store pickup, priority entry, TBD play</h2><p>2-6 PM play event with special guests is explicitly under construction.</p></div>
+      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
+      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
 
     {showConvention && <article className={`agenda-row convention-row expandable ${expanded ? 'expanded' : ''}`}>
@@ -1764,6 +1946,13 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       <div className="agenda-copy"><span className="agenda-kind">Convention · Final day</span><h2>Closing day</h2><p>No committed events captured yet.</p></div>
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="plan" />Plan</span>
+    </button>}
+    {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-sunday')}>
+      <div className="agenda-date"><strong>15</strong><span>SUN</span><em>1 PM</em></div>
+      <div className="agenda-icon lotus-mini">✦</div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus schedule</span><h2>Mystery Booster 2 drafts + feedback session</h2><p>Drafts fire 1-5 PM; feedback session 3-4 PM; lounge closes 6 PM.</p></div>
+      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
+      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
 
     {showTravel && <button className="agenda-row agenda-action travel-row airport-row" type="button" onClick={() => setDetail('airport')}>
@@ -1795,12 +1984,18 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
       ? { eyebrow: 'TRIP · NOV 11', title: 'Arrival and Courtyard night', copy: 'Kavi and Juan fly Delta 1521 from SNA to ATL, 12:20 PM-7:34 PM, confirmation HOGFBX. The first hotel anchor is Courtyard by Marriott Atlanta Downtown for Kavi, Juan, and Chris.' }
       : detail === 'preview'
         ? { eyebrow: 'BLACK LOTUS · NOV 12', title: 'First Look and Omni check-in', copy: 'Kavi and Chris have the Black Lotus First Look day. Courtyard ends before Omni check-in at 4 PM, so luggage handling is the only practical transition note currently worth keeping visible.' }
+        : detail === 'bl-thursday'
+          ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 12', title: 'Thursday early-access schedule', copy: 'Published BL schedule: lounge opens at 12 PM; Progressive Sealed league pickup/play begins at 12 PM; Behind the Card Frame & First Look runs 1-8 PM with several TBD content slots; Design the Unknown Planechase Card is 4:15-5:15; Paint & Sip is 6:30-7:30; Welcome Reception + First Look runs 8-11 PM. Locations are not yet announced and the schedule is subject to change.' }
         : detail === 'friday'
           ? { eyebrow: 'CONVENTION · NOV 13', title: 'Friday', copy: 'No committed or purchased events are captured yet.' }
+          : detail === 'bl-friday'
+            ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 13', title: 'Friday Black Lotus schedule', copy: 'Published BL schedule: lounge opens 8:30 AM; beverage service 8:30-11; online store pre-order pickup 8:30-5; priority show-floor entry 9:45; play event with special guests 2-6 PM. The play event is explicitly under construction, so this is a meaningful watch item rather than a fully defined event.' }
           : detail === 'airport'
             ? { eyebrow: 'TRIP · NOV 15', title: 'Leave for ATL airport', copy: 'Placeholder reminder for Kavi and Juan before Delta 1602. Keep it visible, but derive the real departure time later from the final Sunday plan, bags, airport buffer, and local travel conditions rather than hard-coding it now.' }
           : detail === 'sunday'
             ? { eyebrow: 'TRIP · NOV 15', title: 'Closing day and flight home', copy: 'Omni check-out is 11 AM. Kavi and Juan fly Delta 1602 from ATL to SNA, 8:35 PM-10:29 PM, confirmation HOGFBX. Calendar should eventually derive a low-noise leave-for-airport reminder from the final Sunday plan.' }
+            : detail === 'bl-sunday'
+              ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 15', title: 'Sunday Black Lotus schedule', copy: 'Published BL schedule: lounge opens 8:30 AM; beverage service 8:30-11; priority show-floor entry 9:45; Mystery Booster 2 drafts fire 1-5 PM, limited to 2 per person, with the last draft firing at 4 PM; Meet & Greet / Feedback Session with the Wizards event team is 3-4 PM; lounge closes at 6 PM.' }
             : { eyebrow: 'BLACK LOTUS · NOV 14', title: slice.occurrence.title.replace('Black Lotus ', ''), copy: '11:30 AM–3:00 PM · included Black Lotus event.' }
 
   return <aside className="calendar-detail-sheet" aria-label={`${content.title} details`}>
@@ -1816,7 +2011,7 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
       <button className="detail-plan-link" type="button" onClick={onOpenPlan}>View Plan study <span aria-hidden="true">›</span></button>
     </>}
     {(detail === 'arrival' || detail === 'preview' || detail === 'airport' || detail === 'sunday') && <button className="detail-plan-link" type="button" onClick={onOpenTrip}>View Trip details <span aria-hidden="true">›</span></button>}
-    {detail === 'friday' && <button className="detail-plan-link" type="button" onClick={onOpenPlan}>View day study <span aria-hidden="true">›</span></button>}
+    {(detail === 'friday' || detail === 'bl-thursday' || detail === 'bl-friday' || detail === 'bl-sunday') && <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Compare in Plan <span aria-hidden="true">›</span></button>}
   </aside>
 }
 

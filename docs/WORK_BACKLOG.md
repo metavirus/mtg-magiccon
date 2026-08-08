@@ -60,6 +60,7 @@
 - [x] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
 - [x] **v1.5:** Make primary navigation URL-addressable. Surface hashes now load directly, survive refresh, update during navigation, and support browser back/forward for Home, Calendar, Plan, Explore, Map, Wallet, Trip, Notes, and Activity.
 - [x] **v1.5:** Run the first no-dead-control cleanup pass. Wallet future-play rows are now honest waiting states, representative proof rows open actual previews, Trip and Leap actions route somewhere real, Notes no longer advertises unavailable composition, and Plan handoff copy is less misleading.
+- [x] **v1.5:** Hydrate the known official Black Lotus schedule into the fixture-backed UI. Thursday early-access programming, weekend league, Friday under-construction play, Saturday Planechase, Sunday drafts, and Sunday feedback now appear in Explore/Calendar with TBD/location/change caveats preserved.
 - [ ] **v1.5:** Continue the no-placeholder pass on a real phone and public preview, especially labels that still imply future persistence or real artifacts where the POC is fixture-backed.
 - [ ] **v1.5:** Resume production Plan design only after representative ticketed-play data exists; preserve the current preview as disposable design evidence and do not derive planner schema from it.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
