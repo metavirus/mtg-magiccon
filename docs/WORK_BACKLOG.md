@@ -68,6 +68,7 @@
 - [x] **v1.5:** Replace the disconnected Plan study with a bounded working Plan-lite surface. Explore and Plan now share POC-session decisions; Thursday-Sunday groupings show official Black Lotus anchors plus promoted contenders; Interested / Tentative / Committed actions are reversible; only Commitments count as hard blocks; contextual details and flexible/change signals remain visible.
 - [x] **v1.5:** Give Plan-lite a final quiet-period usefulness pass before freezing it. The board now distinguishes official Black Lotus anchors, promoted contenders, and watch/TBD items at a glance, and rows carry compact time/BL signals without adding a fake contention engine.
 - [x] **v1.5:** Complete the no-placeholder phone/public-preview acceptance pass for this tranche. Kavi flipped through on iPhone on Aug 8 and reported the preview looks good; future UI changes should be driven by real defects or real data.
+- [x] **v1.5:** Add the mobile top-left main navigation affordance. The header hamburger now opens a left-side all-destinations drawer on phone; the previous lone back caret was too odd as the primary top-left control.
 - [ ] **v1.5:** Resume the production contention-engine design only after representative Atlanta ticketed-play data exists. Treat Plan-lite as a useful interaction proof, not a persistence/schema contract.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
