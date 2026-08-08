@@ -135,6 +135,19 @@ const destinations = [
   { name: 'Notes', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
 ]
 
+const mobileMainDestinations = [
+  { name: 'Home', note: 'Now', icon: 'home' as NavIconName, surface: 'home' as Surface },
+  { name: 'Explore', note: 'Discover', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
+  { name: 'Plan', note: 'Compare', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
+  { name: 'Calendar', note: 'Agenda', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
+  { name: 'Map', note: 'Places', icon: 'map' as NavIconName, surface: 'map' as Surface },
+  { name: 'Wallet', note: 'Proofs', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
+  { name: 'Trip', note: 'Hotels & flights', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
+  { name: 'Artists', note: 'Signature seeds', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
+  { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
+  { name: 'Activity', note: 'Signals', icon: 'activity' as NavIconName, surface: 'activity' as Surface },
+]
+
 export default function App() {
   const designPreview = resolveDesignPreviewMode({
     search: window.location.search,
@@ -150,7 +163,7 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
-  const [mobileNavMenu, setMobileNavMenu] = useState<'events' | 'more' | null>(null)
+  const [mobileNavMenu, setMobileNavMenu] = useState<'main' | 'events' | 'more' | null>(null)
   const [navNotice, setNavNotice] = useState('')
   const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
   const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(exploreEvents)
@@ -389,11 +402,11 @@ export default function App() {
       <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity</button>
     </aside>
 
-    {mobileNavMenu && <div className="mobile-nav-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setMobileNavMenu(null) }}>
-      <section className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label={mobileNavMenu === 'events' ? 'Event destinations' : 'More destinations'}>
-        <header><span className="eyebrow">{mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>
+    {mobileNavMenu && <div className={`mobile-nav-drawer-backdrop menu-${mobileNavMenu}`} onMouseDown={event => { if (event.target === event.currentTarget) setMobileNavMenu(null) }}>
+      <section className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label={mobileNavMenu === 'main' ? 'Main navigation' : mobileNavMenu === 'events' ? 'Event destinations' : 'More destinations'}>
+        <header><span className="eyebrow">{mobileNavMenu === 'main' ? 'MENU' : mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>
         <div>
-          {(mobileNavMenu === 'events' ? [
+          {(mobileNavMenu === 'main' ? mobileMainDestinations : mobileNavMenu === 'events' ? [
             { name: 'Explore', note: 'Discover', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
             { name: 'Plan', note: 'Compare', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
             { name: 'Calendar', note: 'Agenda', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
@@ -412,7 +425,11 @@ export default function App() {
     <main>
       <header className="hero">
         <div>
-          <div className="hero-context"><button className="back-caret" type="button" onClick={goBack} disabled={!previousSurface} aria-label="Back to previous view">‹</button><span className="kicker">{surfaceLabel(surface)}</span></div>
+          <div className="hero-context">
+            <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!previousSurface} aria-label="Back to previous view">‹</button>
+            <button className="back-caret mobile-menu-caret" type="button" onClick={() => setMobileNavMenu('main')} aria-label="Open main navigation" aria-expanded={mobileNavMenu === 'main'}><span aria-hidden="true">☰</span></button>
+            <span className="kicker">{surfaceLabel(surface)}</span>
+          </div>
           <h1>{surfaceTitle(surface)}</h1>
           <p>{surfaceSubtitle(surface)}</p>
         </div>
