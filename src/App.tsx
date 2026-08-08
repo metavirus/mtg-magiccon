@@ -1,4 +1,4 @@
-import { CSSProperties, FormEvent, ReactNode, useCallback, useEffect, useState } from 'react'
+import { FormEvent, ReactNode, useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
@@ -135,6 +135,7 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [surface, setSurface] = useState<Surface>('home')
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
+  const [mobileNavMenu, setMobileNavMenu] = useState<'events' | 'more' | null>(null)
   const [navNotice, setNavNotice] = useState('')
   const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
@@ -295,6 +296,7 @@ export default function App() {
   const daysToAtlanta = Math.max(0, Math.ceil((new Date('2026-11-13T00:00:00-08:00').getTime() - Date.now()) / 86_400_000))
   const lastChecked = slice ? new Date(slice.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not yet'
   const openDestination = (name: string, next?: Surface) => {
+    setMobileNavMenu(null)
     if (next) {
       if (next !== surface) setPreviousSurface(surface)
       setSurface(next)
@@ -325,7 +327,7 @@ export default function App() {
       <button className="brand" type="button" onClick={() => openDestination('Home', 'home')} aria-label="MagicCon Atlanta home">
         <img src={assetUrl('magiccon-atlanta-peach.png')} alt="" />
       </button>
-      <nav aria-label="Primary navigation">
+      <nav className="desktop-primary-nav" aria-label="Primary navigation">
         {destinations.map(destination => <button
           key={destination.name}
           type="button"
@@ -334,10 +336,35 @@ export default function App() {
           onClick={() => openDestination(destination.name, destination.surface)}
           title={destination.surface ? destination.name : `${destination.name} · later tranche`}
         ><span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}</button>)}
-        <button className={`mobile-activity ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity</button>
+      </nav>
+      <nav className="mobile-primary-nav" aria-label="Mobile primary navigation">
+        <button className={surface === 'home' ? 'active' : ''} type="button" onClick={() => openDestination('Home', 'home')}><span aria-hidden="true"><NavIcon name="home" /></span>Home</button>
+        <button className={['calendar', 'plan', 'explore'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'events'} onClick={() => setMobileNavMenu(menu => menu === 'events' ? null : 'events')}><span aria-hidden="true"><NavIcon name="calendar" /></span>Events</button>
+        <button className={surface === 'map' ? 'active' : ''} type="button" onClick={() => openDestination('Map', 'map')}><span aria-hidden="true"><NavIcon name="map" /></span>Map</button>
+        <button className={surface === 'wallet' ? 'active' : ''} type="button" onClick={() => openDestination('Wallet', 'wallet')}><span aria-hidden="true"><NavIcon name="wallet" /></span>Wallet</button>
+        <button className={['trip', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
       </nav>
       <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity</button>
     </aside>
+
+    {mobileNavMenu && <div className="mobile-nav-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setMobileNavMenu(null) }}>
+      <section className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label={mobileNavMenu === 'events' ? 'Event destinations' : 'More destinations'}>
+        <header><span className="eyebrow">{mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>
+        <div>
+          {(mobileNavMenu === 'events' ? [
+            { name: 'Explore', note: 'Discover', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
+            { name: 'Plan', note: 'Compare', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
+            { name: 'Calendar', note: 'Agenda', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
+          ] : [
+            { name: 'Trip', note: 'Hotels & flights', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
+            { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
+            { name: 'Activity', note: 'Signals & changes', icon: 'activity' as NavIconName, surface: 'activity' as Surface },
+          ]).map(destination => <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
+            <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{destination.note}</small><b aria-hidden="true">›</b>
+          </button>)}
+        </div>
+      </section>
+    </div>}
 
     <main>
       <header className="hero">
@@ -486,7 +513,10 @@ function ObjectDetailLayer({ detail, onClose, onNavigate }: { detail: ObjectDeta
     <aside className={`object-detail object-detail-${detail.kind}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
       <button className="detail-close object-detail-close" type="button" onClick={onClose} aria-label="Close detail">×</button>
       <header className="object-detail-head">
-        <span className="eyebrow">{detail.eyebrow}</span>
+        <div className="object-detail-topline">
+          <span className="eyebrow">{detail.eyebrow}</span>
+          <span className="object-kind-chip">{detailKindLabel(detail.kind)}</span>
+        </div>
         <h2 id="object-detail-title">{detail.title}</h2>
         <p>{detail.summary}</p>
       </header>
@@ -503,7 +533,7 @@ function ObjectDetailLayer({ detail, onClose, onNavigate }: { detail: ObjectDeta
         <p>{detail.note}</p>
       </section>}
       {detail.source && <section className="object-detail-section">
-        <h3>Source</h3>
+        <h3>Source / provenance</h3>
         <p><strong>{detail.source.label}</strong><br />{detail.source.value}</p>
       </section>}
       {(detail.actions || detail.backlinks) && <footer className="object-detail-actions">
@@ -512,6 +542,17 @@ function ObjectDetailLayer({ detail, onClose, onNavigate }: { detail: ObjectDeta
       </footer>}
     </aside>
   </div>
+}
+
+function detailKindLabel(kind: ObjectDetailKind) {
+  const labels: Record<ObjectDetailKind, string> = {
+    event: 'Event',
+    alert: 'Signal',
+    receipt: 'Proof',
+    hotel: 'Place',
+    note: 'Note',
+  }
+  return labels[kind]
 }
 type CalendarFilter = 'all' | 'convention' | 'travel'
 type ExploreMode = 'for-you' | 'all' | 'changed' | 'hidden'
@@ -1195,9 +1236,9 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
 function WalletSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(1700)
-  const [tixOpen, setTixOpen] = useState(false)
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode } | null>(null)
   const openModal = (eyebrow: string, title: string, body: ReactNode) => setModal({ eyebrow, title, body })
+  const adjustTix = (delta: number) => setTix(value => Math.max(0, value + delta))
 
   return <section className="wallet-surface" aria-label="Wallet">
     <div className="wallet-toolbar">
@@ -1209,18 +1250,18 @@ function WalletSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
           ['other', 'Other'],
         ] as Array<[WalletTab, string]>).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={tab === value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}>{label}</button>)}
       </div>
-      <button className="wallet-tix-launcher" type="button" onClick={() => setTixOpen(true)} aria-label={`Open Prize Tix controls, ${tix.toLocaleString()} tix`}>
+      <div className="wallet-tix-counter" aria-label={`${tix.toLocaleString()} Prize Tix`}>
         <TicketMiniIcon />
-        <span>Prize Tix</span>
+        <button type="button" aria-label="Subtract 100 Prize Tix" onClick={() => adjustTix(-100)}>−</button>
         <strong>{tix.toLocaleString()}</strong>
-      </button>
+        <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+</button>
+      </div>
     </div>
     {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab openModal={openModal} />}
     {tab === 'store' && <WalletStoreTab openModal={openModal} />}
     {tab === 'other' && <WalletOtherTab openModal={openModal} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
-    {tixOpen && <PrizeTixDrawer tix={tix} adjustTix={delta => setTix(value => Math.max(0, value + delta))} onClose={() => setTixOpen(false)} />}
   </section>
 }
 
@@ -1314,34 +1355,6 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
       <div><b>Need to enter an event?</b><small>Open Play for codes and original ticketed-play receipts.</small></div>
       <div><b>Need pickup proof?</b><small>Open Store or Play depending on what was purchased.</small></div>
       <div><b>Need travel proof?</b><small>Other holds originals; Trip stays pleasant.</small></div>
-    </aside>
-  </div>
-}
-
-function PrizeTixDrawer({ tix, adjustTix, onClose }: { tix: number; adjustTix: (delta: number) => void; onClose: () => void }) {
-  return <div className="tix-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
-    <aside className="tix-drawer" role="dialog" aria-modal="true" aria-label="Prize Tix controls">
-      <button className="detail-close" type="button" onClick={onClose} aria-label="Close Prize Tix">×</button>
-      <div className="tix-drawer-copy">
-        <span className="eyebrow">PRIZE WALL WALLET</span>
-        <h2>Prize Tix</h2>
-        <p>Quick manual count for onsite spending. Later this can link straight into Prize Wall availability.</p>
-      </div>
-      <div
-        className="tix-ticket-art drawer-ticket"
-        style={{ '--ticket-art': `url("${assetUrl('prize-tix-ticket-art-v4.png')}")` } as CSSProperties}
-        aria-label={`${tix.toLocaleString()} Prize Tix`}
-      >
-        <div className="tix-ticket-counter">
-          <strong>{tix.toLocaleString()}</strong>
-        </div>
-      </div>
-      <div className="tix-stepper" aria-label="Adjust Prize Tix">
-        <button type="button" aria-label="Subtract 100 Prize Tix" onClick={() => adjustTix(-100)}>−100</button>
-        <strong>{tix.toLocaleString()}</strong>
-        <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+100</button>
-      </div>
-      <button className="tix-wall-link" type="button" disabled>Prize Wall link later</button>
     </aside>
   </div>
 }
@@ -1778,21 +1791,37 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
 function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; alerts: MonitoringAlert[]; alertReview: Record<string, AlertReviewState>; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   const needsReview = alerts.filter(alert => (alertReview[alert.id] ?? 'needs-review') === 'needs-review')
   const topSignal = needsReview.find(alert => alert.severity === 'hot') ?? needsReview[0]
+  const status = topSignal ? 'Review needed' : 'All quiet'
+  const statusCopy = topSignal ? 'One monitored finding is worth a look.' : 'No new MagicCon signal needs attention.'
   return <div className="home-surface">
     <section className={`home-attention ${topSignal ? 'needs-review' : 'quiet'}`}>
+      <div className="home-status-orb" aria-hidden="true">{topSignal ? <AlertKindIcon kind={topSignal.kind} /> : <MilestoneIcon name="badges" />}</div>
       <div>
         <span className="eyebrow">{topSignal ? 'NEEDS REVIEW' : 'QUIET MONITORING'}</span>
-        <h2>{topSignal ? topSignal.title : 'Nothing needs you right now.'}</h2>
-        <p>{topSignal ? topSignal.summary : 'The watchlist has a place to land findings, and quiet days can stay quiet.'}</p>
+        <h2>{status}</h2>
+        <p>{statusCopy}</p>
       </div>
       <div className="home-attention-actions">
         <span>{needsReview.length} open</span>
-        {topSignal && <button type="button" onClick={() => onOpenObject(alertToObjectDetail(topSignal))}>Review signal</button>}
         <button type="button" onClick={onOpenActivity}>Activity</button>
       </div>
     </section>
 
-    <section className="next-milestone">
+    {topSignal && <button type="button" className={`home-priority-card ${topSignal.severity}`} onClick={() => onOpenObject(alertToObjectDetail(topSignal))}>
+      <span className="priority-icon"><AlertKindIcon kind={topSignal.kind} /></span>
+      <span className="priority-copy">
+        <span className="eyebrow">TOP SIGNAL</span>
+        <strong>{topSignal.title}</strong>
+        <small>{topSignal.summary}</small>
+      </span>
+      <span className="priority-route">{topSignal.destination}<b aria-hidden="true">›</b></span>
+    </button>}
+
+    <section className="next-milestone" onClick={event => {
+      const target = event.target as HTMLElement
+      if (target.closest('details')) return
+      onOpenActivity()
+    }}>
       <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
       <div>
         <span className="eyebrow">NEXT EXPECTED</span>
@@ -1830,14 +1859,14 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
           <span className="anchor-arrow" aria-hidden="true">›</span>
         </button>
         <div className="timely-home">
-          <span className="eyebrow">TIMELY SIGNALS</span>
-          {needsReview.slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alertToObjectDetail(alert))}>
+          <div className="timely-home-head"><span className="eyebrow">TIMELY SIGNALS</span><button type="button" onClick={onOpenActivity}>Review all</button></div>
+          {needsReview.filter(alert => alert.id !== topSignal?.id).slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alertToObjectDetail(alert))}>
             <span><AlertKindIcon kind={alert.kind} /></span>
             <div><strong>{alert.title}</strong><small>{alert.destination} · {alert.attention}</small></div>
           </button>)}
-          {needsReview.length === 0 && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
+          {needsReview.length <= (topSignal ? 1 : 0) && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
             <span><AlertKindIcon kind="manual" /></span>
-            <div><strong>No open monitor findings</strong><small>Activity keeps reviewed and archived items recoverable</small></div>
+            <div><strong>{topSignal ? 'No other open findings' : 'No open monitor findings'}</strong><small>Reviewed and archived items stay recoverable</small></div>
           </button>}
         </div>
       </section>
@@ -1900,7 +1929,7 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
       <div className="activity-feed">
         {stream === 'personal' ? contextNotes.map(note => <article key={note.id} className="activity-card personal">
           <span className="activity-icon"><NavIcon name="notes" /></span>
-          <div><span className="eyebrow">PERSONAL NOTE</span><h2>{note.title}</h2><p>{note.body}</p><small>{note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Open object</button></div>
+          <div><span className="eyebrow">PERSONAL NOTE</span><h2>{note.title}</h2><p>{note.body}</p><small>{note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Details</button></div>
         </article>) : alerts.map(alert => <AlertCard key={alert.id} alert={alert} reviewState={reviewState(alert)} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
         {alerts.length === 0 && stream !== 'personal' && <div className="activity-empty"><strong>No items here.</strong><span>{stream === 'archived' ? 'Archived findings will remain recoverable here.' : 'Quiet is a valid state.'}</span></div>}
       </div>
@@ -1944,7 +1973,7 @@ function AlertCard({ alert, reviewState, onReviewChange, onOpenObject }: { alert
         <p>{alert.nextAction}</p>
       </details>
       <div className="activity-review-actions">
-        <button type="button" onClick={() => onOpenObject(alertToObjectDetail(alert))}>Open object</button>
+        <button type="button" onClick={() => onOpenObject(alertToObjectDetail(alert))}>Details</button>
         <button type="button" onClick={() => onReviewChange(alert.id, 'reviewed')}>Mark reviewed</button>
         <button type="button" onClick={() => onReviewChange(alert.id, 'archived')}>Archive</button>
         {reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert.id, 'needs-review')}>Reopen</button>}
