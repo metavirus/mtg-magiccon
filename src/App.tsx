@@ -417,7 +417,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
         {surface === 'explore' && <ExploreSurface onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} />}
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'notes' && <NotesSurface onOpenObject={openObjectDetail} />}
         {surface === 'plan' && <><div className="plan-bracket-note"><span>V1.5 STUDY</span><p>Preserved as design evidence. Production planning waits for representative ticketed-play data.</p></div><section className="now-card" data-state={slice.decision.planning_state}>
@@ -1163,7 +1163,7 @@ function ExploreDetail({ event, open, onClose, onState, onOpenPlan, onOpenObject
         <IconAction label="Not for me" icon="thumbsDown" pressed={event.state === 'nope'} danger onClick={() => onState('nope')} />
       </div>
       <button className="detail-plan-link secondary-detail-link" type="button" onClick={() => onOpenObject(exploreEventToObjectDetail(event))}>Open object detail <span aria-hidden="true">›</span></button>
-      <button className="detail-plan-link" type="button" disabled={!planEnabled} onClick={onOpenPlan}>View Plan study <span aria-hidden="true">›</span></button>
+      <button className="detail-plan-link" type="button" disabled={!planEnabled} onClick={onOpenPlan}>Compare in Plan <span aria-hidden="true">›</span></button>
     </footer>
   </aside>
 }
@@ -1266,7 +1266,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   </section>
 }
 
-function WalletSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
+function WalletSurface({ onOpenObject, onOpenTrip }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(1700)
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode } | null>(null)
@@ -1293,7 +1293,7 @@ function WalletSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
     {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab openModal={openModal} />}
     {tab === 'store' && <WalletStoreTab openModal={openModal} />}
-    {tab === 'other' && <WalletOtherTab openModal={openModal} />}
+    {tab === 'other' && <WalletOtherTab openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
   </section>
 }
@@ -1397,18 +1397,18 @@ function WalletPlayTab({ openModal }: { openModal: (eyebrow: string, title: stri
     <section className="receipt-list" aria-label="Ticketed play receipts">
       <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>This tab wakes up when ticketed events are purchased.</p></div></div>
-        <div className="receipt-lines">
-          <button type="button" onClick={() => openModal('FUTURE PLAY RECEIPT', 'Event entry receipt', <ProofPreview kind="receipt" note="When ticketed play opens, this row should show the exact purchased-event receipt and line-item proof." />)}><span>Expected later: event entry receipt</span><b>Original</b></button>
-          <button type="button" onClick={() => openModal('FUTURE PLAY CODE', 'Companion App code', <ProofPreview kind="code" code="TBD" note="Ticketed-play emails often contain alphanumeric event codes. This should become one-tap show/copy, not buried in email." />)}><span>Expected later: Companion App code</span><b>Code</b></button>
-          <button type="button" onClick={() => openModal('FUTURE CLAIM PROOF', 'Included product / pickup proof', <ProofPreview kind="receipt" note="Some play events include products or pickup entitlements; Play should keep those proofs with the event." />)}><span>Expected later: included product / claim proof</span><b>Pickup</b></button>
+        <div className="receipt-lines static-receipt-lines">
+          <div><span>Original event receipt</span><b>Waiting</b></div>
+          <div><span>Companion App code</span><b>Waiting</b></div>
+          <div><span>Included product / pickup proof</span><b>Waiting</b></div>
         </div>
       </article>
       <article className="receipt-card play-fixture">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">REPRESENTATIVE EVENT PROOF</span><h2>Deluxe Planar Sealed</h2><p>Ticketed play receipt pattern · not Atlanta data</p></div><strong>$80</strong></div>
         <div className="receipt-lines">
-          <button type="button"><span>Event code for Companion App</span><b>ABC123</b></button>
-          <button type="button"><span>Show receipt for included product / pickup</span><b>Proof</b></button>
-          <button type="button"><span>Starts Fri 1 PM · show 30 min early</span><b>12:30</b></button>
+          <button type="button" onClick={() => openModal('EVENT CODE', 'Deluxe Planar Sealed code', <ProofPreview kind="code" code="ABC123" note="Representative code surface for Companion App entry or event staff." />)}><span>Event code for Companion App</span><b>ABC123</b></button>
+          <button type="button" onClick={() => openModal('PICKUP PROOF', 'Included product / pickup proof', <ProofPreview kind="receipt" note="Representative pickup-proof surface. Real receipts should preserve the exact original artifact." />)}><span>Show receipt for included product / pickup</span><b>Proof</b></button>
+          <button type="button" onClick={() => openModal('ARRIVAL CUE', 'Show 30 minutes early', <p>Representative operational cue: event starts Fri 1 PM; arrive around 12:30 if check-in, code entry, or pickup is involved.</p>)}><span>Starts Fri 1 PM · show 30 min early</span><b>12:30</b></button>
         </div>
         <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL PLAY RECEIPT', 'Deluxe Planar Sealed receipt', <ProofPreview kind="receipt" note="Representative original receipt preview. Real Atlanta ticketed-play receipts should be captured exactly." />)}>Show original</button><button type="button" onClick={() => openModal('EVENT CODE', 'Deluxe Planar Sealed code', <ProofPreview kind="code" code="ABC123" note="Representative code surface for Companion App entry or event staff." />)}>Show code</button><button type="button" onClick={() => openModal('EVENT LINK', 'Open event', <p>This should deep-link to the event detail in Explore/Plan once the event exists as a real object.</p>)}>Open event</button></div>
       </article>
@@ -1502,28 +1502,27 @@ function WalletStoreTab({ openModal }: { openModal: (eyebrow: string, title: str
 function AssignmentPreview({ item }: { item: string }) {
   return <div className="assignment-preview">
     <p>{item}</p>
-    <div><button type="button">Kavi</button><button type="button">Chris</button><button type="button">Juan</button><button type="button">Custom…</button></div>
-    <small>POC only: this sketches the quick assignment popover. It does not save yet.</small>
+    <small>Use the assignment chip on the receipt row to save Kavi, Chris, Juan, Kellen, or a custom name locally for this preview.</small>
   </div>
 }
 
-function WalletOtherTab({ openModal }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void }) {
+function WalletOtherTab({ openModal, onOpenTrip }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Other wallet references">
       <article className="receipt-card">
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">DELTA RECEIPT</span><h2>Flights · Kavi + Juan</h2><p>Confirmation HOGFBX · SNA ⇄ ATL</p></div></div>
         <div className="receipt-lines"><button type="button" onClick={() => openModal('FLIGHT DETAIL', 'DL 1521', <p>SNA to ATL · Nov 11 · 12:20 PM–7:34 PM · confirmation HOGFBX.</p>)}><span>DL 1521 · Nov 11 · SNA to ATL</span><b>7:34 PM</b></button><button type="button" onClick={() => openModal('FLIGHT DETAIL', 'DL 1602', <p>ATL to SNA · Nov 15 · 8:35 PM–10:29 PM · confirmation HOGFBX.</p>)}><span>DL 1602 · Nov 15 · ATL to SNA</span><b>8:35 PM</b></button></div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL DELTA RECEIPT', 'Delta confirmation HOGFBX', <ProofPreview kind="receipt" note="Original Delta email/PDF preview belongs here; Trip owns the pleasant summary." />)}>Show original</button><button type="button" onClick={() => openModal('TRIP BACKLINK', 'Open Trip', <p>This will navigate to the Flights tab in Trip once cross-surface deep links are wired.</p>)}>Open Trip</button></div>
+        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL DELTA RECEIPT', 'Delta confirmation HOGFBX', <ProofPreview kind="receipt" note="Original Delta email/PDF preview belongs here; Trip owns the pleasant summary." />)}>Show original</button><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
       <article className="receipt-card">
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL CONFIRMATIONS</span><h2>Omni + Courtyard</h2><p>Original booking emails belong here; pleasant details live in Trip.</p></div></div>
         <div className="receipt-lines"><button type="button" onClick={() => openModal('HOTEL DETAIL', 'Courtyard', <p>Courtyard by Marriott Atlanta Downtown · Nov 11–12 · Kavi, Juan, Chris.</p>)}><span>Courtyard · Nov 11-12</span><b>K/J/C</b></button><button type="button" onClick={() => openModal('HOTEL DETAIL', 'Omni', <p>Omni Atlanta Hotel at Centennial Park · Nov 12–15 · Kavi and Juan.</p>)}><span>Omni · Nov 12-15</span><b>K/J</b></button></div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL HOTEL EMAIL', 'Hotel confirmations', <ProofPreview kind="receipt" note="Original hotel email/PDF previews belong here; sensitive booking values stay hidden until deliberately revealed." />)}>Show original</button><button type="button" onClick={() => openModal('TRIP BACKLINK', 'Open Trip', <p>This will navigate to Hotels in Trip once deep links are wired.</p>)}>Open Trip</button></div>
+        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL HOTEL EMAIL', 'Hotel confirmations', <ProofPreview kind="receipt" note="Original hotel email/PDF previews belong here; sensitive booking values stay hidden until deliberately revealed." />)}>Show original</button><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
       <article className="receipt-card">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Black Lotus order</h2><p>2 × Black Lotus VIP Early Bird · transaction pi_3Tizh…</p></div><strong>$2,025.26</strong></div>
-        <div className="receipt-lines"><button type="button" onClick={() => openModal('BADGE RECEIPT', 'Kavi Black Lotus VIP', <ProofPreview kind="qr" code="9gLHU3mJ" note="Badge proof is surfaced on Home; Other keeps the financial/original receipt context." />)}><span>Kavi Black Lotus VIP</span><b>Kavi</b></button><button type="button" onClick={() => openModal('BADGE RECEIPT', 'Chris Black Lotus VIP', <ProofPreview kind="qr" code="9gLHU3mJ" note="Same Black Lotus order, assigned to Chris." />)}><span>Chris Black Lotus VIP</span><b>Chris</b></button><button type="button"><span>Shipping</span><b>$15</b></button></div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL BLACK LOTUS ORDER', 'Black Lotus order confirmation', <ProofPreview kind="receipt" note="Two Black Lotus VIP Early Bird badges, total $2,025.26, transaction pi_3Tizh…" />)}>Show original</button><button type="button" onClick={() => openModal('LEAP LINK', 'Open Leap order', <p>Future behavior: open the Leap confirmation page or saved source record. For now this is intentionally non-mutating.</p>)}>Open Leap</button></div>
+        <div className="receipt-lines"><button type="button" onClick={() => openModal('BADGE RECEIPT', 'Kavi Black Lotus VIP', <ProofPreview kind="qr" code="9gLHU3mJ" note="Badge proof is surfaced on Home; Other keeps the financial/original receipt context." />)}><span>Kavi Black Lotus VIP</span><b>Kavi</b></button><button type="button" onClick={() => openModal('BADGE RECEIPT', 'Chris Black Lotus VIP', <ProofPreview kind="qr" code="9gLHU3mJ" note="Same Black Lotus order, assigned to Chris." />)}><span>Chris Black Lotus VIP</span><b>Chris</b></button><button type="button" onClick={() => openModal('SHIPPING', 'Black Lotus badge shipping', <p>Representative extracted line: shipping $15. The original order remains preserved under Show original.</p>)}><span>Shipping</span><b>$15</b></button></div>
+        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL BLACK LOTUS ORDER', 'Black Lotus order confirmation', <ProofPreview kind="receipt" note="Two Black Lotus VIP Early Bird badges, total $2,025.26, transaction pi_3Tizh…" />)}>Show original</button><a className="button-link" href="https://conventions.leapevent.tech/c/htwhdatl26shdl10/70a21c58-17aa-4660-b427-636407a19feb?utm_source=email&utm_medium=transactional&utm_campaign=order-confirmation" target="_blank" rel="noreferrer">Open Leap ↗</a></div>
       </article>
     </section>
     <aside className="wallet-show-card">
@@ -1912,9 +1911,8 @@ function NotesSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) =
   return <section className="notes-surface" aria-label="Notes">
     <div className="notes-compose">
       <span className="eyebrow">QUICK NOTE</span>
-      <h2>Add where you are</h2>
-      <p>Future note entry should inherit context from the event, receipt, place, or alert you opened it from.</p>
-      <button type="button">New note</button>
+      <h2>Context first.</h2>
+      <p>Notes in this POC are opened from the event, receipt, place, or alert they belong to. A freeform note composer belongs in v1.5 once storage is real.</p>
     </div>
     <div className="notes-list">
       {contextNotes.map(note => <article key={note.id} className="note-card">
