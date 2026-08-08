@@ -417,7 +417,7 @@ export default function App() {
           <p>{surfaceSubtitle(surface)}</p>
         </div>
         <div className="header-status">
-          {designPreview && <span className="preview-label">Design preview · local only</span>}
+          {designPreview && <span className="preview-label">Fixture preview</span>}
           <div className="header-actions">
             <AccountMenu email={session?.user.email ?? 'kavigrace@gmail.com'} online={Boolean(session) && online} preview={designPreview} />
             <span className="countdown-chip"><strong>{surface === 'home' ? daysToAtlanta : 'ATL'}</strong><span>{surface === 'home' ? 'days to Atlanta' : designPreview ? 'preview' : online ? 'online' : 'offline'}</span></span>
