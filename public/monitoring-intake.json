@@ -1,9 +1,9 @@
 {
   "generatedAt": "2026-08-08T10:48:00-07:00",
-  "mode": "design-preview-intake",
-  "source": "manual-volume-fixture",
+  "mode": "poc-monitoring-intake",
+  "source": "monitoring-readiness-fixture",
   "notes": [
-    "This file stress-tests Activity with realistic quiet-period monitoring volume.",
+    "This file keeps the POC preview monitor-ready until live findings replace these entries.",
     "All entries are sanitized representative observations, not canonical database facts.",
     "Quiet entries should not become Home noise by default."
   ],
