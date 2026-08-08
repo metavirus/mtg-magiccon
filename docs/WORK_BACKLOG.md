@@ -24,7 +24,7 @@
 - [ ] Test priority mobile and desktop screen concepts against representative scenarios.
   - [x] Apply `docs/DESIGN_AUDIT_2026-08-02.md`; reconcile the resulting direction in `docs/DESIGN_BASELINE_2026-08-03.md`.
   - [x] Implement the accepted desktop shell and test one stable mobile navigation candidate against working behavior.
-  - [x] Replace the overflowing mobile destination strip with fixed Home / Events / Map / Wallet / More navigation; keep Explore / Plan / Calendar and Trip / Notes / Activity one compact drawer away.
+  - [x] Replace the overflowing mobile destination strip with fixed Home / Events / Map / Wallet / More navigation; keep Explore / Plan / Calendar and Trip / Artists / Notes / Activity one compact drawer away.
   - [ ] Accept the implemented meaningful-date Calendar stream and Calendar-to-Plan handoff after live desktop and phone review.
   - [ ] Test bounded contextual find/jump and real backlinks across the proof-slice objects.
   - [x] Replace the Decide / Schedule split with one focused Plan workspace in `docs/PLAN_WORKSPACE_CONCEPT.md`.
@@ -58,7 +58,8 @@
 - [x] **v1.5:** Move Activity away from forced placeholder framing and into a compact reviewed inbox: count-aware streams, cleaner alert cards, reversible reviewed/archive actions, object opening, and mobile-safe supporting context.
 - [x] **v1.5:** Test Activity with realistic monitor output volume. The POC now uses a 20-item sanitized intake fixture; Home only breaks glass for hot Home-worthy signals, while Activity keeps broader review/source volume manageable.
 - [x] **v1.5:** Add richer contextual backlinks from Home/Activity alert cards into destination objects so monitor findings do not become dead informational blocks.
-- [x] **v1.5:** Make primary navigation URL-addressable. Surface hashes now load directly, survive refresh, update during navigation, and support browser back/forward for Home, Calendar, Plan, Explore, Map, Wallet, Trip, Notes, and Activity.
+- [x] **v1.5:** Make primary navigation URL-addressable. Surface hashes now load directly, survive refresh, update during navigation, and support browser back/forward for Home, Calendar, Plan, Explore, Map, Wallet, Trip, Artists, Notes, and Activity.
+- [x] **v1.5:** Add Artists as a top-level destination without overclaiming data. Desktop shows it directly; mobile exposes it under More; the surface is ready for historical MagicCon artist seeds flagged unconfirmed, Atlanta confirmation, and later ManaBox/card-signing matching.
 - [x] **v1.5:** Run the first no-dead-control cleanup pass. Wallet future-play rows are now honest waiting states, representative proof rows open actual previews, Trip and Leap actions route somewhere real, Notes no longer advertises unavailable composition, and Plan handoff copy is less misleading.
 - [x] **v1.5:** Hydrate the known official Black Lotus schedule into the fixture-backed UI. Thursday early-access programming, weekend league, Friday under-construction play, Saturday Planechase, Sunday drafts, and Sunday feedback now appear in Explore/Calendar with TBD/location/change caveats preserved.
 - [x] **v1.5:** Replace the disconnected Plan study with a bounded working Plan-lite surface. Explore and Plan now share POC-session decisions; Thursday-Sunday groupings show official Black Lotus anchors plus promoted contenders; Interested / Tentative / Committed actions are reversible; only Commitments count as hard blocks; contextual details and flexible/change signals remain visible.
