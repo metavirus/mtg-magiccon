@@ -57,10 +57,17 @@ In Authentication → URL Configuration:
 
 ## Acceptance check
 
+Desktop Pages acceptance was completed on 2026-08-08: Google OAuth returned to `https://metavirus.github.io/mtg-magiccon/?auth=1`, showed the `kavigrace@gmail.com` account chip, and survived refresh.
+
 1. Open `https://metavirus.github.io/mtg-magiccon/?auth=1`.
 2. Click **Continue with Google**.
 3. Complete Google sign-in.
 4. Confirm the app returns to `?auth=1`, shows the account chip, and survives refresh.
-5. Open the same URL on iPhone Safari and confirm the session persists after refresh/reopen.
+5. Still to confirm separately: open the same URL on iPhone Safari/PWA and confirm the session persists after refresh/reopen.
+
+## Troubleshooting notes from setup
+
+- If the provider page shows any callback URL other than `https://pavjsexxbueuzhzgemgy.supabase.co/auth/v1/callback`, the wrong Supabase project is open. Switch to `pavjsexxbueuzhzgemgy`.
+- If auth succeeds but returns to `http://localhost:3000/`, Supabase URL Configuration still has the default Site URL. Set it to `https://metavirus.github.io/mtg-magiccon/`.
 
 Do not add a service-role key, Google client secret, or any OAuth secret to browser code or tracked files.
