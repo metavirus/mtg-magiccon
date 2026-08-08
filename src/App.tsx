@@ -161,6 +161,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'info' | 'error'>('info')
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [mobileNavMenu, setMobileNavMenu] = useState<'main' | 'events' | 'more' | null>(null)
@@ -214,11 +215,13 @@ export default function App() {
     if (designPreview || !session || !online) return
     setLoading(true)
     setMessage('')
+    setMessageTone('info')
     try {
       const next = await loadTrustSlice(session.user.id)
       writeTrustSliceCache(next)
       setSlice(next)
     } catch (error) {
+      setMessageTone('error')
       setMessage(error instanceof Error ? error.message : 'The current view could not be refreshed.')
     } finally {
       setLoading(false)
@@ -268,6 +271,7 @@ export default function App() {
 
   async function signInWithGoogle() {
     if (!supabase) return
+    setMessageTone('info')
     setMessage('Opening Google sign-in…')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -276,7 +280,10 @@ export default function App() {
         queryParams: { access_type: 'offline', prompt: 'select_account' },
       },
     })
-    if (error) setMessage(error.message)
+    if (error) {
+      setMessageTone('error')
+      setMessage(error.message)
+    }
   }
 
   async function changeState(requested: PlanningState) {
@@ -297,6 +304,7 @@ export default function App() {
     if (!supabase || !online) return
     setSaving(true)
     setMessage('')
+    setMessageTone('info')
 
     try {
       const decisionResult = await supabase.from('personal_decisions')
@@ -324,6 +332,7 @@ export default function App() {
 
       await refresh()
     } catch (error) {
+      setMessageTone('error')
       setMessage(error instanceof Error ? error.message : 'The state change was not saved.')
     } finally {
       setSaving(false)
@@ -332,7 +341,7 @@ export default function App() {
 
   if (!supabase) return <SetupCard />
   if (loading && !session && !slice) return <div className="boot">Opening your field guide…</div>
-  if (!session && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} />
+  if (!session && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} messageTone={messageTone} />
 
   const daysToAtlanta = Math.max(0, Math.ceil((new Date('2026-11-13T00:00:00-08:00').getTime() - Date.now()) / 86_400_000))
   const lastChecked = slice ? new Date(slice.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not yet'
@@ -440,7 +449,7 @@ export default function App() {
         </div>
       </header>
 
-      {(message || navNotice) && <p role="status" className={message ? 'alert' : 'nav-notice'}>{message || navNotice}</p>}
+      {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
@@ -2482,13 +2491,13 @@ function SetupCard() {
   return <div className="center-card"><span className="kicker">LOCAL SETUP</span><h1>Project connection needed.</h1><p>Add the canonical Supabase URL and publishable key to <code>.env.local</code>.</p></div>
 }
 
-function Login({ onGoogleSignIn, message }: { onGoogleSignIn: () => void; message: string }) {
+function Login({ onGoogleSignIn, message, messageTone }: { onGoogleSignIn: () => void; message: string; messageTone: 'info' | 'error' }) {
   return <div className="login-shell"><section className="login-card" aria-label="Sign in">
     <img src={assetUrl('magiccon-atlanta-peach.png')} alt="MagicCon Atlanta" />
     <span className="kicker">PRIVATE FIELD GUIDE</span><h1>Welcome back.</h1>
     <p className="login-intro">Use Google OAuth for a persistent Supabase session. Magic links stay parked so we do not burn email quota during testing.</p>
     <button type="button" className="oauth-button" onClick={onGoogleSignIn}><span aria-hidden="true">G</span>Continue with Google</button>
     <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Open fixture preview instead</a>
-    {message && <p role="status" className="alert">{message}</p>}
+    {message && <p role="status" className={`login-message ${messageTone}`}>{message}</p>}
   </section></div>
 }
