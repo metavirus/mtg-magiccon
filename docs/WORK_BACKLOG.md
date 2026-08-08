@@ -75,6 +75,7 @@
 - [x] Document the MVP monitoring-agent design, output contract, routing rules, and safe daily-run deployment shape in `docs/MVP_MONITORING_AGENT_DESIGN.md`.
 - [x] Define the source hierarchy and creative monitoring radar for quiet-period Atlanta discovery in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`.
 - [x] Add `public/monitoring-intake.json` and `docs/MONITORING_HYDRATION_CONTRACT.md` so the daily agent can hydrate the fixture-backed POC preview with reviewable observations without editing React source.
+- [x] Add `pnpm validate:monitoring` as a pre-publish guard for the POC monitoring intake file, including shape checks, enum checks, duplicate-ID checks, Home-noise checks, and obvious private-artifact leakage checks.
 - [x] Enable the first scheduled monitoring heartbeat after user approval. It can read approved public/Gmail sources and update the POC hydration file when useful, but cannot write Supabase data, modify Gmail, send messages, or change canonical app state.
 
 ## Parked

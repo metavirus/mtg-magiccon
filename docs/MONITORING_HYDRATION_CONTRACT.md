@@ -15,7 +15,7 @@ When a daily monitoring run finds meaningful information, it may:
 1. search the approved web, site-tree, newsletter, Gmail, and radar sources from `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`, keeping Gmail MagicCon-specific rather than generic Wizards/Magic marketing;
 2. classify findings under `docs/MVP_MONITORING_AGENT_DESIGN.md` and `docs/POC_FINISH_GLIDE_PATH.md`;
 3. replace `public/monitoring-intake.json` with reviewed observation cards;
-4. run the normal validation checks;
+4. run `pnpm validate:monitoring` plus the normal validation checks;
 5. build the GitHub Pages preview;
 6. publish the fixture-backed preview when there is something useful for Kavi to see.
 
@@ -49,6 +49,8 @@ This is the POC hydration path. It is intentionally file-based so it can be repl
 - `nextAction`.
 
 The app validates only the shape needed to avoid crashing. The monitor remains responsible for preserving source quality, useful wording, and exact references in the generated file.
+
+`pnpm validate:monitoring` is the pre-publish guard for this file. It checks required fields, allowed enum values, duplicate IDs, lowercase kebab-case IDs, quiet findings routed to Home, and obvious private-artifact leakage risks. It is intentionally conservative and does not certify that a finding is true or canonical.
 
 ## Publication rule
 
