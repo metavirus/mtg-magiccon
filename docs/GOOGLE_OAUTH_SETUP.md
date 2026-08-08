@@ -42,6 +42,7 @@ In Authentication → Providers → Google:
 - Enable Google.
 - Add the Google OAuth client ID.
 - Add the Google OAuth client secret.
+- If the browser shows `Unsupported provider: provider is not enabled`, the app has reached Supabase correctly but this provider toggle or its credentials are still missing in Supabase.
 
 In Authentication → URL Configuration:
 
