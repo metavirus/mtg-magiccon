@@ -645,39 +645,16 @@ type ArtistSeed = {
 
 const artistSeeds: ArtistSeed[] = [
   {
-    id: 'historical-import',
-    title: 'Historical MagicCon artist seed',
-    status: 'Not Atlanta-confirmed',
-    signal: 'Prior-event candidate list',
-    summary: 'A future import can hold prior Vegas, Amsterdam, and Atlanta artist appearances with a clear historical flag until the official Atlanta 2026 artist directory confirms or rejects them.',
+    id: 'rebecca-guay',
+    title: 'Rebecca Guay',
+    status: 'Historical Vegas feature; not Atlanta-confirmed',
+    signal: 'Prior MagicCon featured artist',
+    summary: 'Rebecca Guay was one of the featured Art of Magic artists for MagicCon: Las Vegas 2026. Her work is described by MagicCon as romantic, ethereal, fluid, delicate, and colorfully muted — exactly the kind of artist where a short card-signing shortlist could be useful once Atlanta artists are confirmed.',
     facts: [
-      { label: 'Truth state', value: 'Historical only' },
-      { label: 'Use now', value: 'Watch target' },
-      { label: 'Confirm later', value: 'Official Atlanta artist directory' },
-    ],
-  },
-  {
-    id: 'card-match',
-    title: 'ManaBox card matching',
-    status: 'Future import',
-    signal: 'Collection-aware value',
-    summary: 'Once artists are confirmed and your collection is imported, this can surface cards you own, cards worth bringing, and a tiny shortlist for signatures instead of a giant artist database.',
-    facts: [
-      { label: 'Input', value: 'ManaBox export' },
-      { label: 'Output', value: 'Cards to bring' },
-      { label: 'Default posture', value: 'Lightweight shortlist' },
-    ],
-  },
-  {
-    id: 'signature-shortlist',
-    title: 'Signature shortlist',
-    status: 'Empty',
-    signal: 'Only the cards that matter',
-    summary: 'The useful end state is probably one or two good targets with booth/location context, not an overwhelming binder-management system.',
-    facts: [
-      { label: 'Current count', value: '0 cards' },
-      { label: 'Future link', value: 'Artists + Map + Notes' },
-      { label: 'Noise guard', value: 'Hide the long tail' },
+      { label: 'Atlanta status', value: 'Not confirmed' },
+      { label: 'Prior event', value: 'MagicCon Las Vegas 2026' },
+      { label: 'Known cards', value: 'Angelic Renewal, Regenerate, Stoneforge Mystic, Serra the Benevolent' },
+      { label: 'Use now', value: 'Good test case for artist/card matching' },
     ],
   },
 ]
@@ -690,7 +667,7 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
     title: seed.title,
     summary: seed.summary,
     facts: seed.facts,
-    source: { label: 'POC routing status', value: seed.status },
+    source: { label: 'Source status', value: seed.status },
     rationale: 'This keeps artist planning useful without treating old MagicCon appearances as Atlanta 2026 facts.',
     actions: [{ label: 'Open Artists', destination: 'artists' }, { label: 'Review source signals', destination: 'activity' }],
     backlinks: [{ label: 'Artists', destination: 'artists' }, { label: 'Activity', destination: 'activity' }],
@@ -1842,22 +1819,37 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris'> }) 
 function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   return <section className="map-surface" aria-label="Map">
     <article className="map-card trip-area-card">
-      <span className="eyebrow">TRIP AREA</span>
-      <h2>Hotels and the convention center first.</h2>
-      <p>Courtyard, Omni, and Georgia World Congress Center.</p>
-      <div className="area-sketch" aria-label="Simplified Atlanta trip-area sketch">
-        <span className="pin courtyard">Courtyard<small>Nov 11</small></span>
-        <span className="route-line" />
-        <span className="pin gwcc">GWCC<small>MagicCon</small></span>
-        <span className="route-line bend" />
-        <span className="pin omni">Omni<small>Nov 12-15</small></span>
+      <span className="eyebrow">ORIENTATION NOW</span>
+      <h2>Hotel to Building C mental map.</h2>
+      <p>Until the 2026 floor map drops, this should answer the practical question: “which way is the con from the hotel?”</p>
+      <div className="campus-sketch" aria-label="Simplified Omni to GWCC Building C sketch">
+        <span className="sketch-watermark">not to scale</span>
+        <span className="campus-street marietta">Marietta St NW</span>
+        <span className="campus-street northside">Northside Dr NW</span>
+        <button type="button" className="campus-pin omni-pin" onClick={onOpenTrip}><strong>Omni</strong><small>Kavi + Juan · Nov 12-15</small></button>
+        <span className="campus-landmark arena">State Farm Arena</span>
+        <span className="campus-landmark benz">Mercedes-Benz Stadium</span>
+        <span className="campus-building building-a">GWCC A</span>
+        <span className="campus-building building-b">GWCC B</span>
+        <span className="campus-building building-c">GWCC C<small>MagicCon Atlanta</small></span>
+        <span className="campus-route" />
       </div>
-      <button type="button" onClick={onOpenTrip}>Open Trip details ›</button>
+      <div className="map-quick-facts">
+        <span><strong>Venue</strong>GWCC Building C</span>
+        <span><strong>Hotel base</strong>Omni at Centennial Park</span>
+        <span><strong>Useful cue</strong>Building C sits farther west, toward Mercedes-Benz Stadium / Northside Dr.</span>
+      </div>
     </article>
     <article className="map-card event-map-card">
-      <span className="eyebrow">EVENT MAP</span>
-      <h2>Waiting for Atlanta 2026 floor evidence.</h2>
-      <p>The official floor map has not been published yet.</p>
+      <span className="eyebrow">EVENT MAP LATER</span>
+      <h2>Floor map becomes the real tool later.</h2>
+      <p>When the official 2026 map appears, this should switch from campus orientation to clickable con-floor navigation.</p>
+      <ul>
+        <li>Artist Alley, vendors, show store, prize wall, ticketed play, panels, and BL lounge become clickable areas.</li>
+        <li>Receipts, event cards, and artist cards can backlink into exact map spots.</li>
+        <li>Offline cache matters here because this is an onsite panic surface.</li>
+      </ul>
+      <div className="map-source-note">Source cues: Atlanta FAQ identifies GWCC Building C; GWCC navigation identifies Building C access/rideshare context.</div>
     </article>
   </section>
 }
@@ -2355,18 +2347,40 @@ function FlightsTripTab() {
   </div>
 }
 
-function ArtistsSurface({ onOpenObject: _onOpenObject, onOpenActivity }: { onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   return <section className="artists-surface" aria-label="Artists">
     <section className="artists-status-card">
       <div className="artist-status-icon" aria-hidden="true"><NavIcon name="artists" /></div>
       <div>
         <span className="eyebrow">ATLANTA 2026</span>
         <h2>No confirmed artist list yet.</h2>
-        <p>The official Atlanta artist directory has not been published.</p>
+        <p>The official Atlanta artist directory has not been published, so this page should show clearly marked historical candidates only.</p>
       </div>
       <button type="button" onClick={onOpenActivity}>Watch activity</button>
     </section>
-
+    <div className="artists-layout">
+      <section className="artist-seed-list" aria-label="Historical artist seeds">
+        {artistSeeds.map(seed => <button key={seed.id} type="button" className="artist-seed-card featured" onClick={() => onOpenObject(artistSeedToObjectDetail(seed))}>
+          <span className="artist-seed-mark"><NavIcon name="artists" /></span>
+          <span>
+            <small>{seed.signal}</small>
+            <strong>{seed.title}</strong>
+            <em>{seed.status}</em>
+          </span>
+          <b aria-hidden="true">›</b>
+        </button>)}
+      </section>
+      <aside className="artists-intel-card">
+        <span className="eyebrow">WHY THIS IS HERE</span>
+        <h2>One real seed beats a fake gallery.</h2>
+        <p>Rebecca Guay is not an Atlanta fact. She is a historical MagicCon artist seed that proves the future workflow: artist → known cards → ManaBox match → tiny bring/signature shortlist.</p>
+        <dl>
+          <div><dt>Status</dt><dd>Historical only</dd></div>
+          <div><dt>Next unlock</dt><dd>Official Atlanta artist directory</dd></div>
+          <div><dt>Later value</dt><dd>Match against owned cards</dd></div>
+        </dl>
+      </aside>
+    </div>
   </section>
 }
 
