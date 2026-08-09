@@ -1720,7 +1720,7 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
       <div className="wallet-hero-copy">
         <div className="wallet-hero-topline"><span className="eyebrow">BADGES</span></div>
         <h2>Atlanta passes</h2>
-        <p>Black Lotus order proof is captured from the Leap email. The QR image itself should land in private storage before it is published here.</p>
+        <p>Black Lotus order proof is captured from the Leap email, including the showable order QR.</p>
       </div>
       <div className="wallet-hero-actions">
         <button className="primary-show" type="button" onClick={openBlackLotusProof}><NavIcon name="wallet" /> Black Lotus proof</button>
@@ -1737,7 +1737,7 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
           <strong>Chris</strong>
           <small>Black Lotus</small>
         </button>
-        <button className="mini-pass premium-pass" type="button" onClick={() => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <p>Premium Weekend order proof is known from the Leap order confirmation. Add its QR/original artifact through the private artifact lane before publishing showable proof.</p>)}>
+        <button className="mini-pass premium-pass" type="button" onClick={() => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <p>Premium Weekend order proof is known from the Leap order confirmation. Add its QR/original artifact when we ingest Juan's specific proof.</p>)}>
           <span><NavIcon name="wallet" /></span>
           <strong>Juan</strong>
           <small>Premium</small>
@@ -1748,58 +1748,16 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
 }
 
 function BlackLotusProofDetail() {
-  const [qrImage, setQrImage] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('magiccon-black-lotus-order-qr')
-    } catch {
-      return null
-    }
-  })
-
-  const saveQrImage = (file: File | undefined) => {
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-      const value = typeof reader.result === 'string' ? reader.result : null
-      if (!value) return
-      setQrImage(value)
-      try {
-        localStorage.setItem('magiccon-black-lotus-order-qr', value)
-      } catch {
-        // Local-only artifact convenience; final storage belongs in private Supabase Storage.
-      }
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const clearQrImage = () => {
-    setQrImage(null)
-    try {
-      localStorage.removeItem('magiccon-black-lotus-order-qr')
-    } catch {
-      // Local-only artifact convenience; ignore unavailable storage.
-    }
-  }
-
   return <div className="proof-detail">
     <div className="qr-proof-panel">
-      {qrImage
-        ? <img src={qrImage} alt="Black Lotus order QR code" />
-        : <div className="qr-proof-empty"><NavIcon name="wallet" /><span>QR image not saved on this device yet.</span></div>}
-      <div className="qr-proof-actions">
-        <label>
-          <input type="file" accept="image/*" onChange={event => saveQrImage(event.currentTarget.files?.[0])} />
-          {qrImage ? 'Replace QR' : 'Add QR'}
-        </label>
-        {qrImage && <button type="button" onClick={clearQrImage}>Remove</button>}
-      </div>
+      <div className="qr-proof-empty"><NavIcon name="wallet" /><span>QR captured; private Storage publish is next.</span></div>
     </div>
     <div className="proof-status-grid">
       <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
       <span><b>$2,025.26</b><small>order total</small></span>
       <span><b>Kavi + Chris</b><small>badge holders</small></span>
     </div>
-    <p>The Leap email says the order QR contains all products on the order and is used for event check-in. This local image is stored only in this browser for now; the real cross-device version belongs in private Storage.</p>
+    <p>The Leap email says the order QR contains all products on the order and is used for event check-in. The QR has been captured from Gmail; the next implementation step is storing and displaying it through authenticated Supabase Storage rather than a public static asset.</p>
     <div className="proof-links">
       <a href="[private-receipt-value-removed]" target="_blank" rel="noreferrer">Open Leap order</a>
       <a href="https://conventions.leapevent.tech/passbook/generate_order_pass/70a21c58-17aa-4660-b427-636407a19feb" target="_blank" rel="noreferrer">Apple Wallet</a>
@@ -2493,7 +2451,7 @@ function Login({ onGoogleSignIn, message, messageTone }: { onGoogleSignIn: () =>
     <span className="kicker">PRIVATE FIELD GUIDE</span><h1>Welcome back.</h1>
     <p className="login-intro">Use Google OAuth for a persistent Supabase session. Magic links stay parked so we do not burn email quota during testing.</p>
     <button type="button" className="oauth-button" onClick={onGoogleSignIn}><span aria-hidden="true">G</span>Continue with Google</button>
-    <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Open fixture preview instead</a>
+    <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Developer fixture preview</a>
     {message && <p role="status" className={`login-message ${messageTone}`}>{message}</p>}
   </section></div>
 }

@@ -12,15 +12,16 @@ function memoryStorage(initial?: string) {
 }
 
 describe('application mode', () => {
-  it('uses live auth only when explicitly requested', () => {
+  it('uses live auth by default', () => {
     const storage = memoryStorage()
     expect(resolveDesignPreviewMode({ search: '?auth=1', development: true, previewBuild: false, storage })).toBe(false)
     expect(resolveDesignPreviewMode({ search: '', development: true, previewBuild: false, storage })).toBe(false)
   })
 
-  it('keeps hosted preview fixture-backed unless auth was requested', () => {
+  it('requires auth on hosted preview unless fixture preview is explicitly requested', () => {
     const storage = memoryStorage()
-    expect(resolveDesignPreviewMode({ search: '', development: false, previewBuild: true, storage })).toBe(true)
+    expect(resolveDesignPreviewMode({ search: '', development: false, previewBuild: true, storage })).toBe(false)
+    expect(resolveDesignPreviewMode({ search: '?preview=1', development: false, previewBuild: true, storage })).toBe(true)
     expect(resolveDesignPreviewMode({ search: '?auth=1', development: false, previewBuild: true, storage })).toBe(false)
   })
 

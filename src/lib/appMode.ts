@@ -4,8 +4,8 @@ type ModeStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 export function resolveDesignPreviewMode({
   search,
-  development,
-  previewBuild,
+  development: _development,
+  previewBuild: _previewBuild,
   storage,
 }: {
   search: string
@@ -27,7 +27,7 @@ export function resolveDesignPreviewMode({
 
   if (storage.getItem(AUTH_MODE_KEY) === 'authenticated') return false
 
-  return previewBuild || !development
+  return false
 }
 
 export function authRedirectUrl(location: Pick<Location, 'href'>) {
