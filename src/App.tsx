@@ -1464,7 +1464,7 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
       </span>
       <span className="event-scan">
         <ComplexityPill level={event.complexity} />
-        <span className={`event-price price-${priceTone}`}>{formatEventPrice(event.price)}</span>
+        <span className={`event-price price-${priceTone}`}><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>
       </span>
     </button>
     <div className="explore-event-meta">
