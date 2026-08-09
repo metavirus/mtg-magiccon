@@ -640,6 +640,9 @@ type ArtistSeed = {
   status: string
   signal: string
   summary: string
+  thumbnailUrl?: string
+  thumbnailAlt?: string
+  thumbnailCaption?: string
   facts: Array<{ label: string; value: string }>
 }
 
@@ -650,6 +653,9 @@ const artistSeeds: ArtistSeed[] = [
     status: 'Historical Vegas feature; not Atlanta-confirmed',
     signal: 'Prior MagicCon featured artist',
     summary: 'Rebecca Guay was one of the featured Art of Magic artists for MagicCon: Las Vegas 2026. Her work is described by MagicCon as romantic, ethereal, fluid, delicate, and colorfully muted — exactly the kind of artist where a short card-signing shortlist could be useful once Atlanta artists are confirmed.',
+    thumbnailUrl: 'https://mtg.wtf/cards_hq/por/195.png',
+    thumbnailAlt: 'Wood Elves illustrated by Rebecca Guay',
+    thumbnailCaption: 'Wood Elves · Portal',
     facts: [
       { label: 'Atlanta status', value: 'Not confirmed' },
       { label: 'Prior event', value: 'MagicCon Las Vegas 2026' },
@@ -666,6 +672,7 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
     eyebrow: seed.signal,
     title: seed.title,
     summary: seed.summary,
+    image: seed.thumbnailUrl ? { src: seed.thumbnailUrl, alt: seed.thumbnailAlt ?? seed.title, caption: seed.thumbnailCaption } : undefined,
     facts: seed.facts,
     source: { label: 'Source status', value: seed.status },
     rationale: 'This keeps artist planning useful without treating old MagicCon appearances as Atlanta 2026 facts.',
@@ -687,6 +694,12 @@ function ObjectDetailLayer({ detail, notes, onAddNote, onDeleteNote, onClose, on
         <h2 id="object-detail-title">{detail.title}</h2>
         <p>{detail.summary}</p>
       </header>
+      {detail.image && <section className="object-detail-section object-detail-image-section">
+        <div className="object-detail-image-card">
+          <img src={detail.image.src} alt={detail.image.alt} loading="lazy" />
+          {detail.image.caption && <span>{detail.image.caption}</span>}
+        </div>
+      </section>}
       {detail.facts && <section className="object-detail-section">
         <h3>Key facts</h3>
         <div className="object-fact-grid">{detail.facts.map(fact => <div key={fact.label} className="object-fact"><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>
@@ -758,6 +771,7 @@ type ObjectDetail = {
   eyebrow: string
   title: string
   summary: string
+  image?: { src: string; alt: string; caption?: string }
   focusedNoteId?: string
   objectAnchor?: string
   facts?: Array<{ label: string; value: string }>
@@ -2374,6 +2388,7 @@ function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detai
             <strong>{seed.title}</strong>
             <em>{seed.status}</em>
           </span>
+          {seed.thumbnailUrl && <span className="artist-seed-thumb" aria-hidden="true"><img src={seed.thumbnailUrl} alt="" loading="lazy" /></span>}
           <b aria-hidden="true">›</b>
         </button>)}
       </section>
