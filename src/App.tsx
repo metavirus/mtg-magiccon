@@ -1758,6 +1758,7 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
 
 function BlackLotusProofDetail() {
   const [mode, setMode] = useState<'info' | 'original'>('info')
+  const orderCode = '9gLHU3mJ'
 
   return <div className="proof-detail">
     <div className="proof-mode-tabs" role="tablist" aria-label="Badge proof view">
@@ -1769,24 +1770,21 @@ function BlackLotusProofDetail() {
         <div className="proof-status-grid">
           <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
           <span><b>$2,025.26</b><small>order total</small></span>
-          <span><b>Kavi + Chris</b><small>badge holders</small></span>
+          <span><b><PersonBubbles people={['Kavi', 'Chris']} /></b><small>badge holders</small></span>
         </div>
         <div className="proof-info-list">
           <div><span>Order proof</span><strong>QR code captured from Leap email</strong></div>
           <div><span>Will Call</span><strong>Thu 12-6 · Fri/Sat 8:30-7 · Sun 8:30-6</strong></div>
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
         </div>
-        <div className="proof-clip-grid" aria-label="Useful receipt clips">
+        <div className="proof-qr-card" aria-label="Showable order QR">
           <figure>
-            <img src="./black-lotus-order-original-qr.png" alt="QR code clip from the MagicCon Atlanta confirmation email" />
-            <figcaption>QR / wallet clip</figcaption>
+            <img src="./black-lotus-order-qr.png" alt="QR code from the MagicCon Atlanta Black Lotus order confirmation email" />
+            <figcaption>Show this QR if staff needs the order proof.</figcaption>
           </figure>
-          <figure>
-            <img src="./black-lotus-order-original-summary.png" alt="Order summary clip from the MagicCon Atlanta confirmation email" />
-            <figcaption>Order summary clip</figcaption>
-          </figure>
+          <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
         </div>
-        <p>Info is the fast-use view: extracted logistics plus clean clips. Use Original when someone needs to see the receipt itself.</p>
+        <p>Info is the fast-use view: extracted logistics plus the QR. Use Original when someone needs the whole receipt.</p>
       </>
       : <>
         <p className="original-receipt-note">Full Gmail receipt render. This is intentionally the whole email, not a cropped proof slice.</p>
@@ -1815,11 +1813,15 @@ function BlackLotusProofDetail() {
       </>}
     <div className="proof-links">
       <a href="https://conventions.leapevent.tech/c/htwhdatl26shdl10/70a21c58-17aa-4660-b427-636407a19feb?utm_source=email&utm_medium=transactional&utm_campaign=order-confirmation" target="_blank" rel="noreferrer">Open Leap order</a>
-      <a href="https://conventions.leapevent.tech/passbook/generate_order_pass/70a21c58-17aa-4660-b427-636407a19feb" target="_blank" rel="noreferrer">Apple Wallet</a>
-      <a href="https://conventions.leapevent.tech/pass/o/htwhdatl26shdl10/70a21c58-17aa-4660-b427-636407a19feb" target="_blank" rel="noreferrer">Google Wallet</a>
-      <a href="https://mail.google.com/mail/#all/19ed13b0c4766b13" target="_blank" rel="noreferrer">Original email</a>
     </div>
   </div>
+}
+
+function PersonBubbles({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'Kyle'> }) {
+  const labels: Record<'Kavi' | 'Juan' | 'Chris' | 'Kyle', string> = { Kavi: 'Ka', Juan: 'J', Chris: 'C', Kyle: 'Ky' }
+  return <span className="person-bubbles" aria-label={people.join(', ')}>
+    {people.map(person => <span key={person} className={`person-bubble ${person.toLowerCase()}`} title={person}>{labels[person]}</span>)}
+  </span>
 }
 
 function WalletPlayTab({ openModal: _openModal }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void }) {
