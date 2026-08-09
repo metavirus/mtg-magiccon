@@ -86,13 +86,13 @@ html,body{max-width:100%;overflow-x:hidden}
 .explore-event-main{grid-template-columns:30px minmax(0,1fr) auto}
 .event-mini-track{display:none}
 .event-scan{display:grid;justify-items:end;align-content:center;gap:5px;min-width:86px}
-.event-price{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;color:#9fb0c6;font-size:11px;font-weight:650;line-height:1.1;letter-spacing:.01em;white-space:nowrap}.event-price svg{width:12px;height:12px;stroke-width:2;color:currentColor}
+.event-price{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;color:#9fb0c6;font-size:11px;font-weight:650;line-height:1.1;letter-spacing:.01em;white-space:nowrap}.event-price svg{width:12px;height:12px;stroke-width:2;color:#8798ad}
 .explore-event{--type-rgb:93,130,179;--type-accent:#5d82b3}
 .explore-event.type-play{--type-rgb:93,130,179;--type-accent:#6e9bd7}.explore-event.type-info{--type-rgb:124,163,236;--type-accent:#8fb9f3}.explore-event.type-social{--type-rgb:112,216,177;--type-accent:#70d8b1}.explore-event.type-other{--type-rgb:174,139,207;--type-accent:#ae8bcf}
 .explore-event::before{width:46px;background:linear-gradient(90deg,rgba(var(--type-rgb),.32),rgba(var(--type-rgb),.14) 56%,rgba(var(--type-rgb),0));border-right:1px solid rgba(var(--type-rgb),.16)}
 .event-type-icon{background:rgba(var(--type-rgb),.18);color:#dbeaff;box-shadow:inset 0 0 0 1px rgba(var(--type-rgb),.28)}
 .explore-event.type-social .event-type-icon{color:#c4f7df}.explore-event.type-info .event-type-icon{color:#cfe0ff}.explore-event.type-other .event-type-icon{color:#e5d3f3}
-.event-price.price-free{color:#9fb0c6}.event-price.price-low{color:#70d8b1}.event-price.price-mid{color:#efc86f}.event-price.price-high{color:#ee9aa7}
+.event-price.price-free svg{color:#8798ad}.event-price.price-low svg{color:#70d8b1}.event-price.price-mid svg{color:#efc86f}.event-price.price-high svg{color:#ee9aa7}
 .explore-event::before{top:1px;bottom:1px;left:1px;border-radius:10px}
 .explore-list-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,.48fr);gap:12px;align-items:center}
 .explore-list-filters{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}
