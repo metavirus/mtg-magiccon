@@ -593,11 +593,13 @@ function exploreEventToObjectDetail(event: ExploreEvent): ObjectDetail {
 
 function noteToObjectDetail(note: ContextNote): ObjectDetail {
   return {
-    id: `note-${note.id}`,
-    kind: 'note',
+    id: note.objectId,
+    kind: note.objectKind,
     eyebrow: note.context,
-    title: note.title,
-    summary: note.body,
+    title: note.objectTitle,
+    summary: `Note from ${note.author}: ${note.body}`,
+    focusedNoteId: note.id,
+    objectAnchor: note.objectAnchor,
     facts: [
       { label: 'Author', value: note.author },
       { label: 'Visibility', value: note.visibility },
@@ -605,7 +607,7 @@ function noteToObjectDetail(note: ContextNote): ObjectDetail {
       { label: 'Backlink', value: note.backlink },
       ...(note.objectAnchor ? [{ label: 'Anchor', value: note.objectAnchor }] : []),
     ],
-    note: 'This is a contextual note attached to an app object. Later, this should deep-link to the exact object and anchor, not merely the parent tab.',
+    note: note.body,
     backlinks: [{ label: note.backlink, destination: note.backlink.toLowerCase() as Surface }, { label: 'Notes', destination: 'notes' }],
   }
 }
@@ -731,6 +733,8 @@ function ObjectDetailLayer({ detail, notes, onAddNote, onDeleteNote, onClose, on
         objectId={detail.id}
         objectKind={detail.kind}
         objectTitle={detail.title}
+        objectAnchor={detail.objectAnchor}
+        focusedNoteId={detail.focusedNoteId}
         context={`${detailKindLabel(detail.kind)} · ${detail.title}`}
         backlink={detail.backlinks?.[0]?.destination ?? 'notes'}
         compact
@@ -777,6 +781,8 @@ type ObjectDetail = {
   eyebrow: string
   title: string
   summary: string
+  focusedNoteId?: string
+  objectAnchor?: string
   facts?: Array<{ label: string; value: string }>
   source?: { label: string; value: string }
   rationale?: string
@@ -1730,7 +1736,7 @@ function ComplexityPill({ level }: { level: ComplexityLevel }) {
   </span>
 }
 
-function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, objectTitle, objectAnchor, context, backlink, compact }: {
+function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, objectTitle, objectAnchor, focusedNoteId, context, backlink, compact }: {
   notes: ContextNote[]
   onAddNote: (input: AddContextNoteInput) => void
   onDeleteNote: (id: string) => void
@@ -1738,6 +1744,7 @@ function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, obj
   objectKind: ObjectDetailKind
   objectTitle: string
   objectAnchor?: string
+  focusedNoteId?: string
   context: string
   backlink: Surface
   compact?: boolean
@@ -1745,7 +1752,9 @@ function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, obj
   const [body, setBody] = useState('')
   const [visibility, setVisibility] = useState<NoteVisibility>('private')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const objectNotes = notes.filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor))
+  const objectNotes = notes
+    .filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor))
+    .sort((a, b) => (a.id === focusedNoteId ? -1 : b.id === focusedNoteId ? 1 : 0))
   const submit = () => {
     const trimmed = body.trim()
     if (!trimmed) return
@@ -1759,7 +1768,7 @@ function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, obj
       {objectNotes.length > 0 && <span className="note-author-cluster"><PersonBubbles people={[...new Set(objectNotes.map(note => note.author))]} /></span>}
     </header>
     {objectNotes.length > 0 && <div className="note-thread">
-      {objectNotes.slice(0, compact ? 2 : 5).map(note => <article key={note.id} className="note-item">
+      {objectNotes.slice(0, compact ? 2 : 5).map(note => <article key={note.id} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
         <PersonBubbles people={[note.author]} />
         <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</small></div>
         <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>
@@ -2654,16 +2663,16 @@ function NotesSurface({ notes, onDeleteNote, onOpenObject }: { notes: ContextNot
 
   return <section className="notes-surface" aria-label="Notes">
     <NotesFilterBar notes={notes} personFilter={personFilter} typeFilter={typeFilter} onPersonFilter={setPersonFilter} onTypeFilter={setTypeFilter} />
-    <div className="notes-compose">
-      <div><span className="eyebrow">UNIVERSAL NOTES</span><h2>{notes.length ? 'Context collected where it happened.' : 'No notes yet.'}</h2><p>Notes added from events, receipts, trip items, places, and alerts collect here without becoming separate note systems.</p></div>
-    </div>
+    {notes.length === 0 && <div className="notes-compose">
+      <div><span className="eyebrow">UNIVERSAL NOTES</span><h2>No notes yet.</h2><p>Notes added from events, receipts, trip items, places, and alerts collect here.</p></div>
+    </div>}
     {filtered.length === 0 ? <div className="notes-empty"><strong>{notes.length ? 'No notes in this filter.' : 'Add a note from any object detail.'}</strong><span>Receipts, events, trip places, and Activity findings all use the same note layer.</span></div> : <div className="notes-index">
       {Object.entries(grouped).map(([context, contextItems]) => <section className="notes-context-group" key={context}>
         <header><div><span className="eyebrow">{contextItems[0].objectKind}</span><h3>{context}</h3></div><PersonBubbles people={[...new Set(contextItems.map(note => note.author))]} /></header>
         {contextItems.map(note => <article key={note.id} className="note-index-row">
           <button type="button" className="note-index-open" onClick={() => onOpenObject(noteToObjectDetail(note))}>
             <PersonBubbles people={[note.author]} />
-            <span><strong>{note.title}</strong><small>{note.body}</small><em>{note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</em></span>
+            <span><strong>{note.body}</strong><small>{note.title} · {note.objectTitle}</small><em>{note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</em></span>
             <b aria-hidden="true">›</b>
           </button>
           <button type="button" className="note-delete" aria-label={`Delete note ${note.title}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>
