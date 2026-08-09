@@ -568,6 +568,28 @@ function noteToObjectDetail(note: ContextNote): ObjectDetail {
   }
 }
 
+function logisticsToObjectDetail(): ObjectDetail {
+  return {
+    id: 'atlanta-operational-logistics',
+    kind: 'place',
+    eyebrow: 'Publisher logistics',
+    title: 'Will Call and show hours',
+    summary: 'Registration, show floor, and play-area hours extracted from the Atlanta order confirmation.',
+    facts: [
+      { label: 'Will Call Thu', value: '12 PM-6 PM' },
+      { label: 'Will Call Fri/Sat', value: '8:30 AM-7 PM' },
+      { label: 'Will Call Sun', value: '8:30 AM-6 PM' },
+      { label: 'Show floor Fri/Sat', value: '10 AM-7 PM' },
+      { label: 'Show floor Sun', value: '10 AM-6 PM' },
+      { label: 'Play area', value: 'Fri/Sat until 11:59 PM' },
+    ],
+    source: { label: 'Source', value: 'MagicCon: Atlanta 2026 Order Confirmation from Leap Conventions, received June 16, 2026' },
+    rationale: 'This is operational context, not a receipt. It should be reachable from planning and trip context, while the original proof stays in Wallet.',
+    backlinks: [{ label: 'Wallet', destination: 'wallet' }, { label: 'Calendar', destination: 'calendar' }],
+    actions: [{ label: 'Open Wallet proof', destination: 'wallet' }, { label: 'Open Calendar', destination: 'calendar' }],
+  }
+}
+
 type ArtistSeed = {
   id: string
   title: string
@@ -1690,32 +1712,100 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
-function WalletHomeTab({ openModal: _openModal, onOpenObject: _onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail />)
+
   return <div className="wallet-home-command">
     <section className="wallet-hero-card">
       <div className="wallet-hero-copy">
         <div className="wallet-hero-topline"><span className="eyebrow">BADGES</span></div>
         <h2>Atlanta passes</h2>
-        <p>Original QR and receipt artifacts have not been attached yet.</p>
+        <p>Black Lotus order proof is captured from the Leap email. The QR image itself should land in private storage before it is published here.</p>
+      </div>
+      <div className="wallet-hero-actions">
+        <button className="primary-show" type="button" onClick={openBlackLotusProof}><NavIcon name="wallet" /> Black Lotus proof</button>
+        <button type="button" onClick={() => onOpenObject(logisticsToObjectDetail())}><NavIcon name="calendar" /> Hours</button>
       </div>
       <div className="wallet-badge-fan" aria-label="Primary badge cards">
-        <div className="mini-pass lotus-pass">
+        <button className="mini-pass lotus-pass" type="button" onClick={openBlackLotusProof}>
           <span><EventKindIcon name="lotus" /></span>
           <strong>Kavi</strong>
           <small>Black Lotus</small>
-        </div>
-        <div className="mini-pass lotus-pass">
+        </button>
+        <button className="mini-pass lotus-pass" type="button" onClick={openBlackLotusProof}>
           <span><EventKindIcon name="lotus" /></span>
           <strong>Chris</strong>
           <small>Black Lotus</small>
-        </div>
-        <div className="mini-pass premium-pass">
+        </button>
+        <button className="mini-pass premium-pass" type="button" onClick={() => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <p>Premium Weekend order proof is known from the Leap order confirmation. Add its QR/original artifact through the private artifact lane before publishing showable proof.</p>)}>
           <span><NavIcon name="wallet" /></span>
           <strong>Juan</strong>
           <small>Premium</small>
-        </div>
+        </button>
       </div>
     </section>
+  </div>
+}
+
+function BlackLotusProofDetail() {
+  const [qrImage, setQrImage] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('magiccon-black-lotus-order-qr')
+    } catch {
+      return null
+    }
+  })
+
+  const saveQrImage = (file: File | undefined) => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const value = typeof reader.result === 'string' ? reader.result : null
+      if (!value) return
+      setQrImage(value)
+      try {
+        localStorage.setItem('magiccon-black-lotus-order-qr', value)
+      } catch {
+        // Local-only artifact convenience; final storage belongs in private Supabase Storage.
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const clearQrImage = () => {
+    setQrImage(null)
+    try {
+      localStorage.removeItem('magiccon-black-lotus-order-qr')
+    } catch {
+      // Local-only artifact convenience; ignore unavailable storage.
+    }
+  }
+
+  return <div className="proof-detail">
+    <div className="qr-proof-panel">
+      {qrImage
+        ? <img src={qrImage} alt="Black Lotus order QR code" />
+        : <div className="qr-proof-empty"><NavIcon name="wallet" /><span>QR image not saved on this device yet.</span></div>}
+      <div className="qr-proof-actions">
+        <label>
+          <input type="file" accept="image/*" onChange={event => saveQrImage(event.currentTarget.files?.[0])} />
+          {qrImage ? 'Replace QR' : 'Add QR'}
+        </label>
+        {qrImage && <button type="button" onClick={clearQrImage}>Remove</button>}
+      </div>
+    </div>
+    <div className="proof-status-grid">
+      <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
+      <span><b>$2,025.26</b><small>order total</small></span>
+      <span><b>Kavi + Chris</b><small>badge holders</small></span>
+    </div>
+    <p>The Leap email says the order QR contains all products on the order and is used for event check-in. This local image is stored only in this browser for now; the real cross-device version belongs in private Storage.</p>
+    <div className="proof-links">
+      <a href="[private-receipt-value-removed]" target="_blank" rel="noreferrer">Open Leap order</a>
+      <a href="https://conventions.leapevent.tech/passbook/generate_order_pass/70a21c58-17aa-4660-b427-636407a19feb" target="_blank" rel="noreferrer">Apple Wallet</a>
+      <a href="https://conventions.leapevent.tech/pass/o/htwhdatl26shdl10/70a21c58-17aa-4660-b427-636407a19feb" target="_blank" rel="noreferrer">Google Wallet</a>
+      <a href="https://mail.google.com/mail/#all/19ed13b0c4766b13" target="_blank" rel="noreferrer">Original email</a>
+    </div>
   </div>
 }
 
@@ -1724,10 +1814,6 @@ function WalletPlayTab({ openModal: _openModal }: { openModal: (eyebrow: string,
     <section className="receipt-list" aria-label="Ticketed play receipts">
       <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>This tab wakes up when ticketed events are purchased.</p></div></div>
-      </article>
-      <article className="wallet-proof compact-proof">
-        <span className="wallet-kind"><NavIcon name="calendar" />Useful extracted logistics</span>
-        <div className="wallet-proof-main"><div><h2>Will Call and show hours</h2><p>Thu 12–6 · Fri/Sat 8:30–7 · Sun 8:30–6. Show floor Fri/Sat 10–7, Sun 10–6.</p></div></div>
       </article>
     </section>
   </div>
@@ -2245,6 +2331,11 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
           <span className="anchor-copy"><small>BLACK LOTUS</small><strong>{slice.occurrence.title.replace('Black Lotus ', '')}</strong></span>
           <span className={`anchor-state ${slice.decision.planning_state}`}>{slice.decision.planning_state}</span>
           <span className="anchor-arrow" aria-hidden="true">›</span>
+        </button>
+        <button className="logistics-row" type="button" onClick={() => onOpenObject(logisticsToObjectDetail())}>
+          <span><NavIcon name="calendar" /></span>
+          <div><small>USEFUL LOGISTICS</small><strong>Will Call and show hours</strong></div>
+          <b aria-hidden="true">›</b>
         </button>
         <div className="timely-home">
           <div className="timely-home-head"><span className="eyebrow">TIMELY SIGNALS</span><button type="button" onClick={onOpenActivity}>Review all</button></div>
