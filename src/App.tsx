@@ -169,6 +169,14 @@ export default function App() {
   const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
   const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(exploreEvents)
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
+  const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(() => {
+    try {
+      const saved = window.localStorage.getItem('magiccon-context-notes')
+      return saved ? JSON.parse(saved) as ContextNote[] : contextNotes
+    } catch {
+      return contextNotes
+    }
+  })
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>(() => {
     try {
       const saved = window.localStorage.getItem('magiccon-alert-review-state')
@@ -254,6 +262,15 @@ export default function App() {
       // Local POC review convenience only.
     }
   }, [alertReview])
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('magiccon-context-notes', JSON.stringify(contextNotesState))
+    } catch {
+      // POC-only local persistence. The eventual Supabase-backed layer should
+      // preserve this same object-attached shape.
+    }
+  }, [contextNotesState])
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -370,6 +387,24 @@ export default function App() {
   }
   const openObjectDetail = (detail: ObjectDetail) => setObjectDetail(detail)
   const closeObjectDetail = () => setObjectDetail(null)
+  const addContextNote = (input: AddContextNoteInput) => {
+    const now = new Date()
+    const note: ContextNote = {
+      id: `note-${now.getTime()}-${Math.random().toString(36).slice(2, 7)}`,
+      objectId: input.objectId,
+      objectKind: input.objectKind,
+      objectTitle: input.objectTitle,
+      objectAnchor: input.objectAnchor,
+      context: input.context,
+      title: input.title || input.objectTitle,
+      body: input.body,
+      author: input.author ?? 'Kavi',
+      visibility: input.visibility,
+      updatedAt: now.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
+      backlink: input.backlink,
+    }
+    setContextNotesState(current => [note, ...current])
+  }
   const setAlertReviewState = (id: string, state: AlertReviewState) => setAlertReview(current => ({ ...current, [id]: state }))
   const navigateFromObjectDetail = (destination: Surface) => {
     closeObjectDetail()
@@ -457,17 +492,17 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} onAddNote={addContextNote} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'notes' && <NotesSurface onOpenObject={openObjectDetail} />}
+        {surface === 'notes' && <NotesSurface notes={contextNotesState} onOpenObject={openObjectDetail} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} />}
 
-        {surface === 'activity' && <ActivitySurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} onReviewChange={setAlertReviewState} onOpenObject={openObjectDetail} />}
+        {surface === 'activity' && <ActivitySurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} notes={contextNotesState} onReviewChange={setAlertReviewState} onOpenObject={openObjectDetail} />}
       </>}
 
     </main>
-    <ObjectDetailLayer detail={objectDetail} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} />
+    <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} onAddNote={addContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} />
   </div>
 }
 
@@ -562,8 +597,14 @@ function noteToObjectDetail(note: ContextNote): ObjectDetail {
     eyebrow: note.context,
     title: note.title,
     summary: note.body,
-    facts: [{ label: 'Updated', value: note.updatedAt }, { label: 'Backlink', value: note.backlink }],
-    note: 'V1.5 should let this open the exact object where the note was written, not merely the parent tab.',
+    facts: [
+      { label: 'Author', value: note.author },
+      { label: 'Visibility', value: note.visibility },
+      { label: 'Updated', value: note.updatedAt },
+      { label: 'Backlink', value: note.backlink },
+      ...(note.objectAnchor ? [{ label: 'Anchor', value: note.objectAnchor }] : []),
+    ],
+    note: 'This is a contextual note attached to an app object. Later, this should deep-link to the exact object and anchor, not merely the parent tab.',
     backlinks: [{ label: note.backlink, destination: note.backlink.toLowerCase() as Surface }, { label: 'Notes', destination: 'notes' }],
   }
 }
@@ -653,7 +694,7 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
   }
 }
 
-function ObjectDetailLayer({ detail, onClose, onNavigate }: { detail: ObjectDetail | null; onClose: () => void; onNavigate: (destination: Surface) => void }) {
+function ObjectDetailLayer({ detail, notes, onAddNote, onClose, onNavigate }: { detail: ObjectDetail | null; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onClose: () => void; onNavigate: (destination: Surface) => void }) {
   if (!detail) return null
   return <div className="object-detail-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
@@ -682,6 +723,16 @@ function ObjectDetailLayer({ detail, onClose, onNavigate }: { detail: ObjectDeta
         <h3>Source / provenance</h3>
         <p><strong>{detail.source.label}</strong><br />{detail.source.value}</p>
       </section>}
+      <ObjectNotes
+        notes={notes}
+        onAddNote={onAddNote}
+        objectId={detail.id}
+        objectKind={detail.kind}
+        objectTitle={detail.title}
+        context={`${detailKindLabel(detail.kind)} · ${detail.title}`}
+        backlink={detail.backlinks?.[0]?.destination ?? 'notes'}
+        compact
+      />
       {(detail.actions || detail.backlinks) && <footer className="object-detail-actions">
         {detail.actions?.map(action => <button key={action.label} type="button" onClick={() => action.destination ? onNavigate(action.destination) : undefined}>{action.label}</button>)}
         {detail.backlinks?.map(link => <button key={link.label} type="button" className="secondary" onClick={() => onNavigate(link.destination)}>{link.label}</button>)}
@@ -716,6 +767,7 @@ type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
 type ActivityStream = 'needs-review' | 'changes' | 'sources' | 'personal' | 'archived'
 type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
+type NoteFilter = 'all' | 'mine' | 'others'
 type ObjectDetail = {
   id: string
   kind: ObjectDetailKind
@@ -728,6 +780,19 @@ type ObjectDetail = {
   actions?: Array<{ label: string; destination?: Surface }>
   note?: string
   backlinks?: Array<{ label: string; destination: Surface }>
+}
+type NoteVisibility = 'private' | 'shared'
+type AddContextNoteInput = {
+  objectId: string
+  objectKind: ObjectDetailKind
+  objectTitle: string
+  objectAnchor?: string
+  context: string
+  title?: string
+  body: string
+  author?: PersonName
+  visibility: NoteVisibility
+  backlink: Surface
 }
 type MonitoringAlert = {
   id: string
@@ -773,11 +838,17 @@ function isMonitoringAlert(value: unknown): value is MonitoringAlert {
 }
 type ContextNote = {
   id: string
+  objectId: string
+  objectKind: ObjectDetailKind
+  objectTitle: string
+  objectAnchor?: string
   context: string
   title: string
   body: string
+  author: PersonName
+  visibility: NoteVisibility
   updatedAt: string
-  backlink: string
+  backlink: Surface
 }
 type ExploreEvent = {
   id: string
@@ -911,32 +982,48 @@ const monitoringAlerts: MonitoringAlert[] = [
   },
 ].filter(() => false) as MonitoringAlert[]
 
-const contextNotes: ContextNote[] = [
+const contextNotes: ContextNote[] = ([
   {
     id: 'luggage-thursday',
+    objectId: 'hotel-omni',
+    objectKind: 'hotel',
+    objectTitle: 'Omni Atlanta Hotel at Centennial Park',
     context: 'Trip · Omni',
     title: 'Thursday luggage handoff',
     body: 'Kavi and Chris are at Black Lotus First Look before Omni check-in. Decide whether Juan can handle bags or whether we stash luggage first.',
+    author: 'Kavi',
+    visibility: 'shared',
     updatedAt: 'Aug 4',
-    backlink: 'Trip',
+    backlink: 'trip',
   },
   {
     id: 'wallet-store-assignment',
+    objectId: 'wallet-store-receipt',
+    objectKind: 'receipt',
+    objectTitle: 'Store receipt assignments',
+    objectAnchor: 'Line items',
     context: 'Wallet · Store receipt',
     title: 'Store receipt assignments',
     body: 'Use quick K/J/C chips for known people; custom names stay as plain text because they are not app people.',
+    author: 'Kavi',
+    visibility: 'private',
     updatedAt: 'Aug 4',
-    backlink: 'Wallet',
+    backlink: 'wallet',
   },
   {
     id: 'bl-planechase',
+    objectId: 'explore-bl-planechase',
+    objectKind: 'event',
+    objectTitle: 'Planechase Unknown',
     context: 'Plan · Black Lotus',
     title: 'Planechase reference',
     body: 'Likely to be something I check repeatedly before the event; keep this easy to find even before ticketed play appears.',
+    author: 'Kavi',
+    visibility: 'private',
     updatedAt: 'Aug 3',
-    backlink: 'Plan',
+    backlink: 'plan',
   },
-].filter(() => false)
+] satisfies ContextNote[]).filter(() => false)
 
 const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title: string; window: string; calendarDate: string; month: 'AUG' | 'OCT'; confidence: string; rationale: string }> = [
   {
@@ -1635,6 +1722,61 @@ function ComplexityPill({ level }: { level: ComplexityLevel }) {
   </span>
 }
 
+function ObjectNotes({ notes, onAddNote, objectId, objectKind, objectTitle, objectAnchor, context, backlink, compact }: {
+  notes: ContextNote[]
+  onAddNote: (input: AddContextNoteInput) => void
+  objectId: string
+  objectKind: ObjectDetailKind
+  objectTitle: string
+  objectAnchor?: string
+  context: string
+  backlink: Surface
+  compact?: boolean
+}) {
+  const [body, setBody] = useState('')
+  const [visibility, setVisibility] = useState<NoteVisibility>('private')
+  const objectNotes = notes.filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor))
+  const submit = () => {
+    const trimmed = body.trim()
+    if (!trimmed) return
+    onAddNote({ objectId, objectKind, objectTitle, objectAnchor, context, body: trimmed, visibility, backlink })
+    setBody('')
+  }
+
+  return <section className={`object-notes ${compact ? 'compact' : ''}`} aria-label={`Notes for ${objectTitle}`}>
+    <header>
+      <div><span className="eyebrow">NOTES</span><h3>{objectNotes.length ? `${objectNotes.length} contextual ${objectNotes.length === 1 ? 'note' : 'notes'}` : 'Add a note'}</h3></div>
+      {objectNotes.length > 0 && <span className="note-author-cluster"><PersonBubbles people={[...new Set(objectNotes.map(note => note.author))]} /></span>}
+    </header>
+    {objectNotes.length > 0 && <div className="note-thread">
+      {objectNotes.slice(0, compact ? 2 : 5).map(note => <article key={note.id} className="note-item">
+        <PersonBubbles people={[note.author]} />
+        <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</small></div>
+      </article>)}
+    </div>}
+    <div className="note-composer">
+      <textarea value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={`Note on ${objectTitle}`} />
+      <div>
+        <div className="note-visibility" role="group" aria-label="Note visibility">
+          {(['private', 'shared'] as const).map(value => <button key={value} type="button" className={visibility === value ? 'active' : ''} onClick={() => setVisibility(value)}>{value === 'private' ? 'Mine' : 'Shared'}</button>)}
+        </div>
+        <button type="button" className="note-save" onClick={submit} disabled={!body.trim()}>Save note</button>
+      </div>
+    </div>
+  </section>
+}
+
+function NoteFilterTabs({ filter, onFilter, notes }: { filter: NoteFilter; onFilter: (filter: NoteFilter) => void; notes: ContextNote[] }) {
+  const others = notes.filter(note => note.author !== 'Kavi').length
+  return <div className="note-filter-tabs" role="tablist" aria-label="Note filters">
+    {([
+      ['all', `All ${notes.length}`],
+      ['mine', 'Mine'],
+      ['others', `Others ${others}`],
+    ] as const).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={filter === value} className={filter === value ? 'active' : ''} onClick={() => onFilter(value)}>{label}</button>)}
+  </div>
+}
+
 function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris'> }) {
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person[0]}</span>)}</span>
 }
@@ -1662,7 +1804,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   </section>
 }
 
-function WalletSurface({ onOpenObject, onOpenTrip }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void }) {
+function WalletSurface({ onOpenObject, onOpenTrip, notes, onAddNote }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(1700)
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
@@ -1686,7 +1828,7 @@ function WalletSurface({ onOpenObject, onOpenTrip }: { onOpenObject: (detail: Ob
         <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+</button>
       </div>
     </div>
-    {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} />}
+    {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} notes={notes} onAddNote={onAddNote} />}
     {tab === 'play' && <WalletPlayTab openModal={openModal} />}
     {tab === 'store' && <WalletStoreEmpty />}
     {tab === 'other' && <WalletOtherTab openModal={openModal} onOpenTrip={onOpenTrip} />}
@@ -1714,9 +1856,9 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
-function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void; onOpenObject: (detail: ObjectDetail) => void }) {
-  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail />, ['Kavi', 'Chris'])
-  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail />, ['Juan'])
+function WalletHomeTab({ openModal, onOpenObject, notes, onAddNote }: { openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void; onOpenObject: (detail: ObjectDetail) => void; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void }) {
+  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail notes={notes} onAddNote={onAddNote} />, ['Kavi', 'Chris'])
+  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail notes={notes} onAddNote={onAddNote} />, ['Juan'])
 
   return <div className="wallet-home-command">
     <section className="wallet-hero-card">
@@ -1763,7 +1905,7 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
   </div>
 }
 
-function BlackLotusProofDetail() {
+function BlackLotusProofDetail({ notes, onAddNote }: { notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
   const orderCode = '9gLHU3mJ'
 
@@ -1791,6 +1933,7 @@ function BlackLotusProofDetail() {
           <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
         </div>
         <p>Info is the fast-use view: extracted logistics plus the QR. Use Original when someone needs the whole receipt.</p>
+        <ObjectNotes notes={notes} onAddNote={onAddNote} objectId="wallet-black-lotus-order" objectKind="receipt" objectTitle="Kavi + Chris badge proof" context="Wallet · Black Lotus order" backlink="wallet" compact />
       </>
       : <>
         <p className="original-receipt-note">Full Gmail receipt render. This is intentionally the whole email, not a cropped proof slice.</p>
@@ -1823,7 +1966,7 @@ function BlackLotusProofDetail() {
   </div>
 }
 
-function JuanPremiumProofDetail() {
+function JuanPremiumProofDetail({ notes, onAddNote }: { notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
   const orderCode = 'h7paadIU'
 
@@ -1851,6 +1994,7 @@ function JuanPremiumProofDetail() {
           </figure>
           <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
         </div>
+        <ObjectNotes notes={notes} onAddNote={onAddNote} objectId="wallet-juan-premium-order" objectKind="receipt" objectTitle="Juan badge proof" context="Wallet · Juan Premium order" backlink="wallet" compact />
       </>
       : <div className="original-html-frame">
         <p className="original-receipt-note">Full Gmail-rendered receipt body captured from Juan's confirmation email.</p>
@@ -2410,17 +2554,34 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
   </div>
 }
 
-function NotesSurface({ onOpenObject: _onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
+function NotesSurface({ notes, onOpenObject }: { notes: ContextNote[]; onOpenObject: (detail: ObjectDetail) => void }) {
+  const [filter, setFilter] = useState<NoteFilter>('all')
+  const filtered = notes.filter(note => filter === 'all' ? true : filter === 'mine' ? note.author === 'Kavi' : note.author !== 'Kavi')
+  const grouped = filtered.reduce<Record<string, ContextNote[]>>((acc, note) => {
+    const key = note.context
+    acc[key] = [...(acc[key] ?? []), note]
+    return acc
+  }, {})
+
   return <section className="notes-surface" aria-label="Notes">
     <div className="notes-compose">
-      <span className="eyebrow">NOTES</span>
-      <h2>No notes yet.</h2>
-      <p>Notes added from events, receipts, places, and alerts will collect here.</p>
+      <div><span className="eyebrow">UNIVERSAL NOTES</span><h2>{notes.length ? 'Context collected where it happened.' : 'No notes yet.'}</h2><p>Notes added from events, receipts, trip items, places, and alerts collect here without becoming separate note systems.</p></div>
+      <NoteFilterTabs filter={filter} onFilter={setFilter} notes={notes} />
     </div>
+    {filtered.length === 0 ? <div className="notes-empty"><strong>{notes.length ? 'No notes in this filter.' : 'Add a note from any object detail.'}</strong><span>Receipts, events, trip places, and Activity findings all use the same note layer.</span></div> : <div className="notes-index">
+      {Object.entries(grouped).map(([context, contextItems]) => <section className="notes-context-group" key={context}>
+        <header><div><span className="eyebrow">{contextItems[0].objectKind}</span><h3>{context}</h3></div><PersonBubbles people={[...new Set(contextItems.map(note => note.author))]} /></header>
+        {contextItems.map(note => <button key={note.id} type="button" className="note-index-row" onClick={() => onOpenObject(noteToObjectDetail(note))}>
+          <PersonBubbles people={[note.author]} />
+          <span><strong>{note.title}</strong><small>{note.body}</small><em>{note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</em></span>
+          <b aria-hidden="true">›</b>
+        </button>)}
+      </section>)}
+    </div>}
   </section>
 }
 
-function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewChange, onOpenObject }: { slice: TrustSlice; alerts: MonitoringAlert[]; alertReview: Record<string, AlertReviewState>; onReviewChange: (id: string, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, onReviewChange, onOpenObject }: { slice: TrustSlice; alerts: MonitoringAlert[]; alertReview: Record<string, AlertReviewState>; notes: ContextNote[]; onReviewChange: (id: string, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [stream, setStream] = useState<ActivityStream>('needs-review')
   const reviewState = (alert: MonitoringAlert) => alertReview[alert.id] ?? defaultAlertReviewState(alert)
   const needsReviewCount = incomingAlerts.filter(alert => reviewState(alert) === 'needs-review').length
@@ -2430,7 +2591,7 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
     { value: 'needs-review', label: 'Review', icon: <AlertKindIcon kind="site" />, count: needsReviewCount },
     { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: changeCount },
     { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: sourceCount },
-    { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: contextNotes.length },
+    { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: notes.length },
     { value: 'archived', label: 'Archive', icon: <NavIcon name="activity" />, count: incomingAlerts.filter(alert => reviewState(alert) === 'archived').length },
   ]
   const alerts = incomingAlerts.filter(alert => {
@@ -2461,10 +2622,11 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
     </div>
     <div className={`activity-layout ${incomingAlerts.length === 0 ? 'solo' : ''}`}>
       <div className="activity-feed">
-        {stream === 'personal' ? contextNotes.map(note => <article key={note.id} className="activity-card personal">
+        {stream === 'personal' ? notes.map(note => <article key={note.id} className="activity-card personal">
           <span className="activity-icon"><NavIcon name="notes" /></span>
-          <div><span className="eyebrow">PERSONAL NOTE</span><h2>{note.title}</h2><p>{note.body}</p><small>{note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Details</button></div>
+          <div><span className="eyebrow">{note.visibility === 'shared' ? 'SHARED NOTE' : 'MY NOTE'}</span><h2>{note.title}</h2><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Details</button></div>
         </article>) : alerts.map(alert => <AlertCard key={alert.id} alert={alert} reviewState={reviewState(alert)} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
+        {stream === 'personal' && notes.length === 0 && <div className="activity-empty"><strong>No notes yet.</strong><span>Add a note from a receipt, event, trip item, or object detail.</span></div>}
         {alerts.length === 0 && stream !== 'personal' && <div className="activity-empty"><strong>No items here.</strong><span>{stream === 'archived' ? 'Archived findings will remain recoverable here.' : 'Quiet is a valid state.'}</span></div>}
       </div>
       {incomingAlerts.length > 0 && <aside className="activity-rail" aria-label="Activity context">

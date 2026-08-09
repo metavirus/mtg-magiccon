@@ -2,6 +2,18 @@
 
 Notes should be easy to add almost anywhere, but they should not turn the interface into a universal comments system. The useful default is: write a note in context, then let the Notes tab collect and search those notes later.
 
+## Current implementation status
+
+As of the v1.5 proof pass on August 9, the React preview has the first local implementation of this universal note primitive:
+
+- object detail drawers/sheets can render the same compact note composer;
+- Wallet badge-proof `Info` views use that same note composer rather than receipt-specific note logic;
+- the Notes destination indexes notes globally with `All`, `Mine`, and `Others` filters;
+- Activity has a Personal stream that reflects the same note objects;
+- notes persist locally in the browser for interaction proof only.
+
+This is intentionally not the final data layer. The next trust step is to move the same object shape into Supabase with RLS, stable author identity, and safe shared-read semantics. Do not add more local-only note variants in individual destinations; extend the shared primitive instead.
+
 ## Architecture invariant
 
 Notes are one universal object-attached layer. Do not invent separate note systems for Trip, Wallet, receipts, events, artists, Map, or Activity.
