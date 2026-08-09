@@ -9,6 +9,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build --configLoader runner",
     "build:pages": "pnpm build && powershell -ExecutionPolicy Bypass -File scripts/prepare_github_pages.ps1",
+    "sync:pages": "powershell -ExecutionPolicy Bypass -File scripts/sync_github_pages.ps1",
+    "publish:pages": "pnpm build:pages && pnpm sync:pages",
     "preview": "vite preview",
     "test": "vitest run --configLoader runner",
     "validate:monitoring": "powershell -ExecutionPolicy Bypass -File scripts/validate_monitoring_intake.ps1",
