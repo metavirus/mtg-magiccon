@@ -2391,6 +2391,25 @@ function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detai
   </section>
 }
 
+function CalendarDayHeader({ day, date, label }: { day: string; date: string; label: string }) {
+  return <div className="calendar-day-header">
+    <span>{day}</span>
+    <strong>{date}</strong>
+    <em>{label}</em>
+  </div>
+}
+
+function AgendaInflection({ time, label, detail, onOpen }: { time: string; label: string; detail?: string; onOpen?: () => void }) {
+  const content = <>
+    <span className="inflection-time">{time}</span>
+    <span className="inflection-copy">{label}</span>
+    {detail && <span className="inflection-detail">{detail}</span>}
+  </>
+  return onOpen
+    ? <button type="button" className="agenda-inflection" onClick={onOpen}>{content}</button>
+    : <div className="agenda-inflection">{content}</div>
+}
+
 function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online, saving }: { slice: TrustSlice; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean }) {
   const [expanded, setExpanded] = useState(false)
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
@@ -2453,23 +2472,33 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
     </button>}
 
-    {showTravel && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('preview')}>
-      <div className="agenda-date"><strong>12</strong><span>THU</span><em>4 PM</em></div>
-      <div className="agenda-icon lotus-mini">✦</div>
-      <div className="agenda-copy"><span className="agenda-kind">Black Lotus + hotel</span><h2>First Look · Omni check-in</h2><p>Chris and Kavi have Black Lotus access; Omni check-in begins at 4 PM.</p></div>
-      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></span>
-      <span className="agenda-destination"><NavIcon name="notes" />Details</span>
-    </button>}
+    {(showTravel || showConvention) && <CalendarDayHeader day="THU" date="November 12" label={showConvention ? 'Black Lotus early access' : 'Thursday transition'} />}
+    {showConvention && <AgendaInflection time="12:00 PM" label="Black Lotus lounge opens" detail="Welcome to First Look Thursday" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <AgendaInflection time="12:00 PM" label="Progressive Sealed pickup/play begins" detail="Pick up packs; league continues through Sunday" onOpen={() => setDetail('bl-thursday')} />}
     {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-thursday')}>
-      <div className="agenda-date"><strong>12</strong><span>THU</span><em>12 PM</em></div>
+      <div className="agenda-date"><strong>12</strong><span>THU</span><em>1-8 PM</em></div>
       <div className="agenda-icon lotus-mini">✦</div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus schedule</span><h2>Lounge, league pickup, First Look, reception</h2><p>12 PM lounge/league pickup; 1-8 PM First Look block; 8-11 PM welcome reception.</p></div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Behind the Card Frame & First Look</h2><p>Early-access Black Lotus block; content slots are still partly TBD.</p></div>
+      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
+      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
+    </button>}
+    {showTravel && <AgendaInflection time="4:00 PM" label="Omni check-in begins" detail="Kavi + Juan hotel shift; luggage plan may matter" onOpen={() => setDetail('preview')} />}
+    {showConvention && <AgendaInflection time="4:15 PM" label="Design the Unknown Planechase Card" detail="Casual Play Design Presents" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <AgendaInflection time="6:30 PM" label="Paint & Sip" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-thursday')}>
+      <div className="agenda-date"><strong>12</strong><span>THU</span><em>8-11 PM</em></div>
+      <div className="agenda-icon lotus-mini">✦</div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Welcome Reception + First Look</h2><p>Casual mixer with Wizards guests; light food and no-host bar.</p></div>
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
 
     {showConvention && <div className="calendar-month compact" id="calendar-con"><span>NOV 13–15</span><strong>MagicCon weekend</strong></div>}
 
+    {showConvention && <CalendarDayHeader day="FRI" date="November 13" label="Convention day 1" />}
+    {showConvention && <AgendaInflection time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} />}
+    {showConvention && <AgendaInflection time="8:30 AM" label="Online store pre-order pickup begins" detail="Pickup window runs until 5 PM" onOpen={() => setDetail('bl-friday')} />}
+    {showConvention && <AgendaInflection time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <button className="agenda-row agenda-action convention-row" type="button" onClick={() => setDetail('friday')}>
       <div className="agenda-date"><strong>13</strong><span>FRI</span><em>All day</em></div>
       <div className="agenda-icon"><NavIcon name="plan" /></div>
@@ -2480,11 +2509,19 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
     {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-friday')}>
       <div className="agenda-date"><strong>13</strong><span>FRI</span><em>8:30 AM</em></div>
       <div className="agenda-icon lotus-mini">✦</div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus schedule</span><h2>Lounge, store pickup, priority entry, TBD play</h2><p>2-6 PM play event with special guests is explicitly under construction.</p></div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Friday Black Lotus operating window</h2><p>Beverage service, pickup, and lounge access; key starts are called out above.</p></div>
+      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
+      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
+    </button>}
+    {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-friday')}>
+      <div className="agenda-date"><strong>13</strong><span>FRI</span><em>2-6 PM</em></div>
+      <div className="agenda-icon lotus-mini">✦</div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>PLAY EVENT with Special Guests</h2><p>Published as under construction, so this should stay watch-sensitive.</p></div>
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
 
+    {showConvention && <CalendarDayHeader day="SAT" date="November 14" label="Convention day 2" />}
     {showConvention && <article className={`agenda-row convention-row expandable ${expanded ? 'expanded' : ''}`}>
       <button className="agenda-row-button" type="button" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>
         <span className="agenda-date"><strong>14</strong><span>SAT</span><em>11:30-3</em></span>
@@ -2500,6 +2537,9 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       </div>}
     </article>}
 
+    {showConvention && <CalendarDayHeader day="SUN" date="November 15" label="Final day" />}
+    {showConvention && <AgendaInflection time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-sunday')} />}
+    {showConvention && <AgendaInflection time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-sunday')} />}
     {showConvention && <button className="agenda-row agenda-action convention-row" type="button" onClick={() => setDetail('sunday')}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>All day</em></div>
       <div className="agenda-icon"><NavIcon name="plan" /></div>
@@ -2514,6 +2554,9 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
+    {showConvention && <AgendaInflection time="4:00 PM" label="Last Mystery Booster 2 draft fires" onOpen={() => setDetail('bl-sunday')} />}
+    {showConvention && <AgendaInflection time="5:00 PM" label="Final chance to claim Progressive Sealed booster prizes" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <AgendaInflection time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} />}
 
     {showTravel && <button className="agenda-row agenda-action travel-row airport-row" type="button" onClick={() => setDetail('airport')}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>TBD</em></div>
