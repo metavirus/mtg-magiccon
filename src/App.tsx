@@ -1752,7 +1752,7 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
       </button>
       <button className="receipt-card wallet-receipt-button" type="button" onClick={openJuanProof}>
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Juan Premium Weekend</h2><p>Premium Weekend Early Bird · Juan</p></div><strong>$191.42</strong></div>
-        <div className="receipt-lines"><div><span>Showable QR captured</span><b>QR</b></div><div><span>Original receipt</span><b>pending</b></div></div>
+        <div className="receipt-lines"><div><span>Showable QR captured</span><b>QR</b></div><div><span>Original receipt captured</span><b>Gmail</b></div></div>
       </button>
     </section>
   </div>
@@ -1772,7 +1772,7 @@ function BlackLotusProofDetail() {
         <div className="proof-status-grid">
           <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
           <span><b>$2,025.26</b><small>order total</small></span>
-          <span><b><PersonBubbles people={['Kavi', 'Chris']} /></b><small>badge holders</small></span>
+          <span className="proof-person-slot"><b><PersonBubbles people={['Kavi', 'Chris']} /></b><small>badge holders</small></span>
         </div>
         <div className="proof-info-list">
           <div><span>Order proof</span><strong>QR code captured from Leap email</strong></div>
@@ -1833,7 +1833,7 @@ function JuanPremiumProofDetail() {
         <div className="proof-status-grid">
           <span><b>1</b><small>Premium Weekend Early Bird badge</small></span>
           <span><b>$191.42</b><small>order total</small></span>
-          <span><b><PersonBubbles people={['Juan']} /></b><small>badge holder</small></span>
+          <span className="proof-person-slot"><b><PersonBubbles people={['Juan']} /></b><small>badge holder</small></span>
         </div>
         <div className="proof-info-list">
           <div><span>Order proof</span><strong>Confirmation email code + rendered Leap QR</strong></div>
@@ -1843,19 +1843,15 @@ function JuanPremiumProofDetail() {
         </div>
         <div className="proof-qr-card" aria-label="Showable Juan Premium order QR">
           <figure>
-            <img src="./juan-premium-order-qr.png" alt="QR code for Juan's MagicCon Atlanta Premium Weekend order proof" />
+            <img src="[private-receipt-value-removed]" alt="QR code for Juan's MagicCon Atlanta Premium Weekend order proof" />
             <figcaption>Show this with the confirmation email code if staff needs Juan's order proof.</figcaption>
           </figure>
           <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
         </div>
       </>
-      : <div className="original-pending">
-        <span className="receipt-icon"><NavIcon name="wallet" /></span>
-        <div>
-          <h3>Full original email capture pending</h3>
-          <p>Juan's order is verified from the Gmail confirmation and the code shown in that email. Gmail exposes no downloadable inline QR part for this message, so the visible QR asset is the rendered Leap order QR. The full scrollable Gmail receipt still needs a clean render before this tab can honestly behave like Black Lotus Original.</p>
-          <a href="https://mail.google.com/mail/#all/19ed15b8526bebfe" target="_blank" rel="noreferrer">Open Gmail source</a>
-        </div>
+      : <div className="original-html-frame">
+        <p className="original-receipt-note">Full Gmail-rendered receipt body captured from Juan's confirmation email.</p>
+        <iframe title="Juan Premium Weekend original receipt" src="./juan-premium-order-original.html" sandbox="" />
       </div>}
     <div className="proof-links">
       <a href="[private-receipt-value-removed]" target="_blank" rel="noreferrer">Open Leap order</a>

@@ -11,6 +11,7 @@
 - [x] Define the minimal Black Lotus provenance contract for sources, observations, normalized occurrences, decisions, and itinerary placement.
 - [x] Model a small itinerary slice from actual official Atlanta Black Lotus evidence.
 - [ ] Design private Storage and retention rules for confirmations and receipts.
+- [x] **v1.5/trust:** Document the receipt artifact ingestion contract in `docs/RECEIPT_ARTIFACT_INGESTION.md`: receipts should be captured once as an original proof artifact plus extracted facts, then rendered from the stable artifact bundle rather than re-querying Gmail during UI work.
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
 - [x] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects. Auth is now fully parked for POC review; remaining mobile tension is design quality, especially Wallet Home/Prize Tix, not access.
 - [x] Disable client auth for the fixture-backed POC so local, GitHub Pages, and installed mobile review cannot be blocked by Supabase magic-link quota.
@@ -74,10 +75,9 @@
 - [x] **v1.5:** Add the mobile top-left main navigation affordance. The header hamburger now opens a left-side all-destinations drawer on phone; the previous lone back caret was too odd as the primary top-left control.
 - [x] **v1.5:** Replace fake Black Lotus proof with functional proof display. Wallet now opens the real Leap order links and original email reference, and directly displays the Black Lotus QR cropped from the Gmail order confirmation behind the normal Google-login app flow.
 - [x] **v1.5:** Correct the Wallet cleanup overreach. Keep badges on Wallet Home, add a small receipt feed there, make badge pills and the Black Lotus receipt row clickable, and give proof modals top-level `Info` / `Original` modes. `Info` keeps extracted facts and clean clips; `Original` now means the full scrollable Gmail receipt render, not a cropped slice.
-- [x] **v1.5:** Add Juan's Premium Weekend badge to the real Wallet proof path. Juan's badge pill and receipt row now open extracted order facts, Juan's person bubble, the Gmail confirmation code, and the rendered Leap order QR instead of placeholder copy.
-- [ ] **v1.5/artifact:** Capture Juan's full Gmail-rendered original receipt cleanly before treating its `Original` mode as equivalent to the Black Lotus proof. Gmail exposes the Juan code in the message body but no downloadable inline QR part, so the current QR asset is the rendered Leap order QR.
+- [x] **v1.5:** Add Juan's Premium Weekend badge to the real Wallet proof path. Juan's badge pill and receipt row now open extracted order facts, Juan's person bubble, the Gmail confirmation code, the email-derived order QR URL, and a full Gmail-rendered original receipt artifact instead of placeholder copy.
 - [x] **v1.5:** Move operational logistics out of a Wallet-only corner. Will Call, show hours, and play-area hours now open as a reusable details object from Home/known-plan context while the Wallet retains source proof.
-- [ ] **v1.5/trust:** Design the private Storage artifact workflow for cross-device QR, receipt PNG/PDF, and showable proof retrieval. The current QR bundle is an owner-approved personal-app shortcut behind the normal login flow, not the final artifact storage model.
+- [ ] **v1.5/trust:** Move receipt original/QR artifacts from the public preview bundle into private Supabase Storage once the artifact manifest is implemented. The current public artifact shortcut is acceptable for this personal preview, but the app contract now expects a stable receipt bundle with `Info` and `Original` modes.
 - [ ] **v1.5:** Resume the production contention-engine design only after representative Atlanta ticketed-play data exists. Treat Plan-lite as a useful interaction proof, not a persistence/schema contract.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
