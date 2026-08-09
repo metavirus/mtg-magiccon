@@ -1820,19 +1820,26 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   return <section className="map-surface" aria-label="Map">
     <article className="map-card trip-area-card">
       <span className="eyebrow">ORIENTATION NOW</span>
-      <h2>Hotel to Building C mental map.</h2>
-      <p>Until the 2026 floor map drops, this should answer the practical question: “which way is the con from the hotel?”</p>
-      <div className="campus-sketch" aria-label="Simplified Omni to GWCC Building C sketch">
-        <span className="sketch-watermark">not to scale</span>
-        <span className="campus-street marietta">Marietta St NW</span>
-        <span className="campus-street northside">Northside Dr NW</span>
-        <button type="button" className="campus-pin omni-pin" onClick={onOpenTrip}><strong>Omni</strong><small>Kavi + Juan · Nov 12-15</small></button>
-        <span className="campus-landmark arena">State Farm Arena</span>
-        <span className="campus-landmark benz">Mercedes-Benz Stadium</span>
-        <span className="campus-building building-a">GWCC A</span>
-        <span className="campus-building building-b">GWCC B</span>
-        <span className="campus-building building-c">GWCC C<small>MagicCon Atlanta</small></span>
-        <span className="campus-route" />
+      <h2>Omni to Building C, visually.</h2>
+      <p>This should feel like a real orientation aid: the Omni is east of the campus, and Building C is the west-side target.</p>
+      <div className="campus-photo-map" aria-label="Aerial-style Omni to GWCC Building C orientation map">
+        <img src="./gwcc-campus-reference.png" alt="Aerial view showing the Omni hotel on the east side of Georgia World Congress Center and Building C on the west side." />
+        <button type="button" className="campus-label omni-label" onClick={onOpenTrip}>
+          <strong>Omni</strong>
+          <small>hotel base</small>
+        </button>
+        <span className="campus-label building-c-label">
+          <strong>GWCC Building C</strong>
+          <small>MagicCon target</small>
+        </span>
+        <span className="campus-label building-b-label">
+          <strong>Building B</strong>
+          <small>middle campus</small>
+        </span>
+        <span className="campus-label route-label">
+          <strong>Walk west</strong>
+          <small>hotel → venue</small>
+        </span>
       </div>
       <div className="map-quick-facts">
         <span><strong>Venue</strong>GWCC Building C</span>
