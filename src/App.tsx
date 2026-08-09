@@ -467,7 +467,7 @@ export default function App() {
       </section>
     </div>}
 
-    <main>
+    <main className={`surface-main surface-${surface}`}>
       <header className="hero">
         <div>
           <div className="hero-context">
@@ -490,13 +490,13 @@ export default function App() {
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
+        {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} onAddNote={addContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} onAddNote={addContextNote} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} onOpenObject={openObjectDetail} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} onAddNote={addContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} />}
 
         {surface === 'activity' && <ActivitySurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} notes={contextNotesState} onReviewChange={setAlertReviewState} onOpenObject={openObjectDetail} />}
       </>}
@@ -1376,9 +1376,11 @@ const exploreEventCandidates: ExploreEvent[] = [
 
 const exploreEvents = exploreEventCandidates.filter(event => event.sourceNote?.startsWith('Official Atlanta'))
 
-function PlanSurface({ events, slice, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving }: {
+function PlanSurface({ events, slice, notes, onAddNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving }: {
   events: ExploreEvent[]
   slice: TrustSlice
+  notes: ContextNote[]
+  onAddNote: (input: AddContextNoteInput) => void
   onUpdateEvent: (id: string, state: ExploreState) => void
   onChangeSliceState: (state: PlanningState) => void
   onOpenObject: (detail: ObjectDetail) => void
@@ -1455,6 +1457,7 @@ function PlanSurface({ events, slice, onUpdateEvent, onChangeSliceState, onOpenO
         <section><small>PLAN EFFECT</small><strong>{selected.planEffect}</strong></section>
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
         <div className="plan-provenance"><span>{selected.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Representative planning data'}</span><small>{selected.sourceNote ?? 'Fixture-backed POC item.'}</small></div>
+        <ObjectNotes notes={notes} onAddNote={onAddNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={selected.title} context={`Event · ${selected.title}`} backlink="plan" compact />
       </aside>}
     </div>
   </section>
@@ -1479,7 +1482,7 @@ function planPressure(event: ExploreEvent) {
   return 'In consideration'
 }
 
-function ExploreSurface({ events, onUpdateEvent, onOpenPlan, onOpenObject }: { events: ExploreEvent[]; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ExploreSurface({ events, notes, onAddNote, onUpdateEvent, onOpenPlan, onOpenObject }: { events: ExploreEvent[]; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [mode, setMode] = useState<ExploreMode>('for-you')
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
@@ -1560,7 +1563,7 @@ function ExploreSurface({ events, onUpdateEvent, onOpenPlan, onOpenObject }: { e
         </section>}
       </div>
 
-      <ExploreDetail event={selected} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} onOpenObject={onOpenObject} />
+      <ExploreDetail event={selected} notes={notes} onAddNote={onAddNote} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} onOpenObject={onOpenObject} />
     </div>
   </section>
 }
@@ -1610,7 +1613,7 @@ function getPriceTone(price: string) {
   return 'high'
 }
 
-function ExploreDetail({ event, open, onClose, onState, onOpenPlan, onOpenObject }: { event: ExploreEvent; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ExploreDetail({ event, notes, onAddNote, open, onClose, onState, onOpenPlan, onOpenObject }: { event: ExploreEvent; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const planEnabled = event.state === 'interested' || event.state === 'tentative'
   return <aside className="explore-detail" data-open={open} aria-label={`${event.title} detail`}>
     <button className="detail-close explore-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
@@ -1637,6 +1640,7 @@ function ExploreDetail({ event, open, onClose, onState, onOpenPlan, onOpenObject
       <strong>Plan effect</strong>
       <p>{event.planEffect}</p>
     </section>
+    <ObjectNotes notes={notes} onAddNote={onAddNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={event.title} context={`Event · ${event.title}`} backlink="explore" compact />
     {(event.moreDetails || event.sourceNote) && <details className="detail-more">
       <summary><span>More details</span><small>Official and operational</small></summary>
       <div className="detail-more-body">
@@ -2180,40 +2184,108 @@ function TripSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) =>
   </section>
 }
 
+function tripHotelDetail(kind: 'courtyard' | 'omni' | 'chris'): ObjectDetail {
+  if (kind === 'courtyard') return {
+    id: 'hotel-courtyard',
+    kind: 'hotel',
+    eyebrow: 'Hotel · Nov 11-12',
+    title: 'Courtyard by Marriott Atlanta Downtown',
+    summary: 'Shared arrival-night hotel for Kavi, Juan, and Chris.',
+    facts: [
+      { label: 'Address', value: '133 Carnegie Way, Atlanta, GA 30303' },
+      { label: 'People', value: 'Kavi + Juan + Chris' },
+      { label: 'Nights', value: 'Nov 11-12' },
+    ],
+    source: { label: 'Gmail receipt + official property page', value: 'Courtyard by Marriott Atlanta Downtown' },
+    rationale: 'Useful as a quick arrival-night reference and shared-room context; booking proof should live in Wallet once captured.',
+    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet', destination: 'wallet' }],
+    backlinks: [{ label: 'Calendar', destination: 'calendar' }],
+  }
+  if (kind === 'chris') return {
+    id: 'hotel-chris',
+    kind: 'hotel',
+    eyebrow: 'Hotel · Thursday onward',
+    title: "Chris's hotel",
+    summary: 'Chris branches to his own hotel after the Thursday Black Lotus First Look block. Property details are not captured yet.',
+    facts: [
+      { label: 'People', value: 'Chris' },
+      { label: 'Status', value: 'Property details not captured yet' },
+    ],
+    rationale: 'Keep this visible as an intentional missing fact rather than pretending the trip plan is complete.',
+    actions: [{ label: 'Open Trip', destination: 'trip' }],
+    backlinks: [{ label: 'Calendar', destination: 'calendar' }],
+  }
+  return {
+    id: 'hotel-omni',
+    kind: 'hotel',
+    eyebrow: 'Hotel · Nov 12-15',
+    title: 'Omni Atlanta Hotel at Centennial Park',
+    summary: 'Convention hotel for Kavi and Juan. Keep reservation proof in Wallet; Trip should stay focused on pleasant, usable logistics.',
+    facts: [
+      { label: 'Address', value: '190 Marietta St NW, Atlanta, GA 30303' },
+      { label: 'People', value: 'Kavi + Juan' },
+      { label: 'Check-in', value: '4 PM' },
+      { label: 'Check-out', value: '11 AM' },
+    ],
+    source: { label: 'Booking email + official property page', value: 'Omni Atlanta Hotel at Centennial Park' },
+    rationale: 'The useful value-add is quick address/map access and awareness of who is staying there, not rebuilding a hotel booking app.',
+    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet proof', destination: 'wallet' }],
+    backlinks: [{ label: 'Calendar', destination: 'calendar' }],
+  }
+}
+
+function tripTransitionDetail(): ObjectDetail {
+  return {
+    id: 'trip-luggage-thursday',
+    kind: 'place',
+    eyebrow: 'Trip handoff · Nov 12',
+    title: 'Thursday luggage handoff',
+    summary: 'Courtyard checkout, Black Lotus First Look, and Omni check-in create the one trip transition worth settling.',
+    facts: [
+      { label: 'People', value: 'Kavi + Juan + Chris' },
+      { label: 'Risk', value: 'Bags between checkout and Omni check-in' },
+      { label: 'Omni check-in', value: '4 PM' },
+    ],
+    rationale: 'This is exactly the right level of travel value-add: not a travel app, just a small operational wrinkle worth remembering.',
+    actions: [{ label: 'Open Trip', destination: 'trip' }],
+    backlinks: [{ label: 'Calendar', destination: 'calendar' }],
+  }
+}
+
 function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   return <>
     <div className="trip-layout">
       <section className="trip-flow-card" aria-labelledby="lodging-flow-title">
         <div className="trip-section-head"><div><span className="eyebrow">LODGING FLOW</span><h2 id="lodging-flow-title">Wednesday through Sunday</h2></div><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></div>
         <div className="trip-flow">
-          <article className="trip-stop shared-stop">
+          <button type="button" className="trip-stop shared-stop object-card-button" onClick={() => onOpenObject(tripHotelDetail('courtyard'))}>
             <time><strong>11</strong><span>WED</span></time>
             <div className="trip-stop-icon"><NavIcon name="trip" /></div>
             <div><small>SHARED ARRIVAL NIGHT</small><h3>Courtyard Atlanta Downtown</h3><p>One room · one night</p></div>
             <TravelerDots people={['Kavi', 'Juan', 'Chris']} />
-          </article>
+          </button>
           <div className="trip-connector"><span>hotel change</span></div>
-          <article className="trip-stop lotus-transition">
+          <button type="button" className="trip-stop lotus-transition object-card-button" onClick={() => onOpenObject(exploreEventToObjectDetail(exploreEventCandidates.find(event => event.id === 'bl-first-look-thursday') ?? exploreEventCandidates[0]))}>
             <time><strong>12</strong><span>THU</span></time>
             <div className="trip-stop-icon lotus-mini"><EventKindIcon name="lotus" /></div>
             <div><small>BLACK LOTUS FIRST LOOK</small><h3>Kavi + Chris attend</h3><p>The lodging paths separate afterward.</p></div>
             <TravelerDots people={['Kavi', 'Chris']} />
-          </article>
+          </button>
           <div className="trip-branches" aria-label="Thursday hotel split">
-            <article className="trip-branch omni-branch"><span className="branch-line" aria-hidden="true" /><div><small>NOV 12-15 · 3 NIGHTS</small><h3>Omni at Centennial Park</h3><p>Kavi and Juan · convention hotel</p></div><TravelerDots people={['Kavi', 'Juan']} /></article>
-            <article className="trip-branch chris-branch"><span className="branch-line" aria-hidden="true" /><div><small>THURSDAY ONWARD</small><h3>Chris's hotel</h3><p>Property details not captured yet</p></div><TravelerDots people={['Chris']} /></article>
+            <button type="button" className="trip-branch omni-branch object-card-button" onClick={() => onOpenObject(tripHotelDetail('omni'))}><span className="branch-line" aria-hidden="true" /><div><small>NOV 12-15 · 3 NIGHTS</small><h3>Omni at Centennial Park</h3><p>Kavi and Juan · convention hotel</p></div><TravelerDots people={['Kavi', 'Juan']} /></button>
+            <button type="button" className="trip-branch chris-branch object-card-button" onClick={() => onOpenObject(tripHotelDetail('chris'))}><span className="branch-line" aria-hidden="true" /><div><small>THURSDAY ONWARD</small><h3>Chris's hotel</h3><p>Property details not captured yet</p></div><TravelerDots people={['Chris']} /></button>
           </div>
         </div>
       </section>
 
-      <aside className="trip-insight" aria-label="Thursday transition insight">
+      <button type="button" className="trip-insight object-card-button" aria-label="Thursday transition insight" onClick={() => onOpenObject(tripTransitionDetail())}>
         <span className="insight-icon"><NavIcon name="wallet" /></span>
         <div><span className="eyebrow">ONE THING WORTH SETTLING</span><h2>Where do the bags go Thursday?</h2><p>The shared Courtyard stay ends before Kavi and Chris finish First Look. Omni check-in begins at 4 PM, so the luggage handoff is the only trip transition that may need a small plan.</p></div>
-      </aside>
+      </button>
     </div>
 
     <div className="hotel-grid" aria-label="Confirmed hotel details">
-      <article className="hotel-card courtyard-card">
+      <article className="hotel-card courtyard-card object-card-button" role="button" tabIndex={0} onClick={() => onOpenObject(tripHotelDetail('courtyard'))} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onOpenObject(tripHotelDetail('courtyard')) }}>
         <div className="hotel-card-head"><span className="hotel-icon"><NavIcon name="trip" /></span><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></div>
         <span className="eyebrow">NOV 11-12 · 1 NIGHT</span>
         <h2>Courtyard by Marriott Atlanta Downtown</h2>
@@ -2221,41 +2293,7 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
         <div className="hotel-facts"><span>Shared arrival night</span><span>3 travelers</span><span>Confirmation in Wallet later</span></div>
         <div className="hotel-links"><a href="https://www.google.com/maps/search/?api=1&query=Courtyard%20by%20Marriott%20Atlanta%20Downtown" target="_blank" rel="noreferrer"><NavIcon name="map" />Maps ↗</a><a href="https://www.marriott.com/en-us/hotels/atldo-courtyard-atlanta-downtown/overview/" target="_blank" rel="noreferrer">Official hotel ↗</a></div>
       </article>
-      <article className="hotel-card omni-card object-card-button" role="button" tabIndex={0} onClick={() => onOpenObject({
-        id: 'hotel-omni',
-        kind: 'hotel',
-        eyebrow: 'Hotel · Nov 12-15',
-        title: 'Omni Atlanta Hotel at Centennial Park',
-        summary: 'Convention hotel for Kavi and Juan. Keep reservation proof in Wallet; Trip should stay focused on pleasant, usable logistics.',
-        facts: [
-          { label: 'Address', value: '190 Marietta St NW, Atlanta, GA 30303' },
-          { label: 'People', value: 'Kavi + Juan' },
-          { label: 'Check-in', value: '4 PM' },
-          { label: 'Check-out', value: '11 AM' },
-        ],
-        source: { label: 'Booking email + official property page', value: 'Omni Atlanta Hotel at Centennial Park' },
-        rationale: 'The useful value-add is quick address/map access and awareness of who is staying there, not rebuilding a hotel booking app.',
-        actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet proof', destination: 'wallet' }],
-        backlinks: [{ label: 'Calendar', destination: 'calendar' }],
-      })} onKeyDown={event => {
-        if (event.key === 'Enter' || event.key === ' ') onOpenObject({
-          id: 'hotel-omni',
-          kind: 'hotel',
-          eyebrow: 'Hotel · Nov 12-15',
-          title: 'Omni Atlanta Hotel at Centennial Park',
-          summary: 'Convention hotel for Kavi and Juan. Keep reservation proof in Wallet; Trip should stay focused on pleasant, usable logistics.',
-          facts: [
-            { label: 'Address', value: '190 Marietta St NW, Atlanta, GA 30303' },
-            { label: 'People', value: 'Kavi + Juan' },
-            { label: 'Check-in', value: '4 PM' },
-            { label: 'Check-out', value: '11 AM' },
-          ],
-          source: { label: 'Booking email + official property page', value: 'Omni Atlanta Hotel at Centennial Park' },
-          rationale: 'The useful value-add is quick address/map access and awareness of who is staying there, not rebuilding a hotel booking app.',
-          actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet proof', destination: 'wallet' }],
-          backlinks: [{ label: 'Calendar', destination: 'calendar' }],
-        })
-      }}>
+      <article className="hotel-card omni-card object-card-button" role="button" tabIndex={0} onClick={() => onOpenObject(tripHotelDetail('omni'))} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onOpenObject(tripHotelDetail('omni')) }}>
         <div className="hotel-card-head"><span className="hotel-icon"><NavIcon name="trip" /></span><TravelerDots people={['Kavi', 'Juan']} /></div>
         <span className="eyebrow">NOV 12-15 · 3 NIGHTS</span>
         <h2>Omni Atlanta Hotel at Centennial Park</h2>
