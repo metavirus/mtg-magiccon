@@ -1776,17 +1776,40 @@ function BlackLotusProofDetail() {
           <div><span>Will Call</span><strong>Thu 12-6 · Fri/Sat 8:30-7 · Sun 8:30-6</strong></div>
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
         </div>
-        <p>The Leap email says the order QR contains all products on the order and is used for event check-in. Payment and address details are excluded from this app view.</p>
-      </>
-      : <>
-        <div className="original-proof-stack">
+        <div className="proof-clip-grid" aria-label="Useful receipt clips">
           <figure>
-            <img src="./black-lotus-order-original-qr.png" alt="Original order QR section from the MagicCon Atlanta confirmation email" />
-            <figcaption>Original QR section from Gmail receipt</figcaption>
+            <img src="./black-lotus-order-original-qr.png" alt="QR code clip from the MagicCon Atlanta confirmation email" />
+            <figcaption>QR / wallet clip</figcaption>
           </figure>
           <figure>
-            <img src="./black-lotus-order-original-summary.png" alt="Original order summary section from the MagicCon Atlanta confirmation email" />
-            <figcaption>Original order summary, cropped to exclude address and payment details</figcaption>
+            <img src="./black-lotus-order-original-summary.png" alt="Order summary clip from the MagicCon Atlanta confirmation email" />
+            <figcaption>Order summary clip</figcaption>
+          </figure>
+        </div>
+        <p>Info is the fast-use view: extracted logistics plus clean clips. Use Original when someone needs to see the receipt itself.</p>
+      </>
+      : <>
+        <p className="original-receipt-note">Full Gmail receipt render. This is intentionally the whole email, not a cropped proof slice.</p>
+        <div className="original-proof-stack full-email">
+          <figure>
+            <img src="./black-lotus-order-original-page-1.png" alt="Original MagicCon Atlanta order confirmation email page 1" />
+            <figcaption>Original email page 1 of 5</figcaption>
+          </figure>
+          <figure>
+            <img src="./black-lotus-order-original-page-2.png" alt="Original MagicCon Atlanta order confirmation email page 2" />
+            <figcaption>Original email page 2 of 5</figcaption>
+          </figure>
+          <figure>
+            <img src="./black-lotus-order-original-page-3.png" alt="Original MagicCon Atlanta order confirmation email page 3" />
+            <figcaption>Original email page 3 of 5</figcaption>
+          </figure>
+          <figure>
+            <img src="./black-lotus-order-original-page-4.png" alt="Original MagicCon Atlanta order confirmation email page 4" />
+            <figcaption>Original email page 4 of 5</figcaption>
+          </figure>
+          <figure>
+            <img src="./black-lotus-order-original-page-5.png" alt="Original MagicCon Atlanta order confirmation email page 5" />
+            <figcaption>Original email page 5 of 5</figcaption>
           </figure>
         </div>
       </>}
