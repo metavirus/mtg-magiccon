@@ -1750,14 +1750,14 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
 function BlackLotusProofDetail() {
   return <div className="proof-detail">
     <div className="qr-proof-panel">
-      <div className="qr-proof-empty"><NavIcon name="wallet" /><span>QR captured; private Storage publish is next.</span></div>
+      <img src="./black-lotus-order-qr.png" alt="Black Lotus order QR code" />
     </div>
     <div className="proof-status-grid">
       <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
       <span><b>$2,025.26</b><small>order total</small></span>
       <span><b>Kavi + Chris</b><small>badge holders</small></span>
     </div>
-    <p>The Leap email says the order QR contains all products on the order and is used for event check-in. The QR has been captured from Gmail; the next implementation step is storing and displaying it through authenticated Supabase Storage rather than a public static asset.</p>
+    <p>The Leap email says the order QR contains all products on the order and is used for event check-in. This preview displays the captured QR directly behind the normal Google login flow; payment and address details are still excluded.</p>
     <div className="proof-links">
       <a href="https://conventions.leapevent.tech/c/htwhdatl26shdl10/70a21c58-17aa-4660-b427-636407a19feb?utm_source=email&utm_medium=transactional&utm_campaign=order-confirmation" target="_blank" rel="noreferrer">Open Leap order</a>
       <a href="https://conventions.leapevent.tech/passbook/generate_order_pass/70a21c58-17aa-4660-b427-636407a19feb" target="_blank" rel="noreferrer">Apple Wallet</a>
