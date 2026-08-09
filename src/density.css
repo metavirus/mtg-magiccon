@@ -14,7 +14,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .nav-icon{display:block;width:18px;height:18px;margin:auto}
 .rail nav button.upcoming{color:#8797ac}
 .mobile-primary-nav{display:none!important}
-.activity-link{margin-top:auto;margin-bottom:10px;border-top:1px solid #263850;border-radius:0;padding-top:15px}
+.rail-bottom{display:grid;gap:8px;margin-top:auto}.activity-link{margin:0;border-top:1px solid #263850;border-radius:0;padding-top:15px}.rail-last-checked{padding:0 10px;color:#60738d;font-size:9px;line-height:1.35}.rail-last-checked strong{color:#7f93ad;font-weight:560}.activity-layout.solo{grid-template-columns:1fr}
 .account-menu{margin-top:0}
 .oauth-button{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:40px;margin-top:8px;border:1px solid #456b9d;border-radius:11px;background:#f4f7fb;color:#132238;font-weight:750;cursor:pointer}.oauth-button:hover{background:#fff;border-color:#79aaff}.oauth-button span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#fff;color:#315b95;font-weight:850;box-shadow:0 0 0 1px #d5dfed}.preview-link{display:block;margin-top:11px;color:#8fb4e8;font-size:12px;text-align:center;text-decoration:none}.preview-link:hover{color:#fff;text-decoration:underline}
 .login-message{margin:12px 0 0;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.45}.login-message.info{border:1px solid #304967;background:#101f32;color:#a9c9f7}.login-message.error,.alert.error{border-color:#704551;background:#2a1922;color:#f0bdc7}.alert.info{border-color:#304967;background:#101f32;color:#a9c9f7}
@@ -109,7 +109,7 @@ html,body{max-width:100%;overflow-x:hidden}
   .rail{display:flex;flex-direction:row;align-items:center;gap:4px;overflow:hidden}
   .rail .desktop-primary-nav{display:none}.rail .mobile-primary-nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));width:100%;height:100%;gap:2px;overflow:visible}
   .rail .mobile-primary-nav button{display:grid;place-items:center;align-content:center;gap:1px;min-width:0;padding:4px 2px;border-radius:9px;font-size:9px;text-align:center}.rail .mobile-primary-nav button span{width:auto;font-size:19px}.rail .mobile-primary-nav button .nav-icon{width:19px;height:19px}.rail .mobile-primary-nav .more-dots{display:grid;place-items:center;height:19px;color:#83adf0;font-size:16px;font-weight:900;letter-spacing:1px;line-height:1}
-  .activity-link{display:none}
+  .rail-bottom{display:none}
   .app-shell>main{width:calc(100vw - 20px);max-width:720px}
   .desktop-back-caret{display:none}.mobile-menu-caret{display:grid}
   .next-milestone{grid-template-columns:36px minmax(0,1fr) auto}.timing-clue summary{min-width:112px}.home-dashboard{grid-template-columns:1fr}.header-actions .account-menu{display:block;flex:0 0 auto;grid-column:auto;grid-row:auto}.header-actions .account-menu summary{width:36px;height:34px}.header-status .account-popover{position:fixed;top:78px;right:10px;bottom:auto;left:10px;width:auto}

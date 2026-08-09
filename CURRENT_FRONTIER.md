@@ -4,6 +4,7 @@ Updated: 2026-08-08
 
 ## Where we are
 
+- The public preview has completed a share-readiness cleanup for Chris: representative Vegas events, fake Wallet proofs/receipts, routing-demo Activity alerts, speculative artist cards, and design-note fixtures are no longer exposed. Empty surfaces now state the real waiting condition; confirmed Atlanta Black Lotus, trip, badge, and forecast facts remain.
 - Greenfield mobile PWA and operating documentation are established.
 - Supabase identity is fixed to `pavjsexxbueuzhzgemgy`.
 - The first migration proves one owner-scoped private record with explicit grants and RLS.
