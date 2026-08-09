@@ -1744,20 +1744,52 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
         </button>
       </div>
     </section>
+    <section className="receipt-list wallet-home-receipts" aria-label="Badge receipts">
+      <button className="receipt-card wallet-receipt-button" type="button" onClick={openBlackLotusProof}>
+        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Black Lotus badge order</h2><p>2 × Black Lotus VIP Early Bird · Kavi + Chris</p></div><strong>$2,025.26</strong></div>
+        <div className="receipt-lines"><div><span>Showable QR captured</span><b>QR</b></div><div><span>Original email reference</span><b>Gmail</b></div></div>
+      </button>
+      <button className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <p>Premium Weekend order proof is known, but the receipt/QR artifact has not been ingested yet.</p>)}>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Juan Premium Weekend</h2><p>Receipt artifact not ingested yet</p></div></div>
+      </button>
+    </section>
   </div>
 }
 
 function BlackLotusProofDetail() {
+  const [mode, setMode] = useState<'info' | 'original'>('info')
+
   return <div className="proof-detail">
-    <div className="qr-proof-panel">
-      <img src="./black-lotus-order-qr.png" alt="Black Lotus order QR code" />
+    <div className="proof-mode-tabs" role="tablist" aria-label="Badge proof view">
+      <button type="button" role="tab" aria-selected={mode === 'info'} className={mode === 'info' ? 'active' : ''} onClick={() => setMode('info')}>Info</button>
+      <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
     </div>
-    <div className="proof-status-grid">
-      <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
-      <span><b>$2,025.26</b><small>order total</small></span>
-      <span><b>Kavi + Chris</b><small>badge holders</small></span>
-    </div>
-    <p>The Leap email says the order QR contains all products on the order and is used for event check-in. This preview displays the captured QR directly behind the normal Google login flow; payment and address details are still excluded.</p>
+    {mode === 'info'
+      ? <>
+        <div className="proof-status-grid">
+          <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
+          <span><b>$2,025.26</b><small>order total</small></span>
+          <span><b>Kavi + Chris</b><small>badge holders</small></span>
+        </div>
+        <div className="proof-info-list">
+          <div><span>Order proof</span><strong>QR code captured from Leap email</strong></div>
+          <div><span>Will Call</span><strong>Thu 12-6 · Fri/Sat 8:30-7 · Sun 8:30-6</strong></div>
+          <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
+        </div>
+        <p>The Leap email says the order QR contains all products on the order and is used for event check-in. Payment and address details are excluded from this app view.</p>
+      </>
+      : <>
+        <div className="original-proof-stack">
+          <figure>
+            <img src="./black-lotus-order-original-qr.png" alt="Original order QR section from the MagicCon Atlanta confirmation email" />
+            <figcaption>Original QR section from Gmail receipt</figcaption>
+          </figure>
+          <figure>
+            <img src="./black-lotus-order-original-summary.png" alt="Original order summary section from the MagicCon Atlanta confirmation email" />
+            <figcaption>Original order summary, cropped to exclude address and payment details</figcaption>
+          </figure>
+        </div>
+      </>}
     <div className="proof-links">
       <a href="[private-receipt-value-removed]" target="_blank" rel="noreferrer">Open Leap order</a>
       <a href="https://conventions.leapevent.tech/passbook/generate_order_pass/70a21c58-17aa-4660-b427-636407a19feb" target="_blank" rel="noreferrer">Apple Wallet</a>
@@ -1880,11 +1912,6 @@ function WalletOtherTab({ openModal, onOpenTrip }: { openModal: (eyebrow: string
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTELS</span><h2>Omni + Courtyard</h2><p>Atlanta lodging</p></div></div>
         <div className="receipt-lines"><button type="button" onClick={() => openModal('HOTEL DETAIL', 'Courtyard', <p>Courtyard by Marriott Atlanta Downtown · Nov 11–12 · Kavi, Juan, Chris.</p>)}><span>Courtyard · Nov 11-12</span><b>K/J/C</b></button><button type="button" onClick={() => openModal('HOTEL DETAIL', 'Omni', <p>Omni Atlanta Hotel at Centennial Park · Nov 12–15 · Kavi and Juan.</p>)}><span>Omni · Nov 12-15</span><b>K/J</b></button></div>
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
-      </article>
-      <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE ORDER</span><h2>Black Lotus</h2><p>2 × Black Lotus VIP Early Bird</p></div><strong>$2,025.26</strong></div>
-        <div className="receipt-lines"><div><span>Kavi Black Lotus VIP</span><b>Kavi</b></div><div><span>Chris Black Lotus VIP</span><b>Chris</b></div></div>
-        <div className="receipt-actions"><a className="button-link" href="[private-receipt-value-removed]" target="_blank" rel="noreferrer">Open Leap ↗</a></div>
       </article>
     </section>
   </div>
