@@ -61,7 +61,7 @@ function surfaceSubtitle(surface: Surface) {
     map: 'Trip-area orientation now; official event map when Atlanta publishes it.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Who is staying where, and the one transition worth noticing.',
-    artists: 'Historical MagicCon seeds now; Atlanta-confirmed artists later.',
+    artists: 'Atlanta-confirmed artists will appear here.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
     activity: 'Review what changed, what landed, and what can be ignored.',
   }
@@ -238,7 +238,7 @@ export default function App() {
       .then(payload => {
         if (!active || !payload || !Array.isArray(payload.alerts)) return
         const incoming = payload.alerts.filter(isMonitoringAlert)
-        if (incoming.length > 0) setMonitorAlerts(incoming)
+        setMonitorAlerts(incoming)
       })
       .catch(() => {
         // The intake file is optional. If it is missing or malformed, keep the
@@ -406,7 +406,10 @@ export default function App() {
         <button className={surface === 'wallet' ? 'active' : ''} type="button" onClick={() => openDestination('Wallet', 'wallet')}><span aria-hidden="true"><NavIcon name="wallet" /></span>Wallet</button>
         <button className={['trip', 'artists', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
       </nav>
-      <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity</button>
+      <div className="rail-bottom">
+        <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity</button>
+        <span className="rail-last-checked">Last checked<br /><strong>{lastChecked}</strong></span>
+      </div>
     </aside>
 
     {mobileNavMenu && <div className={`mobile-nav-drawer-backdrop menu-${mobileNavMenu}`} onMouseDown={event => { if (event.target === event.currentTarget) setMobileNavMenu(null) }}>
@@ -441,10 +444,9 @@ export default function App() {
           <p>{surfaceSubtitle(surface)}</p>
         </div>
         <div className="header-status">
-          {designPreview && <span className="preview-label">Fixture preview</span>}
           <div className="header-actions">
             <AccountMenu email={session?.user.email ?? 'kavigrace@gmail.com'} online={Boolean(session) && online} preview={designPreview} />
-            <span className="countdown-chip"><strong>{surface === 'home' ? daysToAtlanta : 'ATL'}</strong><span>{surface === 'home' ? 'days to Atlanta' : designPreview ? 'preview' : online ? 'online' : 'offline'}</span></span>
+            <span className="countdown-chip"><strong>{surface === 'home' ? daysToAtlanta : 'ATL'}</strong><span>{surface === 'home' ? 'days to Atlanta' : online ? 'online' : 'offline'}</span></span>
           </div>
         </div>
       </header>
@@ -464,7 +466,6 @@ export default function App() {
         {surface === 'activity' && <ActivitySurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} onReviewChange={setAlertReviewState} onOpenObject={openObjectDetail} />}
       </>}
 
-      <footer><span>MagicCon Atlanta Companion</span><span>Last checked {lastChecked}</span></footer>
     </main>
     <ObjectDetailLayer detail={objectDetail} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} />
   </div>
@@ -886,7 +887,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     rationale: 'The map is valuable when it helps answer “where do I go next?” rather than simply reproducing a giant image.',
     nextAction: 'Keep first official map as a Home signal; put detailed extraction and OCR candidates in Map/Activity for review.',
   },
-]
+].filter(() => false) as MonitoringAlert[]
 
 const contextNotes: ContextNote[] = [
   {
@@ -913,7 +914,7 @@ const contextNotes: ContextNote[] = [
     updatedAt: 'Aug 3',
     backlink: 'Plan',
   },
-]
+].filter(() => false)
 
 const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title: string; window: string; calendarDate: string; month: 'AUG' | 'OCT'; confidence: string; rationale: string }> = [
   {
@@ -934,7 +935,7 @@ const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title
   },
 ]
 
-const exploreEvents: ExploreEvent[] = [
+const exploreEventCandidates: ExploreEvent[] = [
   {
     id: 'bl-progressive-sealed',
     title: 'BL Progressive Sealed League',
@@ -981,7 +982,7 @@ const exploreEvents: ExploreEvent[] = [
     availability: 'changed',
     complexity: 'easy',
     complexityWhy: 'Mostly informational/social programming; several content slots are explicitly TBD, so the effort is attention rather than rules complexity.',
-    fit: 'High relevance because this is the whole reason Thursday exists for Black Lotus, but parts of the schedule are still placeholders.',
+    fit: 'High relevance because this is the whole reason Thursday exists for Black Lotus, but several schedule slots are still TBD.',
     detail: 'Behind the Card Frame & First Look runs 1:00-8:00 PM, with TBD content slots at 2:00, 3:00, and 5:30, a Planechase-card design session at 4:15, and Paint & Sip at 6:30.',
     decisionFacts: [
       { label: 'Known block', value: '1:00-8:00 PM' },
@@ -1263,6 +1264,8 @@ const exploreEvents: ExploreEvent[] = [
   },
 ]
 
+const exploreEvents = exploreEventCandidates.filter(event => event.sourceNote?.startsWith('Official Atlanta'))
+
 function PlanSurface({ events, slice, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving }: {
   events: ExploreEvent[]
   slice: TrustSlice
@@ -1432,7 +1435,7 @@ function ExploreSurface({ events, onUpdateEvent, onOpenPlan, onOpenObject }: { e
 
     <div className="explore-layout">
       <div className="event-list" aria-label="Representative event results">
-        <div className="event-list-summary"><strong>{visible.length}</strong><span>shown from official BL + representative event set</span></div>
+        <div className="event-list-summary"><strong>{visible.length}</strong><span>official Atlanta Black Lotus events</span></div>
         {visible.map(event => <ExploreEventRow key={event.id} event={event} selected={selected.id === event.id} onSelect={() => { setSelectedId(event.id); setDetailOpen(true) }} onState={state => updateEvent(event.id, state)} />)}
         {visible.length === 0 && <div className="event-empty">Nothing in this slice. Try All or clear search.</div>}
         {mode !== 'hidden' && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
@@ -1619,7 +1622,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
     <article className="map-card trip-area-card">
       <span className="eyebrow">TRIP AREA</span>
       <h2>Hotels and the convention center first.</h2>
-      <p>The honest quiet-period map is not a fake show floor. It is the small useful triangle: Courtyard, Omni, and Georgia World Congress Center.</p>
+      <p>Courtyard, Omni, and Georgia World Congress Center.</p>
       <div className="area-sketch" aria-label="Simplified Atlanta trip-area sketch">
         <span className="pin courtyard">Courtyard<small>Nov 11</small></span>
         <span className="route-line" />
@@ -1632,12 +1635,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
     <article className="map-card event-map-card">
       <span className="eyebrow">EVENT MAP</span>
       <h2>Waiting for Atlanta 2026 floor evidence.</h2>
-      <p>When the official map appears, this becomes the place for room, booth, vendor, artist, Wallet, and event backlinks. Prior Atlanta maps remain inspiration only.</p>
-      <ul>
-        <li>watch for official floor map publication;</li>
-        <li>attach map observations to Activity and Map;</li>
-        <li>keep interactive booth routing for v2 unless the evidence is ready.</li>
-      </ul>
+      <p>The official floor map has not been published yet.</p>
     </article>
   </section>
 }
@@ -1668,7 +1666,7 @@ function WalletSurface({ onOpenObject, onOpenTrip }: { onOpenObject: (detail: Ob
     </div>
     {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab openModal={openModal} />}
-    {tab === 'store' && <WalletStoreTab openModal={openModal} />}
+    {tab === 'store' && <WalletStoreEmpty />}
     {tab === 'other' && <WalletOtherTab openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
   </section>
@@ -1692,112 +1690,46 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
-function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function WalletHomeTab({ openModal: _openModal, onOpenObject: _onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   return <div className="wallet-home-command">
     <section className="wallet-hero-card">
       <div className="wallet-hero-copy">
-        <div className="wallet-hero-topline">
-          <span className="eyebrow">READY TO SHOW</span>
-        </div>
-        <h2>Proof, ready to show.</h2>
-        <p>Badges and original orders stay one tap away.</p>
-      </div>
-      <div className="wallet-hero-actions">
-        <button type="button" className="primary-show" onClick={() => openModal('SHOWABLE PROOF', 'Kavi badge QR', <ProofPreview kind="qr" code="9gLHU3mJ" note="Representative QR surface. The real implementation should show the preserved pass/order QR with minimal chrome." />)}><NavIcon name="wallet" />Show Kavi QR</button>
-        <button type="button" onClick={() => openModal('ORIGINAL ORDER', 'Black Lotus order confirmation', <ProofPreview kind="receipt" note="Original emails should be captured as PNG for fast showing, with PDF/source email available one step deeper." />)}>Original order</button>
+        <div className="wallet-hero-topline"><span className="eyebrow">BADGES</span></div>
+        <h2>Atlanta passes</h2>
+        <p>Original QR and receipt artifacts have not been attached yet.</p>
       </div>
       <div className="wallet-badge-fan" aria-label="Primary badge cards">
-        <button type="button" className="mini-pass lotus-pass" onClick={() => openModal('BLACK LOTUS VIP', 'Kavi Grace', <ProofPreview kind="qr" code="9gLHU3mJ" note="Badge proof belongs on Wallet Home because this is the thing most likely to be shown quickly." />)}>
+        <div className="mini-pass lotus-pass">
           <span><EventKindIcon name="lotus" /></span>
           <strong>Kavi</strong>
           <small>Black Lotus</small>
-        </button>
-        <button type="button" className="mini-pass lotus-pass" onClick={() => openModal('BLACK LOTUS VIP', 'Chris Tom', <ProofPreview kind="qr" code="9gLHU3mJ" note="Chris is represented here for owner-managed context; this is not multi-user account behavior." />)}>
+        </div>
+        <div className="mini-pass lotus-pass">
           <span><EventKindIcon name="lotus" /></span>
           <strong>Chris</strong>
           <small>Black Lotus</small>
-        </button>
-        <button type="button" className="mini-pass premium-pass" onClick={() => openModal('PREMIUM WEEKEND', 'Juan Pereyra', <ProofPreview kind="qr" code="h7paadIU" note="Juan's badge proof remains handy from Home, with the full order receipt filed under Other." />)}>
+        </div>
+        <div className="mini-pass premium-pass">
           <span><NavIcon name="wallet" /></span>
           <strong>Juan</strong>
           <small>Premium</small>
-        </button>
+        </div>
       </div>
     </section>
-
-    <section className="wallet-quick-grid" aria-label="Wallet quick checks">
-      <button type="button" className="quick-proof black-lotus-proof" onClick={() => openModal('BADGE ORDER', 'Black Lotus order', <ProofPreview kind="receipt" note="Two Black Lotus VIP Early Bird badges. Total $2,025.26. QR key 9gLHU3mJ." />)}>
-        <span className="wallet-kind"><EventKindIcon name="lotus" />Badge order</span>
-        <strong>Black Lotus order</strong>
-        <small>Kavi + Chris · QR key saved</small>
-      </button>
-      <button type="button" className="quick-proof premium-proof" onClick={() => openModal('BADGE ORDER', 'Juan Premium Weekend', <ProofPreview kind="receipt" note="Premium Weekend Early Bird. Total $191.42. QR key h7paadIU." />)}>
-        <span className="wallet-kind"><NavIcon name="wallet" />Badge order</span>
-        <strong>Juan Premium</strong>
-        <small>Forwarded to Juan · original saved</small>
-      </button>
-      <button type="button" className="quick-proof store-proof" onClick={() => onOpenObject({
-        id: 'receipt-39z8',
-        kind: 'receipt',
-        eyebrow: 'Recent receipt',
-        title: 'Magic Con #39Z8',
-        summary: 'Representative store receipt: $255, nine items, assignment-ready. This object should eventually hold extracted line items plus exact PNG/PDF proof.',
-        facts: [
-          { label: 'Total', value: '$255.00' },
-          { label: 'Items', value: '9 store items' },
-          { label: 'Status', value: 'assignment-ready' },
-          { label: 'Artifact', value: 'PNG now · PDF later' },
-        ],
-        source: { label: 'Gmail receipt', value: 'Receipt from Magic Con #39Z8' },
-        rationale: 'Receipts are useful because they answer “what did I buy, who was it for, and can I show the original if needed?” without digging through email.',
-        actions: [{ label: 'Open Wallet Store', destination: 'wallet' }, { label: 'Add note', destination: 'notes' }],
-        backlinks: [{ label: 'Wallet', destination: 'wallet' }, { label: 'Activity', destination: 'activity' }],
-      })}>
-        <span className="wallet-kind"><NavIcon name="activity" />Recent receipt</span>
-        <strong>Magic Con #39Z8</strong>
-        <small>$255 · 9 store items · assignment-ready</small>
-      </button>
-    </section>
-
-    <aside className="wallet-onsite-strip">
-      <span className="eyebrow">ONSITE LOGIC</span>
-      <div><b>Need to enter an event?</b><small>Open Play for codes and original ticketed-play receipts.</small></div>
-      <div><b>Need pickup proof?</b><small>Open Store or Play depending on what was purchased.</small></div>
-      <div><b>Need travel proof?</b><small>Other holds originals; Trip stays pleasant.</small></div>
-    </aside>
   </div>
 }
 
-function WalletPlayTab({ openModal }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void }) {
+function WalletPlayTab({ openModal: _openModal }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
       <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>This tab wakes up when ticketed events are purchased.</p></div></div>
-        <div className="receipt-lines static-receipt-lines">
-          <div><span>Original event receipt</span><b>Waiting</b></div>
-          <div><span>Companion App code</span><b>Waiting</b></div>
-          <div><span>Included product / pickup proof</span><b>Waiting</b></div>
-        </div>
-      </article>
-      <article className="receipt-card play-fixture">
-        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">REPRESENTATIVE EVENT PROOF</span><h2>Deluxe Planar Sealed</h2><p>Ticketed play receipt pattern · not Atlanta data</p></div><strong>$80</strong></div>
-        <div className="receipt-lines">
-          <button type="button" onClick={() => openModal('EVENT CODE', 'Deluxe Planar Sealed code', <ProofPreview kind="code" code="ABC123" note="Representative code surface for Companion App entry or event staff." />)}><span>Event code for Companion App</span><b>ABC123</b></button>
-          <button type="button" onClick={() => openModal('PICKUP PROOF', 'Included product / pickup proof', <ProofPreview kind="receipt" note="Representative pickup-proof surface. Real receipts should preserve the exact original artifact." />)}><span>Show receipt for included product / pickup</span><b>Proof</b></button>
-          <button type="button" onClick={() => openModal('ARRIVAL CUE', 'Show 30 minutes early', <p>Representative operational cue: event starts Fri 1 PM; arrive around 12:30 if check-in, code entry, or pickup is involved.</p>)}><span>Starts Fri 1 PM · show 30 min early</span><b>12:30</b></button>
-        </div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL PLAY RECEIPT', 'Deluxe Planar Sealed receipt', <ProofPreview kind="receipt" note="Representative original receipt preview. Real Atlanta ticketed-play receipts should be captured exactly." />)}>Show original</button><button type="button" onClick={() => openModal('EVENT CODE', 'Deluxe Planar Sealed code', <ProofPreview kind="code" code="ABC123" note="Representative code surface for Companion App entry or event staff." />)}>Show code</button><button type="button" onClick={() => openModal('EVENT LINK', 'Open event', <p>This should deep-link to the event detail in Explore/Plan once the event exists as a real object.</p>)}>Open event</button></div>
       </article>
       <article className="wallet-proof compact-proof">
         <span className="wallet-kind"><NavIcon name="calendar" />Useful extracted logistics</span>
         <div className="wallet-proof-main"><div><h2>Will Call and show hours</h2><p>Thu 12–6 · Fri/Sat 8:30–7 · Sun 8:30–6. Show floor Fri/Sat 10–7, Sun 10–6.</p></div></div>
       </article>
     </section>
-    <aside className="wallet-show-card">
-      <span className="eyebrow">PLAY RECEIPT JOB</span>
-      <h2>Codes, claims, originals.</h2>
-      <p>During the event this is probably the highest-value Wallet subtab: event codes, proof to show staff, original receipt, pickup entitlements, and one tap back to the event.</p>
-    </aside>
   </div>
 }
 
@@ -1844,7 +1776,7 @@ function WalletStoreTab({ openModal }: { openModal: (eyebrow: string, title: str
     </span>
   </details>
 
-  return <div className="wallet-layout">
+  return <div className="wallet-layout wallet-store-legacy" hidden>
     <section className="receipt-list" aria-label="Receipts">
       <article className="receipt-card store-receipt">
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">SHOW STORE FIXTURE</span><h2>Magic Con · Dragon Shield</h2><p>9 items · assignment notes ready</p></div><strong>$255.00</strong></div>
@@ -1875,6 +1807,16 @@ function WalletStoreTab({ openModal }: { openModal: (eyebrow: string, title: str
   </div>
 }
 
+function WalletStoreEmpty() {
+  return <div className="wallet-layout">
+    <section className="receipt-list" aria-label="Store receipts">
+      <article className="receipt-card future-store">
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">STORE</span><h2>No Atlanta store receipts yet</h2><p>Purchases and extracted line items will appear here.</p></div></div>
+      </article>
+    </section>
+  </div>
+}
+
 function AssignmentPreview({ item }: { item: string }) {
   return <div className="assignment-preview">
     <p>{item}</p>
@@ -1888,24 +1830,19 @@ function WalletOtherTab({ openModal, onOpenTrip }: { openModal: (eyebrow: string
       <article className="receipt-card">
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">DELTA RECEIPT</span><h2>Flights · Kavi + Juan</h2><p>Confirmation HOGFBX · SNA ⇄ ATL</p></div></div>
         <div className="receipt-lines"><button type="button" onClick={() => openModal('FLIGHT DETAIL', 'DL 1521', <p>SNA to ATL · Nov 11 · 12:20 PM–7:34 PM · confirmation HOGFBX.</p>)}><span>DL 1521 · Nov 11 · SNA to ATL</span><b>7:34 PM</b></button><button type="button" onClick={() => openModal('FLIGHT DETAIL', 'DL 1602', <p>ATL to SNA · Nov 15 · 8:35 PM–10:29 PM · confirmation HOGFBX.</p>)}><span>DL 1602 · Nov 15 · ATL to SNA</span><b>8:35 PM</b></button></div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL DELTA RECEIPT', 'Delta confirmation HOGFBX', <ProofPreview kind="receipt" note="Original Delta email/PDF preview belongs here; Trip owns the pleasant summary." />)}>Show original</button><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
+        <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
       <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL CONFIRMATIONS</span><h2>Omni + Courtyard</h2><p>Original booking emails belong here; pleasant details live in Trip.</p></div></div>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTELS</span><h2>Omni + Courtyard</h2><p>Atlanta lodging</p></div></div>
         <div className="receipt-lines"><button type="button" onClick={() => openModal('HOTEL DETAIL', 'Courtyard', <p>Courtyard by Marriott Atlanta Downtown · Nov 11–12 · Kavi, Juan, Chris.</p>)}><span>Courtyard · Nov 11-12</span><b>K/J/C</b></button><button type="button" onClick={() => openModal('HOTEL DETAIL', 'Omni', <p>Omni Atlanta Hotel at Centennial Park · Nov 12–15 · Kavi and Juan.</p>)}><span>Omni · Nov 12-15</span><b>K/J</b></button></div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL HOTEL EMAIL', 'Hotel confirmations', <ProofPreview kind="receipt" note="Original hotel email/PDF previews belong here; sensitive booking values stay hidden until deliberately revealed." />)}>Show original</button><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
+        <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
       <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Black Lotus order</h2><p>2 × Black Lotus VIP Early Bird · transaction pi_3Tizh…</p></div><strong>$2,025.26</strong></div>
-        <div className="receipt-lines"><button type="button" onClick={() => openModal('BADGE RECEIPT', 'Kavi Black Lotus VIP', <ProofPreview kind="qr" code="9gLHU3mJ" note="Badge proof is surfaced on Home; Other keeps the financial/original receipt context." />)}><span>Kavi Black Lotus VIP</span><b>Kavi</b></button><button type="button" onClick={() => openModal('BADGE RECEIPT', 'Chris Black Lotus VIP', <ProofPreview kind="qr" code="9gLHU3mJ" note="Same Black Lotus order, assigned to Chris." />)}><span>Chris Black Lotus VIP</span><b>Chris</b></button><button type="button" onClick={() => openModal('SHIPPING', 'Black Lotus badge shipping', <p>Representative extracted line: shipping $15. The original order remains preserved under Show original.</p>)}><span>Shipping</span><b>$15</b></button></div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL BLACK LOTUS ORDER', 'Black Lotus order confirmation', <ProofPreview kind="receipt" note="Two Black Lotus VIP Early Bird badges, total $2,025.26, transaction pi_3Tizh…" />)}>Show original</button><a className="button-link" href="https://conventions.leapevent.tech/c/htwhdatl26shdl10/70a21c58-17aa-4660-b427-636407a19feb?utm_source=email&utm_medium=transactional&utm_campaign=order-confirmation" target="_blank" rel="noreferrer">Open Leap ↗</a></div>
+        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE ORDER</span><h2>Black Lotus</h2><p>2 × Black Lotus VIP Early Bird</p></div><strong>$2,025.26</strong></div>
+        <div className="receipt-lines"><div><span>Kavi Black Lotus VIP</span><b>Kavi</b></div><div><span>Chris Black Lotus VIP</span><b>Chris</b></div></div>
+        <div className="receipt-actions"><a className="button-link" href="https://conventions.leapevent.tech/c/htwhdatl26shdl10/70a21c58-17aa-4660-b427-636407a19feb?utm_source=email&utm_medium=transactional&utm_campaign=order-confirmation" target="_blank" rel="noreferrer">Open Leap ↗</a></div>
       </article>
     </section>
-    <aside className="wallet-show-card">
-      <span className="eyebrow">CATCH-ALL</span>
-      <h2>Useful proofs without clutter.</h2>
-      <p>Other is where booking confirmations, reimbursements, odd entitlements, or one-off proofs can live until a better context emerges.</p>
-    </aside>
   </div>
 }
 
@@ -2006,7 +1943,7 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
         <div className="hotel-links"><a href="https://www.google.com/maps/search/?api=1&query=Omni%20Atlanta%20Hotel%20at%20Centennial%20Park" target="_blank" rel="noreferrer"><NavIcon name="map" />Maps ↗</a><a href="https://www.omnihotels.com/hotels/atlanta-centennial-park" target="_blank" rel="noreferrer">Official hotel ↗</a></div>
       </article>
     </div>
-    <p className="trip-source-note">Hotel addresses and Omni check-in/out times verified from official property pages. Reservation details remain a local design fixture.</p>
+    <p className="trip-source-note">Hotel addresses and Omni check-in/out times verified from official property pages. Booking details stay private.</p>
   </>
 }
 
@@ -2039,42 +1976,18 @@ function FlightsTripTab() {
   </div>
 }
 
-function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+function ArtistsSurface({ onOpenObject: _onOpenObject, onOpenActivity }: { onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   return <section className="artists-surface" aria-label="Artists">
     <section className="artists-status-card">
       <div className="artist-status-icon" aria-hidden="true"><NavIcon name="artists" /></div>
       <div>
         <span className="eyebrow">ATLANTA 2026</span>
         <h2>No confirmed artist list yet.</h2>
-        <p>Keep the official artist directory on watch. Historical MagicCon appearances can seed research later, but they stay marked unconfirmed until Atlanta publishes.</p>
+        <p>The official Atlanta artist directory has not been published.</p>
       </div>
       <button type="button" onClick={onOpenActivity}>Watch activity</button>
     </section>
 
-    <div className="artists-layout">
-      <section className="artist-seed-list" aria-label="Artist planning seeds">
-        {artistSeeds.map(seed => <button key={seed.id} type="button" className="artist-seed-card" onClick={() => onOpenObject(artistSeedToObjectDetail(seed))}>
-          <span className="artist-seed-mark"><NavIcon name={seed.id === 'historical-import' ? 'activity' : seed.id === 'card-match' ? 'wallet' : 'artists'} /></span>
-          <span>
-            <small>{seed.status}</small>
-            <strong>{seed.title}</strong>
-            <em>{seed.signal}</em>
-          </span>
-          <b aria-hidden="true">›</b>
-        </button>)}
-      </section>
-
-      <aside className="artists-intel-card">
-        <span className="eyebrow">USEFUL LATER</span>
-        <h2>Artist work should collapse into a tiny bring-list.</h2>
-        <p>The likely value is finding overlap between confirmed guests, cards you own, visual preference, booth location, and signing effort. The long historical list belongs behind this page, not in your face.</p>
-        <dl>
-          <div><dt>Historical</dt><dd>Prior MagicCon only</dd></div>
-          <div><dt>Confirmed</dt><dd>Official Atlanta 2026 source</dd></div>
-          <div><dt>Matched</dt><dd>Collection/art relevance</dd></div>
-        </dl>
-      </aside>
-    </div>
   </section>
 }
 
@@ -2238,7 +2151,7 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
           : detail === 'bl-friday'
             ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 13', title: 'Friday Black Lotus schedule', copy: 'Published BL schedule: lounge opens 8:30 AM; beverage service 8:30-11; online store pre-order pickup 8:30-5; priority show-floor entry 9:45; play event with special guests 2-6 PM. The play event is explicitly under construction, so this is a meaningful watch item rather than a fully defined event.' }
           : detail === 'airport'
-            ? { eyebrow: 'TRIP · NOV 15', title: 'Leave for ATL airport', copy: 'Placeholder reminder for Kavi and Juan before Delta 1602. Keep it visible, but derive the real departure time later from the final Sunday plan, bags, airport buffer, and local travel conditions rather than hard-coding it now.' }
+            ? { eyebrow: 'TRIP · NOV 15', title: 'Leave for ATL airport', copy: 'Departure time is not set yet. It should account for the final Sunday plan, bags, airport buffer, and local travel conditions.' }
           : detail === 'sunday'
             ? { eyebrow: 'TRIP · NOV 15', title: 'Closing day and flight home', copy: 'Omni check-out is 11 AM. Kavi and Juan fly Delta 1602 from ATL to SNA, 8:35 PM-10:29 PM, confirmation HOGFBX. Calendar should eventually derive a low-noise leave-for-airport reminder from the final Sunday plan.' }
             : detail === 'bl-sunday'
@@ -2349,20 +2262,12 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
   </div>
 }
 
-function NotesSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
+function NotesSurface({ onOpenObject: _onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   return <section className="notes-surface" aria-label="Notes">
     <div className="notes-compose">
-      <span className="eyebrow">QUICK NOTE</span>
-      <h2>Context first.</h2>
-      <p>Notes in this POC are opened from the event, receipt, place, or alert they belong to. A freeform note composer belongs in v1.5 once storage is real.</p>
-    </div>
-    <div className="notes-list">
-      {contextNotes.map(note => <article key={note.id} className="note-card">
-        <div><span className="note-context">{note.context}</span><time>{note.updatedAt}</time></div>
-        <h2>{note.title}</h2>
-        <p>{note.body}</p>
-        <button type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Open note detail <span aria-hidden="true">›</span></button>
-      </article>)}
+      <span className="eyebrow">NOTES</span>
+      <h2>No notes yet.</h2>
+      <p>Notes added from events, receipts, places, and alerts will collect here.</p>
     </div>
   </section>
 }
@@ -2406,7 +2311,7 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
         <b>{item.count}</b>
       </button>)}
     </div>
-    <div className="activity-layout">
+    <div className={`activity-layout ${incomingAlerts.length === 0 ? 'solo' : ''}`}>
       <div className="activity-feed">
         {stream === 'personal' ? contextNotes.map(note => <article key={note.id} className="activity-card personal">
           <span className="activity-icon"><NavIcon name="notes" /></span>
@@ -2414,11 +2319,11 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
         </article>) : alerts.map(alert => <AlertCard key={alert.id} alert={alert} reviewState={reviewState(alert)} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
         {alerts.length === 0 && stream !== 'personal' && <div className="activity-empty"><strong>No items here.</strong><span>{stream === 'archived' ? 'Archived findings will remain recoverable here.' : 'Quiet is a valid state.'}</span></div>}
       </div>
-      <aside className="activity-rail" aria-label="Activity context">
-        <button className="activity-route-card" type="button" onClick={() => onOpenObject(alertToObjectDetail(incomingAlerts.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingAlerts[0]))}>
+      {incomingAlerts.length > 0 && <aside className="activity-rail" aria-label="Activity context">
+        {incomingAlerts.length > 0 && <button className="activity-route-card" type="button" onClick={() => onOpenObject(alertToObjectDetail(incomingAlerts.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingAlerts[0]))}>
           <span className="activity-route-icon"><AlertKindIcon kind="site" /></span>
           <span><strong>Highest watch</strong><small>Black Lotus page changes route to Home.</small></span>
-        </button>
+        </button>}
         <details className="activity-context-card">
           <summary>What can land here</summary>
           <p>Exact source, retrieval time, useful wording, AI summary, rationale, suggested destination, and review state.</p>
@@ -2432,7 +2337,7 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, onReviewC
             <div><dt>Status</dt><dd>{slice.observation.observation_status}</dd></div>
           </dl>
         </details>
-      </aside>
+      </aside>}
     </div>
   </section>
 }
