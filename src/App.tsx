@@ -767,7 +767,8 @@ type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
 type ActivityStream = 'needs-review' | 'changes' | 'sources' | 'personal' | 'archived'
 type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
-type NoteFilter = 'all' | 'mine' | 'others'
+type NotePersonFilter = 'all' | PersonName
+type NoteTypeFilter = 'all' | 'wallet' | 'trip' | 'events' | 'other'
 type ObjectDetail = {
   id: string
   kind: ObjectDetailKind
@@ -1766,14 +1767,47 @@ function ObjectNotes({ notes, onAddNote, objectId, objectKind, objectTitle, obje
   </section>
 }
 
-function NoteFilterTabs({ filter, onFilter, notes }: { filter: NoteFilter; onFilter: (filter: NoteFilter) => void; notes: ContextNote[] }) {
-  const others = notes.filter(note => note.author !== 'Kavi').length
-  return <div className="note-filter-tabs" role="tablist" aria-label="Note filters">
-    {([
-      ['all', `All ${notes.length}`],
-      ['mine', 'Mine'],
-      ['others', `Others ${others}`],
-    ] as const).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={filter === value} className={filter === value ? 'active' : ''} onClick={() => onFilter(value)}>{label}</button>)}
+function noteType(note: ContextNote): NoteTypeFilter {
+  if (note.backlink === 'wallet' || note.objectKind === 'receipt') return 'wallet'
+  if (note.backlink === 'trip' || note.objectKind === 'hotel' || note.objectKind === 'place') return 'trip'
+  if (['calendar', 'plan', 'explore'].includes(note.backlink) || note.objectKind === 'event') return 'events'
+  return 'other'
+}
+
+function NotesFilterBar({
+  notes,
+  personFilter,
+  typeFilter,
+  onPersonFilter,
+  onTypeFilter,
+}: {
+  notes: ContextNote[]
+  personFilter: NotePersonFilter
+  typeFilter: NoteTypeFilter
+  onPersonFilter: (filter: NotePersonFilter) => void
+  onTypeFilter: (filter: NoteTypeFilter) => void
+}) {
+  const people = [...new Set(notes.map(note => note.author))]
+  const types: Array<{ value: NoteTypeFilter; label: string; count: number }> = [
+    { value: 'all', label: 'All types', count: notes.length },
+    { value: 'wallet', label: 'Wallet', count: notes.filter(note => noteType(note) === 'wallet').length },
+    { value: 'trip', label: 'Trip', count: notes.filter(note => noteType(note) === 'trip').length },
+    { value: 'events', label: 'Events', count: notes.filter(note => noteType(note) === 'events').length },
+    { value: 'other', label: 'Other', count: notes.filter(note => noteType(note) === 'other').length },
+  ]
+  return <div className="notes-filter-bar" aria-label="Note filters">
+    <div className="notes-filter-group people">
+      <span>People</span>
+      <button type="button" className={personFilter === 'all' ? 'active text' : 'text'} onClick={() => onPersonFilter('all')}>All {notes.length}</button>
+      {people.map(person => <button key={person} type="button" className={personFilter === person ? 'active bubble-button' : 'bubble-button'} onClick={() => onPersonFilter(person)} aria-label={`Show ${person}'s notes`}>
+        <PersonBubbles people={[person]} />
+        <small>{notes.filter(note => note.author === person).length}</small>
+      </button>)}
+    </div>
+    <div className="notes-filter-group types">
+      <span>Type</span>
+      {types.map(type => <button key={type.value} type="button" className={typeFilter === type.value ? 'active text' : 'text'} onClick={() => onTypeFilter(type.value)} disabled={type.count === 0 && type.value !== 'all'}>{type.label} {type.count}</button>)}
+    </div>
   </div>
 }
 
@@ -2555,8 +2589,13 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
 }
 
 function NotesSurface({ notes, onOpenObject }: { notes: ContextNote[]; onOpenObject: (detail: ObjectDetail) => void }) {
-  const [filter, setFilter] = useState<NoteFilter>('all')
-  const filtered = notes.filter(note => filter === 'all' ? true : filter === 'mine' ? note.author === 'Kavi' : note.author !== 'Kavi')
+  const [personFilter, setPersonFilter] = useState<NotePersonFilter>('all')
+  const [typeFilter, setTypeFilter] = useState<NoteTypeFilter>('all')
+  const filtered = notes.filter(note => {
+    const personMatch = personFilter === 'all' || note.author === personFilter
+    const typeMatch = typeFilter === 'all' || noteType(note) === typeFilter
+    return personMatch && typeMatch
+  })
   const grouped = filtered.reduce<Record<string, ContextNote[]>>((acc, note) => {
     const key = note.context
     acc[key] = [...(acc[key] ?? []), note]
@@ -2564,9 +2603,9 @@ function NotesSurface({ notes, onOpenObject }: { notes: ContextNote[]; onOpenObj
   }, {})
 
   return <section className="notes-surface" aria-label="Notes">
+    <NotesFilterBar notes={notes} personFilter={personFilter} typeFilter={typeFilter} onPersonFilter={setPersonFilter} onTypeFilter={setTypeFilter} />
     <div className="notes-compose">
       <div><span className="eyebrow">UNIVERSAL NOTES</span><h2>{notes.length ? 'Context collected where it happened.' : 'No notes yet.'}</h2><p>Notes added from events, receipts, trip items, places, and alerts collect here without becoming separate note systems.</p></div>
-      <NoteFilterTabs filter={filter} onFilter={setFilter} notes={notes} />
     </div>
     {filtered.length === 0 ? <div className="notes-empty"><strong>{notes.length ? 'No notes in this filter.' : 'Add a note from any object detail.'}</strong><span>Receipts, events, trip places, and Activity findings all use the same note layer.</span></div> : <div className="notes-index">
       {Object.entries(grouped).map(([context, contextItems]) => <section className="notes-context-group" key={context}>
