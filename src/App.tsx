@@ -1665,8 +1665,8 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
 function WalletSurface({ onOpenObject, onOpenTrip }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(1700)
-  const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode } | null>(null)
-  const openModal = (eyebrow: string, title: string, body: ReactNode) => setModal({ eyebrow, title, body })
+  const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
+  const openModal = (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => setModal({ eyebrow, title, body, people })
   const adjustTix = (delta: number) => setTix(value => Math.max(0, value + delta))
 
   return <section className="wallet-surface" aria-label="Wallet">
@@ -1694,11 +1694,13 @@ function WalletSurface({ onOpenObject, onOpenTrip }: { onOpenObject: (detail: Ob
   </section>
 }
 
-function WalletModal({ eyebrow, title, body, onClose }: { eyebrow: string; title: string; body: ReactNode; onClose: () => void }) {
+function WalletModal({ eyebrow, title, body, people, onClose }: { eyebrow: string; title: string; body: ReactNode; people?: PersonName[]; onClose: () => void }) {
   return <aside className="wallet-modal" role="dialog" aria-modal="true" aria-label={title}>
     <button className="detail-close" type="button" onClick={onClose} aria-label="Close Wallet detail">×</button>
-    <span className="eyebrow">{eyebrow}</span>
-    <h2>{title}</h2>
+    <div className="wallet-modal-head">
+      <div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div>
+      {people?.length ? <PersonBubbles people={people} /> : null}
+    </div>
     <div className="wallet-modal-body">{body}</div>
   </aside>
 }
@@ -1712,9 +1714,9 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
-function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenObject: (detail: ObjectDetail) => void }) {
-  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail />)
-  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail />)
+function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail />, ['Kavi', 'Chris'])
+  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail />, ['Juan'])
 
   return <div className="wallet-home-command">
     <section className="wallet-hero-card">
@@ -1732,16 +1734,19 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
           <span><EventKindIcon name="lotus" /></span>
           <strong>Kavi</strong>
           <small>Black Lotus</small>
+          <PersonBubbles people={['Kavi']} />
         </button>
         <button className="mini-pass lotus-pass" type="button" onClick={openBlackLotusProof}>
           <span><EventKindIcon name="lotus" /></span>
           <strong>Chris</strong>
           <small>Black Lotus</small>
+          <PersonBubbles people={['Chris']} />
         </button>
         <button className="mini-pass premium-pass" type="button" onClick={openJuanProof}>
           <span><NavIcon name="wallet" /></span>
           <strong>Juan</strong>
           <small>Premium</small>
+          <PersonBubbles people={['Juan']} />
         </button>
       </div>
     </section>
@@ -1772,7 +1777,6 @@ function BlackLotusProofDetail() {
         <div className="proof-status-grid">
           <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
           <span><b>$2,025.26</b><small>order total</small></span>
-          <span className="proof-person-slot"><b><PersonBubbles people={['Kavi', 'Chris']} /></b><small>badge holders</small></span>
         </div>
         <div className="proof-info-list">
           <div><span>Order proof</span><strong>QR code captured from Leap email</strong></div>
@@ -1833,7 +1837,6 @@ function JuanPremiumProofDetail() {
         <div className="proof-status-grid">
           <span><b>1</b><small>Premium Weekend Early Bird badge</small></span>
           <span><b>$191.42</b><small>order total</small></span>
-          <span className="proof-person-slot"><b><PersonBubbles people={['Juan']} /></b><small>badge holder</small></span>
         </div>
         <div className="proof-info-list">
           <div><span>Order proof</span><strong>Confirmation email code + rendered Leap QR</strong></div>
@@ -1859,8 +1862,10 @@ function JuanPremiumProofDetail() {
   </div>
 }
 
-function PersonBubbles({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'Kyle'> }) {
-  const labels: Record<'Kavi' | 'Juan' | 'Chris' | 'Kyle', string> = { Kavi: 'Ka', Juan: 'J', Chris: 'C', Kyle: 'Ky' }
+type PersonName = 'Kavi' | 'Juan' | 'Chris' | 'Kyle'
+
+function PersonBubbles({ people }: { people: PersonName[] }) {
+  const labels: Record<PersonName, string> = { Kavi: 'Ka', Juan: 'J', Chris: 'C', Kyle: 'Ky' }
   return <span className="person-bubbles" aria-label={people.join(', ')}>
     {people.map(person => <span key={person} className={`person-bubble ${person.toLowerCase()}`} title={person}>{labels[person]}</span>)}
   </span>
