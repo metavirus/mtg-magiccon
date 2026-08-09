@@ -182,7 +182,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .activity-inbox-head h2{font-size:17px}
 .activity-inbox-head p{max-width:760px;font-size:11px}
 .review-count{width:36px;height:36px;border-radius:11px;font-size:18px}
-.activity-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));justify-self:stretch;width:100%;max-width:740px;border-radius:12px}
+.activity-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));justify-self:stretch;width:100%;max-width:880px;border-radius:12px}
 .activity-tabs button{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;height:31px;padding:0 8px;border-radius:10px;font-weight:650}
 .activity-tabs button b{display:grid;place-items:center;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#17283f;color:#b9c7d8;font-size:9px;font-weight:800}
 .activity-tabs button.active b{background:#2c4d75;color:#fff}
@@ -227,7 +227,7 @@ html,body{max-width:100%;overflow-x:hidden}
   .activity-inbox-head h2{padding-right:40px;font-size:15px}
   .activity-inbox-head p{font-size:10px}
   .activity-inbox-head .review-count{position:absolute;top:10px;right:12px;margin:0;width:30px;height:30px;border-radius:9px;font-size:15px}
-  .activity-tabs{grid-template-columns:repeat(5,minmax(42px,1fr));overflow:visible}
+  .activity-tabs{grid-template-columns:repeat(6,minmax(42px,1fr));overflow:visible}
   .activity-tabs button{height:30px;padding:0 3px;font-size:8px}
   .activity-tab-icon{width:12px;height:12px}
   .activity-tab-icon .nav-icon,.activity-tab-icon .alert-kind-icon{width:12px;height:12px}
