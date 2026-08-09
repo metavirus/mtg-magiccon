@@ -1714,6 +1714,7 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
 
 function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail />)
+  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail />)
 
   return <div className="wallet-home-command">
     <section className="wallet-hero-card">
@@ -1737,7 +1738,7 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
           <strong>Chris</strong>
           <small>Black Lotus</small>
         </button>
-        <button className="mini-pass premium-pass" type="button" onClick={() => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <p>Premium Weekend order proof is known from the Leap order confirmation. Add its QR/original artifact when we ingest Juan's specific proof.</p>)}>
+        <button className="mini-pass premium-pass" type="button" onClick={openJuanProof}>
           <span><NavIcon name="wallet" /></span>
           <strong>Juan</strong>
           <small>Premium</small>
@@ -1749,8 +1750,9 @@ function WalletHomeTab({ openModal, onOpenObject }: { openModal: (eyebrow: strin
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Black Lotus badge order</h2><p>2 × Black Lotus VIP Early Bird · Kavi + Chris</p></div><strong>$2,025.26</strong></div>
         <div className="receipt-lines"><div><span>Showable QR captured</span><b>QR</b></div><div><span>Original email reference</span><b>Gmail</b></div></div>
       </button>
-      <button className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <p>Premium Weekend order proof is known, but the receipt/QR artifact has not been ingested yet.</p>)}>
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Juan Premium Weekend</h2><p>Receipt artifact not ingested yet</p></div></div>
+      <button className="receipt-card wallet-receipt-button" type="button" onClick={openJuanProof}>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Juan Premium Weekend</h2><p>Premium Weekend Early Bird · Juan</p></div><strong>$191.42</strong></div>
+        <div className="receipt-lines"><div><span>Showable QR captured</span><b>QR</b></div><div><span>Original receipt</span><b>pending</b></div></div>
       </button>
     </section>
   </div>
@@ -1813,6 +1815,50 @@ function BlackLotusProofDetail() {
       </>}
     <div className="proof-links">
       <a href="https://conventions.leapevent.tech/c/htwhdatl26shdl10/70a21c58-17aa-4660-b427-636407a19feb?utm_source=email&utm_medium=transactional&utm_campaign=order-confirmation" target="_blank" rel="noreferrer">Open Leap order</a>
+    </div>
+  </div>
+}
+
+function JuanPremiumProofDetail() {
+  const [mode, setMode] = useState<'info' | 'original'>('info')
+  const orderCode = 'h7paadIU'
+
+  return <div className="proof-detail">
+    <div className="proof-mode-tabs" role="tablist" aria-label="Badge proof view">
+      <button type="button" role="tab" aria-selected={mode === 'info'} className={mode === 'info' ? 'active' : ''} onClick={() => setMode('info')}>Info</button>
+      <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
+    </div>
+    {mode === 'info'
+      ? <>
+        <div className="proof-status-grid">
+          <span><b>1</b><small>Premium Weekend Early Bird badge</small></span>
+          <span><b>$191.42</b><small>order total</small></span>
+          <span><b><PersonBubbles people={['Juan']} /></b><small>badge holder</small></span>
+        </div>
+        <div className="proof-info-list">
+          <div><span>Order proof</span><strong>Confirmation email code + rendered Leap QR</strong></div>
+          <div><span>Product</span><strong>Premium Weekend badge + included promo/booster bundle</strong></div>
+          <div><span>Will Call</span><strong>Thu 12-6 · Fri/Sat 8:30-7 · Sun 8:30-6</strong></div>
+          <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
+        </div>
+        <div className="proof-qr-card" aria-label="Showable Juan Premium order QR">
+          <figure>
+            <img src="./juan-premium-order-qr.png" alt="QR code for Juan's MagicCon Atlanta Premium Weekend order proof" />
+            <figcaption>Show this with the confirmation email code if staff needs Juan's order proof.</figcaption>
+          </figure>
+          <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
+        </div>
+      </>
+      : <div className="original-pending">
+        <span className="receipt-icon"><NavIcon name="wallet" /></span>
+        <div>
+          <h3>Full original email capture pending</h3>
+          <p>Juan's order is verified from the Gmail confirmation and the code shown in that email. Gmail exposes no downloadable inline QR part for this message, so the visible QR asset is the rendered Leap order QR. The full scrollable Gmail receipt still needs a clean render before this tab can honestly behave like Black Lotus Original.</p>
+          <a href="https://mail.google.com/mail/#all/19ed15b8526bebfe" target="_blank" rel="noreferrer">Open Gmail source</a>
+        </div>
+      </div>}
+    <div className="proof-links">
+      <a href="https://conventions.leapevent.tech/c/htwhdatl26shdl10/9af95f51-81e1-4ff7-8125-a7e2daccb9be?utm_source=email&utm_medium=transactional&utm_campaign=order-confirmation" target="_blank" rel="noreferrer">Open Leap order</a>
     </div>
   </div>
 }
