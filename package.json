@@ -11,6 +11,7 @@
     "build:pages": "pnpm build && powershell -ExecutionPolicy Bypass -File scripts/prepare_github_pages.ps1",
     "sync:pages": "powershell -ExecutionPolicy Bypass -File scripts/sync_github_pages.ps1",
     "verify:pages": "powershell -ExecutionPolicy Bypass -File scripts/verify_github_pages_sync.ps1",
+    "verify:public": "powershell -ExecutionPolicy Bypass -File scripts/verify_public_pages.ps1",
     "publish:pages": "pnpm build:pages && pnpm sync:pages && pnpm verify:pages",
     "preview": "vite preview --configLoader runner",
     "test": "vitest run --configLoader runner",
