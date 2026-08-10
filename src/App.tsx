@@ -224,19 +224,6 @@ const destinations = [
   { name: 'Notes', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
 ]
 
-const mobileMainDestinations = [
-  { name: 'Home', note: 'Now', icon: 'home' as NavIconName, surface: 'home' as Surface },
-  { name: 'Explore', note: 'Discover', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
-  { name: 'Plan', note: 'Compare', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
-  { name: 'Calendar', note: 'Agenda', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
-  { name: 'Map', note: 'Places', icon: 'map' as NavIconName, surface: 'map' as Surface },
-  { name: 'Wallet', note: 'Proofs', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
-  { name: 'Trip', note: 'Hotels & flights', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
-  { name: 'Artists', note: 'Signature seeds', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
-  { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
-  { name: 'Activity', note: 'Signals', icon: 'activity' as NavIconName, surface: 'activity' as Surface },
-]
-
 export default function App() {
   const designPreview = resolveDesignPreviewMode({
     search: window.location.search,
@@ -625,17 +612,14 @@ export default function App() {
       <section className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label={mobileNavMenu === 'main' ? 'Main navigation' : mobileNavMenu === 'events' ? 'Event destinations' : 'More destinations'}>
         {mobileNavMenu === 'main'
           ? <header className="mobile-drawer-brand">
-            <div className="mobile-drawer-brand-mark"><img src={assetUrl('magiccon-atlanta-peach.png')} alt="" /></div>
-            <div className="mobile-drawer-brand-copy">
-              <span className="mobile-drawer-label">Menu</span>
-              <strong>MagicCon</strong>
-              <small>Atlanta 2026</small>
-            </div>
+            <button className="mobile-drawer-brand-logo" type="button" onClick={() => openDestination('Home', 'home')} aria-label="MagicCon Atlanta home">
+              <img src={assetUrl('magiccon-atlanta-peach.png')} alt="" />
+            </button>
             <button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button>
           </header>
           : <header><span className="eyebrow">{mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>}
         <div className={mobileNavMenu === 'main' ? 'mobile-drawer-nav mobile-drawer-nav-main' : undefined}>
-          {(mobileNavMenu === 'main' ? mobileMainDestinations : mobileNavMenu === 'events' ? [
+          {(mobileNavMenu === 'main' ? destinations : mobileNavMenu === 'events' ? [
             { name: 'Explore', note: 'Discover', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
             { name: 'Plan', note: 'Compare', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
             { name: 'Calendar', note: 'Agenda', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
@@ -649,11 +633,14 @@ export default function App() {
               <span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}
             </button>
             : <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
-              <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{destination.note}</small><b aria-hidden="true">›</b>
+              <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{'note' in destination ? destination.note : ''}</small><b aria-hidden="true">›</b>
             </button>)}
         </div>
         {mobileNavMenu === 'main' && <footer className="mobile-drawer-foot">
-          <small>Last checked <strong>{lastChecked}</strong></small>
+          <button className={`mobile-drawer-activity ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}>
+            <span aria-hidden="true"><NavIcon name="activity" /></span>Activity
+          </button>
+          <small>Last checked<br /><strong>{lastChecked}</strong></small>
         </footer>}
       </section>
     </div>}

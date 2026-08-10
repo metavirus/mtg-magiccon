@@ -192,6 +192,164 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(max-width:760px){.notes-filter-bar{display:grid;gap:8px}.notes-filter-group{overflow-x:auto;padding-bottom:1px}.notes-filter-group.types{justify-content:flex-start;flex-wrap:nowrap}}
 @media(max-width:560px){.object-detail-backdrop{align-items:flex-end}.object-detail{width:100%;height:auto;max-height:78vh;padding:18px 16px calc(78px + env(safe-area-inset-bottom));border-top:1px solid #344b69;border-left:0;border-radius:17px 17px 0 0}.object-detail-head{padding-right:34px}.object-detail-head h2{font-size:20px}.object-kind-chip{height:20px;padding:0 7px;font-size:8px}.object-fact-grid{grid-template-columns:1fr}.object-detail-actions{bottom:calc(-78px - env(safe-area-inset-bottom));margin-right:-16px;margin-left:-16px;padding-right:16px;padding-left:16px}}
 
+/* Mobile main navigation is the desktop rail collapsed into an overlay.
+   Keep this as a rail override, not a separate card-style drawer. */
+@media(max-width:900px){
+  .mobile-nav-drawer-backdrop.menu-main{
+    align-items:stretch;
+    justify-content:flex-start;
+    padding:0;
+    background:linear-gradient(90deg,rgba(5,9,17,.72),rgba(5,9,17,.44) 32%,rgba(5,9,17,.14) 56%,rgba(5,9,17,.04) 74%);
+  }
+  .menu-main .mobile-nav-drawer{
+    display:flex;
+    flex-direction:column;
+    width:var(--desktop-rail-width);
+    min-width:var(--desktop-rail-width);
+    max-width:var(--desktop-rail-width);
+    min-height:calc(100vh - 68px - env(safe-area-inset-bottom));
+    max-height:calc(100vh - 68px - env(safe-area-inset-bottom));
+    padding:24px 18px 20px;
+    border:0;
+    border-right:1px solid #263850;
+    border-radius:0;
+    background:#081220;
+    box-shadow:14px 0 30px rgba(0,0,0,.42);
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  .menu-main .mobile-drawer-brand{
+    position:relative;
+    display:block;
+    padding:0;
+  }
+  .menu-main .mobile-drawer-brand-logo{
+    display:block;
+    width:128px;
+    height:86px;
+    margin:0 auto 25px;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+  }
+  .menu-main .mobile-drawer-brand-logo img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+  }
+  .menu-main .mobile-drawer-brand>button[aria-label="Close navigation drawer"]{
+    position:absolute;
+    top:-8px;
+    right:-7px;
+    width:27px;
+    height:27px;
+    border:1px solid #314862;
+    border-radius:9px;
+    background:#101d2e;
+    color:#9cafc5;
+    font-size:17px;
+  }
+  .menu-main .mobile-drawer-nav-main{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+    align-content:start;
+  }
+  .menu-main .mobile-drawer-nav-main>button{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    min-height:0;
+    width:100%;
+    padding:12px 14px;
+    border:0;
+    border-radius:12px;
+    background:transparent;
+    color:#9cabbe;
+    font-size:16px;
+    font-weight:650;
+    line-height:1;
+    text-align:left;
+  }
+  .menu-main .mobile-drawer-nav-main>button>span{
+    display:grid;
+    place-items:center;
+    flex:0 0 22px;
+    width:22px;
+    height:22px;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    color:#83adf0;
+  }
+  .menu-main .mobile-drawer-nav-main>button .nav-icon{
+    width:22px;
+    height:22px;
+  }
+  .menu-main .mobile-drawer-nav-main>button:hover,
+  .menu-main .mobile-drawer-nav-main>button.active{
+    background:#182a44;
+    color:#f4f7fb;
+  }
+  .menu-main .mobile-drawer-nav-main>button.active{
+    font-weight:720;
+  }
+  .menu-main .mobile-drawer-nav-main>button.active>span{
+    background:transparent;
+    color:#83adf0;
+  }
+  .menu-main .mobile-drawer-foot{
+    display:grid;
+    gap:8px;
+    margin-top:auto;
+    padding:15px 0 0;
+    border-top:1px solid #263850;
+    color:#60738d;
+  }
+  .mobile-drawer-activity{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    width:100%;
+    padding:12px 14px;
+    border:0;
+    border-radius:12px;
+    background:transparent;
+    color:#9cabbe;
+    font-size:16px;
+    font-weight:650;
+    line-height:1;
+    text-align:left;
+  }
+  .mobile-drawer-activity span{
+    display:grid;
+    place-items:center;
+    flex:0 0 22px;
+    color:#83adf0;
+  }
+  .mobile-drawer-activity .nav-icon{
+    width:22px;
+    height:22px;
+  }
+  .mobile-drawer-activity:hover,
+  .mobile-drawer-activity.active{
+    background:#182a44;
+    color:#f4f7fb;
+  }
+  .menu-main .mobile-drawer-foot small{
+    padding:0 14px;
+    color:#60738d;
+    font-size:9px;
+    line-height:1.35;
+  }
+  .menu-main .mobile-drawer-foot small strong{
+    color:#7f93ad;
+    font-weight:560;
+  }
+}
+
 /* V1.5 Home/Activity review inbox. */
 .home-attention{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 14px;border:1px solid #2d4260;border-radius:15px;background:#0e1a2a}.home-status-orb{display:grid;place-items:center;width:32px;height:32px;border:1px solid #344b68;border-radius:10px;background:#14243a;color:#9fc6f7}.home-status-orb .alert-kind-icon,.home-status-orb .milestone-icon-svg{width:17px;height:17px}.home-attention.quiet{border-left:4px solid #70d8b1}.home-attention.quiet .home-status-orb{border-color:#3d806b;background:#17352f;color:#78d7b2}.home-attention.needs-review{border-left:4px solid #dfb865;background:linear-gradient(105deg,#171a28,#101d2e)}.home-attention.needs-review .home-status-orb{border-color:#806331;background:#30291e;color:#f0cc7e}.home-attention h2{margin:4px 0 3px;font-size:18px}.home-attention p{margin:0;color:#9eacc0;font-size:12px;line-height:1.45}.home-attention-actions{display:flex;align-items:center;gap:7px}.home-attention-actions span{display:grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border:1px solid #3b526f;border-radius:999px;color:#f0cc7e;font-size:11px;font-weight:800}.home-attention-actions button{min-height:29px;padding:0 10px;border:1px solid #3b526f;border-radius:9px;background:#122138;color:#b6c9e2;font-size:10px;cursor:pointer}.home-attention-actions button:hover{border-color:#79aaff;color:#fff}
 .home-priority-card{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:13px 15px;border:1px solid #6f562f;border-left:4px solid #dfb865;border-radius:15px;background:radial-gradient(circle at 8% 12%,rgba(223,184,101,.16),transparent 30%),linear-gradient(105deg,#1b1d2b,#101d2e);color:inherit;text-align:left;cursor:pointer}.home-priority-card:hover{border-color:#efc86f;background:radial-gradient(circle at 8% 12%,rgba(223,184,101,.2),transparent 34%),linear-gradient(105deg,#202236,#132238)}.priority-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#30291e;color:#f0cc7e}.priority-icon .alert-kind-icon{width:19px;height:19px}.priority-copy{display:grid;gap:2px;min-width:0}.priority-copy strong{overflow:hidden;color:#f3f7fc;font-size:15px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}.priority-copy small{overflow:hidden;color:#aebbd0;font-size:11px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}.priority-route{display:flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #4a5f7a;border-radius:999px;color:#b8c9df;font-size:10px;font-weight:700;white-space:nowrap}.priority-route b{color:#efc86f;font-size:15px}
