@@ -19,11 +19,15 @@ Private, mobile-first planning and personal-intelligence app for one attendee at
 
 Run `pnpm readiness` before database or release work. See [development architecture](docs/DEVELOPMENT_ARCHITECTURE.md), [environment readiness](docs/ENVIRONMENT_READINESS.md), [project context](docs/PROJECT_CONTEXT.md), and [current frontier](CURRENT_FRONTIER.md).
 
+Before spending time on a recurring setup, Git, auth, cache, publish, or responsive issue, check [Known Gremlins](docs/KNOWN_GREMLINS.md). The project should not repeatedly rediscover the same environment failures.
+
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
 | `pnpm dev` | Local app |
+| `pnpm check:ui` | Fast Tier 0 acceptance for ordinary UI/copy/layout changes |
+| `pnpm check:ship` | Tier 1 acceptance before pushing a public preview change |
 | `pnpm preview` | Serve a built app preview using the same Vite config-loader path as build |
 | `pnpm build` | Type-check and production build |
 | `pnpm publish:pages` | Build and sync the local `tmp/gh-pages` worktree; this is not public until `gh-pages` is pushed |
