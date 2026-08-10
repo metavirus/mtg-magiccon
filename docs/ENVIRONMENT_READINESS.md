@@ -14,7 +14,14 @@ Run `pnpm readiness` before Tier 2 data/auth/database/research/monitoring work a
 - a harmless live query reaches database `postgres`;
 - the owner proof table still has forced RLS, four policies, update `USING` and `WITH CHECK`, no anonymous grants, and exactly the intended authenticated grants.
 
-Application build, tests, text integrity, and secret scanning remain separate acceptance commands so failures identify their actual layer:
+Application build, tests, text integrity, and secret scanning remain separate acceptance commands so failures identify their actual layer. Use the light wrappers for ordinary UI work:
+
+```powershell
+pnpm check:ui
+pnpm check:ship
+```
+
+Use the individual commands when diagnosing a specific failure:
 
 ```powershell
 pnpm build

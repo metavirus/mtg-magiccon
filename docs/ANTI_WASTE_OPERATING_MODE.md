@@ -11,7 +11,7 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 - Read only the directly relevant code and the current user complaint.
 - Do not re-open the full project documentation set unless the change depends on product history.
 - Do not run database/readiness gates unless publishing or auth/data behavior is involved.
-- Verify with `pnpm build`.
+- Verify with `pnpm check:ui`.
 - If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed.
 - If the same visual target fails twice, stop patching symptoms and find the duplicated component, CSS cascade, cache, or publish root cause.
 
@@ -19,12 +19,13 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 
 Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 
-- Run `pnpm build`, `pnpm validate:text`, and `pnpm validate:secrets`.
+- Run `pnpm check:ship`.
 - Run `pnpm publish:pages`.
 - Push `gh-pages` if publication is requested.
 - After pushing, run `pnpm verify:public`.
 - Treat “published” as true only after a cache-busted public URL serves the expected current asset or visible behavior.
 - If public Pages still shows stale behavior, say “pushed but not propagated/cached yet,” not “fixed.”
+- If any known environment/publish/cache/auth/Git failure appears, follow `docs/KNOWN_GREMLINS.md` before inventing a new workaround.
 
 ### Tier 2 — user data, auth, receipts, monitoring, Supabase, or migrations
 

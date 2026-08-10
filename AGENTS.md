@@ -1,6 +1,6 @@
 # Agent Instructions
 
-Before substantive application, research, or database work, choose the smallest safe lane from `docs/ANTI_WASTE_OPERATING_MODE.md`.
+Before substantive application, research, or database work, check `docs/KNOWN_GREMLINS.md` for any already-known failure mode, then choose the smallest safe lane from `docs/ANTI_WASTE_OPERATING_MODE.md`.
 
 For Tier 0 small visual/copy fixes, do not drag the full project ceremony into the turn. Read the relevant files, make the smallest reversible change, run `pnpm build`, and visually verify the affected viewport when the defect is visual.
 
