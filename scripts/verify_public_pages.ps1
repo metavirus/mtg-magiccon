@@ -1,22 +1,22 @@
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path .).Path
-$publishRoot = Join-Path $repoRoot 'tmp\gh-pages'
-$publishIndexPath = Join-Path $publishRoot 'index.html'
+$distRoot = Join-Path $repoRoot 'dist'
+$distIndexPath = Join-Path $distRoot 'index.html'
 $publicUrl = 'https://metavirus.github.io/mtg-magiccon/'
 
-if (-not (Test-Path -LiteralPath $publishIndexPath)) {
-  throw "Missing gh-pages index at $publishIndexPath. Run pnpm publish:pages first."
+if (-not (Test-Path -LiteralPath $distIndexPath)) {
+  throw "Missing dist index at $distIndexPath. Run pnpm build:pages first."
 }
 
-$publishIndex = Get-Content -Raw -LiteralPath $publishIndexPath
+$publishIndex = Get-Content -Raw -LiteralPath $distIndexPath
 $assetPattern = 'assets/[A-Za-z0-9._-]+'
 $expectedAssets = [System.Text.RegularExpressions.Regex]::Matches($publishIndex, $assetPattern) |
   ForEach-Object { $_.Value } |
   Select-Object -Unique
 
 if (-not $expectedAssets -or $expectedAssets.Count -eq 0) {
-  throw 'No hashed assets found in tmp/gh-pages/index.html.'
+  throw 'No hashed assets found in dist/index.html.'
 }
 
 $cacheBust = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
@@ -30,7 +30,7 @@ $publicAssets = [System.Text.RegularExpressions.Regex]::Matches($publicIndex, $a
 if (Compare-Object -ReferenceObject $expectedAssets -DifferenceObject $publicAssets) {
   $expected = $expectedAssets -join ', '
   $actual = $publicAssets -join ', '
-  throw "GitHub Pages public asset references do not match tmp/gh-pages. Expected: $expected. Public: $actual. This is usually Pages propagation or browser/service-worker cache lag, not a successful public publish yet."
+  throw "GitHub Pages public asset references do not match the local Pages artifact in dist. Expected: $expected. Public: $actual. This is usually Pages workflow propagation or browser/service-worker cache lag, not a successful public publish yet."
 }
 
 Write-Host "GitHub Pages public verification: PASS ($uri)"
