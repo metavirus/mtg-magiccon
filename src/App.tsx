@@ -2870,34 +2870,12 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
     </section>
 
     <div className="home-dashboard">
-      <section className="runway" aria-labelledby="runway-heading">
-        <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h2 id="runway-heading">What we are waiting for</h2></div><span>1 complete · 4 waiting</span></div>
-        <ol>
-          <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
-          {milestoneForecasts.map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
-            <span className="runway-icon"><MilestoneIcon name={forecast.icon} /></span>
-            <details className="runway-forecast">
-              <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · forecast</small></summary>
-              <p>{forecast.rationale}</p>
-            </details>
-          </li>)}
-        </ol>
-      </section>
-
-      <section className="home-context" aria-labelledby="known-heading">
-        <div><span className="eyebrow">ALREADY KNOWN</span><h2 id="known-heading">On the plan</h2></div>
-        <button className="anchor-row" type="button" onClick={() => onOpenObject(trustSliceToObjectDetail(slice))}>
-          <span className="anchor-lotus" aria-hidden="true">✦</span>
-          <span className="anchor-date"><small>NOV 14</small><strong>11:30–3</strong></span>
-          <span className="anchor-copy"><small>BLACK LOTUS</small><strong>{slice.occurrence.title.replace('Black Lotus ', '')}</strong></span>
-          <span className={`anchor-state ${slice.decision.planning_state}`}>{slice.decision.planning_state}</span>
-          <span className="anchor-arrow" aria-hidden="true">›</span>
-        </button>
-        <button className="logistics-row" type="button" onClick={() => onOpenObject(logisticsToObjectDetail())}>
-          <span><NavIcon name="calendar" /></span>
-          <div><small>USEFUL LOGISTICS</small><strong>Will Call and show hours</strong></div>
-          <b aria-hidden="true">›</b>
-        </button>
+      <section className="home-activity-lane" aria-labelledby="home-activity-heading">
+        <div className="home-lane-head">
+          <div><span className="eyebrow">FOCUSED ACTIVITY</span><h2 id="home-activity-heading">{topSignal ? 'Worth your eyes first' : 'Nothing hot right now'}</h2></div>
+          <button type="button" onClick={onOpenActivity}>Full Activity</button>
+        </div>
+        <p>{topSignal ? 'Home keeps the sharpest signals here; full history stays in Activity.' : 'When monitoring or people activity gets useful, this lane can expand without burying the rest of Home.'}</p>
         <div className="timely-home">
           <div className="timely-home-head"><span className="eyebrow">TIMELY SIGNALS</span><button type="button" onClick={onOpenActivity}>Review all</button></div>
           {homeSignals.filter(alert => alert.id !== topSignal?.id).slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alertToObjectDetail(alert))}>
@@ -2910,6 +2888,38 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
           </button>}
         </div>
       </section>
+
+      <div className="home-reference-stack">
+        <section className="runway" aria-labelledby="runway-heading">
+          <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h2 id="runway-heading">What we are waiting for</h2></div><span>1 complete · 4 waiting</span></div>
+          <ol>
+            <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
+            {milestoneForecasts.map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
+              <span className="runway-icon"><MilestoneIcon name={forecast.icon} /></span>
+              <details className="runway-forecast">
+                <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · forecast</small></summary>
+                <p>{forecast.rationale}</p>
+              </details>
+            </li>)}
+          </ol>
+        </section>
+
+        <section className="home-context" aria-labelledby="known-heading">
+          <div><span className="eyebrow">ALREADY KNOWN</span><h2 id="known-heading">On the plan</h2></div>
+          <button className="anchor-row" type="button" onClick={() => onOpenObject(trustSliceToObjectDetail(slice))}>
+            <span className="anchor-lotus" aria-hidden="true">✦</span>
+            <span className="anchor-date"><small>NOV 14</small><strong>11:30–3</strong></span>
+            <span className="anchor-copy"><small>BLACK LOTUS</small><strong>{slice.occurrence.title.replace('Black Lotus ', '')}</strong></span>
+            <span className={`anchor-state ${slice.decision.planning_state}`}>{slice.decision.planning_state}</span>
+            <span className="anchor-arrow" aria-hidden="true">›</span>
+          </button>
+          <button className="logistics-row" type="button" onClick={() => onOpenObject(logisticsToObjectDetail())}>
+            <span><NavIcon name="calendar" /></span>
+            <div><small>USEFUL LOGISTICS</small><strong>Will Call and show hours</strong></div>
+            <b aria-hidden="true">›</b>
+          </button>
+        </section>
+      </div>
     </div>
   </div>
 }
