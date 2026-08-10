@@ -944,7 +944,7 @@ type WalletTab = 'home' | 'play' | 'store' | 'other'
 type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
 type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
-type ActivityStream = 'all' | 'needs-review' | 'changes' | 'sources' | 'personal' | 'archived'
+type ActivityStream = 'hot' | 'changes' | 'sources' | 'personal' | 'all' | 'archived'
 type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
 type NotePersonFilter = 'all' | PersonName
 type NoteTypeFilter = 'all' | 'wallet' | 'trip' | 'events' | 'other'
@@ -2966,24 +2966,24 @@ function NotesSurface({ notes, onDeleteNote, onOpenObject }: { notes: ContextNot
 }
 
 function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, onReviewChange, onOpenObject }: { slice: TrustSlice; alerts: MonitoringAlert[]; notes: ContextNote[]; alertReview: Record<string, AlertReviewState>; onReviewChange: (id: string, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
-  const [stream, setStream] = useState<ActivityStream>('all')
+  const [stream, setStream] = useState<ActivityStream>('hot')
   const reviewState = (alert: MonitoringAlert) => alertReview[alert.id] ?? defaultAlertReviewState(alert)
-  const needsReviewCount = incomingAlerts.filter(alert => reviewState(alert) === 'needs-review').length
+  const hotCount = incomingAlerts.filter(alert => reviewState(alert) === 'needs-review').length
   const sourceCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && alert.kind !== 'manual').length
   const changeCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && isChangeLikeAlert(alert)).length
   const activeAlertCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived').length
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
-    { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount + notes.length },
-    { value: 'needs-review', label: 'Review', icon: <AlertKindIcon kind="site" />, count: needsReviewCount },
+    { value: 'hot', label: 'Hot', icon: <span className="activity-fire" aria-hidden="true">🔥</span>, count: hotCount },
     { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: changeCount },
     { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: sourceCount },
     { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: notes.length },
+    { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount + notes.length },
     { value: 'archived', label: 'Archive', icon: <NavIcon name="activity" />, count: incomingAlerts.filter(alert => reviewState(alert) === 'archived').length },
   ]
   const alerts = incomingAlerts.filter(alert => {
     const state = reviewState(alert)
     if (stream === 'all') return state !== 'archived'
-    if (stream === 'needs-review') return state === 'needs-review'
+    if (stream === 'hot') return state === 'needs-review'
     if (stream === 'archived') return state === 'archived'
     if (state === 'archived') return false
     if (stream === 'changes') return isChangeLikeAlert(alert)
@@ -2996,10 +2996,10 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, on
     <section className="activity-inbox-head">
       <div>
         <span className="eyebrow">REVIEW INBOX</span>
-        <h2>{needsReviewCount ? `${needsReviewCount} finding${needsReviewCount === 1 ? '' : 's'} need review` : 'Inbox is clear.'}</h2>
-        <p>New MagicCon signals land here first. Review what matters, archive what does not, and open the affected object when you need context.</p>
+        <h2>{hotCount ? `${hotCount} hot finding${hotCount === 1 ? '' : 's'}` : 'Nothing hot right now.'}</h2>
+        <p>Hot is the default lane for signals worth attention. Changes, sources, notes, and the full history stay one tap away.</p>
       </div>
-      <span className={needsReviewCount ? 'review-count active' : 'review-count'}>{needsReviewCount}</span>
+      <span className={hotCount ? 'review-count active hot' : 'review-count'}>{hotCount}</span>
     </section>
     <div className="activity-tabs" aria-label="Activity stream filters">
       {streamDefs.map(item => <button key={item.value} type="button" aria-pressed={stream === item.value} className={stream === item.value ? 'active' : ''} onClick={() => setStream(item.value)}>
@@ -3017,7 +3017,7 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, on
         {alerts.map(alert => <AlertCard key={alert.id} alert={alert} reviewState={reviewState(alert)} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
         {stream === 'personal' && notes.length === 0 && <div className="activity-empty"><strong>No notes yet.</strong><span>Add a note from a receipt, event, trip item, or object detail.</span></div>}
         {stream === 'all' && visibleNotes.length === 0 && alerts.length === 0 && <div className="activity-empty"><strong>Nothing active right now.</strong><span>When something changes, it will show up here.</span></div>}
-        {alerts.length === 0 && stream !== 'personal' && stream !== 'all' && <div className="activity-empty"><strong>No items here.</strong><span>{stream === 'archived' ? 'Archived findings stay available here.' : 'Nothing needs attention in this view.'}</span></div>}
+        {alerts.length === 0 && stream !== 'personal' && stream !== 'all' && <div className="activity-empty"><strong>{stream === 'hot' ? 'Nothing hot right now.' : 'No items here.'}</strong><span>{stream === 'archived' ? 'Archived findings stay available here.' : stream === 'hot' ? 'Useful calm: routine checks and quieter context stay out of this lane.' : 'Nothing needs attention in this view.'}</span></div>}
       </div>
       {incomingAlerts.length > 0 && <aside className="activity-rail" aria-label="Activity context">
         {incomingAlerts.length > 0 && <button className="activity-route-card" type="button" onClick={() => onOpenObject(alertToObjectDetail(incomingAlerts.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingAlerts[0]))}>
