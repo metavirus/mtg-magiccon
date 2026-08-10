@@ -29,7 +29,9 @@ The app remains useful after the convention rather than treating the event date 
 
 ## Foundation proof and first trust slice
 
-The foundation table `personal_notes` remains an owner-scoped private record used to prove authentication, grants, and RLS. It is intentionally not a convention-domain model.
+The foundation table `personal_notes` began as an owner-scoped private record used to prove authentication, grants, and RLS. It is now also the canonical universal contextual-notes layer: notes attach to app objects such as events, receipts, trip items, places, artists, alerts, or proofs without creating destination-specific note tables.
+
+The companion table `user_selections` is the canonical owner-scoped persistence layer for UI choices that must follow the authenticated user across devices: event interest/tentative/committed/hidden/not-for-me state, Activity review state, wallet counters, and later assignment-style choices. Browser storage is acceptable only for UI chrome and read-only offline cache; user-authored notes and user selections belong in Supabase so future collaboration can build on one shared data model. See `docs/USER_SELECTIONS_MODEL.md`.
 
 The first bounded convention-domain implementation is the Black Lotus trust slice in `docs/BLACK_LOTUS_TRUST_SLICE.md`. Five deliberately narrow owner-scoped tables prove source identity, retained observation, one normalized dated occurrence, a reversible personal decision, and one itinerary placement. This is a proof of the evidence-to-plan path, not authorization for a comprehensive convention schema.
 
