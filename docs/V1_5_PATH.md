@@ -34,6 +34,7 @@ Do not use the remainder of 1.5 to broaden the app into every future feature. Th
 - Plan should not be overbuilt before ticketed-play inventory exists. The app can represent Black Lotus anchors and promoted contenders now; the real contention model should wait for real event variation.
 - Wallet should optimize retrieval under stress, not decorative charm first. Cute art can return later after the interaction is solid.
 - Monitoring output must remain reviewable observation. The app can route and explain findings without silently changing canonical plans.
+- Avoid process drag. Use `docs/ANTI_WASTE_OPERATING_MODE.md` and `docs/KNOWN_GREMLINS.md` before repeating known Git, Vite, Pages, cache, auth, local-preview, or browser-storage failures.
 
 ## Design principles for 1.5
 
@@ -172,15 +173,13 @@ Status: adequate for fixture review after simplifying Prize Tix. Private artifac
 
 ## Chunk 5 — trust, auth, offline, and private artifacts
 
-Goal: restore real continuity without reopening the magic-link rabbit hole too early.
+Goal: keep real continuity reliable without reopening the magic-link rabbit hole.
 
 ### Scope
 
-- Reintroduce authenticated mode deliberately after the UI review path is stable.
-- Prefer low-friction continuity:
-  - keep magic link as rare bootstrap if needed;
-  - evaluate Google OAuth before spending more Supabase email quota;
-  - preserve sessions aggressively across refresh, mobile browser, and installed PWA.
+- Keep Google OAuth as the primary authenticated path.
+- Preserve sessions aggressively across refresh, mobile browser, and installed PWA.
+- Keep magic link as rare fallback/bootstrap only; do not use it for ordinary testing.
 - Complete the trust-slice proof:
   - one reviewed source revision;
   - prior observation recoverable;
