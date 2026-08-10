@@ -20,15 +20,15 @@ The POC is ready when:
 4. Important findings can reach Home as rare signals.
 5. Less urgent findings can settle into Activity, the affected object, or Notes without cluttering the default screen.
 6. The one live trust slice still proves Source → Observation → Occurrence → Personal decision → Itinerary.
-7. Offline read behavior is explicitly tested or explicitly left as an open defect. Live auth is parked for v1.5 so the POC can remain reviewable on mobile without magic-link quota churn.
+7. Offline read behavior is explicitly tested or explicitly left as an open defect. Google OAuth is now the deliberate live-auth path; magic-link quota churn remains parked.
 
 ## POC status after mobile review
 
 The POC/fixture-backed 1.5 preview is accepted as a useful quiet-period companion. Kavi completed a mobile flip-through on August 8 and reported that it is looking good. Further fixture UI polish should stop unless a real defect appears.
 
-The remaining work is no longer "make the POC feel real." It is trust/data work:
+The remaining work is no longer "make the POC feel real." It is trust/data and operational-hardening work:
 
-- restore low-friction authenticated continuity deliberately;
+- keep Google OAuth continuity reliable without reopening the magic-link rabbit hole;
 - design private Storage for original receipts, QR/proof screenshots, and travel artifacts;
 - graduate monitoring observations from file-backed preview intake to reviewed app data;
 - wait for real Atlanta ticketed-play inventory before building the production Plan engine.
@@ -170,21 +170,17 @@ Use the existing Black Lotus trust slice to prove:
 - the app can reopen the cached critical view offline with freshness visible;
 - offline writes remain disabled.
 
-### Still true — auth parked for POC
+### Still true — magic link parked, Google OAuth preferred
 
-The client-side auth path was intentionally disabled on August 4 after Supabase magic-link quota became a design/testing blocker. The POC is fixture-backed on every route, clears the old sticky auth-mode flag, and should not ask for another magic link during mobile review. Version 1.5 should reintroduce low-friction auth as its own trust tranche.
+Magic link was intentionally parked after Supabase email quota became a design/testing blocker. Google OAuth is now the preferred live-auth path. Fixture/preview mode remains useful for unblocked review, but future user-state work should assume authenticated Supabase continuity rather than browser-local persistence.
 
 ### Handoff checkpoint
 
-Run:
+Use the tiered handoff checks in `docs/ANTI_WASTE_OPERATING_MODE.md`:
 
-- `pnpm build`;
-- `pnpm test`;
-- `pnpm validate:text`;
-- `pnpm validate:secrets`;
-- `pnpm readiness`;
-- GitHub Pages preview build and smoke check;
-- docs/frontier/backlog review.
+- Tier 0 UI/copy/layout: `pnpm check:ui` plus viewport verification when visual.
+- Tier 1 public preview: `pnpm check:ship`, `pnpm publish:pages`, push `gh-pages`, and `pnpm verify:public`.
+- Tier 2 data/auth/database/research/monitoring: full readiness, tests, validation, and proportional live verification.
 
 ## Explicitly not POC
 
