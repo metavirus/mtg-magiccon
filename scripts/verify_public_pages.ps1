@@ -20,7 +20,7 @@ if (-not $expectedAssets -or $expectedAssets.Count -eq 0) {
 }
 
 $cacheBust = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-$uri = "$publicUrl?verify=$cacheBust"
+$uri = "${publicUrl}?verify=$cacheBust"
 $response = Invoke-WebRequest -Uri $uri -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }
 $publicIndex = $response.Content
 $publicAssets = [System.Text.RegularExpressions.Regex]::Matches($publicIndex, $assetPattern) |
