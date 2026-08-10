@@ -13,6 +13,13 @@ if (-not (Test-Path $indexPath)) {
 $index = Get-Content -Raw -LiteralPath $indexPath
 $index = $index.Replace('href="/', 'href="./')
 $index = $index.Replace('src="/', 'src="./')
+$buildSha = $env:GITHUB_SHA
+if ([string]::IsNullOrWhiteSpace($buildSha)) {
+  $buildSha = (git rev-parse HEAD).Trim()
+}
+$buildMeta = "<meta name=`"magiccon-build-sha`" content=`"$buildSha`" />"
+$index = [System.Text.RegularExpressions.Regex]::Replace($index, '\s*<meta name="magiccon-build-sha" content="[^"]*" />', '')
+$index = $index.Replace('</head>', "    $buildMeta`n  </head>")
 Set-Content -LiteralPath $indexPath -Value $index -NoNewline
 Set-Content -LiteralPath $notFoundPath -Value $index -NoNewline
 New-Item -ItemType File -Path $noJekyllPath -Force | Out-Null
