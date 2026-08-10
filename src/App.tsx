@@ -2974,10 +2974,10 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, on
   const activeAlertCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived').length
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
     { value: 'hot', label: 'Hot', icon: <span className="activity-fire" aria-hidden="true">🔥</span>, count: hotCount },
+    { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount + notes.length },
     { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: changeCount },
     { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: sourceCount },
     { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: notes.length },
-    { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount + notes.length },
     { value: 'archived', label: 'Archive', icon: <NavIcon name="activity" />, count: incomingAlerts.filter(alert => reviewState(alert) === 'archived').length },
   ]
   const alerts = incomingAlerts.filter(alert => {
