@@ -18,7 +18,7 @@
 - [x] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC is no longer fighting mobile review. Google OAuth is now the primary live-auth path behind `?auth=1`; magic-link UI is parked.
 - [x] **v1.5:** Complete Google/Supabase dashboard configuration and prove Google OAuth on desktop Pages with refresh persistence. Use `docs/GOOGLE_OAUTH_SETUP.md` as the checklist.
 - [ ] **v1.5:** Confirm Google OAuth persistence on iPhone Safari/PWA after refresh/reopen.
-- [ ] **v1.5/publish:** Decide whether to tame GitHub Pages service-worker/cache lag for review builds or simply rely on cache-busted verification plus a brief wait after deploys.
+- [x] **v1.5/publish:** Retire the local `tmp/gh-pages` publishing path and use GitHub Actions Pages deployment from the source branch.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
 - [x] Synthesize cross-phase value principles and onsite support surfaces.

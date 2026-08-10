@@ -15,17 +15,17 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 - Do not first attempt a normal Git write and then “discover” the sandbox again.
 - Only inspect `.git/index.lock` if the error happens during an already-elevated Git operation.
 
-## GitHub Pages worktree ownership
+## Retired GitHub Pages worktree path
 
-**Symptom:** `fatal: detected dubious ownership in repository at '.../tmp/gh-pages'`.
+**Symptom:** Any instruction to inspect, sync, commit, or push `tmp/gh-pages`.
 
-**Cause:** The `tmp/gh-pages` worktree is owned by the normal Windows user, while the sandbox may run as `CodexSandboxOffline`.
+**Cause:** This project migrated to GitHub Actions Pages deployment. The old `tmp/gh-pages` generated-worktree path was too wasteful for this hobby app.
 
 **Do this:**
 
-- For read-only inspection of `tmp/gh-pages`, use the elevated Git path immediately.
-- Do not mutate global Git config with `safe.directory` unless Kavi explicitly asks for that local machine setting.
-- Do not treat this as a repository corruption issue; it is an expected Windows/sandbox identity mismatch.
+- Do not use or revive `tmp/gh-pages`.
+- For public review, push the source branch and let `.github/workflows/deploy-pages.yml` deploy `dist/`.
+- If a stale doc mentions `gh-pages`, update the doc instead of following it.
 
 ## Vite config-loader failures
 
@@ -43,13 +43,13 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 
 **Symptom:** Kavi still sees old UI after “publish,” or public HTML points at an old bundle.
 
-**Cause:** There are three different states: built locally, synced into `tmp/gh-pages`, and publicly served by GitHub Pages. Browser/PWA cache can add a fourth stale state.
+**Cause:** There are three relevant states: built locally, deployed by the GitHub Actions Pages workflow, and publicly served by GitHub Pages. Browser/PWA cache can add a stale client shell.
 
 **Do this:**
 
-1. `pnpm publish:pages`
-2. Commit/push the `tmp/gh-pages` worktree when public review is requested.
-3. Run `pnpm verify:public`.
+1. Commit/push the source branch.
+2. Wait for the GitHub Actions Pages workflow to complete.
+3. Run `pnpm build:pages` locally if `dist/` is not current, then `pnpm verify:public`.
 4. Only say “published” after public verification passes.
 
 If public verification fails after a correct push, report propagation/cache lag and wait briefly. Do not claim success from local sync alone.
