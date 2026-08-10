@@ -1,6 +1,12 @@
 # Agent Instructions
 
-Before substantive application, research, or database work:
+Before substantive application, research, or database work, choose the smallest safe lane from `docs/ANTI_WASTE_OPERATING_MODE.md`.
+
+For Tier 0 small visual/copy fixes, do not drag the full project ceremony into the turn. Read the relevant files, make the smallest reversible change, run `pnpm build`, and visually verify the affected viewport when the defect is visual.
+
+For Tier 1 public preview UI changes, follow the publish verification rules in `docs/ANTI_WASTE_OPERATING_MODE.md`.
+
+For Tier 2 data/auth/research/database/monitoring work:
 
 1. Read `README.md`, `docs/PROJECT_CONTEXT.md`, `CURRENT_FRONTIER.md`, and `docs/WORK_BACKLOG.md`.
 2. Run `pnpm readiness` and stop if repository, branch, remote, or Supabase identity is ambiguous.
