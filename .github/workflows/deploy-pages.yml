@@ -19,6 +19,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: windows-latest
+    env:
+      # Public browser config. This is intentionally not a service-role or secret key.
+      # Keep CI self-contained so Pages never deploys the local-setup wall.
+      VITE_SUPABASE_URL: https://pavjsexxbueuzhzgemgy.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_8LvSNisG4u-KITMzdheJaw_mgywJvJd
 
     environment:
       name: github-pages

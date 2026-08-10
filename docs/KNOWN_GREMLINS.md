@@ -54,6 +54,19 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 
 If public verification fails after a correct push, report propagation/cache lag and wait briefly. Do not claim success from local sync alone.
 
+## GitHub Actions missing browser config
+
+**Symptom:** Public GitHub Pages app shows “Project connection needed” even though local preview works.
+
+**Cause:** Local `.env.local` is intentionally ignored, so GitHub Actions does not receive Vite browser env unless the workflow supplies it.
+
+**Do this:**
+
+- Keep the public Supabase URL and modern `sb_publishable_...` key in `.github/workflows/deploy-pages.yml`.
+- Never use a `sb_secret_`, service-role key, database URL, or JWT in browser config.
+- If the setup wall appears on public Pages, inspect the workflow env before changing app auth or Supabase UI code.
+- Treat this as a CI configuration bug, not a user setup problem.
+
 ## Public Pages verification network lane
 
 **Symptom:** `pnpm verify:public` fails with a PowerShell web request receive/TLS/network error after the URL is valid.
