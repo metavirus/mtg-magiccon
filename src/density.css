@@ -372,6 +372,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .activity-tabs button b{display:grid;place-items:center;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#17283f;color:#b9c7d8;font-size:9px;font-weight:800}
 .activity-tabs button.active b{background:#2c4d75;color:#fff}
 .activity-tab-icon{display:grid;place-items:center;width:14px;height:14px;color:#85a9d7}
+.activity-fire{display:block;font-size:12px;line-height:1;filter:saturate(.9)}
 .activity-tab-icon .nav-icon,.activity-tab-icon .alert-kind-icon{width:14px;height:14px}
 .activity-layout{grid-template-columns:minmax(0,1fr) minmax(230px,.32fr)}
 .activity-card{grid-template-columns:30px minmax(0,1fr);gap:9px;padding:10px 12px;border-radius:11px}
