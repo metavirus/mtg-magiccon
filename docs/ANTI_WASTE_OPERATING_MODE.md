@@ -23,9 +23,16 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 - Run `pnpm publish:pages`.
 - Push `gh-pages` if publication is requested.
 - After pushing, run `pnpm verify:public`.
+- If public verification needs network access, run that exact script with the elevated/network-capable path; do not first invent a different verification method.
 - Treat “published” as true only after a cache-busted public URL serves the expected current asset or visible behavior.
 - If public Pages still shows stale behavior, say “pushed but not propagated/cached yet,” not “fixed.”
 - If any known environment/publish/cache/auth/Git failure appears, follow `docs/KNOWN_GREMLINS.md` before inventing a new workaround.
+
+### Commit/publish discipline
+
+- Use read-only Git normally, but use elevated Git immediately for `git add`, `git commit`, `git push`, and `git -C tmp/gh-pages ...`.
+- Do not narrate predictable environment friction as surprising progress. If a known gremlin applies, follow the documented lane quietly and report only the outcome.
+- Do not add new scripts or verification wrappers without running them once in the same environment and fixing obvious quoting/path/network assumptions before relying on them.
 
 ### Tier 2 — user data, auth, receipts, monitoring, Supabase, or migrations
 

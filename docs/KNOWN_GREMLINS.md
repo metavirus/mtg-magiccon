@@ -15,6 +15,18 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 - Do not first attempt a normal Git write and then “discover” the sandbox again.
 - Only inspect `.git/index.lock` if the error happens during an already-elevated Git operation.
 
+## GitHub Pages worktree ownership
+
+**Symptom:** `fatal: detected dubious ownership in repository at '.../tmp/gh-pages'`.
+
+**Cause:** The `tmp/gh-pages` worktree is owned by the normal Windows user, while the sandbox may run as `CodexSandboxOffline`.
+
+**Do this:**
+
+- For read-only inspection of `tmp/gh-pages`, use the elevated Git path immediately.
+- Do not mutate global Git config with `safe.directory` unless Kavi explicitly asks for that local machine setting.
+- Do not treat this as a repository corruption issue; it is an expected Windows/sandbox identity mismatch.
+
 ## Vite config-loader failures
 
 **Symptom:** esbuild cannot resolve `vite.config.ts`, or tries to read broad parent directories.
@@ -41,6 +53,18 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 4. Only say “published” after public verification passes.
 
 If public verification fails after a correct push, report propagation/cache lag and wait briefly. Do not claim success from local sync alone.
+
+## Public Pages verification network lane
+
+**Symptom:** `pnpm verify:public` fails with a PowerShell web request receive/TLS/network error after the URL is valid.
+
+**Cause:** Public verification needs outbound network access and may fail inside the restricted sandbox.
+
+**Do this:**
+
+- `scripts/verify_public_pages.ps1` is the canonical verifier; do not write ad hoc curl/browser substitutes first.
+- If `pnpm verify:public` fails with a network/receive/TLS error, rerun `pnpm verify:public` using the elevated/network-capable path immediately.
+- A verifier URL construction error is a script bug. Fix the script once and commit it; do not bypass it.
 
 ## Service worker / PWA cache
 
