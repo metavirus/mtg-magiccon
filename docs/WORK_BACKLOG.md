@@ -18,6 +18,7 @@
 - [x] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC is no longer fighting mobile review. Google OAuth is now the primary live-auth path behind `?auth=1`; magic-link UI is parked.
 - [x] **v1.5:** Complete Google/Supabase dashboard configuration and prove Google OAuth on desktop Pages with refresh persistence. Use `docs/GOOGLE_OAUTH_SETUP.md` as the checklist.
 - [ ] **v1.5:** Confirm Google OAuth persistence on iPhone Safari/PWA after refresh/reopen.
+- [ ] **v1.5/publish:** Decide whether to tame GitHub Pages service-worker/cache lag for review builds or simply rely on cache-busted verification plus a brief wait after deploys.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
 - [x] Synthesize cross-phase value principles and onsite support surfaces.
@@ -72,6 +73,7 @@
 - [x] **v1.5:** Give Plan-lite a final quiet-period usefulness pass before freezing it. The board now distinguishes official Black Lotus anchors, promoted contenders, and watch/TBD items at a glance, and rows carry compact time/BL signals without adding a fake contention engine.
 - [x] **v1.5:** Complete the no-placeholder phone/public-preview acceptance pass for this tranche. Kavi flipped through on iPhone on Aug 8 and reported the preview looks good; future UI changes should be driven by real defects or real data.
 - [x] **v1.5:** Complete the share-readiness content cleanup before inviting Chris. Remove representative Vegas events, fake QR/code/receipt artifacts, route-demonstration alerts, speculative artist cards, and design-note fixtures from the visible app; prefer honest empty states. Remove the repeated page footer and place freshness at the bottom of the desktop rail.
+- [x] **v1.5:** Finish the post-cleanup copy pass so shared preview surfaces stop narrating the prototype to the user. Explore, Activity, Artists, Wallet proof labels, and plan provenance now use calmer product copy rather than design-process wording.
 - [x] **v1.5:** Add the mobile top-left main navigation affordance. The header hamburger now opens a left-side all-destinations drawer on phone; the previous lone back caret was too odd as the primary top-left control.
 - [x] **v1.5:** Replace fake Black Lotus proof with functional proof display. Wallet now opens the real Leap order links and original email reference, and directly displays the Black Lotus QR cropped from the Gmail order confirmation behind the normal Google-login app flow.
 - [x] **v1.5:** Correct the Wallet cleanup overreach. Keep badges on Wallet Home, add a small receipt feed there, make badge pills and the Black Lotus receipt row clickable, and give proof modals top-level `Info` / `Original` modes. `Info` keeps extracted facts and clean clips; `Original` now means the full scrollable Gmail receipt render, not a cropped slice.
@@ -79,7 +81,9 @@
 - [x] **v1.5:** Move operational logistics out of a Wallet-only corner. Will Call, show hours, and play-area hours now open as a reusable details object from Home/known-plan context while the Wallet retains source proof.
 - [x] **v1.5/notes:** Lock contextual notes as one universal object-attached layer before implementation. Do not create separate Trip, Receipt, Event, Artist, Map, or Activity note systems; vary only the presentation and object anchor.
 - [x] **v1.5/notes:** Implement the first universal contextual-notes interaction proof. Wallet proof details and generic object details now share one note composer, Notes indexes the same objects with `All` / `Mine` / `Others`, Activity reads the same Personal stream, and notes persist locally only as a POC bridge.
-- [ ] **v1.5/trust:** Move contextual notes from browser-local persistence into Supabase with RLS, author identity, shared-read semantics, object anchors, and no destination-specific note tables.
+- [x] **v1.5/trust:** Move contextual notes from browser-local persistence into Supabase with RLS, author identity, object anchors, and no destination-specific note tables. Current implementation is owner-scoped; true group/shared-read semantics remain a collaboration tranche.
+- [x] **v1.5/trust:** Move user selections out of browser-local persistence and into Supabase. Event planning states, Hidden / Not for me, Activity review state, and the Prize Tix counter now use the owner-scoped `user_selections` table rather than per-device localStorage.
+- [ ] **v1.5/collab:** Design the shared-workspace layer that lets Kavi, Chris, Juan, and future Kyle see appropriate shared notes/selections without making every private note or owner preference globally visible.
 - [ ] **v1.5/trust:** Move receipt original/QR artifacts from the public preview bundle into private Supabase Storage once the artifact manifest is implemented. The current public artifact shortcut is acceptable for this personal preview, but the app contract now expects a stable receipt bundle with `Info` and `Original` modes.
 - [ ] **v1.5:** Resume the production contention-engine design only after representative Atlanta ticketed-play data exists. Treat Plan-lite as a useful interaction proof, not a persistence/schema contract.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.

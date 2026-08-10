@@ -57,13 +57,13 @@ function surfaceSubtitle(surface: Surface) {
     home: 'No new signal needs attention.',
     calendar: 'Only the dates that shape the trip.',
     plan: 'Compare real anchors and contenders before they become commitments.',
-    explore: 'A compact intake lane for events worth comparing.',
+    explore: 'Browse likely contenders without drowning in event text.',
     map: 'Trip-area orientation now; official event map when Atlanta publishes it.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Who is staying where, and the one transition worth noticing.',
-    artists: 'Atlanta-confirmed artists will appear here.',
+    artists: 'Confirmed artists will show up here once Atlanta publishes them.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
-    activity: 'Review what changed, what landed, and what can be ignored.',
+    activity: 'Signals, changes, and notes in one review lane.',
   }
   return subtitles[surface]
 }
@@ -108,6 +108,95 @@ async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
     itinerary: itineraryResult.data,
     savedAt: new Date().toISOString(),
   } as TrustSlice
+}
+
+type PersonalNoteRow = {
+  id: string
+  title: string
+  body: string
+  object_id: string
+  object_kind: ObjectDetailKind
+  object_title: string
+  object_anchor: string | null
+  context: string
+  visibility: NoteVisibility
+  backlink: Surface
+  author_label: string
+  updated_at: string
+}
+
+type UserSelectionRow = {
+  object_id: string
+  object_kind: SelectionObjectKind
+  selection_key: string
+  selection_value: string
+}
+
+function noteAuthorFromSession(currentSession: Session | null): PersonName {
+  const haystack = `${currentSession?.user.email ?? ''} ${currentSession?.user.user_metadata?.full_name ?? ''} ${currentSession?.user.user_metadata?.name ?? ''}`.toLowerCase()
+  if (haystack.includes('juan')) return 'Juan'
+  if (haystack.includes('chris')) return 'Chris'
+  if (haystack.includes('kyle')) return 'Kyle'
+  return 'Kavi'
+}
+
+function formatContextNoteTime(value: string) {
+  return new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
+function personalNoteRowToContextNote(row: PersonalNoteRow): ContextNote {
+  return {
+    id: row.id,
+    objectId: row.object_id,
+    objectKind: row.object_kind,
+    objectTitle: row.object_title,
+    objectAnchor: row.object_anchor ?? undefined,
+    context: row.context,
+    title: row.title,
+    body: row.body,
+    author: (['Kavi', 'Juan', 'Chris', 'Kyle'].includes(row.author_label) ? row.author_label : 'Kavi') as PersonName,
+    visibility: row.visibility,
+    updatedAt: formatContextNoteTime(row.updated_at),
+    backlink: row.backlink,
+  }
+}
+
+async function loadContextNotes(ownerId: string): Promise<ContextNote[]> {
+  if (!supabase) return []
+  const result = await supabase.from('personal_notes')
+    .select('id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at')
+    .eq('owner_id', ownerId)
+    .order('updated_at', { ascending: false })
+  if (result.error) throw result.error
+  return (result.data as PersonalNoteRow[]).map(personalNoteRowToContextNote)
+}
+
+async function loadUserSelections(ownerId: string): Promise<Record<string, string>> {
+  if (!supabase) return {}
+  const result = await supabase.from('user_selections')
+    .select('object_id,object_kind,selection_key,selection_value')
+    .eq('owner_id', ownerId)
+  if (result.error) throw result.error
+  return Object.fromEntries((result.data as UserSelectionRow[]).map(row => [selectionKey(row.object_id, row.selection_key), row.selection_value]))
+}
+
+function selectionKey(objectId: string, key: string) {
+  return `${objectId}::${key}`
+}
+
+function applySelectionState(events: ExploreEvent[], selections: Record<string, string>, trustSlice: TrustSlice | null) {
+  return events.map(event => {
+    const selected = selections[selectionKey(`explore-${event.id}`, 'state')]
+    const state = isExploreState(selected) ? selected : event.state
+    if (event.id === 'bl-planechase' && trustSlice && !selected) {
+      return { ...event, state: trustSlice.decision.planning_state as ExploreState }
+    }
+    return { ...event, state }
+  })
+}
+
+function isExploreState(value: unknown): value is ExploreState {
+  return ['none', 'interested', 'tentative', 'committed', 'hidden', 'nope'].includes(String(value))
 }
 
 type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity'
@@ -165,26 +254,14 @@ export default function App() {
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [mobileNavMenu, setMobileNavMenu] = useState<'main' | 'events' | 'more' | null>(null)
+  const [desktopRailLocked, setDesktopRailLocked] = useState(() => window.innerWidth >= 901)
   const [navNotice, setNavNotice] = useState('')
   const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
   const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(exploreEvents)
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
-  const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(() => {
-    try {
-      const saved = window.localStorage.getItem('magiccon-context-notes')
-      return saved ? JSON.parse(saved) as ContextNote[] : contextNotes
-    } catch {
-      return contextNotes
-    }
-  })
-  const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>(() => {
-    try {
-      const saved = window.localStorage.getItem('magiccon-alert-review-state')
-      return saved ? JSON.parse(saved) as Record<string, AlertReviewState> : {}
-    } catch {
-      return {}
-    }
-  })
+  const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(designPreview ? contextNotes : [])
+  const [userSelections, setUserSelections] = useState<Record<string, string>>({})
+  const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
@@ -195,6 +272,13 @@ export default function App() {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
+  }, [])
+
+  useEffect(() => {
+    const syncDesktopRail = () => setDesktopRailLocked(window.innerWidth >= 901)
+    syncDesktopRail()
+    window.addEventListener('resize', syncDesktopRail)
+    return () => window.removeEventListener('resize', syncDesktopRail)
   }, [])
 
   useEffect(() => {
@@ -238,6 +322,38 @@ export default function App() {
 
   useEffect(() => { void refresh() }, [refresh])
 
+  const refreshUserContinuity = useCallback(async () => {
+    if (designPreview) {
+      setContextNotesState(contextNotes)
+      setExploreEventState(exploreEvents)
+      return
+    }
+    if (!session || !online) {
+      setContextNotesState([])
+      setAlertReview({})
+      setUserSelections({})
+      setExploreEventState(exploreEvents)
+      return
+    }
+    try {
+      const [notes, selections] = await Promise.all([
+        loadContextNotes(session.user.id),
+        loadUserSelections(session.user.id),
+      ])
+      setContextNotesState(notes)
+      setUserSelections(selections)
+      setAlertReview(Object.fromEntries(Object.entries(selections)
+        .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
+        .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
+      setExploreEventState(applySelectionState(exploreEvents, selections, slice))
+    } catch (error) {
+      setMessageTone('error')
+      setMessage(error instanceof Error ? error.message : 'User selections could not be refreshed.')
+    }
+  }, [designPreview, online, session, slice])
+
+  useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
+
   useEffect(() => {
     if (!designPreview) return
     let active = true
@@ -254,23 +370,6 @@ export default function App() {
       })
     return () => { active = false }
   }, [designPreview])
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('magiccon-alert-review-state', JSON.stringify(alertReview))
-    } catch {
-      // Local POC review convenience only.
-    }
-  }, [alertReview])
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('magiccon-context-notes', JSON.stringify(contextNotesState))
-    } catch {
-      // POC-only local persistence. The eventual Supabase-backed layer should
-      // preserve this same object-attached shape.
-    }
-  }, [contextNotesState])
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -387,6 +486,26 @@ export default function App() {
   }
   const openObjectDetail = (detail: ObjectDetail) => setObjectDetail(detail)
   const closeObjectDetail = () => setObjectDetail(null)
+  const upsertUserSelection = async (objectId: string, objectKind: SelectionObjectKind, key: string, value: string) => {
+    const mapKey = selectionKey(objectId, key)
+    setUserSelections(current => ({ ...current, [mapKey]: value }))
+    if (designPreview || !session || !supabase || !online) return
+    const now = new Date().toISOString()
+    const { error } = await supabase.from('user_selections').upsert({
+      owner_id: session.user.id,
+      object_id: objectId,
+      object_kind: objectKind,
+      selection_key: key,
+      selection_value: value,
+      updated_at: now,
+    }, { onConflict: 'owner_id,object_id,selection_key' })
+    if (error) {
+      setMessageTone('error')
+      setMessage(error.message)
+      void refreshUserContinuity()
+    }
+  }
+
   const addContextNote = (input: AddContextNoteInput) => {
     const now = new Date()
     const note: ContextNote = {
@@ -398,15 +517,57 @@ export default function App() {
       context: input.context,
       title: input.title || input.objectTitle,
       body: input.body,
-      author: input.author ?? 'Kavi',
+      author: input.author ?? noteAuthorFromSession(session),
       visibility: input.visibility,
       updatedAt: now.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
       backlink: input.backlink,
     }
     setContextNotesState(current => [note, ...current])
+    if (designPreview || !session || !supabase || !online) return
+    const client = supabase
+    const saveNote = async () => {
+      try {
+        const { data, error } = await client.from('personal_notes').insert({
+          owner_id: session.user.id,
+          title: note.title,
+          body: note.body,
+          object_id: note.objectId,
+          object_kind: note.objectKind,
+          object_title: note.objectTitle,
+          object_anchor: note.objectAnchor ?? null,
+          context: note.context,
+          visibility: note.visibility,
+          backlink: note.backlink,
+          author_label: note.author,
+          updated_at: now.toISOString(),
+        }).select('id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at')
+          .single()
+        if (error) throw error
+        const saved = personalNoteRowToContextNote(data as PersonalNoteRow)
+        setContextNotesState(current => current.map(item => item.id === note.id ? saved : item))
+      } catch (error) {
+        setMessageTone('error')
+        setMessage(error instanceof Error ? error.message : 'The note was not saved.')
+        setContextNotesState(current => current.filter(item => item.id !== note.id))
+      }
+    }
+    void saveNote()
   }
-  const deleteContextNote = (id: string) => setContextNotesState(current => current.filter(note => note.id !== id))
-  const setAlertReviewState = (id: string, state: AlertReviewState) => setAlertReview(current => ({ ...current, [id]: state }))
+  const deleteContextNote = (id: string) => {
+    const previous = contextNotesState
+    setContextNotesState(current => current.filter(note => note.id !== id))
+    if (designPreview || !session || !supabase || !online) return
+    void supabase.from('personal_notes').delete().eq('id', id).eq('owner_id', session.user.id).then(({ error }) => {
+      if (!error) return
+      setMessageTone('error')
+      setMessage(error.message)
+      setContextNotesState(previous)
+    })
+  }
+  const setAlertReviewState = (id: string, state: AlertReviewState) => {
+    setAlertReview(current => ({ ...current, [id]: state }))
+    void upsertUserSelection(`alert-${id}`, 'alert', 'review_state', state)
+  }
   const navigateFromObjectDetail = (destination: Surface) => {
     closeObjectDetail()
     openDestination(surfaceTitle(destination), destination)
@@ -415,13 +576,25 @@ export default function App() {
     const currentEvent = exploreEventState.find(event => event.id === id)
     const nextState: ExploreState = currentEvent?.state === state ? 'none' : state
     setExploreEventState(current => current.map(event => event.id === id ? { ...event, state: nextState } : event))
+    void upsertUserSelection(`explore-${id}`, 'event', 'state', nextState)
     if (id === 'bl-planechase' && ['none', 'interested', 'tentative', 'committed'].includes(nextState)) {
       void changeState(nextState as PlanningState)
     }
   }
 
-  return <div className="app-shell">
-    <aside className="rail">
+  return <div className="app-shell" style={desktopRailLocked ? { display: 'block', minHeight: '100vh' } : undefined}>
+    <aside className="rail" style={desktopRailLocked ? {
+      position: 'fixed',
+      zIndex: 40,
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: '164px',
+      height: '100vh',
+      maxHeight: 'none',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+    } : undefined}>
       <button className="brand" type="button" onClick={() => openDestination('Home', 'home')} aria-label="MagicCon Atlanta home">
         <img src={assetUrl('magiccon-atlanta-peach.png')} alt="" />
       </button>
@@ -450,8 +623,18 @@ export default function App() {
 
     {mobileNavMenu && <div className={`mobile-nav-drawer-backdrop menu-${mobileNavMenu}`} onMouseDown={event => { if (event.target === event.currentTarget) setMobileNavMenu(null) }}>
       <section className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label={mobileNavMenu === 'main' ? 'Main navigation' : mobileNavMenu === 'events' ? 'Event destinations' : 'More destinations'}>
-        <header><span className="eyebrow">{mobileNavMenu === 'main' ? 'MENU' : mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>
-        <div>
+        {mobileNavMenu === 'main'
+          ? <header className="mobile-drawer-brand">
+            <div className="mobile-drawer-brand-mark"><img src={assetUrl('magiccon-atlanta-peach.png')} alt="" /></div>
+            <div className="mobile-drawer-brand-copy">
+              <span className="mobile-drawer-label">Menu</span>
+              <strong>MagicCon Atlanta</strong>
+              <small>Companion</small>
+            </div>
+            <button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button>
+          </header>
+          : <header><span className="eyebrow">{mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>}
+        <div className={mobileNavMenu === 'main' ? 'mobile-drawer-nav mobile-drawer-nav-main' : undefined}>
           {(mobileNavMenu === 'main' ? mobileMainDestinations : mobileNavMenu === 'events' ? [
             { name: 'Explore', note: 'Discover', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
             { name: 'Plan', note: 'Compare', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
@@ -461,14 +644,27 @@ export default function App() {
             { name: 'Artists', note: 'Historical seeds', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
             { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
             { name: 'Activity', note: 'Signals & changes', icon: 'activity' as NavIconName, surface: 'activity' as Surface },
-          ]).map(destination => <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
-            <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{destination.note}</small><b aria-hidden="true">›</b>
-          </button>)}
+          ]).map(destination => mobileNavMenu === 'main'
+            ? <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
+              <span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}
+            </button>
+            : <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
+              <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{destination.note}</small><b aria-hidden="true">›</b>
+            </button>)}
         </div>
+        {mobileNavMenu === 'main' && <footer className="mobile-drawer-foot">
+          <small>Last checked <strong>{lastChecked}</strong></small>
+        </footer>}
       </section>
     </div>}
 
-    <main className={`surface-main surface-${surface}`}>
+    <main className={`surface-main surface-${surface}`} style={desktopRailLocked ? {
+      display: 'block',
+      width: 'auto',
+      maxWidth: 'none',
+      margin: '0 0 0 164px',
+      padding: '24px clamp(22px, 2.4vw, 46px) 30px',
+    } : undefined}>
       <header className="hero">
         <div>
           <div className="hero-context">
@@ -493,7 +689,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} />}
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} onPrizeTixChange={value => void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
@@ -850,6 +1046,7 @@ type ContextNote = {
   updatedAt: string
   backlink: Surface
 }
+type SelectionObjectKind = ObjectDetailKind | 'wallet' | 'trip' | 'map' | 'activity' | 'general'
 type ExploreEvent = {
   id: string
   title: string
@@ -1456,7 +1653,7 @@ function PlanSurface({ events, slice, notes, onAddNote, onDeleteNote, onUpdateEv
         <p>{selected.fit}</p>
         <section><small>PLAN EFFECT</small><strong>{selected.planEffect}</strong></section>
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
-        <div className="plan-provenance"><span>{selected.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Representative planning data'}</span><small>{selected.sourceNote ?? 'Fixture-backed POC item.'}</small></div>
+        <div className="plan-provenance"><span>{selected.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{selected.sourceNote ?? 'Source context captured for this item.'}</small></div>
         <ObjectNotes notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={selected.title} context={`Event · ${selected.title}`} backlink="plan" compact />
       </aside>}
     </div>
@@ -1547,10 +1744,10 @@ function ExploreSurface({ events, notes, onAddNote, onDeleteNote, onUpdateEvent,
     </div>
 
     <div className="explore-layout">
-      <div className="event-list" aria-label="Representative event results">
-        <div className="event-list-summary"><strong>{visible.length}</strong><span>official Atlanta Black Lotus events</span></div>
+      <div className="event-list" aria-label="Event results">
+        <div className="event-list-summary"><strong>{visible.length}</strong><span>events in view</span></div>
         {visible.map(event => <ExploreEventRow key={event.id} event={event} selected={selected.id === event.id} onSelect={() => { setSelectedId(event.id); setDetailOpen(true) }} onState={state => updateEvent(event.id, state)} />)}
-        {visible.length === 0 && <div className="event-empty">Nothing in this slice. Try All or clear search.</div>}
+        {visible.length === 0 && <div className="event-empty">No events match this view. Try All or clear search.</div>}
         {mode !== 'hidden' && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
           <button type="button" className="hidden-toggle" onClick={() => setHiddenExpanded(value => !value)}>
             <span><EyeOffMini /> Hidden / not for me</span>
@@ -1835,7 +2032,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
     <article className="map-card trip-area-card">
       <span className="eyebrow">ORIENTATION NOW</span>
       <h2>Omni to Building C, visually.</h2>
-      <p>This should feel like a real orientation aid: the Omni is east of the campus, and Building C is the west-side target.</p>
+      <p>The Omni sits east of the campus, and Building C is the west-side target.</p>
       <div className="campus-photo-map" aria-label="Aerial-style Omni to GWCC Building C orientation map">
         <img src="./gwcc-campus-reference.png" alt="Aerial view showing the Omni hotel on the east side of Georgia World Congress Center and Building C on the west side." />
         <button type="button" className="campus-label omni-label" onClick={onOpenTrip}>
@@ -1875,12 +2072,23 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   </section>
 }
 
-function WalletSurface({ onOpenObject, onOpenTrip, notes, onAddNote, onDeleteNote }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
+function WalletSurface({ onOpenObject, onOpenTrip, notes, onAddNote, onDeleteNote, prizeTixValue, onPrizeTixChange }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; onPrizeTixChange: (value: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
-  const [tix, setTix] = useState(1700)
+  const [tix, setTix] = useState(() => {
+    const parsed = Number(prizeTixValue)
+    return Number.isFinite(parsed) ? parsed : 1700
+  })
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
   const openModal = (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => setModal({ eyebrow, title, body, people })
-  const adjustTix = (delta: number) => setTix(value => Math.max(0, value + delta))
+  useEffect(() => {
+    const parsed = Number(prizeTixValue)
+    if (Number.isFinite(parsed)) setTix(parsed)
+  }, [prizeTixValue])
+  const adjustTix = (delta: number) => setTix(value => {
+    const next = Math.max(0, value + delta)
+    onPrizeTixChange(next)
+    return next
+  })
 
   return <section className="wallet-surface" aria-label="Wallet">
     <div className="wallet-toolbar">
@@ -1920,8 +2128,8 @@ function WalletModal({ eyebrow, title, body, people, onClose }: { eyebrow: strin
 
 function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; code?: string; note: string }) {
   return <div className={`proof-preview ${kind}`}>
-    {kind === 'qr' && <div className="qr-fixture" aria-label="Representative QR placeholder"><span /><span /><span /><span /><span /><span /><span /><span /><span /></div>}
-    {kind === 'receipt' && <div className="receipt-image-fixture"><span>Original artifact preview</span><i /><i /><i /><strong>PNG now · PDF later</strong></div>}
+    {kind === 'qr' && <div className="qr-fixture" aria-label="Order QR"><span /><span /><span /><span /><span /><span /><span /><span /><span /></div>}
+    {kind === 'receipt' && <div className="receipt-image-fixture"><span>Original receipt</span><i /><i /><i /><strong>Email render</strong></div>}
     {kind === 'code' && <div className="code-fixture"><span>Event code</span><strong>{code ?? 'ABC123'}</strong></div>}
     <p>{note}</p>
   </div>
@@ -2102,24 +2310,8 @@ function WalletStoreTab({ openModal }: { openModal: (eyebrow: string, title: str
     urabrask: 'Chris',
     event: 'Assign',
   })
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('magiccon-wallet-store-assignments')
-      if (saved) setAssignments(current => ({ ...current, ...JSON.parse(saved) }))
-    } catch {
-      // POC-only local convenience; ignore unavailable storage.
-    }
-  }, [])
   const saveAssignment = (key: string, value: string) => {
-    setAssignments(current => {
-      const next = { ...current, [key]: value }
-      try {
-        localStorage.setItem('magiccon-wallet-store-assignments', JSON.stringify(next))
-      } catch {
-        // POC-only local convenience; ignore unavailable storage.
-      }
-      return next
-    })
+    setAssignments(current => ({ ...current, [key]: value }))
   }
   const assignmentLabel = (value: string) => {
     if (value === 'Assign') return <span className="assignment-bubble">+</span>
@@ -2149,7 +2341,7 @@ function WalletStoreTab({ openModal }: { openModal: (eyebrow: string, title: str
           <div className="receipt-line-row" role="button" tabIndex={0} onClick={() => openModal('LINE ITEM', 'Event exclusive × 3', <AssignmentPreview item="Event Exclusive 2026" />)}><span>Event Exclusive 2026 × 3</span><b>$75</b>{assignmentPicker('event')}</div>
         </div>
         <div className="receipt-note">Assignment note example: “three of these shirts were for Kellen.”</div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL STORE RECEIPT', 'Magic Con #39Z8', <ProofPreview kind="receipt" note="Original Square receipt should render as PNG immediately, with PDF/source email still available." />)}>Show original</button><button type="button" onClick={() => openModal('EXTRACTED LINE ITEMS', 'Magic Con #39Z8 line items', <ul><li>Sheoldred exclusive × 3 — $90</li><li>Urabrask exclusive × 3 — $90</li><li>Event Exclusive 2026 × 3 — $75</li></ul>)}>Line items</button><button type="button" onClick={() => openModal('NOTE', 'Receipt note', <p>POC note: “three of these shirts were for Kellen.” Later this becomes a contextual note attached to the receipt.</p>)}>Add note</button></div>
+        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL STORE RECEIPT', 'Magic Con #39Z8', <ProofPreview kind="receipt" note="Original Square receipt render." />)}>Show original</button><button type="button" onClick={() => openModal('EXTRACTED LINE ITEMS', 'Magic Con #39Z8 line items', <ul><li>Sheoldred exclusive × 3 — $90</li><li>Urabrask exclusive × 3 — $90</li><li>Event Exclusive 2026 × 3 — $75</li></ul>)}>Line items</button><button type="button" onClick={() => openModal('NOTE', 'Receipt note', <p>Three of these shirts were for Kellen.</p>)}>Add note</button></div>
       </article>
       <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="explore" /></span><div><span className="eyebrow">ATLANTA STORE</span><h2>Catalog links later</h2><p>When the show store catalog appears, receipt items should backlink to product cards.</p></div></div>
@@ -2239,10 +2431,10 @@ function tripHotelDetail(kind: 'courtyard' | 'omni' | 'chris'): ObjectDetail {
     kind: 'hotel',
     eyebrow: 'Hotel · Thursday onward',
     title: "Chris's hotel",
-    summary: 'Chris branches to his own hotel after the Thursday Black Lotus First Look block. Property details are not captured yet.',
+    summary: 'Chris branches to his own hotel after the Thursday Black Lotus First Look block. Hotel details are still pending.',
     facts: [
       { label: 'People', value: 'Chris' },
-      { label: 'Status', value: 'Property details not captured yet' },
+      { label: 'Status', value: 'Hotel details pending' },
     ],
     rationale: 'Keep this visible as an intentional missing fact rather than pretending the trip plan is complete.',
     actions: [{ label: 'Open Trip', destination: 'trip' }],
@@ -2306,7 +2498,7 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
           </button>
           <div className="trip-branches" aria-label="Thursday hotel split">
             <button type="button" className="trip-branch omni-branch object-card-button" onClick={() => onOpenObject(tripHotelDetail('omni'))}><span className="branch-line" aria-hidden="true" /><div><small>NOV 12-15 · 3 NIGHTS</small><h3>Omni at Centennial Park</h3><p>Kavi and Juan · convention hotel</p></div><TravelerDots people={['Kavi', 'Juan']} /></button>
-            <button type="button" className="trip-branch chris-branch object-card-button" onClick={() => onOpenObject(tripHotelDetail('chris'))}><span className="branch-line" aria-hidden="true" /><div><small>THURSDAY ONWARD</small><h3>Chris's hotel</h3><p>Property details not captured yet</p></div><TravelerDots people={['Chris']} /></button>
+            <button type="button" className="trip-branch chris-branch object-card-button" onClick={() => onOpenObject(tripHotelDetail('chris'))}><span className="branch-line" aria-hidden="true" /><div><small>THURSDAY ONWARD</small><h3>Chris's hotel</h3><p>Hotel details pending</p></div><TravelerDots people={['Chris']} /></button>
           </div>
         </div>
       </section>
@@ -2375,9 +2567,9 @@ function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detai
       <div>
         <span className="eyebrow">ATLANTA 2026</span>
         <h2>No confirmed artist list yet.</h2>
-        <p>The official Atlanta artist directory has not been published, so this page should show clearly marked historical candidates only.</p>
+        <p>The official Atlanta artist directory is still unpublished, so this stays a tightly marked holding spot for likely returners.</p>
       </div>
-      <button type="button" onClick={onOpenActivity}>Watch activity</button>
+      <button type="button" onClick={onOpenActivity}>Open Activity</button>
     </section>
     <div className="artists-layout">
       <section className="artist-seed-list" aria-label="Historical artist seeds">
@@ -2394,8 +2586,8 @@ function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detai
       </section>
       <aside className="artists-intel-card">
         <span className="eyebrow">WHY THIS IS HERE</span>
-        <h2>One real seed beats a fake gallery.</h2>
-        <p>Rebecca Guay is not an Atlanta fact. She is a historical MagicCon artist seed that proves the future workflow: artist → known cards → ManaBox match → tiny bring/signature shortlist.</p>
+        <h2>Start with one meaningful artist seed.</h2>
+        <p>Rebecca Guay is here as a likely returning artist until Atlanta publishes the official list.</p>
         <dl>
           <div><dt>Status</dt><dd>Historical only</dd></div>
           <div><dt>Next unlock</dt><dd>Official Atlanta artist directory</dd></div>
@@ -2414,15 +2606,25 @@ function CalendarDayHeader({ day, date, label }: { day: string; date: string; la
   </div>
 }
 
-function AgendaInflection({ time, label, detail, onOpen }: { time: string; label: string; detail?: string; onOpen?: () => void }) {
+function AgendaMarker({
+  time,
+  label,
+  detail,
+  onOpen,
+}: {
+  time: string
+  label: string
+  detail?: string
+  onOpen?: () => void
+}) {
   const content = <>
-    <span className="inflection-time">{time}</span>
-    <span className="inflection-copy">{label}</span>
-    {detail && <span className="inflection-detail">{detail}</span>}
+    <span className="marker-time">{time}</span>
+    <span className="marker-copy">{label}</span>
+    {detail && <span className="marker-detail">{detail}</span>}
   </>
   return onOpen
-    ? <button type="button" className="agenda-inflection" onClick={onOpen}>{content}</button>
-    : <div className="agenda-inflection">{content}</div>
+    ? <button type="button" className="agenda-marker" onClick={onOpen}>{content}</button>
+    : <div className="agenda-marker">{content}</div>
 }
 
 function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online, saving }: { slice: TrustSlice; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean }) {
@@ -2488,8 +2690,8 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
     </button>}
 
     {(showTravel || showConvention) && <CalendarDayHeader day="THU" date="November 12" label={showConvention ? 'Black Lotus early access' : 'Thursday transition'} />}
-    {showConvention && <AgendaInflection time="12:00 PM" label="Black Lotus lounge opens" detail="Welcome to First Look Thursday" onOpen={() => setDetail('bl-thursday')} />}
-    {showConvention && <AgendaInflection time="12:00 PM" label="Progressive Sealed pickup/play begins" detail="Pick up packs; league continues through Sunday" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <AgendaMarker time="12:00 PM" label="Black Lotus lounge opens" detail="Welcome to First Look Thursday" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <AgendaMarker time="12:00 PM" label="Progressive Sealed pickup/play begins" detail="Pick up packs; league continues through Sunday" onOpen={() => setDetail('bl-thursday')} />}
     {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-thursday')}>
       <div className="agenda-date"><strong>12</strong><span>THU</span><em>1-8 PM</em></div>
       <div className="agenda-icon lotus-mini">✦</div>
@@ -2497,9 +2699,9 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
-    {showTravel && <AgendaInflection time="4:00 PM" label="Omni check-in begins" detail="Kavi + Juan hotel shift; luggage plan may matter" onOpen={() => setDetail('preview')} />}
-    {showConvention && <AgendaInflection time="4:15 PM" label="Design the Unknown Planechase Card" detail="Casual Play Design Presents" onOpen={() => setDetail('bl-thursday')} />}
-    {showConvention && <AgendaInflection time="6:30 PM" label="Paint & Sip" onOpen={() => setDetail('bl-thursday')} />}
+    {showTravel && <AgendaMarker time="4:00 PM" label="Omni check-in begins" detail="Kavi + Juan hotel shift; luggage plan may matter" onOpen={() => setDetail('preview')} />}
+    {showConvention && <AgendaMarker time="4:15 PM" label="Design the Unknown Planechase Card" detail="Casual play design session" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <AgendaMarker time="6:30 PM" label="Paint & Sip" onOpen={() => setDetail('bl-thursday')} />}
     {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-thursday')}>
       <div className="agenda-date"><strong>12</strong><span>THU</span><em>8-11 PM</em></div>
       <div className="agenda-icon lotus-mini">✦</div>
@@ -2511,13 +2713,13 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
     {showConvention && <div className="calendar-month compact" id="calendar-con"><span>NOV 13–15</span><strong>MagicCon weekend</strong></div>}
 
     {showConvention && <CalendarDayHeader day="FRI" date="November 13" label="Convention day 1" />}
-    {showConvention && <AgendaInflection time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} />}
-    {showConvention && <AgendaInflection time="8:30 AM" label="Online store pre-order pickup begins" detail="Pickup window runs until 5 PM" onOpen={() => setDetail('bl-friday')} />}
-    {showConvention && <AgendaInflection time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} />}
+    {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} />}
+    {showConvention && <AgendaMarker time="8:30 AM" label="Online store pre-order pickup begins" detail="Pickup window runs until 5 PM" onOpen={() => setDetail('bl-friday')} />}
+    {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <button className="agenda-row agenda-action convention-row" type="button" onClick={() => setDetail('friday')}>
       <div className="agenda-date"><strong>13</strong><span>FRI</span><em>All day</em></div>
       <div className="agenda-icon"><NavIcon name="plan" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Convention · Day 1</span><h2>Planning surface opens here</h2><p>No committed events captured yet.</p></div>
+      <div className="agenda-copy"><span className="agenda-kind">Convention · Day 1</span><h2>Friday planning block</h2><p>Nothing fixed yet.</p></div>
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="plan" />Plan</span>
     </button>}
@@ -2531,7 +2733,7 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
     {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-friday')}>
       <div className="agenda-date"><strong>13</strong><span>FRI</span><em>2-6 PM</em></div>
       <div className="agenda-icon lotus-mini">✦</div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>PLAY EVENT with Special Guests</h2><p>Published as under construction, so this should stay watch-sensitive.</p></div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>PLAY EVENT with Special Guests</h2><p>Published as under construction, so details may still move.</p></div>
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
@@ -2553,12 +2755,12 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
     </article>}
 
     {showConvention && <CalendarDayHeader day="SUN" date="November 15" label="Final day" />}
-    {showConvention && <AgendaInflection time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-sunday')} />}
-    {showConvention && <AgendaInflection time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-sunday')} />}
+    {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-sunday')} />}
+    {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-sunday')} />}
     {showConvention && <button className="agenda-row agenda-action convention-row" type="button" onClick={() => setDetail('sunday')}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>All day</em></div>
       <div className="agenda-icon"><NavIcon name="plan" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Convention · Final day</span><h2>Closing day</h2><p>No committed events captured yet.</p></div>
+      <div className="agenda-copy"><span className="agenda-kind">Convention · Final day</span><h2>Sunday planning block</h2><p>Nothing fixed yet.</p></div>
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="plan" />Plan</span>
     </button>}
@@ -2569,9 +2771,9 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
       <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
-    {showConvention && <AgendaInflection time="4:00 PM" label="Last Mystery Booster 2 draft fires" onOpen={() => setDetail('bl-sunday')} />}
-    {showConvention && <AgendaInflection time="5:00 PM" label="Final chance to claim Progressive Sealed booster prizes" onOpen={() => setDetail('bl-thursday')} />}
-    {showConvention && <AgendaInflection time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} />}
+    {showConvention && <AgendaMarker time="4:00 PM" label="Last Mystery Booster 2 draft fires" onOpen={() => setDetail('bl-sunday')} />}
+    {showConvention && <AgendaMarker time="5:00 PM" label="Final chance to claim Progressive Sealed booster prizes" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <AgendaMarker time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} />}
 
     {showTravel && <button className="agenda-row agenda-action travel-row airport-row" type="button" onClick={() => setDetail('airport')}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>TBD</em></div>
@@ -2603,7 +2805,7 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
       : detail === 'preview'
         ? { eyebrow: 'BLACK LOTUS · NOV 12', title: 'First Look and Omni check-in', copy: 'Kavi and Chris have the Black Lotus First Look day. Courtyard ends before Omni check-in at 4 PM, so luggage handling is the only practical transition note currently worth keeping visible.' }
         : detail === 'bl-thursday'
-          ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 12', title: 'Thursday early-access schedule', copy: 'Published BL schedule: lounge opens at 12 PM; Progressive Sealed league pickup/play begins at 12 PM; Behind the Card Frame & First Look runs 1-8 PM with several TBD content slots; Design the Unknown Planechase Card is 4:15-5:15; Paint & Sip is 6:30-7:30; Welcome Reception + First Look runs 8-11 PM. Locations are not yet announced and the schedule is subject to change.' }
+          ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 12', title: 'Thursday early-access schedule', copy: 'Published BL schedule: lounge opens at 12 PM; Progressive Sealed league pickup/play begins at 12 PM; Behind the Card Frame & First Look runs 1-8 PM with several TBD content slots; Design the Unknown Planechase Card is 4:15-5:15; Paint & Sip is 6:30-7:30; Welcome Reception + First Look runs 8-11 PM. Locations are still TBD and the schedule is subject to change.' }
         : detail === 'friday'
           ? { eyebrow: 'CONVENTION · NOV 13', title: 'Friday', copy: 'No committed or purchased events are captured yet.' }
           : detail === 'bl-friday'
@@ -2817,20 +3019,20 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, on
         </article>)}
         {alerts.map(alert => <AlertCard key={alert.id} alert={alert} reviewState={reviewState(alert)} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
         {stream === 'personal' && notes.length === 0 && <div className="activity-empty"><strong>No notes yet.</strong><span>Add a note from a receipt, event, trip item, or object detail.</span></div>}
-        {stream === 'all' && visibleNotes.length === 0 && alerts.length === 0 && <div className="activity-empty"><strong>Nothing active right now.</strong><span>New inbox findings, notes, and quieter updates will collect here.</span></div>}
-        {alerts.length === 0 && stream !== 'personal' && stream !== 'all' && <div className="activity-empty"><strong>No items here.</strong><span>{stream === 'archived' ? 'Archived findings will remain recoverable here.' : 'Quiet is a valid state.'}</span></div>}
+        {stream === 'all' && visibleNotes.length === 0 && alerts.length === 0 && <div className="activity-empty"><strong>Nothing active right now.</strong><span>When something changes, it will show up here.</span></div>}
+        {alerts.length === 0 && stream !== 'personal' && stream !== 'all' && <div className="activity-empty"><strong>No items here.</strong><span>{stream === 'archived' ? 'Archived findings stay available here.' : 'Nothing needs attention in this view.'}</span></div>}
       </div>
       {incomingAlerts.length > 0 && <aside className="activity-rail" aria-label="Activity context">
         {incomingAlerts.length > 0 && <button className="activity-route-card" type="button" onClick={() => onOpenObject(alertToObjectDetail(incomingAlerts.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingAlerts[0]))}>
           <span className="activity-route-icon"><AlertKindIcon kind="site" /></span>
-          <span><strong>Highest watch</strong><small>Black Lotus page changes route to Home.</small></span>
+          <span><strong>Highest watch</strong><small>Black Lotus page changes surface on Home first.</small></span>
         </button>}
         <details className="activity-context-card">
-          <summary>What can land here</summary>
+          <summary>What lands here</summary>
           <p>Exact source, retrieval time, useful wording, AI summary, rationale, suggested destination, and review state.</p>
         </details>
         <details className="activity-context-card">
-          <summary>Current proof object</summary>
+          <summary>Source details</summary>
           <blockquote>{slice.observation.exact_wording}</blockquote>
           <dl>
             <div><dt>Publisher</dt><dd>{slice.source.publisher_name}</dd></div>
@@ -2903,7 +3105,7 @@ function Login({ onGoogleSignIn, message, messageTone }: { onGoogleSignIn: () =>
     <span className="kicker">PRIVATE FIELD GUIDE</span><h1>Welcome back.</h1>
     <p className="login-intro">Use Google OAuth for a persistent Supabase session. Magic links stay parked so we do not burn email quota during testing.</p>
     <button type="button" className="oauth-button" onClick={onGoogleSignIn}><span aria-hidden="true">G</span>Continue with Google</button>
-    <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Developer fixture preview</a>
+    <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Open preview mode</a>
     {message && <p role="status" className={`login-message ${messageTone}`}>{message}</p>}
   </section></div>
 }

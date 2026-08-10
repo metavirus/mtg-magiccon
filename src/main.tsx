@@ -1,10 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { registerSW } from 'virtual:pwa-register'
 import './styles.css'
 import './account.css'
 import './density.css'
 import App from './App'
 
-registerSW({ immediate: true })
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => {
+      registration.unregister().catch(() => undefined)
+    })
+  }).catch(() => undefined)
+}
+
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)

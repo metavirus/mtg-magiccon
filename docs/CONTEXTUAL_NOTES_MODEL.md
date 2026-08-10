@@ -4,15 +4,15 @@ Notes should be easy to add almost anywhere, but they should not turn the interf
 
 ## Current implementation status
 
-As of the v1.5 proof pass on August 9, the React preview has the first local implementation of this universal note primitive:
+As of the v1.5 trust pass on August 9, the React preview has the first Supabase-backed implementation of this universal note primitive:
 
 - object detail drawers/sheets can render the same compact note composer;
 - Wallet badge-proof `Info` views use that same note composer rather than receipt-specific note logic;
 - the Notes destination indexes notes globally with `All`, `Mine`, and `Others` filters;
 - Activity has a Personal stream that reflects the same note objects;
-- notes persist locally in the browser for interaction proof only.
+- notes persist in `public.personal_notes` with owner-scoped RLS, author labels, object anchors, visibility, and backlinks.
 
-This is intentionally not the final data layer. The next trust step is to move the same object shape into Supabase with RLS, stable author identity, and safe shared-read semantics. Do not add more local-only note variants in individual destinations; extend the shared primitive instead.
+This is intentionally still owner-scoped rather than a full collaboration model. The next trust step is shared-read semantics for the small MagicCon group, not more local-only note variants in individual destinations. Extend the shared primitive instead.
 
 ## Architecture invariant
 
@@ -156,24 +156,24 @@ The notes layer should feel consistent even when the surrounding UI changes:
 
 ## Data direction
 
-Do not create a full collaboration system for v1.5. A narrow authenticated table is enough later:
+Do not create a full collaboration system for v1.5. The current authenticated table is intentionally narrow:
 
 - `id`;
 - `owner_id`;
-- `author_id`;
-- `author_display`;
+- `title`;
 - `body`;
-- `visibility`;
-- `object_type`;
 - `object_id`;
+- `object_kind`;
 - `object_title`;
-- optional `object_subtype` or `object_anchor` for line items, itinerary instances, map booths, or source findings;
+- optional `object_anchor` for line items, itinerary instances, map booths, or source findings;
+- `context`;
+- `visibility`;
+- `backlink`;
+- `author_label`;
 - `created_at`;
-- `updated_at`;
-- `archived_at`;
-- optional `source_observation_id` when a note responds to monitored evidence.
+- `updated_at`.
 
-RLS should keep each author's notes author-controlled for edits/deletes. Future shared viewing should be based on explicit event/group membership or object access, not a blanket rule that every authenticated user can read every note. A user may be allowed to read a shared note without being allowed to edit it.
+RLS currently keeps each owner in their own note rows. Future shared viewing should be based on explicit event/group membership or object access, not a blanket rule that every authenticated user can read every note. A user may be allowed to read a shared note without being allowed to edit it.
 
 ## Guardrail
 
