@@ -2,7 +2,7 @@
 
 This is a personal hobby application for one to three trusted users. Development uses the hosted Supabase project directly; readiness should protect identity, secrets, schema discipline, and deployable code without reproducing the hosted platform locally.
 
-Run `pnpm readiness` before substantive work. A pass proves:
+Run `pnpm readiness` before Tier 2 data/auth/database/research/monitoring work and before any change where repository, branch, remote, or Supabase identity matters. Do not make it a tax on every small CSS or copy adjustment. A pass proves:
 
 - the exact repository path, GitHub `origin`, and an allowed branch;
 - Node, pnpm, Supabase CLI, and PostgreSQL `psql` are available;
@@ -24,6 +24,8 @@ pnpm validate:secrets
 ```
 
 Current local note, August 3, 2026: after restarting the Codex desktop session, ordinary `node`, `pnpm`, and `pnpm readiness` are available on `PATH`; the previous Node PATH issue is not currently reproducing. The managed-sandbox Vite/esbuild config-resolution failure is fixed by using Vite/Vitest's `--configLoader runner` in the project scripts, which avoids bundling the config with esbuild before execution. Plain `pnpm build` and `pnpm test` should now pass inside the sandbox.
+
+Current local note, August 10, 2026: `pnpm dev`, `pnpm preview`, `pnpm build`, and `pnpm test` all use Vite/Vitest's runner config loader path. If one of those scripts fails, treat it as a real defect to diagnose, not as expected environment flakiness.
 
 ## Secure local setup
 

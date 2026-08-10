@@ -22,6 +22,7 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 - Run `pnpm build`, `pnpm validate:text`, and `pnpm validate:secrets`.
 - Run `pnpm publish:pages`.
 - Push `gh-pages` if publication is requested.
+- After pushing, run `pnpm verify:public`.
 - Treat “published” as true only after a cache-busted public URL serves the expected current asset or visible behavior.
 - If public Pages still shows stale behavior, say “pushed but not propagated/cached yet,” not “fixed.”
 

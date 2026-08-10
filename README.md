@@ -24,7 +24,10 @@ Run `pnpm readiness` before database or release work. See [development architect
 | Command | Purpose |
 | --- | --- |
 | `pnpm dev` | Local app |
+| `pnpm preview` | Serve a built app preview using the same Vite config-loader path as build |
 | `pnpm build` | Type-check and production build |
+| `pnpm publish:pages` | Build and sync the local `tmp/gh-pages` worktree; this is not public until `gh-pages` is pushed |
+| `pnpm verify:public` | Compare the public GitHub Pages asset references with the pushed `tmp/gh-pages` build after a cache-busted fetch |
 | `pnpm test` | Unit tests |
 | `pnpm validate:text` | UTF-8/LF and text checks |
 | `pnpm validate:secrets` | Tracked-file secret scan |
@@ -33,5 +36,7 @@ Run `pnpm readiness` before database or release work. See [development architect
 The first live product slice is documented in [Black Lotus Trust Slice](docs/BLACK_LOTUS_TRUST_SLICE.md). It retains one official Atlanta claim, a reversible owner decision, a Plan placement, and a versioned owner-bound offline read model.
 
 A temporary GitHub Pages preview is available for iPhone review at https://metavirus.github.io/mtg-magiccon/. It is fixture-backed by default and not a production data deployment.
+
+For this project, "published" should mean the public GitHub Pages URL has been verified, not merely that `dist` was built or copied into the local `tmp/gh-pages` worktree.
 
 As of the August 8 fixture-backed 1.5 pass, the preview is accepted as a coherent quiet-period review surface. Google OAuth is now the deliberate live-auth path at `?auth=1`; the default Pages URL remains fixture-backed for unblocked review. See [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md).
