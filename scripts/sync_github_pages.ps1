@@ -27,6 +27,9 @@ if (-not (Test-Path -LiteralPath $assetsRoot)) {
   New-Item -ItemType Directory -Path $assetsRoot | Out-Null
 }
 
+Get-ChildItem -LiteralPath $assetsRoot -Force |
+  ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force }
+
 Get-ChildItem -LiteralPath $distRoot -Force |
   Where-Object { $_.Name -ne 'assets' } |
   ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $publishRoot -Recurse -Force }

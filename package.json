@@ -7,10 +7,11 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --configLoader runner",
+    "build": "powershell -ExecutionPolicy Bypass -File scripts/clean_dist.ps1 && tsc -b && vite build --configLoader runner",
     "build:pages": "pnpm build && powershell -ExecutionPolicy Bypass -File scripts/prepare_github_pages.ps1",
     "sync:pages": "powershell -ExecutionPolicy Bypass -File scripts/sync_github_pages.ps1",
-    "publish:pages": "pnpm build:pages && pnpm sync:pages",
+    "verify:pages": "powershell -ExecutionPolicy Bypass -File scripts/verify_github_pages_sync.ps1",
+    "publish:pages": "pnpm build:pages && pnpm sync:pages && pnpm verify:pages",
     "preview": "vite preview",
     "test": "vitest run --configLoader runner",
     "validate:monitoring": "powershell -ExecutionPolicy Bypass -File scripts/validate_monitoring_intake.ps1",

@@ -628,7 +628,7 @@ export default function App() {
             <div className="mobile-drawer-brand-mark"><img src={assetUrl('magiccon-atlanta-peach.png')} alt="" /></div>
             <div className="mobile-drawer-brand-copy">
               <span className="mobile-drawer-label">Menu</span>
-              <strong>MagicCon Companion</strong>
+              <strong>MagicCon</strong>
               <small>Atlanta 2026</small>
             </div>
             <button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button>
