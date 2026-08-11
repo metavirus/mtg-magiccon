@@ -99,5 +99,6 @@ Use the full project gate:
 - After two failed attempts on the same UI defect, stop and inspect the actual DOM/CSS/published asset path before making another patch.
 - After any mobile-navigation or responsive claim, verify a phone-sized viewport.
 - After any GitHub Pages publish claim, verify the public page with a cache-busting query or explicitly report that propagation is still pending.
+- When public Pages looks stale, inspect the exact deploy workflow run and compare the live `magiccon-build-sha` to the expected artifact SHA before using the word “propagation.”
 - If a fix starts requiring broad architecture work, pause and name the root cause instead of burning tokens on edge adjustments.
 - If an operational fix creates a new external failure signal, stop feature work until the failure is understood, corrected, and documented in `docs/KNOWN_GREMLINS.md` or the relevant SOP.
