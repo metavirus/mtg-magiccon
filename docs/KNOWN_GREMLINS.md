@@ -85,6 +85,18 @@ If public verification fails after a correct push, report propagation/cache lag 
 - If a workflow change is pushed and produces a red run or user-visible email, treat it as an agent-owned mistake until evidence proves otherwise. Fix the run before returning to feature work.
 - After a workflow fix, check the latest GitHub Actions run rather than relying on local `pnpm` success.
 
+### GitHub Actions Pages self-signed certificate failure
+
+**Symptom:** `actions/configure-pages` fails with `Get Pages site failed` and `self-signed certificate; ... try running Node.js with --use-system-ca`.
+
+**Cause:** the hosted Windows runner's Node-based action is not using the system certificate store for that Pages API call.
+
+**Do this:**
+
+- Keep `NODE_OPTIONS: --use-system-ca` in the Pages deploy workflow job env.
+- Do not change app code, Supabase config, or the Pages artifact build for this symptom when `pnpm check:ship` and `pnpm build:pages` already passed.
+- After the env fix, rerun or repush the same workflow path and verify the public page normally.
+
 ## GitHub Actions missing browser config
 
 **Symptom:** Public GitHub Pages app shows “Project connection needed” even though local preview works.
