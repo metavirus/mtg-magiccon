@@ -14,6 +14,8 @@ As of the v1.5 trust pass on August 9, the React preview has the first Supabase-
 
 This is intentionally still owner-scoped rather than a full collaboration model. The next trust step is shared-read semantics for the small MagicCon group, not more local-only note variants in individual destinations. Extend the shared primitive instead.
 
+As of August 11, notes also have a backend mention layer through `public.note_mentions`. That table is intentionally narrow: it records which known companion members were explicitly mentioned in a note, and leaves notification, unread, dismissal, and grouping semantics to later product decisions.
+
 ## Architecture invariant
 
 Notes are one universal object-attached layer. Do not invent separate note systems for Trip, Wallet, receipts, events, artists, Map, or Activity.
@@ -68,6 +70,26 @@ When an object has meaningful subparts, attach the note to the narrowest useful 
 - activity-finding note only when the user is commenting on the finding itself.
 
 Avoid duplicating the same note across multiple places. If a note touches more than one object, store one primary object reference and optional secondary links/tags later.
+
+## Mention model
+
+`@` mentions should stay part of the same universal notes layer rather than becoming a parallel collaboration system.
+
+Current backend contract:
+
+- note text remains the canonical authored text;
+- explicit mentions are extracted into `public.note_mentions`;
+- each mention points at one known `companion_members.person_key`;
+- future unread/dismissed handling belongs on the mention row, not embedded into note copy.
+
+This means we can later support:
+
+- “show me notes where Chris was mentioned”;
+- user-level mention dismissal or mark-read;
+- hot or worth-knowing activity only for targeted people;
+- lightweight collaboration without turning notes into chat.
+
+It does not mean every shared note becomes a mention. Mentions should stay explicit.
 
 ## Author and visibility model
 
@@ -174,6 +196,19 @@ Do not create a full collaboration system for v1.5. The current authenticated ta
 - `updated_at`.
 
 RLS currently keeps each owner in their own note rows. Future shared viewing should be based on explicit event/group membership or object access, not a blanket rule that every authenticated user can read every note. A user may be allowed to read a shared note without being allowed to edit it.
+
+The first collaboration scaffold adds `public.note_mentions` with:
+
+- `note_id`;
+- `note_owner_id`;
+- `mentioned_person_key`;
+- optional `mentioned_user_id`;
+- `mention_token`;
+- optional `dismissed_at`;
+- optional `last_seen_at`;
+- timestamps.
+
+That table is deliberately not a generic social graph. It is only the backend lane for targeted note context.
 
 ## Guardrail
 

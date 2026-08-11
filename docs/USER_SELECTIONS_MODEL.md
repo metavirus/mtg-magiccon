@@ -26,6 +26,8 @@ Both tables use forced RLS, explicit authenticated grants, and no anonymous gran
 
 `public.companion_members` is the read-only authenticated roster that lets these user-owned records render stable people labels across the app. It does not replace auth: when a member has an auth account, `auth_email` / `user_id` can map that account to the person bubble. Until collaboration rules are intentionally expanded, notes and selections remain owned by the logged-in user, while shared notes are visible across authenticated companion members.
 
+`public.note_mentions` is the first mention-ready collaboration scaffold. It is not part of the selection layer, but it matters for future shared-activity semantics because a shared note that explicitly mentions Chris should rank and route differently from a generic shared note.
+
 ## Product rule
 
 If the user clicks something that expresses preference, commitment, review state, count, assignment, or visibility, it should persist in Supabase unless it is clearly disposable UI chrome.

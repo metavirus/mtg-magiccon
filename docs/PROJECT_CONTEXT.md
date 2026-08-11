@@ -35,6 +35,8 @@ The companion table `user_selections` is the canonical owner-scoped persistence 
 
 The roster table `companion_members` is the canonical lightweight identity scaffold for the Atlanta group. It separates people from auth accounts so the app can render consistent person bubbles before everyone logs in: Kavi (`Ka`) and Chris (`C`) have baseline Black Lotus entitlement; Juan (`J`) and Kyle (`Ky`) have Premium badges. Black Lotus schedule/items may be visible to the whole companion group, but entitlement-specific actions should assume Kavi and Chris unless the user explicitly records a real handoff.
 
+`note_mentions` is the first collaboration-ready backend primitive layered on top of the universal notes system. It is not a chat system and it does not yet decide notification semantics. It simply records that a note intentionally mentioned one or more known companion members so later shared review, unread/dismissed state, and targeted activity rules have a canonical place to live.
+
 The first bounded convention-domain implementation is the Black Lotus trust slice in `docs/BLACK_LOTUS_TRUST_SLICE.md`. Five deliberately narrow owner-scoped tables prove source identity, retained observation, one normalized dated occurrence, a reversible personal decision, and one itinerary placement. This is a proof of the evidence-to-plan path, not authorization for a comprehensive convention schema.
 
 The conceptual growth path is `Source -> Observation -> Normalized entity -> Personal decision -> Itinerary`. The Black Lotus slice now proves the initial real-page path. A reviewed reconciliation fixture and real offline device test remain required before monitoring or broad normalization.

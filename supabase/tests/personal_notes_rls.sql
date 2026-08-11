@@ -1,5 +1,5 @@
 begin;
-select plan(22);
+select plan(29);
 select has_table('public', 'personal_notes', 'personal_notes exists');
 select row_security_active('public.personal_notes'), 'RLS is active';
 select policies_are('public', 'personal_notes', array['Authenticated users can select shared notes','owners_delete_personal_notes','owners_insert_personal_notes','owners_select_personal_notes','owners_update_personal_notes']);
@@ -22,5 +22,13 @@ select table_privs_are('public', 'companion_members', 'anon', array[]::text[], '
 select table_privs_are('public', 'companion_members', 'authenticated', array['SELECT'], 'authenticated can read active companion roster');
 select results_eq($$ select count(*)::integer from public.companion_members where active $$, array[4], 'baseline companion roster has four active members');
 select results_eq($$ select count(*)::integer from public.companion_members where black_lotus_entitled $$, array[2], 'only Kavi and Chris are baseline Black Lotus entitled');
+select has_table('public', 'note_mentions', 'note_mentions exists');
+select row_security_active('public.note_mentions'), 'note_mentions RLS is active';
+select policies_are('public', 'note_mentions', array['note_mentions_delete_owner','note_mentions_insert_owner','note_mentions_select_owner_or_target','note_mentions_update_owner_or_target']);
+select table_privs_are('public', 'note_mentions', 'anon', array[]::text[], 'anon has no note_mentions grants');
+select table_privs_are('public', 'note_mentions', 'authenticated', array['DELETE','INSERT','SELECT','UPDATE'], 'authenticated grants are explicit on note_mentions');
+select col_is_fk('public', 'note_mentions', 'note_id', 'note_id has a foreign key');
+select col_is_fk('public', 'note_mentions', 'mentioned_person_key', 'mentioned_person_key has a foreign key');
+select col_is_unique('public', 'note_mentions', array['note_id','mentioned_person_key'], 'one mention row per note/person');
 select * from finish();
 rollback;
