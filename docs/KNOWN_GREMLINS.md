@@ -64,7 +64,7 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 - Keep `actions/checkout` and `actions/setup-node` on their Node-24 majors (`@v6` at time of writing), with project Node set to `24`.
 - Prefer Corepack (`corepack enable` + `corepack prepare pnpm@... --activate`) over `pnpm/action-setup` so package-manager setup does not add another action runtime warning.
-- Keep GitHub Pages actions on the newest supported major in GitHub's Pages docs; if GitHub has not released a newer Pages action major, do not churn the app to suppress a non-blocking GitHub-owned warning.
+- Keep GitHub Pages actions on the newest supported major in GitHub's Pages docs. As of the cleanup commit, the only remaining warning is GitHub's internal `upload-artifact` dependency used by the Pages artifact action; do not churn the app to suppress that GitHub-owned non-blocking warning.
 - Do not present this as an app build failure when ship checks and deploy pass.
 
 ## GitHub Actions missing browser config
