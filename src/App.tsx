@@ -145,7 +145,69 @@ type UserActivityEventRow = {
   created_at: string
 }
 
-function noteAuthorFromSession(currentSession: Session | null): PersonName {
+type CompanionMemberRow = {
+  person_key: string
+  display_name: PersonName
+  bubble_label: string
+  bubble_color: string
+  badge_tier: 'black_lotus' | 'premium'
+  black_lotus_entitled: boolean
+  relationship_label: string
+  auth_email: string | null
+  user_id: string | null
+  sort_order: number
+}
+
+type CompanionMember = {
+  key: string
+  name: PersonName
+  bubbleLabel: string
+  bubbleColor: string
+  badgeTier: 'black_lotus' | 'premium'
+  blackLotusEntitled: boolean
+  relationship: string
+  authEmail?: string
+  userId?: string
+  sortOrder: number
+}
+
+const fallbackCompanionMembers: CompanionMember[] = [
+  { key: 'kavi', name: 'Kavi', bubbleLabel: 'Ka', bubbleColor: 'blue', badgeTier: 'black_lotus', blackLotusEntitled: true, relationship: 'owner', authEmail: 'kavigrace@gmail.com', sortOrder: 10 },
+  { key: 'chris', name: 'Chris', bubbleLabel: 'C', bubbleColor: 'purple', badgeTier: 'black_lotus', blackLotusEntitled: true, relationship: 'Black Lotus companion', sortOrder: 20 },
+  { key: 'juan', name: 'Juan', bubbleLabel: 'J', bubbleColor: 'green', badgeTier: 'premium', blackLotusEntitled: false, relationship: 'partner', sortOrder: 30 },
+  { key: 'kyle', name: 'Kyle', bubbleLabel: 'Ky', bubbleColor: 'amber', badgeTier: 'premium', blackLotusEntitled: false, relationship: 'Chris friend', sortOrder: 40 },
+]
+
+function companionRowToMember(row: CompanionMemberRow): CompanionMember {
+  return {
+    key: row.person_key,
+    name: row.display_name,
+    bubbleLabel: row.bubble_label,
+    bubbleColor: row.bubble_color,
+    badgeTier: row.badge_tier,
+    blackLotusEntitled: row.black_lotus_entitled,
+    relationship: row.relationship_label,
+    authEmail: row.auth_email ?? undefined,
+    userId: row.user_id ?? undefined,
+    sortOrder: row.sort_order,
+  }
+}
+
+async function loadCompanionMembers(): Promise<CompanionMember[]> {
+  if (!supabase) return fallbackCompanionMembers
+  const result = await supabase.from('companion_members')
+    .select('person_key,display_name,bubble_label,bubble_color,badge_tier,black_lotus_entitled,relationship_label,auth_email,user_id,sort_order')
+    .eq('active', true)
+    .order('sort_order', { ascending: true })
+  if (result.error) throw result.error
+  return (result.data as CompanionMemberRow[]).map(companionRowToMember)
+}
+
+function noteAuthorFromSession(currentSession: Session | null, companions: CompanionMember[] = fallbackCompanionMembers): PersonName {
+  const email = currentSession?.user.email?.toLowerCase()
+  const linked = companions.find(member => email && member.authEmail?.toLowerCase() === email)
+    ?? companions.find(member => currentSession?.user.id && member.userId === currentSession.user.id)
+  if (linked) return linked.name
   const haystack = `${currentSession?.user.email ?? ''} ${currentSession?.user.user_metadata?.full_name ?? ''} ${currentSession?.user.user_metadata?.name ?? ''}`.toLowerCase()
   if (haystack.includes('juan')) return 'Juan'
   if (haystack.includes('chris')) return 'Chris'
@@ -280,6 +342,7 @@ export default function App() {
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
+  const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
@@ -379,6 +442,18 @@ export default function App() {
   }, [designPreview, online, session, slice])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
+
+  useEffect(() => {
+    if (designPreview || !session || !online) {
+      setCompanionMembers(fallbackCompanionMembers)
+      return
+    }
+    void loadCompanionMembers().then(setCompanionMembers).catch(error => {
+      setMessageTone('error')
+      setMessage(error instanceof Error ? `Companion roster could not be refreshed: ${error.message}` : 'Companion roster could not be refreshed.')
+      setCompanionMembers(fallbackCompanionMembers)
+    })
+  }, [designPreview, online, session])
 
   useEffect(() => {
     if (!designPreview) return
@@ -548,7 +623,7 @@ export default function App() {
       object_id: input.objectId,
       object_kind: input.objectKind,
       activity_type: input.activityType,
-      actor_label: input.actorLabel ?? noteAuthorFromSession(session),
+      actor_label: input.actorLabel ?? noteAuthorFromSession(session, companionMembers),
       summary: input.summary,
       details: input.details ?? {},
       created_at: createdAt,
@@ -588,7 +663,7 @@ export default function App() {
       context: input.context,
       title: input.title || input.objectTitle,
       body: input.body,
-      author: input.author ?? noteAuthorFromSession(session),
+      author: input.author ?? noteAuthorFromSession(session, companionMembers),
       visibility: input.visibility,
       updatedAt: now.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
       updatedAtIso: now.toISOString(),
@@ -655,7 +730,7 @@ export default function App() {
         objectId: `explore-${id}`,
         objectKind: 'event',
         activityType: 'event_state_changed',
-        summary: `${noteAuthorFromSession(session)} marked ${currentEvent.title} ${nextState}.`,
+        summary: `${noteAuthorFromSession(session, companionMembers)} marked ${currentEvent.title} ${nextState}.`,
         details: {
           event_id: id,
           event_title: currentEvent.title,
@@ -823,7 +898,7 @@ export default function App() {
             objectId: 'wallet-prize-tix',
             objectKind: 'wallet',
             activityType: 'prize_tix_adjusted',
-            summary: `${noteAuthorFromSession(session)} ${delta > 0 ? 'added' : 'spent'} ${Math.abs(delta)} Prize Tix.`,
+            summary: `${noteAuthorFromSession(session, companionMembers)} ${delta > 0 ? 'added' : 'spent'} ${Math.abs(delta)} Prize Tix.`,
             details: {
               delta,
               next_balance: value,

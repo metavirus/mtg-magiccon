@@ -116,6 +116,18 @@ If public verification fails after a correct push, report propagation/cache lag 
 - Check Google OAuth authorized JavaScript origins and redirect URI.
 - Do not rewrite auth UI code before proving provider configuration.
 
+## Supabase CLI telemetry writes
+
+**Symptom:** `supabase migration new ...` fails because the CLI tries to write a telemetry file under `C:\Users\kavig\.supabase\...` and the managed sandbox blocks it.
+
+**Cause:** the CLI writes outside the project workspace even for a harmless local migration-name command.
+
+**Do this:**
+
+- Create the migration file directly under `supabase/migrations/` with the timestamped name.
+- Apply hosted database changes through the connected Supabase MCP/tooling after proving project ref `pavjsexxbueuzhzgemgy`.
+- Do not retry the same CLI command first; that just burns time on a known sandbox edge.
+
 ## Browser storage versus Supabase state
 
 **Symptom:** notes, event preferences, hidden/not-for-me state, Activity review state, or Prize Tix differ across devices.
