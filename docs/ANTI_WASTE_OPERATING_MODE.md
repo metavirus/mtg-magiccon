@@ -8,6 +8,14 @@ Known environment constraints are part of the operating model. Do not rediscover
 
 For known project lanes, choose the expected working path before running commands. This applies to Git writes, package scripts, public deploy/verification, Supabase-backed state, browser/viewport inspection, and Windows/PowerShell quoting.
 
+Readiness is task-specific. Do not begin substantive work while a critical task capability is uncertain:
+
+- Browser-dependent task: run one bounded observable browser smoke test first.
+- Publish/debug-public task: confirm deployment visibility and expected branch/commit path first.
+- Database/user-state task: confirm the Supabase project and authenticated execution path first.
+
+Capability states are only `healthy`, `failed for this session`, or `blocked on one exact prerequisite`. If the same exact path fails twice, classify it and switch lanes; do not keep probing with small variations.
+
 If a known lane still fails, treat that first as an agent execution failure until evidence says otherwise. Fixing the immediate symptom is not sufficient. When the failure is user-visible, the handoff must include the prevention delta: the doc, script, command habit, or removed wrong path that makes recurrence less likely. Do not add broad triple-check ceremony as penance; encode the smallest durable correction.
 
 ## Change tiers
@@ -101,6 +109,7 @@ Use the full project gate:
 
 - After two failed attempts on the same UI defect, stop and inspect the actual DOM/CSS/published asset path before making another patch.
 - After any mobile-navigation or responsive claim, verify a phone-sized viewport.
+- For browser-dependent work, if browser control/readback fails twice on the same path, classify it as failed for the session and switch to a concrete alternate lane rather than narrating uncertainty.
 - After any GitHub Pages publish claim, verify the public page with a cache-busting query or explicitly report that propagation is still pending.
 - When public Pages looks stale, inspect the exact deploy workflow run and compare the live `magiccon-build-sha` to the expected artifact SHA before using the word “propagation.”
 - If a fix starts requiring broad architecture work, pause and name the root cause instead of burning tokens on edge adjustments.
