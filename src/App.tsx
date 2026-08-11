@@ -3399,7 +3399,7 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenAct
     if (!Number.isFinite(checkedAt)) return true
     const age = now - checkedAt
     return age <= (item.severity === 'hot' ? 7 : 3) * 24 * 60 * 60 * 1000
-  }).slice(0, 9)
+  }).slice(0, 6)
   const featuredHot = homeSignals.find(item => {
     const checkedAt = new Date(item.checkedAtIso).getTime()
     return item.severity === 'hot' && (!Number.isFinite(checkedAt) || now - checkedAt <= 48 * 60 * 60 * 1000)
