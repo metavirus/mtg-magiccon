@@ -458,6 +458,7 @@ export default function App() {
   const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
   const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(exploreEvents)
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
+  const [walletProofRequest, setWalletProofRequest] = useState<{ target: WalletProofTarget; nonce: number } | null>(null)
   const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(designPreview ? contextNotes : [])
   const [mentionInboxState, setMentionInboxState] = useState<MentionInboxItem[]>([])
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
@@ -1063,8 +1064,15 @@ export default function App() {
           <div className="header-actions">
             <MentionInbox
               items={mentionInboxState}
-              onOpenObject={detail => {
-                openObjectDetail(detail)
+              onOpenMention={note => {
+                const receiptTarget = receiptTargetFromNote(note)
+                if (receiptTarget) {
+                  closeObjectDetail()
+                  setWalletProofRequest({ target: receiptTarget, nonce: Date.now() })
+                  openDestination('Wallet', 'wallet')
+                  return
+                }
+                openObjectDetail(noteSourceObjectDetail(note))
               }}
             />
             <AccountMenu email={session?.user.email ?? 'kavigrace@gmail.com'} online={Boolean(session) && online} preview={designPreview} />
@@ -1079,7 +1087,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} onPrizeTixChange={(value, delta) => {
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
           if (!delta) return
           void recordUserActivity({
@@ -1108,6 +1116,7 @@ export default function App() {
 
 type ForecastId = 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
 type CalendarDetail = ForecastId | 'arrival' | 'preview' | 'friday' | 'event' | 'airport' | 'sunday' | 'bl-thursday' | 'bl-friday' | 'bl-sunday'
+type WalletProofTarget = 'black-lotus' | 'juan-premium'
 
 function trustSliceToObjectDetail(slice: TrustSlice): ObjectDetail {
   return {
@@ -1256,6 +1265,12 @@ function receiptSourceDetail(note: ContextNote): ObjectDetail | null {
     backlinks: [{ label: 'Wallet', destination: 'wallet' }],
   }, note)
 
+  return null
+}
+
+function receiptTargetFromNote(note: ContextNote): WalletProofTarget | null {
+  if (note.objectId === 'wallet-black-lotus-order') return 'black-lotus'
+  if (note.objectId === 'wallet-juan-premium-order') return 'juan-premium'
   return null
 }
 
@@ -2903,7 +2918,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   </section>
 }
 
-function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, onPrizeTixChange }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; onPrizeTixChange: (value: number, delta: number) => void }) {
+function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
@@ -2911,10 +2926,17 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
   })
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
   const openModal = (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => setModal({ eyebrow, title, body, people })
+  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Kavi', 'Chris'])
+  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
   useEffect(() => {
     const parsed = Number(prizeTixValue)
     if (Number.isFinite(parsed)) setTix(parsed)
   }, [prizeTixValue])
+  useEffect(() => {
+    if (!proofRequest) return
+    if (proofRequest.target === 'black-lotus') openBlackLotusProof()
+    if (proofRequest.target === 'juan-premium') openJuanProof()
+  }, [proofRequest?.nonce])
   const adjustTix = (delta: number) => setTix(value => {
     const next = Math.max(0, value + delta)
     onPrizeTixChange(next, next - value)
@@ -2938,7 +2960,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
         <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+</button>
       </div>
     </div>
-    {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />}
+    {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab openModal={openModal} />}
     {tab === 'store' && <WalletStoreEmpty />}
     {tab === 'other' && <WalletOtherTab openModal={openModal} onOpenTrip={onOpenTrip} />}
@@ -2966,10 +2988,7 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
-function WalletHomeTab({ openModal, onOpenObject, notes, currentOwnerId, onAddNote, onDeleteNote }: { openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void; onOpenObject: (detail: ObjectDetail) => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
-  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Kavi', 'Chris'])
-  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
-
+function WalletHomeTab({ openBlackLotusProof, openJuanProof, onOpenObject }: { openBlackLotusProof: () => void; openJuanProof: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   return <div className="wallet-home-command">
     <section className="wallet-hero-card">
       <div className="wallet-hero-copy">
@@ -3944,7 +3963,7 @@ function AccountMenu({ email, online, preview }: { email: string; online: boolea
   </details>
 }
 
-function MentionInbox({ items, onOpenObject }: { items: MentionInboxItem[]; onOpenObject: (detail: ObjectDetail) => void }) {
+function MentionInbox({ items, onOpenMention }: { items: MentionInboxItem[]; onOpenMention: (note: ContextNote) => void }) {
   const unread = items.length
 
   return <details className="mention-inbox">
@@ -3969,7 +3988,7 @@ function MentionInbox({ items, onOpenObject }: { items: MentionInboxItem[]; onOp
             onClick={event => {
               const root = event.currentTarget.closest('details')
               if (root instanceof HTMLDetailsElement) root.open = false
-              onOpenObject(noteSourceObjectDetail(item.note))
+              onOpenMention(item.note)
             }}
           >
             <PersonBubbles people={[item.note.author]} />
