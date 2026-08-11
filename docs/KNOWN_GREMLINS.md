@@ -173,6 +173,18 @@ If public verification fails after a correct push, report propagation/cache lag 
 - For local smoke tests, use `pnpm preview` only when needed and record the exact URL/port.
 - Do not turn local server startup into a project blocker if `pnpm build` passes and the public preview is the actual review target.
 
+## Scratch artifacts tripping validation
+
+**Symptom:** `pnpm validate:text` or `pnpm check:ship` fails because temporary browser/debug files in the repo root are missing a final newline or otherwise fail text hygiene.
+
+**Cause:** one-off verification artifacts were written into the tracked workspace instead of an ignored temp location.
+
+**Do this:**
+
+- Write browser/debug scratch files to the system temp directory or another ignored temp path, not the repo root.
+- If a temporary repo-local artifact already exists, delete it before running text or ship validation.
+- Do not treat this as a product or build failure; it is execution residue and should be cleaned up quietly.
+
 ## Supabase OAuth/provider setup
 
 **Symptom:** Google login returns “unsupported provider” or redirects to `localhost:3000`.

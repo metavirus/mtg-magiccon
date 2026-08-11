@@ -56,7 +56,13 @@ Public behavior has four distinct states:
 
 Only the fourth state counts as live.
 
-Use `pnpm check:ship`, push `main`, wait for the GitHub Actions Pages deploy, then run `pnpm verify:public`.
+Use the smallest validation lane that still catches the real failure mode:
+
+- Small app-code UI or routing fix in one bounded area: `pnpm build`, visual check of the affected flow, push `main`, wait for the GitHub Actions Pages deploy, then run `pnpm verify:public`.
+- Public UI change with broader surface area, risk, or multiple touched files: `pnpm check:ship`, visual check of the affected flow, push `main`, wait for the GitHub Actions Pages deploy, then run `pnpm verify:public`.
+- Auth, persistence, workflow, monitoring, or data-shape change: use the heavier documented gate for that tier.
+
+Do not default to `pnpm check:ship` for every small hobby-app UI tweak when `pnpm build` plus the required visual/public checks would catch the meaningful failure just as well.
 
 For this one-user hobby app, a bounded fix that Kavi already approved should be shipped through that direct-to-main path without asking “push it?” again. Pause before pushing only when the change expanded beyond the approved scope, the push would be destructive or hard to reverse, credentials/auth/deploy state became unsafe or ambiguous, or you are no longer confident what will ship.
 
