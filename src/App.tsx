@@ -169,6 +169,7 @@ function personalNoteRowToContextNote(row: PersonalNoteRow): ContextNote {
     author: (['Kavi', 'Juan', 'Chris', 'Kyle'].includes(row.author_label) ? row.author_label : 'Kavi') as PersonName,
     visibility: row.visibility,
     updatedAt: formatContextNoteTime(row.updated_at),
+    updatedAtIso: row.updated_at,
     backlink: row.backlink,
   }
 }
@@ -352,24 +353,28 @@ export default function App() {
       setExploreEventState(exploreEvents)
       return
     }
-    try {
-      const [notes, selectionRows, activityRows] = await Promise.all([
+    const [notesResult, selectionsResult, activityResult] = await Promise.allSettled([
         loadContextNotes(session.user.id),
         loadUserSelections(session.user.id),
         loadUserActivityEvents(session.user.id),
       ])
-      const selections = userSelectionMap(selectionRows)
-      setContextNotesState(notes)
+    const failures: string[] = []
+    if (notesResult.status === 'fulfilled') setContextNotesState(notesResult.value)
+    else failures.push('notes')
+    if (activityResult.status === 'fulfilled') setUserActivityRows(activityResult.value)
+    else failures.push('activity')
+    if (selectionsResult.status === 'fulfilled') {
+      const selections = userSelectionMap(selectionsResult.value)
       setUserSelections(selections)
-      setUserActivityRows(activityRows)
       setAlertReview(Object.fromEntries(Object.entries(selections)
         .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
         .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
       setExploreEventState(applySelectionState(exploreEvents, selections, slice))
-    } catch (error) {
+    } else failures.push('selections')
+    if (failures.length) {
       setMessageTone('error')
-      setMessage(error instanceof Error ? error.message : 'User selections could not be refreshed.')
-    }
+      setMessage(`${failures.join(', ')} could not be refreshed. Other account data is still available.`)
+    } else setMessage('')
   }, [designPreview, online, session, slice])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
@@ -584,6 +589,7 @@ export default function App() {
       author: input.author ?? noteAuthorFromSession(session),
       visibility: input.visibility,
       updatedAt: now.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
+      updatedAtIso: now.toISOString(),
       backlink: input.backlink,
     }
     setContextNotesState(current => [note, ...current])
@@ -664,6 +670,7 @@ export default function App() {
   const generatedActivity = clusterActivityEvents(userActivityRows)
     .map(cluster => activityFromEventCluster(cluster, exploreEventState, userSelections))
     .filter((item): item is ActivityItem => item !== null)
+  const noteActivity = contextNotesToActivity(contextNotesState, userSelections)
   const monitorActivity: ActivityItem[] = monitorAlerts.map(alert => ({
     id: alert.id,
     sourceKind: 'monitor',
@@ -683,7 +690,7 @@ export default function App() {
     reviewState: alertReview[alert.id] ?? defaultAlertReviewState(alert),
     objectDetail: alertToObjectDetail(alert),
   }))
-  const activityItems = [...generatedActivity, ...monitorActivity].sort((a, b) => {
+  const activityItems = [...generatedActivity, ...noteActivity, ...monitorActivity].sort((a, b) => {
     const severityRank = { hot: 0, notice: 1, quiet: 2 } as const
     const reviewRank = { 'needs-review': 0, reviewed: 1, archived: 2 } as const
     const reviewDelta = reviewRank[a.reviewState] - reviewRank[b.reviewState]
@@ -1089,7 +1096,7 @@ type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
 type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
 type ActivityStream = 'hot' | 'changes' | 'sources' | 'personal' | 'all' | 'archived'
-type ActivitySourceKind = 'monitor' | 'selection' | 'activity-log'
+type ActivitySourceKind = 'monitor' | 'selection' | 'activity-log' | 'note'
 type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
 type NotePersonFilter = 'all' | PersonName
 type NoteTypeFilter = 'all' | 'wallet' | 'trip' | 'events' | 'other'
@@ -1160,6 +1167,58 @@ type ActivityItem = {
 
 function defaultAlertReviewState(alert: MonitoringAlert): AlertReviewState {
   return alert.severity === 'quiet' ? 'reviewed' : 'needs-review'
+}
+
+function contextNotesToActivity(notes: ContextNote[], selections: Record<string, string>): ActivityItem[] {
+  type NoteCluster = { id: string; author: PersonName; notes: ContextNote[] }
+  const clusters: NoteCluster[] = []
+  const ordered = [...notes].sort((a, b) => new Date(b.updatedAtIso).getTime() - new Date(a.updatedAtIso).getTime())
+  for (const note of ordered) {
+    const previous = clusters[clusters.length - 1]
+    const previousNote = previous?.notes[previous.notes.length - 1]
+    const sameBurst = previous
+      && previous.author === note.author
+      && Math.abs(new Date(previousNote.updatedAtIso).getTime() - new Date(note.updatedAtIso).getTime()) <= 10 * 60 * 1000
+    if (sameBurst) previous.notes.push(note)
+    else clusters.push({ id: note.id, author: note.author, notes: [note] })
+  }
+  return clusters.map(cluster => {
+    const latest = cluster.notes[0]
+    const reviewSelection = selections[selectionKey(`activity-note-${cluster.id}`, 'review_state')]
+    const recent = Date.now() - new Date(latest.updatedAtIso).getTime() <= 72 * 60 * 60 * 1000
+    const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
+      ? reviewSelection as AlertReviewState
+      : recent ? 'needs-review' : 'reviewed'
+    const multi = cluster.notes.length > 1
+    return {
+      id: `note-${cluster.id}`,
+      sourceKind: 'note' as const,
+      kind: 'manual' as const,
+      severity: 'notice' as const,
+      destination: 'Home' as const,
+      attention: multi ? 'Notes added' : latest.visibility === 'shared' ? 'Shared note' : 'New note',
+      title: multi ? `${cluster.author} added ${cluster.notes.length} notes.` : `${cluster.author}: ${latest.body}`,
+      summary: multi ? cluster.notes.map(note => note.body).join(' · ') : `${latest.objectTitle} · ${latest.context}`,
+      object: multi ? `${cluster.notes.length} notes` : latest.objectTitle,
+      source: `${cluster.author} note`,
+      checkedAt: latest.updatedAt,
+      checkedAtIso: latest.updatedAtIso,
+      status: latest.visibility,
+      rationale: multi ? 'Notes added in one short burst are grouped to keep Home useful.' : 'A recent contextual note is useful collaboration context without being a Hot interruption.',
+      nextAction: 'Open the attached object for the full note and context.',
+      reviewState,
+      objectDetail: multi ? {
+        id: `note-burst-${cluster.id}`,
+        kind: 'note' as const,
+        eyebrow: 'RECENT NOTES',
+        title: `${cluster.author} added ${cluster.notes.length} notes`,
+        summary: cluster.notes.map(note => note.body).join(' · '),
+        facts: cluster.notes.map(note => ({ label: note.context, value: note.body })),
+        rationale: 'Grouped because these notes landed within the same ten-minute burst.',
+        backlinks: [{ label: 'Notes', destination: 'notes' as const }],
+      } : noteToObjectDetail(latest),
+    }
+  })
 }
 
 function isChangeLikeAlert(alert: MonitoringAlert) {
@@ -1450,6 +1509,7 @@ type ContextNote = {
   author: PersonName
   visibility: NoteVisibility
   updatedAt: string
+  updatedAtIso: string
   backlink: Surface
 }
 type SelectionObjectKind = ObjectDetailKind | 'wallet' | 'trip' | 'map' | 'activity' | 'general'
@@ -1597,6 +1657,7 @@ const contextNotes: ContextNote[] = ([
     author: 'Kavi',
     visibility: 'shared',
     updatedAt: 'Aug 4',
+    updatedAtIso: '2026-08-04T12:00:00-07:00',
     backlink: 'trip',
   },
   {
@@ -1611,6 +1672,7 @@ const contextNotes: ContextNote[] = ([
     author: 'Kavi',
     visibility: 'private',
     updatedAt: 'Aug 4',
+    updatedAtIso: '2026-08-04T12:00:00-07:00',
     backlink: 'wallet',
   },
   {
@@ -1624,6 +1686,7 @@ const contextNotes: ContextNote[] = ([
     author: 'Kavi',
     visibility: 'private',
     updatedAt: 'Aug 3',
+    updatedAtIso: '2026-08-03T12:00:00-07:00',
     backlink: 'plan',
   },
 ] satisfies ContextNote[]).filter(() => false)
@@ -3243,33 +3306,26 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
 
 function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   const needsReview = activityItems.filter(item => item.reviewState === 'needs-review')
-  const homeSignals = needsReview.filter(item => item.severity === 'hot' || item.destination === 'Home').slice(0, 3)
-  const topSignal = homeSignals[0]
-  const status = topSignal ? 'Review needed' : 'All quiet'
-  const statusCopy = topSignal ? `${homeSignals.length} Home-worthy signal${homeSignals.length === 1 ? '' : 's'} surfaced from monitoring and recent actions.` : 'No new MagicCon signal needs attention.'
+  const homeSignals = needsReview.filter(item => item.severity === 'hot' || item.destination === 'Home').slice(0, 5)
+  const hotCount = homeSignals.filter(item => item.severity === 'hot').length
   return <div className="home-surface">
-    <section className={`home-attention ${topSignal ? 'needs-review' : 'quiet'}`}>
-      <div className="home-status-orb" aria-hidden="true">{topSignal ? <AlertKindIcon kind={topSignal.kind} /> : <MilestoneIcon name="badges" />}</div>
-      <div>
-        <span className="eyebrow">{topSignal ? 'NEEDS REVIEW' : 'QUIET MONITORING'}</span>
-        <h2>{status}</h2>
-        <p>{statusCopy}</p>
+    <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading">
+      <div className="home-lane-head">
+        <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{homeSignals.length ? `${homeSignals.length} recent item${homeSignals.length === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
+        <button type="button" onClick={onOpenActivity}>Full Activity</button>
       </div>
-      <div className="home-attention-actions">
-        <span>{homeSignals.length ? `${homeSignals.length} open` : needsReview.length ? `${needsReview.length} in Activity` : '0 open'}</span>
-        <button type="button" onClick={onOpenActivity}>Activity</button>
+      <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; the rest are useful recent context.` : 'Recent notes and useful changes land here without turning routine activity into an alarm.'}</p>
+      <div className="timely-home">
+        {homeSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenObject(item.objectDetail)}>
+          <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
+          <div><strong>{item.title}</strong><small>{item.summary}</small></div>
+        </button>)}
+        {!homeSignals.length && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
+          <span><MilestoneIcon name="badges" /></span>
+          <div><strong>No open items</strong><small>Monitoring is quiet and recent collaboration is caught up.</small></div>
+        </button>}
       </div>
     </section>
-
-    {topSignal && <button type="button" className={`home-priority-card ${topSignal.severity}`} onClick={() => onOpenObject(topSignal.objectDetail)}>
-      <span className="priority-icon"><AlertKindIcon kind={topSignal.kind} /></span>
-      <span className="priority-copy">
-        <span className="eyebrow">TOP SIGNAL</span>
-        <strong>{topSignal.title}</strong>
-        <small>{topSignal.summary}</small>
-      </span>
-      <span className="priority-route">{topSignal.destination}<b aria-hidden="true">›</b></span>
-    </button>}
 
     <section className="next-milestone" onClick={event => {
       const target = event.target as HTMLElement
@@ -3289,25 +3345,6 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenAct
     </section>
 
     <div className="home-dashboard">
-      <section className="home-activity-lane" aria-labelledby="home-activity-heading">
-        <div className="home-lane-head">
-          <div><span className="eyebrow">FOCUSED ACTIVITY</span><h2 id="home-activity-heading">{topSignal ? 'Worth your eyes first' : 'Nothing hot right now'}</h2></div>
-          <button type="button" onClick={onOpenActivity}>Full Activity</button>
-        </div>
-        <p>{topSignal ? 'Home keeps the sharpest signals here; full history stays in Activity.' : 'When monitoring or people activity gets useful, this lane can expand without burying the rest of Home.'}</p>
-        <div className="timely-home">
-          <div className="timely-home-head"><span className="eyebrow">TIMELY SIGNALS</span><button type="button" onClick={onOpenActivity}>Review all</button></div>
-          {homeSignals.filter(alert => alert.id !== topSignal?.id).slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alert.objectDetail)}>
-            <span><AlertKindIcon kind={alert.kind} /></span>
-            <div><strong>{alert.title}</strong><small>{alert.destination} · {alert.attention}</small></div>
-          </button>)}
-          {homeSignals.length <= (topSignal ? 1 : 0) && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
-            <span><AlertKindIcon kind="manual" /></span>
-            <div><strong>{topSignal ? `${Math.max(needsReview.length - homeSignals.length, 0)} other findings in Activity` : 'No open Home signals'}</strong><small>Activity keeps the quieter review work</small></div>
-          </button>}
-        </div>
-      </section>
-
       <div className="home-reference-stack">
         <section className="runway" aria-labelledby="runway-heading">
           <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h2 id="runway-heading">What we are waiting for</h2></div><span>1 complete · 4 waiting</span></div>
@@ -3392,7 +3429,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
   const activeAlertCount = incomingItems.filter(item => item.reviewState !== 'archived').length
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
     { value: 'hot', label: 'Hot', icon: <span className="activity-fire" aria-hidden="true">🔥</span>, count: hotCount },
-    { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount + notes.length },
+    { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount },
     { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: changeCount },
     { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: sourceCount },
     { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: notes.length },
@@ -3408,7 +3445,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
     if (stream === 'sources') return item.sourceKind === 'monitor' && item.kind !== 'manual'
     return false
   })
-  const visibleNotes = stream === 'all' || stream === 'personal' ? notes : []
+  const visibleNotes = stream === 'personal' ? notes : []
 
   return <section className="activity-surface" aria-label="Activity and alert intake">
     <section className="activity-inbox-head">
