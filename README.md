@@ -21,6 +21,8 @@ Run `pnpm readiness` before database or release work. See [development architect
 
 Before spending time on a recurring setup, Git, auth, cache, publish, or responsive issue, check [Known Gremlins](docs/KNOWN_GREMLINS.md). The project should not repeatedly rediscover the same environment failures.
 
+For the short operating contract that keeps this hobby app from accumulating avoidable process overhead, see [Repo Operating Contract](docs/REPO_OPERATING_CONTRACT.md).
+
 ## Commands
 
 | Command | Purpose |
