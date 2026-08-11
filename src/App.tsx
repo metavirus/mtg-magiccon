@@ -1550,6 +1550,7 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
       ? reviewSelection as AlertReviewState
       : recent ? 'needs-review' : 'reviewed'
     const multi = cluster.notes.length > 1
+    const sourceDetail = noteSourceObjectDetail(latest)
     return {
       id: `note-${cluster.id}`,
       sourceKind: 'note' as const,
@@ -1568,17 +1569,37 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
       nextAction: 'Open the attached object for the full note and context.',
       reviewState,
       objectDetail: multi ? {
-        id: `note-burst-${cluster.id}`,
-        kind: 'note' as const,
-        eyebrow: 'RECENT NOTES',
-        title: `${cluster.author} added ${cluster.notes.length} notes`,
-        summary: cluster.notes.map(note => note.body).join(' · '),
-        facts: cluster.notes.map(note => ({ label: note.context, value: note.body, detail: noteToObjectDetail(note) })),
-        rationale: 'Grouped because these notes landed within the same ten-minute burst.',
-        backlinks: [{ label: 'Notes', destination: 'notes' as const }],
-      } : noteToObjectDetail(latest),
+        ...sourceDetail,
+        summary: `${sourceDetail.summary} ${cluster.notes.length} recent notes are grouped in Notes.`,
+        facts: [
+          ...(sourceDetail.facts ?? []),
+          { label: 'Grouped notes', value: `${cluster.notes.length} notes`, detail: noteToObjectDetail(latest) },
+        ],
+        backlinks: [{ label: 'Notes', destination: 'notes' as const }, ...(sourceDetail.backlinks ?? [])],
+      } : sourceDetail,
     }
   })
+}
+
+function homeWorthKnowingItems(items: ActivityItem[], now = Date.now()) {
+  return items
+    .filter(item => item.reviewState === 'needs-review')
+    .filter(item => {
+      if (item.sourceKind === 'activity-log' && item.objectDetail.id === 'wallet-prize-tix') return false
+      if (item.severity !== 'hot' && item.destination !== 'Home' && item.sourceKind !== 'note') return false
+      const checkedAt = new Date(item.checkedAtIso).getTime()
+      if (!Number.isFinite(checkedAt)) return true
+      const maxAgeDays = item.severity === 'hot' ? 7 : item.sourceKind === 'note' ? 4 : 3
+      return now - checkedAt <= maxAgeDays * 24 * 60 * 60 * 1000
+    })
+    .sort((a, b) => {
+      const severityScore = (b.severity === 'hot' ? 2 : 0) - (a.severity === 'hot' ? 2 : 0)
+      if (severityScore) return severityScore
+      const noteScore = (b.sourceKind === 'note' ? 1 : 0) - (a.sourceKind === 'note' ? 1 : 0)
+      if (noteScore) return noteScore
+      return new Date(b.checkedAtIso).getTime() - new Date(a.checkedAtIso).getTime()
+    })
+    .slice(0, 5)
 }
 
 function isChangeLikeAlert(alert: MonitoringAlert) {
@@ -3715,20 +3736,8 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
 }
 
 function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
-  const needsReview = activityItems.filter(item => item.reviewState === 'needs-review')
   const now = Date.now()
-  const homeSignals = needsReview.filter(item => {
-    if (item.severity !== 'hot' && item.destination !== 'Home') return false
-    const checkedAt = new Date(item.checkedAtIso).getTime()
-    if (!Number.isFinite(checkedAt)) return true
-    const age = now - checkedAt
-    return age <= (item.severity === 'hot' ? 7 : 3) * 24 * 60 * 60 * 1000
-  }).slice(0, 6)
-  const featuredHot = homeSignals.find(item => {
-    const checkedAt = new Date(item.checkedAtIso).getTime()
-    return item.severity === 'hot' && (!Number.isFinite(checkedAt) || now - checkedAt <= 48 * 60 * 60 * 1000)
-  })
-  const recentSignals = homeSignals.filter(item => item.id !== featuredHot?.id)
+  const homeSignals = homeWorthKnowingItems(activityItems, now)
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
   return <div className="home-surface">
     <div className="home-dashboard">
@@ -3738,14 +3747,10 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenAct
           <button type="button" onClick={onOpenActivity}>Full Activity</button>
         </div>
         <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; the rest are useful recent context.` : 'Recent notes and useful changes land here without turning routine activity into an alarm.'}</p>
-        {featuredHot && <button type="button" className="signal-chip-card hot home-featured-signal" onClick={() => onOpenObject(featuredHot.objectDetail)}>
-          <span><AlertKindIcon kind={featuredHot.kind} /></span>
-          <div><small>HOT NOW</small><strong>{featuredHot.title}</strong><small>{featuredHot.summary}</small></div>
-        </button>}
         <div className="timely-home" aria-label="Recent signals">
-          {recentSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenObject(item.objectDetail)}>
+          {homeSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenObject(item.objectDetail)}>
             <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
-            <div><strong>{item.title}</strong><small>{item.summary}</small></div>
+            <div>{item.severity === 'hot' && <small>HOT NOW</small>}<strong>{item.title}</strong><small>{item.summary}</small></div>
           </button>)}
           {!homeSignals.length && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
             <span><MilestoneIcon name="badges" /></span>
