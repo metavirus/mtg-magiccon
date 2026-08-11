@@ -1276,11 +1276,11 @@ function receiptTargetFromNote(note: ContextNote): WalletProofTarget | null {
 }
 
 function surfaceFromNoteBacklink(note: ContextNote): Surface {
+  if (note.objectId.startsWith('wallet-')) return 'wallet'
+  if (note.objectId.startsWith('explore-')) return 'explore'
+  if (note.objectId.startsWith('hotel-') || note.objectId.startsWith('trip-')) return 'trip'
   const backlink = note.backlink.toLowerCase()
   if (backlink === 'home' || backlink === 'calendar' || backlink === 'plan' || backlink === 'explore' || backlink === 'map' || backlink === 'wallet' || backlink === 'trip' || backlink === 'artists' || backlink === 'notes' || backlink === 'activity') return backlink
-  if (note.objectId.startsWith('explore-')) return 'explore'
-  if (note.objectId.startsWith('wallet-')) return 'wallet'
-  if (note.objectId.startsWith('hotel-') || note.objectId.startsWith('trip-')) return 'trip'
   return 'notes'
 }
 
