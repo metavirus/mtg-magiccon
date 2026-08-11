@@ -128,6 +128,12 @@ If public verification fails after a correct push, report propagation/cache lag 
 - Browser storage is allowed only for UI chrome, auth/preview convenience, and read-only offline cache.
 - Before implementing a new interactive control, decide whether it is user state. If yes, route it through the Supabase-backed selection or notes layer, or explicitly park it.
 
+### One continuity request makes every user surface look broken
+
+**Symptom:** a red `User selections could not be refreshed` warning remains even though notes, selections, and activity reads are succeeding, or one optional history read makes unrelated user state disappear.
+
+**Prevention:** load notes, selections, and activity history independently; commit each successful result; name only the failed resource; clear stale continuity errors after a fully successful refresh. Never wrap independent owner-state resources in one all-or-nothing `Promise.all`.
+
 ## Visual/reponsive misses
 
 **Symptom:** Kavi has to send repeated screenshots of the same broken element.
