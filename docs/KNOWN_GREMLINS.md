@@ -4,6 +4,8 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 
 Core rule: a known environment-specific failure is no longer debugging. It is operating procedure. If the same sandbox, Git, PowerShell, Vite, network, cache, or publish failure happens again after the correct lane is documented here, that is an agent execution failure unless the documented lane itself changed.
 
+Readiness rule: capabilities are task-specific. If a task may require browser inspection, deployment visibility, or database writes, prove that capability with a small observable smoke test before substantive work. A silent tool call is not readiness. After two failed attempts on the same exact path, classify the path as failed for the session and switch lanes.
+
 ## Git writes in Codex sandbox
 
 **Symptom:** `fatal: Unable to create .git/index.lock: Permission denied`.

@@ -15,9 +15,17 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 
 ## Execution standard
 
+- Readiness is task-specific, not generic. Before substantive work, identify the critical capabilities the task depends on:
+  - browser/viewport inspection for UI, responsive, or deployed-app interaction work;
+  - deployment visibility for public publish or public-state debugging;
+  - authenticated Supabase/database execution for user-state or schema work.
+- Check those critical capabilities up front with the smallest observable smoke test. Observable means the tool returns usable state, not silence or a vague success.
+- Classify capability state decisively: healthy, failed for this session, or blocked on one exact prerequisite. Do not operate in a lingering "maybe usable" state.
+- If the same exact capability path fails twice, stop probing that path for the session and switch lanes: alternate browser/tooling, direct deployed artifact inspection, or code-only work with explicit unresolved verification.
 - Expected project capabilities are assumed available once documented: Git writes through the approved lane, package scripts, Supabase-backed state, GitHub Pages deploy/verify, and browser/viewport inspection for visual work.
 - If one of those known lanes errors, first assume agent execution failure: wrong lane, missing setup, fragile command construction, stale docs, or insufficient preflight.
 - Browser inspection is a required capability for visual/UI work. Do not phrase it as "if available"; use it. If it cannot be used after recovery, say the visual verification failed and do not claim completion.
+- Separate capability failures from product failures. A broken browser lane does not prove the app is broken, and a verified deploy does not prove the UI is correct.
 - Recovery is not enough. For a user-visible preventable error, record the prevention delta: the specific doc/script/command habit/removed wrong path that should prevent recurrence.
 - Hardening should simplify the path. Prefer one canonical command or standing rule over extra layers of duplicate checks.
 
