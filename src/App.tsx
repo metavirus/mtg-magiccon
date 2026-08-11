@@ -859,6 +859,9 @@ export default function App() {
           if (mentionError) {
             setMessageTone('error')
             setMessage(`Note saved, but mentions were not recorded: ${mentionError.message}`)
+          } else {
+            const mentions = await loadMentionInbox(session.user.id)
+            setMentionInboxState(mentions)
           }
         }
         setContextNotesState(current => current.map(item => item.id === note.id ? saved : item))
