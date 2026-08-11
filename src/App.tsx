@@ -3306,46 +3306,62 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
 
 function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   const needsReview = activityItems.filter(item => item.reviewState === 'needs-review')
-  const homeSignals = needsReview.filter(item => item.severity === 'hot' || item.destination === 'Home').slice(0, 5)
+  const now = Date.now()
+  const homeSignals = needsReview.filter(item => {
+    if (item.severity !== 'hot' && item.destination !== 'Home') return false
+    const checkedAt = new Date(item.checkedAtIso).getTime()
+    if (!Number.isFinite(checkedAt)) return true
+    const age = now - checkedAt
+    return age <= (item.severity === 'hot' ? 7 : 3) * 24 * 60 * 60 * 1000
+  }).slice(0, 9)
+  const featuredHot = homeSignals.find(item => {
+    const checkedAt = new Date(item.checkedAtIso).getTime()
+    return item.severity === 'hot' && (!Number.isFinite(checkedAt) || now - checkedAt <= 48 * 60 * 60 * 1000)
+  })
+  const recentSignals = homeSignals.filter(item => item.id !== featuredHot?.id)
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
   return <div className="home-surface">
-    <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading">
-      <div className="home-lane-head">
-        <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{homeSignals.length ? `${homeSignals.length} recent item${homeSignals.length === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
-        <button type="button" onClick={onOpenActivity}>Full Activity</button>
-      </div>
-      <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; the rest are useful recent context.` : 'Recent notes and useful changes land here without turning routine activity into an alarm.'}</p>
-      <div className="timely-home">
-        {homeSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenObject(item.objectDetail)}>
-          <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
-          <div><strong>{item.title}</strong><small>{item.summary}</small></div>
-        </button>)}
-        {!homeSignals.length && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
-          <span><MilestoneIcon name="badges" /></span>
-          <div><strong>No open items</strong><small>Monitoring is quiet and recent collaboration is caught up.</small></div>
-        </button>}
-      </div>
-    </section>
-
-    <section className="next-milestone" onClick={event => {
-      const target = event.target as HTMLElement
-      if (target.closest('details')) return
-      onOpenActivity()
-    }}>
-      <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
-      <div>
-        <span className="eyebrow">NEXT EXPECTED</span>
-        <h2>Ticketed play opens the real planning season.</h2>
-        <p>That is when event comparison and time contention become useful.</p>
-      </div>
-      <details className="timing-clue">
-        <summary><span>Best guess</span><strong>mid–late Aug</strong></summary>
-        <p>Vegas announced ticketed-play sales on Feb 3 for a Feb 10 opening—about 11½ weeks before its May 1 start. The equivalent Atlanta window is roughly Aug 18–25. This is a forecast, not an Atlanta fact.</p>
-      </details>
-    </section>
-
     <div className="home-dashboard">
+      <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading">
+        <div className="home-lane-head">
+          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{homeSignals.length ? `${homeSignals.length} recent item${homeSignals.length === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
+          <button type="button" onClick={onOpenActivity}>Full Activity</button>
+        </div>
+        <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; the rest are useful recent context.` : 'Recent notes and useful changes land here without turning routine activity into an alarm.'}</p>
+        {featuredHot && <button type="button" className="signal-chip-card hot home-featured-signal" onClick={() => onOpenObject(featuredHot.objectDetail)}>
+          <span><AlertKindIcon kind={featuredHot.kind} /></span>
+          <div><small>HOT NOW</small><strong>{featuredHot.title}</strong><small>{featuredHot.summary}</small></div>
+        </button>}
+        <div className="timely-home" aria-label="Recent signals">
+          {recentSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenObject(item.objectDetail)}>
+            <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
+            <div><strong>{item.title}</strong><small>{item.summary}</small></div>
+          </button>)}
+          {!homeSignals.length && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
+            <span><MilestoneIcon name="badges" /></span>
+            <div><strong>No open items</strong><small>Monitoring is quiet and recent collaboration is caught up.</small></div>
+          </button>}
+        </div>
+      </section>
+
       <div className="home-reference-stack">
+        <section className="next-milestone" onClick={event => {
+          const target = event.target as HTMLElement
+          if (target.closest('details')) return
+          onOpenActivity()
+        }}>
+          <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
+          <div>
+            <span className="eyebrow">NEXT EXPECTED</span>
+            <h2>Ticketed play opens the real planning season.</h2>
+            <p>That is when event comparison and time contention become useful.</p>
+          </div>
+          <details className="timing-clue">
+            <summary><span>Best guess</span><strong>mid–late Aug</strong></summary>
+            <p>Vegas announced ticketed-play sales on Feb 3 for a Feb 10 opening—about 11½ weeks before its May 1 start. The equivalent Atlanta window is roughly Aug 18–25. This is a forecast, not an Atlanta fact.</p>
+          </details>
+        </section>
+
         <section className="runway" aria-labelledby="runway-heading">
           <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h2 id="runway-heading">What we are waiting for</h2></div><span>1 complete · 4 waiting</span></div>
           <ol>
