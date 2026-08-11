@@ -1260,13 +1260,11 @@ function prizeTixActivityFromCluster(cluster: ReturnType<typeof clusterActivityE
   if (!net) return null
   const latest = rows[rows.length - 1]
   const currentBalance = Number(selections[selectionKey('wallet-prize-tix', 'balance')] ?? activityDetailJson(latest.details).next_balance ?? 0)
-  const severity: AlertSeverity = Math.abs(net) >= 500 ? 'hot' : 'notice'
+  const severity: AlertSeverity = 'notice'
   const reviewSelection = selections[selectionKey(`activity-${cluster.id}`, 'review_state')]
   const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
     ? reviewSelection as AlertReviewState
-    : severity === 'hot'
-      ? 'needs-review'
-      : 'reviewed'
+    : 'reviewed'
   const direction = net > 0 ? 'added' : 'spent'
   const amount = Math.abs(net).toLocaleString()
   return {
@@ -1284,7 +1282,7 @@ function prizeTixActivityFromCluster(cluster: ReturnType<typeof clusterActivityE
     checkedAtIso: latest.created_at,
     status: net > 0 ? 'added' : 'spent',
     rationale: 'Wallet balance stays canonical in Supabase; Activity summarizes burst changes instead of logging every tap.',
-    nextAction: net > 0 ? 'Keep this visible until the balance change is acknowledged.' : 'Useful if the visible balance looks off and needs reconciling.',
+    nextAction: 'Keep this in Activity history for balance reconciliation.',
     reviewState,
     objectDetail: {
       id: 'wallet-prize-tix',
@@ -1400,17 +1398,18 @@ function selectionActivityFromRow(
   if (!event) return null
   const state = row.selection_value
   const reviewSelection = selections[selectionKey(`activity-selection-${eventId}`, 'review_state')]
+  const severity = selectionStateToSeverity(state)
   const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
     ? reviewSelection as AlertReviewState
-    : selectionStateToSeverity(state) === 'quiet'
-      ? 'reviewed'
-      : 'needs-review'
+    : state === 'committed'
+      ? 'needs-review'
+      : 'reviewed'
   const author = noteAuthorFromSession(session)
   return {
     id: `selection-${eventId}`,
     sourceKind: 'selection',
     kind: 'manual',
-    severity: selectionStateToSeverity(state),
+    severity,
     destination: state === 'committed' ? 'Home' : 'Activity',
     attention: selectionStateAttention(state),
     title: `${author} marked ${event.title} ${state}.`,
