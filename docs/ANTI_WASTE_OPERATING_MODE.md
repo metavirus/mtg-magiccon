@@ -37,7 +37,7 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 - Read only the directly relevant code and the current user complaint.
 - Do not re-open the full project documentation set unless the change depends on product history.
 - Do not run database/readiness gates unless publishing or auth/data behavior is involved.
-- Verify with `pnpm check:ui`.
+- Verify with `pnpm build` unless a narrower existing package script is clearly the canonical check for that exact surface.
 - If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is mandatory, not optional; if it is unavailable, recover that lane or stop before saying the visual fix is done.
 - If the same visual target fails twice, stop patching symptoms and find the duplicated component, CSS cascade, cache, or publish root cause.
 
@@ -45,7 +45,9 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 
 Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 
-- Run `pnpm check:ship`.
+- Use the smallest validation lane that still covers the real risk:
+  - one-file or tightly bounded UI/routing fix: `pnpm build`
+  - broader UI change or anything touching multiple surfaces: `pnpm check:ship`
 - Push `main` after a bounded approved fix. GitHub Actions deploys the `dist/` artifact to Pages.
 - Only `main` is allowed to publish the shared public Pages site. Feature branches may be reviewed locally or merged first; they should not overwrite the public preview.
 - After the Pages workflow completes, run `pnpm verify:public`. That script prepares the local Pages-stamped comparison artifact itself.
@@ -55,6 +57,17 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 - If public Pages still shows stale behavior, say “pushed but not propagated/cached yet,” not “fixed.”
 - If any known environment/publish/cache/auth/Git failure appears, follow `docs/KNOWN_GREMLINS.md` before inventing a new workaround.
 
+Default fast lane for this hobby app:
+
+1. edit the smallest relevant file(s);
+2. run `pnpm build`;
+3. visually check the affected flow locally or in the browser lane already established for the task;
+4. commit and push `main`;
+5. run `pnpm verify:public`;
+6. do one final deployed click/view check of the exact affected flow.
+
+Escalate above that fast lane only when the change touches auth, persistence, workflows, multiple broad UI surfaces, or a capability/readiness path is itself under question.
+
 For this app, do not add a separate “ask to push” step once Kavi has approved the bounded work. The public app is the review target. Validate, commit, push to `main`, wait for deploy, verify live, and report. Pause before push only if scope expanded, the change is destructive or hard to reverse, credentials/auth/deploy state is unsafe or ambiguous, or confidence about what will ship has dropped.
 
 ### Commit/publish discipline
@@ -62,6 +75,7 @@ For this app, do not add a separate “ask to push” step once Kavi has approve
 - Use read-only Git normally, but use elevated Git immediately for `git add`, `git commit`, and `git push`.
 - Do not narrate predictable environment friction as surprising progress. If a known gremlin applies, follow the documented lane quietly and report only the outcome.
 - Do not add new scripts or verification wrappers without running them once in the same environment and fixing obvious quoting/path/network assumptions before relying on them.
+- Keep browser scratch artifacts and one-off verification files out of the repo root. Use an ignored temp path or the system temp directory so doc/build validation does not get polluted by debugging residue.
 - For operational files (`.github/workflows/*`, publish scripts, auth config, Supabase migrations/policies, persistence wiring), change one moving part at a time unless the dependency chain is explicit and unavoidable. Do not bundle speculative cleanup with functional fixes.
 - Before changing a command, workflow, or script, inspect the existing project script/consumer first. Do not improvise a raw replacement for a scripted path that already exists.
 - `pnpm publish:pages` is a local artifact/preflight command only. It does not publish the public site by itself under the current GitHub Actions Pages model.
