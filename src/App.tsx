@@ -2526,8 +2526,11 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
     </div>}
     <div className="note-composer">
       <textarea value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={`Note on ${objectTitle}`} />
-      <div>
-        <label className="note-private"><input type="checkbox" checked={visibility === 'private'} onChange={event => setVisibility(event.target.checked ? 'private' : 'shared')} /><span>Private</span><small>Only you</small></label>
+      <div className="note-composer-actions">
+        <label className="note-private">
+          <span>Private only me</span>
+          <input type="checkbox" checked={visibility === 'private'} onChange={event => setVisibility(event.target.checked ? 'private' : 'shared')} />
+        </label>
         <button type="button" className="note-save" onClick={submit} disabled={!body.trim()}>Save note</button>
       </div>
     </div>
