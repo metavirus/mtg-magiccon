@@ -214,6 +214,21 @@ If public verification fails after a correct push, report propagation/cache lag 
 - After two visual misses, stop patching and look for duplicated components, stale public bundle, or cascade conflict.
 - For navigation, person bubbles, notes, receipt proof, and object drawers, prefer one source of truth over separate mobile and desktop implementations.
 
+### Browser or viewport inspection treated as unavailable
+
+**Symptom:** visual work is claimed complete after build/public verification, but no real viewport was inspected because browser control returned no useful state.
+
+**Cause:** the visual lane was established too late, or a known browser-control/setup issue was treated as an external blocker instead of an agent execution/setup problem.
+
+**Do this:**
+
+- For visual work, establish a browser or viewport inspection lane before claiming done.
+- If browser control returns unusable output, treat it first as agent setup failure: re-read/use the browser-control skill, recover the binding, or use another supported viewport inspection lane.
+- Do not substitute `pnpm verify:public` for visual QA. It proves the deployed asset is fresh; it does not prove the UI looks right.
+- If no viewport lane can be made available, stop and say visual QA was not completed before any publish/done language.
+
+**Prevention:** visual fixes require both code validation and viewport evidence. Known browser-control friction is part of the operating model, not a new surprise.
+
 ## Mistake visibility
 
 **Symptom:** a gremlin is fixed eventually, but Kavi only learns through GitHub emails, screenshots, or repeated prompts that something was wrong.
