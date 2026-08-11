@@ -4,6 +4,12 @@ This is a small hobby companion app, not an enterprise program. Use the narrowes
 
 Known environment constraints are part of the operating model. Do not rediscover them, narrate them as surprises, or prove documented failures still fail. Check `docs/KNOWN_GREMLINS.md`, choose the correct lane first, and only add new process when it removes a wrong path.
 
+## Anticipation standard
+
+For known project lanes, choose the expected working path before running commands. This applies to Git writes, package scripts, public deploy/verification, Supabase-backed state, browser/viewport inspection, and Windows/PowerShell quoting.
+
+If a known lane still fails, treat that first as an agent execution failure until evidence says otherwise. Fixing the immediate symptom is not sufficient. When the failure is user-visible, the handoff must include the prevention delta: the doc, script, command habit, or removed wrong path that makes recurrence less likely. Do not add broad triple-check ceremony as penance; encode the smallest durable correction.
+
 ## Change tiers
 
 ### Tier -1 — docs or operating-model hardening
@@ -24,7 +30,7 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 - Do not re-open the full project documentation set unless the change depends on product history.
 - Do not run database/readiness gates unless publishing or auth/data behavior is involved.
 - Verify with `pnpm check:ui`.
-- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed.
+- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is expected; if it is unavailable, recover that lane or stop before saying the visual fix is done.
 - If the same visual target fails twice, stop patching symptoms and find the duplicated component, CSS cascade, cache, or publish root cause.
 
 ### Tier 1 — public preview UI change
@@ -35,6 +41,7 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 - Push the source branch. GitHub Actions deploys the `dist/` artifact to Pages.
 - After the Pages workflow completes, run `pnpm verify:public`. That script prepares the local Pages-stamped comparison artifact itself.
 - If public verification needs network access, run that exact script with the elevated/network-capable path; do not first invent a different verification method.
+- For visual changes, inspect the affected public or local viewport. `verify:public` proves bundle freshness, not layout correctness.
 - Treat “published” as true only after a cache-busted public URL serves the expected current asset or visible behavior.
 - If public Pages still shows stale behavior, say “pushed but not propagated/cached yet,” not “fixed.”
 - If any known environment/publish/cache/auth/Git failure appears, follow `docs/KNOWN_GREMLINS.md` before inventing a new workaround.
