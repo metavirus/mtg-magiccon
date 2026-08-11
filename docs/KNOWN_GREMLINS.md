@@ -27,6 +27,7 @@ Core rule: a known environment-specific failure is no longer debugging. It is op
 
 - Do not use or revive `tmp/gh-pages`.
 - For public review, push the source branch and let `.github/workflows/deploy-pages.yml` deploy `dist/`.
+- Public GitHub Pages publication is now restricted to `main` only. Feature-branch pushes must not publish the shared public site.
 - If a stale doc mentions `gh-pages`, update the doc instead of following it.
 
 ## Vite config-loader failures
@@ -50,9 +51,10 @@ Core rule: a known environment-specific failure is no longer debugging. It is op
 **Do this:**
 
 1. Commit/push the source branch.
-2. Wait for the GitHub Actions Pages workflow to complete.
-3. Run `pnpm verify:public`; it prepares the Pages-stamped local comparison artifact before fetching the public URL.
-4. Only say “published” after public verification passes.
+2. If the change is meant for the shared public site, it must be on `main`.
+3. Wait for the GitHub Actions Pages workflow to complete.
+4. Run `pnpm verify:public`; it prepares the Pages-stamped local comparison artifact before fetching the public URL.
+5. Only say “published” after public verification passes.
 
 If public verification fails after a correct push, report propagation/cache lag and wait briefly. Do not claim success from local sync alone.
 

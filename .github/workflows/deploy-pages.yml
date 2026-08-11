@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - codex/initial-foundation
   workflow_dispatch:
 
 permissions:
@@ -18,6 +17,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
     env:
       # Public browser config. This is intentionally not a service-role or secret key.
