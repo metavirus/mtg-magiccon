@@ -145,7 +145,7 @@ type NoteMentionRow = {
   created_at: string
   dismissed_at: string | null
   last_seen_at: string | null
-  personal_notes: PersonalNoteRow[]
+  personal_notes: PersonalNoteRow | PersonalNoteRow[] | null
 }
 
 type UserSelectionRow = {
@@ -381,12 +381,15 @@ async function loadMentionInbox(userId: string): Promise<MentionInboxItem[]> {
     .limit(25)
   if (result.error) throw result.error
   return ((result.data ?? []) as NoteMentionRow[])
-    .filter(row => row.personal_notes?.[0])
-    .map(row => ({
-      id: row.id,
-      mentionToken: row.mention_token,
-      note: personalNoteRowToContextNote(row.personal_notes[0]),
-    }))
+    .map(row => {
+      const note = Array.isArray(row.personal_notes) ? row.personal_notes[0] : row.personal_notes
+      return note ? {
+        id: row.id,
+        mentionToken: row.mention_token,
+        note: personalNoteRowToContextNote(note),
+      } : null
+    })
+    .filter((item): item is MentionInboxItem => Boolean(item))
 }
 
 function selectionKey(objectId: string, key: string) {
