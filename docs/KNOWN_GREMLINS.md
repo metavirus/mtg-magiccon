@@ -49,7 +49,7 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 
 1. Commit/push the source branch.
 2. Wait for the GitHub Actions Pages workflow to complete.
-3. Run `pnpm build:pages` locally if `dist/` is not current, then `pnpm verify:public`.
+3. Run `pnpm verify:public`; it prepares the Pages-stamped local comparison artifact before fetching the public URL.
 4. Only say “published” after public verification passes.
 
 If public verification fails after a correct push, report propagation/cache lag and wait briefly. Do not claim success from local sync alone.
@@ -64,8 +64,24 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 - Keep `actions/checkout` and `actions/setup-node` on their Node-24 majors (`@v6` at time of writing), with project Node set to `24`.
 - Prefer Corepack (`corepack enable` + `corepack prepare pnpm@... --activate`) over `pnpm/action-setup` so package-manager setup does not add another action runtime warning.
+- With Corepack, do not set `actions/setup-node` `cache: pnpm` unless the workflow has already installed pnpm before `setup-node` runs. `setup-node` cache lookup can fail when pnpm is not yet on `PATH`.
 - Keep GitHub Pages actions on the newest supported major in GitHub's Pages docs. As of the cleanup commit, the only remaining warning is GitHub's internal `upload-artifact` dependency used by the Pages artifact action; do not churn the app to suppress that GitHub-owned non-blocking warning.
 - Do not present this as an app build failure when ship checks and deploy pass.
+- Do not batch workflow action-major upgrades, package-manager setup changes, and cache changes in one “cleanup” commit. Make the smallest operational change, let Actions prove it, then stop.
+
+## GitHub Actions workflow edits
+
+**Symptom:** a workflow fails immediately after a maintenance cleanup, especially with package-manager setup, cache, permissions, artifact, or Pages deploy errors.
+
+**Cause:** workflow files are operational glue, not ordinary app code. Small-looking changes can alter ordering or environment assumptions that only Actions proves.
+
+**Do this:**
+
+- Inspect the existing workflow and `package.json` scripts before editing.
+- Change the narrow failing/warning source only; do not modernize adjacent actions or options opportunistically.
+- Preserve the proven command order unless the bug is specifically the order.
+- If a workflow change is pushed and produces a red run or user-visible email, treat it as an agent-owned mistake until evidence proves otherwise. Fix the run before returning to feature work.
+- After a workflow fix, check the latest GitHub Actions run rather than relying on local `pnpm` success.
 
 ## GitHub Actions missing browser config
 
@@ -91,6 +107,7 @@ If public verification fails after a correct push, report propagation/cache lag 
 - `scripts/verify_public_pages.ps1` is the canonical verifier; do not write ad hoc curl/browser substitutes first.
 - If `pnpm verify:public` fails with a network/receive/TLS error, rerun `pnpm verify:public` using the elevated/network-capable path immediately.
 - A verifier URL construction error is a script bug. Fix the script once and commit it; do not bypass it.
+- If the verifier itself was just edited, prove the script once before treating its output as authoritative.
 
 ## Service worker / PWA cache
 
@@ -170,6 +187,19 @@ If public verification fails after a correct push, report propagation/cache lag 
 - After one visual miss, inspect DOM/CSS at the affected viewport.
 - After two visual misses, stop patching and look for duplicated components, stale public bundle, or cascade conflict.
 - For navigation, person bubbles, notes, receipt proof, and object drawers, prefer one source of truth over separate mobile and desktop implementations.
+
+## Mistake visibility
+
+**Symptom:** a gremlin is fixed eventually, but Kavi only learns through GitHub emails, screenshots, or repeated prompts that something was wrong.
+
+**Cause:** over-smoothing progress updates can hide the very signal needed to prevent recurrence.
+
+**Do this:**
+
+- If an agent-owned mistake creates a red CI/deploy run, failed public page, broken persistence, or visible UI regression, name it plainly.
+- Distinguish mistake from friction: sandbox permission and network restrictions are environment friction only when the documented path was followed; wrong command order, wrong workflow edit, wrong storage target, or wrong viewport verification is agent-owned.
+- Keep the report short: failure, impact, correction, prevention.
+- Do not add broad new process as penance. Add or tighten the specific rule that would have prevented this exact failure.
 
 ## Public verifier assumes the wrong local artifact
 
