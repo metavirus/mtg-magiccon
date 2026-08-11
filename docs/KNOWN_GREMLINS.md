@@ -54,6 +54,18 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 
 If public verification fails after a correct push, report propagation/cache lag and wait briefly. Do not claim success from local sync alone.
 
+### GitHub Actions Node runtime warnings
+
+**Symptom:** Pages deploy succeeds but GitHub emails or annotates: `Node.js 20 is deprecated... forced to run on Node.js 24`.
+
+**Cause:** one or more workflow actions are still pinned to an older action major whose internal runtime targets Node 20. This is GitHub Actions plumbing, not the app's runtime.
+
+**Do this:**
+
+- Keep `actions/checkout` and `actions/setup-node` on their Node-24 majors (`@v6` at time of writing), with project Node set to `24`.
+- Keep GitHub Pages actions on the newest supported major in GitHub's Pages docs; if GitHub has not released a newer Pages action major, do not churn the app to suppress a non-blocking GitHub-owned warning.
+- Do not present this as an app build failure when ship checks and deploy pass.
+
 ## GitHub Actions missing browser config
 
 **Symptom:** Public GitHub Pages app shows “Project connection needed” even though local preview works.
