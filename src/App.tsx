@@ -247,10 +247,15 @@ function normalizeMentionToken(value: string) {
   return value.trim().toLowerCase()
 }
 
-function extractNoteMentions(body: string, companions: CompanionMember[] = fallbackCompanionMembers): Array<{
+function extractNoteMentions(
+  body: string,
+  companions: CompanionMember[] = fallbackCompanionMembers,
+  currentSession: Session | null = null,
+): Array<{
   personKey: string
   mentionToken: string
   mentionedUserId: string | null
+  member: CompanionMember
 }> {
   const aliasMap = new Map<string, CompanionMember>()
   for (const member of companions) {
@@ -259,16 +264,20 @@ function extractNoteMentions(body: string, companions: CompanionMember[] = fallb
     }
   }
   const seen = new Set<string>()
-  const mentions: Array<{ personKey: string; mentionToken: string; mentionedUserId: string | null }> = []
+  const mentions: Array<{ personKey: string; mentionToken: string; mentionedUserId: string | null; member: CompanionMember }> = []
   for (const match of body.matchAll(/\B@([A-Za-z][A-Za-z0-9_-]{0,31})/g)) {
     const token = match[1]
     const member = aliasMap.get(normalizeMentionToken(token))
     if (!member || seen.has(member.key)) continue
     seen.add(member.key)
+    const sessionEmail = currentSession?.user.email?.toLowerCase()
+    const mentionedUserId = member.userId
+      ?? (sessionEmail && member.authEmail?.toLowerCase() === sessionEmail ? currentSession?.user.id ?? null : null)
     mentions.push({
       personKey: member.key,
-      mentionToken: `@${token}`,
-      mentionedUserId: member.userId ?? null,
+      mentionToken: `@${member.name}`,
+      mentionedUserId,
+      member,
     })
   }
   return mentions
@@ -276,6 +285,19 @@ function extractNoteMentions(body: string, companions: CompanionMember[] = fallb
 
 function formatContextNoteTime(value: string) {
   return new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
+function mentionPreviewFromBody(
+  body: string,
+  companions: CompanionMember[] = fallbackCompanionMembers,
+  currentSession: Session | null = null,
+) {
+  return extractNoteMentions(body, companions, currentSession).map(target => ({
+    key: target.personKey,
+    label: target.member.name,
+    token: target.mentionToken,
+    person: target.member.name,
+  }))
 }
 
 function personalNoteRowToContextNote(row: PersonalNoteRow): ContextNote {
@@ -441,6 +463,7 @@ export default function App() {
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
   const currentCompanion = currentCompanionFromSession(session, companionMembers)
   const canCommitBlackLotus = Boolean(currentCompanion?.blackLotusEntitled)
+  const mentionUnreadCount = mentionInboxState.length
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
@@ -805,7 +828,7 @@ export default function App() {
     const client = supabase
     const saveNote = async () => {
       try {
-        const mentionTargets = extractNoteMentions(note.body, companionMembers)
+        const mentionTargets = extractNoteMentions(note.body, companionMembers, session)
         const { data, error } = await client.from('personal_notes').insert({
           owner_id: session.user.id,
           title: note.title,
@@ -970,7 +993,7 @@ export default function App() {
         <button className={['trip', 'artists', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
       </nav>
       <div className="rail-bottom">
-        <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity</button>
+        <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity{mentionUnreadCount > 0 && <b className="nav-count-badge">{mentionUnreadCount > 9 ? '9+' : mentionUnreadCount}</b>}</button>
         <span className="rail-last-checked">Last checked<br /><strong>{lastChecked}</strong></span>
       </div>
     </aside>
@@ -1006,6 +1029,7 @@ export default function App() {
         {mobileNavMenu === 'main' && <footer className="mobile-drawer-foot">
           <button className={`mobile-drawer-activity ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}>
             <span aria-hidden="true"><NavIcon name="activity" /></span>Activity
+            {mentionUnreadCount > 0 && <b className="nav-count-badge">{mentionUnreadCount > 9 ? '9+' : mentionUnreadCount}</b>}
           </button>
           <small>Last checked<br /><strong>{lastChecked}</strong></small>
         </footer>}
@@ -2647,7 +2671,7 @@ function ComplexityPill({ level }: { level: ComplexityLevel }) {
   </span>
 }
 
-function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId, objectKind, objectTitle, objectAnchor, focusedNoteId, context, backlink, compact }: {
+function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId, objectKind, objectTitle, objectAnchor, focusedNoteId, context, backlink, compact, companions, currentSession }: {
   notes: ContextNote[]
   currentOwnerId?: string
   onAddNote: (input: AddContextNoteInput) => void
@@ -2660,10 +2684,13 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
   context: string
   backlink: Surface
   compact?: boolean
+  companions?: CompanionMember[]
+  currentSession?: Session | null
 }) {
   const [body, setBody] = useState('')
   const [visibility, setVisibility] = useState<NoteVisibility>('shared')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const mentionPreview = mentionPreviewFromBody(body, companions ?? fallbackCompanionMembers, currentSession ?? null)
   const objectNotes = notes
     .filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor))
     .sort((a, b) => (a.id === focusedNoteId ? -1 : b.id === focusedNoteId ? 1 : 0))
@@ -2694,7 +2721,11 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
     </div>}
     <div className="note-composer">
       <textarea value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={`Note on ${objectTitle}`} />
-      <small className="note-mention-hint">Use @Ka, @C, @J, or @Ky to mention a companion.</small>
+      <small className="note-mention-hint">Use @Kavi, @Chris, @Juan, or @Kyle to mention a companion.</small>
+      {mentionPreview.length > 0 && <div className="note-mention-preview" aria-label="Recognized mentions">
+        <span>Will notify</span>
+        {mentionPreview.map(item => <strong key={item.key}><PersonBubbles people={[item.person]} />{item.token}</strong>)}
+      </div>}
       <div className="note-composer-actions">
         <label className="note-private-inline">
           <span>Private only me</span>
@@ -3870,7 +3901,7 @@ function MentionInbox({ items, onOpenObject }: { items: MentionInboxItem[]; onOp
           >
             <PersonBubbles people={[item.note.author]} />
             <span>
-              <strong>{item.note.author} mentioned you</strong>
+              <strong>{item.note.author} mentioned you as {item.mentionToken}</strong>
               <small>{item.note.objectTitle}{item.note.objectAnchor ? ` · ${item.note.objectAnchor}` : ''}</small>
               <em>{item.note.body}</em>
             </span>
