@@ -237,6 +237,12 @@ function noteAuthorFromSession(currentSession: Session | null, companions: Compa
   return 'Kavi'
 }
 
+function currentCompanionFromSession(currentSession: Session | null, companions: CompanionMember[] = fallbackCompanionMembers) {
+  const email = currentSession?.user.email?.toLowerCase()
+  return companions.find(member => email && member.authEmail?.toLowerCase() === email)
+    ?? companions.find(member => currentSession?.user.id && member.userId === currentSession.user.id)
+}
+
 function normalizeMentionToken(value: string) {
   return value.trim().toLowerCase()
 }
@@ -433,6 +439,8 @@ export default function App() {
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
+  const currentCompanion = currentCompanionFromSession(session, companionMembers)
+  const canCommitBlackLotus = Boolean(currentCompanion?.blackLotusEntitled)
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
@@ -623,6 +631,11 @@ export default function App() {
 
   async function changeState(requested: PlanningState) {
     if (!slice || saving) return
+    if (requested === 'committed' && !canCommitBlackLotus) {
+      setMessageTone('info')
+      setMessage('Black Lotus events stay visible to everyone, but only Kavi and Chris can commit them.')
+      return
+    }
     const previous = slice.decision.planning_state
     const next: PlanningState = previous === requested ? 'none' : requested
     const updatedAt = new Date().toISOString()
@@ -857,6 +870,11 @@ export default function App() {
     const currentEvent = exploreEventState.find(event => event.id === id)
     const previousState = currentEvent?.state ?? 'none'
     const nextState: ExploreState = currentEvent?.state === state ? 'none' : state
+    if (currentEvent?.kind === 'Black Lotus' && nextState === 'committed' && !canCommitBlackLotus) {
+      setMessageTone('info')
+      setMessage('Black Lotus events stay visible to everyone, but only Kavi and Chris can commit them.')
+      return
+    }
     setExploreEventState(current => current.map(event => event.id === id ? { ...event, state: nextState } : event))
     void upsertUserSelection(`explore-${id}`, 'event', 'state', nextState)
     if (currentEvent && previousState !== nextState) {
@@ -1028,7 +1046,7 @@ export default function App() {
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
+        {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} onPrizeTixChange={(value, delta) => {
@@ -1048,7 +1066,7 @@ export default function App() {
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={session?.user.id} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenObject={openObjectDetail} />}
       </>}
@@ -2266,7 +2284,7 @@ const exploreEventCandidates: ExploreEvent[] = [
 
 const exploreEvents = exploreEventCandidates.filter(event => event.sourceNote?.startsWith('Official Atlanta'))
 
-function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving }: {
+function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
   events: ExploreEvent[]
   slice: TrustSlice
   notes: ContextNote[]
@@ -2280,6 +2298,7 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
   onOpenCalendar: () => void
   online: boolean
   saving: boolean
+  canCommitBlackLotus: boolean
 }) {
   const days: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
   const planEvents = events
@@ -2335,7 +2354,15 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
             <span className="plan-people" aria-label={event.kind === 'Black Lotus' ? 'Kavi and Chris' : 'Kavi'}><i>K</i>{event.kind === 'Black Lotus' && <i>C</i>}</span>
           </button>
           <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
-            {([['interested', '♡', 'Interested'], ['tentative', '◇', 'Tentative'], ['committed', '●', 'Committed']] as const).map(([state, symbol, label]) => <button key={state} type="button" aria-label={label} title={label} aria-pressed={event.state === state} disabled={(event.id === 'bl-planechase' && (!online || saving))} onClick={() => setState(event, state)}><b aria-hidden="true">{symbol}</b><span>{label}</span></button>)}
+            {([['interested', '♡', 'Interested'], ['tentative', '◇', 'Tentative'], ['committed', '●', 'Committed']] as const).map(([state, symbol, label]) => {
+              const disabled = event.id === 'bl-planechase'
+                ? !online || saving || (state === 'committed' && !canCommitBlackLotus)
+                : false
+              const title = state === 'committed' && event.kind === 'Black Lotus' && !canCommitBlackLotus
+                ? 'Only Kavi and Chris can commit Black Lotus events.'
+                : label
+              return <button key={state} type="button" aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true">{symbol}</b><span>{label}</span></button>
+            })}
           </div>
         </article>)}
         {dayEvents.length === 0 && <div className="plan-empty"><strong>No active contenders yet.</strong><span>Mark something Interested or Tentative in Explore.</span><button type="button" onClick={onOpenExplore}>Browse Explore</button></div>}
@@ -2348,6 +2375,7 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
         <p>{selected.fit}</p>
         <section><small>PLAN EFFECT</small><strong>{selected.planEffect}</strong></section>
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
+        {!canCommitBlackLotus && selected.kind === 'Black Lotus' && <div className="plan-watch"><span aria-hidden="true">✦</span><p><strong>Visible to everyone</strong>Only Kavi and Chris can commit Black Lotus events; everyone can still review and mark interest.</p></div>}
         <div className="plan-provenance"><span>{selected.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{selected.sourceNote ?? 'Source context captured for this item.'}</small></div>
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={selected.title} context={`Event · ${selected.title}`} backlink="plan" compact />
       </aside>}
@@ -2666,6 +2694,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
     </div>}
     <div className="note-composer">
       <textarea value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={`Note on ${objectTitle}`} />
+      <small className="note-mention-hint">Use @Ka, @C, @J, or @Ky to mention a companion.</small>
       <div className="note-composer-actions">
         <label className="note-private-inline">
           <span>Private only me</span>
@@ -3325,7 +3354,7 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online, saving }: { slice: TrustSlice; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean }) {
+function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const [expanded, setExpanded] = useState(false)
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
@@ -3502,11 +3531,11 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
     </button>}
     </>}
 
-    {detail && <CalendarDetailSheet detail={detail} slice={slice} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} />}
+    {detail && <CalendarDetailSheet detail={detail} slice={slice} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
   </section>
 }
 
-function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, onChangeState, online, saving }: { detail: CalendarDetail; slice: TrustSlice; onClose: () => void; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean }) {
+function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { detail: CalendarDetail; slice: TrustSlice; onClose: () => void; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const forecast = milestoneForecasts.find(item => item.id === detail)
   const content = forecast
     ? { eyebrow: `FORECAST · ${forecast.window.toUpperCase()}`, title: forecast.title, copy: forecast.rationale }
@@ -3535,8 +3564,15 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
     <p>{content.copy}</p>
     {detail === 'event' && <>
       <div className="calendar-state-panel" aria-label="Planning state">
-        {states.map(state => <button key={state.value} type="button" aria-pressed={slice.decision.planning_state === state.value} disabled={!online || saving} onClick={() => onChangeState(state.value)}><b>{state.symbol}</b><span>{state.label}</span></button>)}
+        {states.map(state => {
+          const disabled = !online || saving || (state.value === 'committed' && !canCommitBlackLotus)
+          const title = state.value === 'committed' && !canCommitBlackLotus
+            ? 'Only Kavi and Chris can commit Black Lotus events.'
+            : state.label
+          return <button key={state.value} type="button" aria-pressed={slice.decision.planning_state === state.value} disabled={disabled} aria-label={title} title={title} onClick={() => onChangeState(state.value)}><b>{state.symbol}</b><span>{state.label}</span></button>
+        })}
       </div>
+      {!canCommitBlackLotus && <p className="calendar-state-note">Black Lotus stays visible to everyone, but only Kavi and Chris can commit it.</p>}
       <button className="calendar-remove" type="button" disabled={!online || saving} onClick={() => onChangeState('none')}>{slice.decision.planning_state === 'committed' ? 'Undo commitment' : 'Remove from Plan'}</button>
       <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Compare in Plan <span aria-hidden="true">›</span></button>
     </>}
