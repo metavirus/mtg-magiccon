@@ -126,6 +126,27 @@ type PersonalNoteRow = {
   updated_at: string
 }
 
+type NoteMentionInsertRow = {
+  note_id: string
+  note_owner_id: string
+  mentioned_person_key: string
+  mentioned_user_id: string | null
+  mention_token: string
+  updated_at: string
+}
+
+type NoteMentionRow = {
+  id: string
+  note_id: string
+  mentioned_person_key: string
+  mentioned_user_id: string | null
+  mention_token: string
+  created_at: string
+  dismissed_at: string | null
+  last_seen_at: string | null
+  personal_notes: PersonalNoteRow[]
+}
+
 type UserSelectionRow = {
   object_id: string
   object_kind: SelectionObjectKind
@@ -215,6 +236,37 @@ function noteAuthorFromSession(currentSession: Session | null, companions: Compa
   return 'Kavi'
 }
 
+function normalizeMentionToken(value: string) {
+  return value.trim().toLowerCase()
+}
+
+function extractNoteMentions(body: string, companions: CompanionMember[] = fallbackCompanionMembers): Array<{
+  personKey: string
+  mentionToken: string
+  mentionedUserId: string | null
+}> {
+  const aliasMap = new Map<string, CompanionMember>()
+  for (const member of companions) {
+    for (const alias of [member.bubbleLabel, member.name, member.key]) {
+      aliasMap.set(normalizeMentionToken(alias), member)
+    }
+  }
+  const seen = new Set<string>()
+  const mentions: Array<{ personKey: string; mentionToken: string; mentionedUserId: string | null }> = []
+  for (const match of body.matchAll(/\B@([A-Za-z][A-Za-z0-9_-]{0,31})/g)) {
+    const token = match[1]
+    const member = aliasMap.get(normalizeMentionToken(token))
+    if (!member || seen.has(member.key)) continue
+    seen.add(member.key)
+    mentions.push({
+      personKey: member.key,
+      mentionToken: `@${token}`,
+      mentionedUserId: member.userId ?? null,
+    })
+  }
+  return mentions
+}
+
 function formatContextNoteTime(value: string) {
   return new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 }
@@ -270,6 +322,42 @@ async function loadUserActivityEvents(ownerId: string): Promise<UserActivityEven
     .limit(200)
   if (result.error) throw result.error
   return result.data as UserActivityEventRow[]
+}
+
+type MentionInboxItem = {
+  id: string
+  mentionToken: string
+  note: ContextNote
+}
+
+async function loadMentionInbox(userId: string): Promise<MentionInboxItem[]> {
+  if (!supabase) return []
+  const result = await supabase.from('note_mentions')
+    .select(`
+      id,
+      note_id,
+      mentioned_person_key,
+      mentioned_user_id,
+      mention_token,
+      created_at,
+      dismissed_at,
+      last_seen_at,
+      personal_notes!inner(
+        id,owner_id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at
+      )
+    `)
+    .eq('mentioned_user_id', userId)
+    .is('dismissed_at', null)
+    .order('created_at', { ascending: false })
+    .limit(25)
+  if (result.error) throw result.error
+  return ((result.data ?? []) as NoteMentionRow[])
+    .filter(row => row.personal_notes?.[0])
+    .map(row => ({
+      id: row.id,
+      mentionToken: row.mention_token,
+      note: personalNoteRowToContextNote(row.personal_notes[0]),
+    }))
 }
 
 function selectionKey(objectId: string, key: string) {
@@ -339,6 +427,7 @@ export default function App() {
   const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(exploreEvents)
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
   const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(designPreview ? contextNotes : [])
+  const [mentionInboxState, setMentionInboxState] = useState<MentionInboxItem[]>([])
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
@@ -411,20 +500,24 @@ export default function App() {
     }
     if (!session || !online) {
       setContextNotesState([])
+      setMentionInboxState([])
       setAlertReview({})
       setUserSelections({})
       setUserActivityRows([])
       setExploreEventState(exploreEvents)
       return
     }
-    const [notesResult, selectionsResult, activityResult] = await Promise.allSettled([
+    const [notesResult, mentionsResult, selectionsResult, activityResult] = await Promise.allSettled([
         loadContextNotes(session.user.id),
+        loadMentionInbox(session.user.id),
         loadUserSelections(session.user.id),
         loadUserActivityEvents(session.user.id),
       ])
     const failures: string[] = []
     if (notesResult.status === 'fulfilled') setContextNotesState(notesResult.value)
     else failures.push('notes')
+    if (mentionsResult.status === 'fulfilled') setMentionInboxState(mentionsResult.value)
+    else failures.push('mentions')
     if (activityResult.status === 'fulfilled') setUserActivityRows(activityResult.value)
     else failures.push('activity')
     if (selectionsResult.status === 'fulfilled') {
@@ -674,6 +767,7 @@ export default function App() {
     const client = supabase
     const saveNote = async () => {
       try {
+        const mentionTargets = extractNoteMentions(note.body, companionMembers)
         const { data, error } = await client.from('personal_notes').insert({
           owner_id: session.user.id,
           title: note.title,
@@ -691,6 +785,21 @@ export default function App() {
           .single()
         if (error) throw error
         const saved = personalNoteRowToContextNote(data as PersonalNoteRow)
+        if (mentionTargets.length) {
+          const mentionRows: NoteMentionInsertRow[] = mentionTargets.map(target => ({
+            note_id: saved.id,
+            note_owner_id: session.user.id,
+            mentioned_person_key: target.personKey,
+            mentioned_user_id: target.mentionedUserId,
+            mention_token: target.mentionToken,
+            updated_at: now.toISOString(),
+          }))
+          const { error: mentionError } = await client.from('note_mentions').upsert(mentionRows, { onConflict: 'note_id,mentioned_person_key' })
+          if (mentionError) {
+            setMessageTone('error')
+            setMessage(`Note saved, but mentions were not recorded: ${mentionError.message}`)
+          }
+        }
         setContextNotesState(current => current.map(item => item.id === note.id ? saved : item))
       } catch (error) {
         setMessageTone('error')
@@ -879,6 +988,12 @@ export default function App() {
         </div>
         <div className="header-status">
           <div className="header-actions">
+            <MentionInbox
+              items={mentionInboxState}
+              onOpenObject={detail => {
+                openObjectDetail(detail)
+              }}
+            />
             <AccountMenu email={session?.user.email ?? 'kavigrace@gmail.com'} online={Boolean(session) && online} preview={designPreview} />
             <span className="countdown-chip"><strong>{surface === 'home' ? daysToAtlanta : 'ATL'}</strong><span>{surface === 'home' ? 'days to Atlanta' : online ? 'online' : 'offline'}</span></span>
           </div>
@@ -2527,7 +2642,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
     <div className="note-composer">
       <textarea value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={`Note on ${objectTitle}`} />
       <div className="note-composer-actions">
-        <label className="note-private">
+        <label className="note-private-inline">
           <span>Private only me</span>
           <input type="checkbox" checked={visibility === 'private'} onChange={event => setVisibility(event.target.checked ? 'private' : 'shared')} />
         </label>
@@ -3648,6 +3763,48 @@ function AccountMenu({ email, online, preview }: { email: string; online: boolea
       {preview
         ? <button type="button" disabled>Preview mode</button>
         : <button type="button" onClick={() => void supabase?.auth.signOut({ scope: 'local' })}>Sign out</button>}
+    </div>
+  </details>
+}
+
+function MentionInbox({ items, onOpenObject }: { items: MentionInboxItem[]; onOpenObject: (detail: ObjectDetail) => void }) {
+  const unread = items.length
+
+  return <details className="mention-inbox">
+    <summary aria-label={`Mentions${unread ? `, ${unread} unread` : ''}`}>
+      <svg className="mention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="4" y="6" width="16" height="12" rx="2" />
+        <path d="m4 8 8 6 8-6" />
+      </svg>
+      {unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}
+    </summary>
+    <div className="mention-popover">
+      <header>
+        <span className="eyebrow">MENTIONS</span>
+        <strong>{unread ? `${unread} for you` : 'Nothing waiting'}</strong>
+      </header>
+      {items.length
+        ? <div className="mention-list">
+          {items.map(item => <button
+            key={item.id}
+            type="button"
+            className="mention-item"
+            onClick={event => {
+              const root = event.currentTarget.closest('details')
+              if (root instanceof HTMLDetailsElement) root.open = false
+              onOpenObject(noteToObjectDetail(item.note))
+            }}
+          >
+            <PersonBubbles people={[item.note.author]} />
+            <span>
+              <strong>{item.note.author} mentioned you</strong>
+              <small>{item.note.objectTitle}{item.note.objectAnchor ? ` · ${item.note.objectAnchor}` : ''}</small>
+              <em>{item.note.body}</em>
+            </span>
+            <i aria-hidden="true">›</i>
+          </button>)}
+        </div>
+        : <p className="mention-empty">No @mentions yet. Shared notes that name you will land here.</p>}
     </div>
   </details>
 }

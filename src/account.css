@@ -95,6 +95,141 @@
   background: #1a2c44;
 }
 
+.mention-inbox {
+  position: relative;
+  width: max-content;
+}
+
+.mention-inbox summary {
+  position: relative;
+  display: grid;
+  width: 42px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid #314761;
+  border-radius: 11px;
+  background: #122239;
+  color: #dce7f5;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mention-inbox summary::-webkit-details-marker {
+  display: none;
+}
+
+.mention-inbox[open] summary,
+.mention-inbox summary:hover {
+  border-color: #79aaff;
+  background: #1a3150;
+}
+
+.mention-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.mention-inbox summary b {
+  position: absolute;
+  top: -5px;
+  right: -4px;
+  display: inline-flex;
+  min-width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #122239;
+  border-radius: 999px;
+  background: #dfb865;
+  color: #152335;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.mention-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 9px);
+  right: 0;
+  width: min(340px, calc(100vw - 28px));
+  padding: 12px;
+  border: 1px solid #314761;
+  border-radius: 13px;
+  background: #101d2e;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, .4);
+}
+
+.mention-popover header {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.mention-popover header strong {
+  color: #edf4fc;
+  font-size: 14px;
+}
+
+.mention-list {
+  display: grid;
+  gap: 7px;
+}
+
+.mention-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: start;
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #2d415d;
+  border-radius: 10px;
+  background: #0b1625;
+  color: #dce7f5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mention-item:hover {
+  border-color: #6e9bd7;
+  background: #122137;
+}
+
+.mention-item span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mention-item strong {
+  color: #edf4fc;
+  font-size: 12px;
+}
+
+.mention-item small,
+.mention-item em {
+  overflow: hidden;
+  color: #97aac1;
+  font-size: 10px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mention-item i {
+  color: #8fa1b8;
+  font-style: normal;
+}
+
+.mention-empty {
+  margin: 0;
+  color: #97aac1;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .preview-label {
   color: #dfb865;
   font-size: 10px;
@@ -130,6 +265,14 @@
     position: fixed;
     right: 12px;
     bottom: calc(76px + env(safe-area-inset-bottom));
+    left: 12px;
+    width: auto;
+  }
+
+  .mention-popover {
+    position: fixed;
+    top: 78px;
+    right: 12px;
     left: 12px;
     width: auto;
   }
