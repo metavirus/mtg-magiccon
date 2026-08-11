@@ -6,6 +6,16 @@ Known environment constraints are part of the operating model. Do not rediscover
 
 ## Change tiers
 
+### Tier -1 — docs or operating-model hardening
+
+Use for documentation, instructions, and process cleanup that does not change app code, workflows, auth, data shape, monitoring behavior, or public UI.
+
+- Read `docs/REPO_OPERATING_CONTRACT.md`, `docs/KNOWN_GREMLINS.md`, and the directly affected docs.
+- Use targeted `rg` searches for stale commands, contradicted state, or obsolete paths.
+- Run `pnpm validate:text` and `pnpm validate:secrets`.
+- Do not run build, browser verification, readiness, or public deploy checks unless the docs change affects commands, workflows, generated assets, or runtime behavior.
+- If the audit finds stale actionable instructions, patch or delete them. Do not leave them as “historical context” unless they are clearly marked superseded.
+
 ### Tier 0 — small visual/copy fix
 
 Use for CSS, copy, spacing, icon, and layout changes that do not touch data shape, authentication, storage, migrations, monitoring, receipts, or source evidence.
