@@ -1211,6 +1211,73 @@ function noteToObjectDetail(note: ContextNote): ObjectDetail {
   }
 }
 
+function focusDetailOnNote(detail: ObjectDetail, note: ContextNote): ObjectDetail {
+  return {
+    ...detail,
+    focusedNoteId: note.id,
+    objectAnchor: note.objectAnchor ?? detail.objectAnchor,
+  }
+}
+
+function receiptSourceDetail(note: ContextNote): ObjectDetail | null {
+  if (note.objectId === 'wallet-black-lotus-order') return focusDetailOnNote({
+    id: 'wallet-black-lotus-order',
+    kind: 'receipt',
+    eyebrow: 'Wallet · Black Lotus order',
+    title: 'Kavi + Chris badge proof',
+    summary: 'Showable Black Lotus order proof captured from the Leap email, including the QR and original receipt.',
+    facts: [
+      { label: 'Badge holders', value: 'Kavi + Chris' },
+      { label: 'Badges', value: '2 × Black Lotus VIP Early Bird' },
+      { label: 'Showable QR', value: 'Captured' },
+      { label: 'Original', value: 'Full email receipt captured' },
+    ],
+    source: { label: 'Source', value: 'MagicCon: Atlanta 2026 Order Confirmation from Leap Conventions' },
+    rationale: 'This is the source receipt/proof item. Notes opened from mentions should land here, not in a separate note wrapper.',
+    actions: [{ label: 'Open Wallet', destination: 'wallet' }],
+    backlinks: [{ label: 'Wallet', destination: 'wallet' }],
+  }, note)
+
+  if (note.objectId === 'wallet-juan-premium-order') return focusDetailOnNote({
+    id: 'wallet-juan-premium-order',
+    kind: 'receipt',
+    eyebrow: 'Wallet · Juan Premium order',
+    title: 'Juan badge proof',
+    summary: 'Showable Juan Premium Weekend badge proof captured from the Leap email, including the QR and original receipt.',
+    facts: [
+      { label: 'Badge holder', value: 'Juan' },
+      { label: 'Badge', value: 'Premium Weekend Early Bird' },
+      { label: 'Showable QR', value: 'Captured' },
+      { label: 'Original', value: 'Full email receipt captured' },
+    ],
+    source: { label: 'Source', value: 'MagicCon: Atlanta 2026 Order Confirmation from Leap Conventions' },
+    rationale: 'This is the source receipt/proof item. Notes opened from mentions should land here, not in a separate note wrapper.',
+    actions: [{ label: 'Open Wallet', destination: 'wallet' }],
+    backlinks: [{ label: 'Wallet', destination: 'wallet' }],
+  }, note)
+
+  return null
+}
+
+function noteSourceObjectDetail(note: ContextNote): ObjectDetail {
+  if (note.objectId.startsWith('explore-')) {
+    const eventId = note.objectId.replace(/^explore-/, '')
+    const event = exploreEventCandidates.find(candidate => candidate.id === eventId)
+    if (event) return focusDetailOnNote(exploreEventToObjectDetail(event), note)
+  }
+
+  if (note.objectId === 'hotel-courtyard') return focusDetailOnNote(tripHotelDetail('courtyard'), note)
+  if (note.objectId === 'hotel-omni') return focusDetailOnNote(tripHotelDetail('omni'), note)
+  if (note.objectId === 'hotel-chris') return focusDetailOnNote(tripHotelDetail('chris'), note)
+  if (note.objectId === 'trip-luggage-thursday') return focusDetailOnNote(tripTransitionDetail(), note)
+  if (note.objectId === 'atlanta-operational-logistics') return focusDetailOnNote(logisticsToObjectDetail(), note)
+
+  const receiptDetail = receiptSourceDetail(note)
+  if (receiptDetail) return receiptDetail
+
+  return noteToObjectDetail(note)
+}
+
 function logisticsToObjectDetail(): ObjectDetail {
   return {
     id: 'atlanta-operational-logistics',
@@ -3902,7 +3969,7 @@ function MentionInbox({ items, onOpenObject }: { items: MentionInboxItem[]; onOp
             onClick={event => {
               const root = event.currentTarget.closest('details')
               if (root instanceof HTMLDetailsElement) root.open = false
-              onOpenObject(noteToObjectDetail(item.note))
+              onOpenObject(noteSourceObjectDetail(item.note))
             }}
           >
             <PersonBubbles people={[item.note.author]} />
