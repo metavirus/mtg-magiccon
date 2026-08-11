@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-11",
+  "queries": [
+    {
+      "id": "magiccon-canonical-mail",
+      "purpose": "MagicCon, MTG Festivals, Leap, Pastimes, Black Lotus, store, prize, and badge notices",
+      "template": "after:{YYYY/MM/DD} (MagicCon OR \"Magic Con\" OR mtgfestivals OR \"MTG Festivals\" OR ReedPop OR \"Leap Conventions\" OR leapevent OR Pastimes OR \"Black Lotus\" OR \"Prize Tix\" OR \"prize wall\") -in:spam -in:trash"
+    },
+    {
+      "id": "magiccon-trip-mail",
+      "purpose": "Delta, hotel, lodging, and trip changes that intersect Atlanta or MagicCon",
+      "template": "after:{YYYY/MM/DD} (Delta OR Omni OR Courtyard OR Booking.com OR KAYAK OR hotel OR flight) (Atlanta OR ATL OR MagicCon) -in:spam -in:trash"
+    },
+    {
+      "id": "magiccon-receipt-mail",
+      "purpose": "Receipts and showable proof artifacts worth importing once",
+      "template": "after:{YYYY/MM/DD} (receipt OR confirmation OR order OR QR OR barcode OR ticket OR badge) (MagicCon OR \"MTG Festivals\" OR \"Leap Conventions\" OR leapevent OR \"Black Lotus\" OR Pastimes) -in:spam -in:trash"
+    }
+  ],
+  "rules": [
+    "Do not search standalone Wizards, standalone Leap, or generic Magic marketing.",
+    "Only broaden a query when the message itself intersects MagicCon, MTG Festivals, Atlanta 2026, ReedPop, Leap Conventions, leapevent, or Pastimes.",
+    "Never modify Gmail state during monitoring."
+  ]
+}
