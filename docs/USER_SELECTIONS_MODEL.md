@@ -24,6 +24,8 @@ As of August 11, the app uses two owner-scoped Supabase layers:
 
 Both tables use forced RLS, explicit authenticated grants, and no anonymous grants. `user_selections` keeps the unique `(owner_id, object_id, selection_key)` shape so each current choice stays idempotent, while `user_activity_events` preserves the action trail separately.
 
+`public.companion_members` is the read-only authenticated roster that lets these user-owned records render stable people labels across the app. It does not replace auth: when a member has an auth account, `auth_email` / `user_id` can map that account to the person bubble. Until collaboration rules are intentionally expanded, notes and selections remain owned by the logged-in user, while shared notes are visible across authenticated companion members.
+
 ## Product rule
 
 If the user clicks something that expresses preference, commitment, review state, count, assignment, or visibility, it should persist in Supabase unless it is clearly disposable UI chrome.
