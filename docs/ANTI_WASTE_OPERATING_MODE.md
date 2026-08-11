@@ -2,6 +2,8 @@
 
 This is a small hobby companion app, not an enterprise program. Use the narrowest safe workflow that matches the risk of the change.
 
+Known environment constraints are part of the operating model. Do not rediscover them, narrate them as surprises, or prove documented failures still fail. Check `docs/KNOWN_GREMLINS.md`, choose the correct lane first, and only add new process when it removes a wrong path.
+
 ## Change tiers
 
 ### Tier 0 — small visual/copy fix
@@ -68,6 +70,7 @@ Use the full project gate:
 
 ## Product simplicity rules
 
+- Remove or rewrite obsolete actionable paths instead of preserving them as confusing alternatives.
 - Prefer deleting duplicated UI paths over styling each copy. Navigation, person bubbles, notes, object drawers, and receipt proof display must have one shared source of truth.
 - Browser storage is only for UI chrome, auth-mode convenience, and read-only offline cache. User-authored notes, event preferences, hidden/not-for-me state, Activity review state, and Prize Tix balance belong in Supabase.
 - Do not build placeholder controls. Empty is better than fake.

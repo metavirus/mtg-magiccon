@@ -2,6 +2,8 @@
 
 This file exists because repeated avoidable errors are expensive. If one of these patterns appears, use the listed path instead of rediscovering the problem.
 
+Core rule: a known environment-specific failure is no longer debugging. It is operating procedure. If the same sandbox, Git, PowerShell, Vite, network, cache, or publish failure happens again after the correct lane is documented here, that is an agent execution failure unless the documented lane itself changed.
+
 ## Git writes in Codex sandbox
 
 **Symptom:** `fatal: Unable to create .git/index.lock: Permission denied`.
