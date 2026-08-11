@@ -3753,8 +3753,55 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
   const now = Date.now()
   const homeSignals = homeWorthKnowingItems(activityItems, now)
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
+  const pendingMilestones = milestoneForecasts.length
+  const leadSignal = homeSignals[0]
   return <div className="home-surface">
-    <div className="home-dashboard">
+    <div className="home-top-row">
+      <section className={`home-status-card ${hotCount ? 'has-hot' : ''}`} onClick={onOpenActivity}>
+        <div className="home-status-head">
+          <span className="eyebrow">{hotCount ? 'ACTIVE WATCH' : 'QUIET MONITORING'}</span>
+          <span className={`home-status-pill ${hotCount ? 'hot' : 'quiet'}`}>{hotCount ? `${hotCount} hot` : 'calm'}</span>
+        </div>
+        <h2>{hotCount ? 'A few things deserve attention.' : 'Atlanta is quiet.'}</h2>
+        <p>{hotCount ? 'The top signal is worth action now; the rest are recent context you will probably care about.' : 'No new signal needs immediate action, so the page can lead with what matters next instead of pretending everything is urgent.'}</p>
+        <div className="home-status-metrics" aria-label="Home status summary">
+          <div><strong>{homeSignals.length}</strong><small>worth knowing</small></div>
+          <div><strong>{pendingMilestones}</strong><small>waiting</small></div>
+          <div><strong>{slice.decision.planning_state}</strong><small>plan state</small></div>
+        </div>
+        {leadSignal && <button type="button" className={`status-lead-card ${leadSignal.severity}`} onClick={event => {
+          event.stopPropagation()
+          onOpenItem(leadSignal)
+        }}>
+          <span>{leadSignal.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={leadSignal.kind} />}</span>
+          <div>
+            <small>{leadSignal.severity === 'hot' ? 'TOP SIGNAL' : 'LATEST SIGNAL'}</small>
+            <strong>{leadSignal.title}</strong>
+            <em>{leadSignal.summary}</em>
+          </div>
+          <b aria-hidden="true">›</b>
+        </button>}
+      </section>
+
+      <section className="next-milestone home-top-forecast" onClick={event => {
+        const target = event.target as HTMLElement
+        if (target.closest('details')) return
+        onOpenActivity()
+      }}>
+        <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
+        <div>
+          <span className="eyebrow">NEXT EXPECTED</span>
+          <h2>Ticketed play opens the real planning season.</h2>
+          <p>That is when event comparison, schedule conflicts, and real trip choices become worth doing for real.</p>
+        </div>
+        <details className="timing-clue">
+          <summary><span>Best guess</span><strong>mid–late Aug</strong></summary>
+          <p>Vegas announced ticketed-play sales on Feb 3 for a Feb 10 opening—about 11½ weeks before its May 1 start. The equivalent Atlanta window is roughly Aug 18–25. This is a forecast, not an Atlanta fact.</p>
+        </details>
+      </section>
+    </div>
+
+    <div className="home-bottom-row">
       <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading">
         <div className="home-lane-head">
           <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{homeSignals.length ? `${homeSignals.length} recent item${homeSignals.length === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
@@ -3773,40 +3820,12 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
         </div>
       </section>
 
-      <div className="home-reference-stack">
-        <section className="next-milestone" onClick={event => {
-          const target = event.target as HTMLElement
-          if (target.closest('details')) return
-          onOpenActivity()
-        }}>
-          <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
-          <div>
-            <span className="eyebrow">NEXT EXPECTED</span>
-            <h2>Ticketed play opens the real planning season.</h2>
-            <p>That is when event comparison and time contention become useful.</p>
-          </div>
-          <details className="timing-clue">
-            <summary><span>Best guess</span><strong>mid–late Aug</strong></summary>
-            <p>Vegas announced ticketed-play sales on Feb 3 for a Feb 10 opening—about 11½ weeks before its May 1 start. The equivalent Atlanta window is roughly Aug 18–25. This is a forecast, not an Atlanta fact.</p>
-          </details>
-        </section>
-
-        <section className="runway" aria-labelledby="runway-heading">
-          <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h2 id="runway-heading">What we are waiting for</h2></div><span>1 complete · 4 waiting</span></div>
-          <ol>
-            <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
-            {milestoneForecasts.map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
-              <span className="runway-icon"><MilestoneIcon name={forecast.icon} /></span>
-              <details className="runway-forecast">
-                <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · forecast</small></summary>
-                <p>{forecast.rationale}</p>
-              </details>
-            </li>)}
-          </ol>
-        </section>
-
-        <section className="home-context" aria-labelledby="known-heading">
-          <div><span className="eyebrow">ALREADY KNOWN</span><h2 id="known-heading">On the plan</h2></div>
+      <section className="home-planning-board" aria-labelledby="runway-heading">
+        <div className="planning-board-head">
+          <div><span className="eyebrow">PLANNING BOARD</span><h2 id="runway-heading">What is locked and what is next</h2></div>
+          <button type="button" onClick={onOpenPlan}>Open Plan</button>
+        </div>
+        <div className="planning-board-anchor">
           <button className="anchor-row" type="button" onClick={() => onOpenObject(trustSliceToObjectDetail(slice))}>
             <span className="anchor-lotus" aria-hidden="true">✦</span>
             <span className="anchor-date"><small>NOV 14</small><strong>11:30–3</strong></span>
@@ -3819,8 +3838,22 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
             <div><small>USEFUL LOGISTICS</small><strong>Will Call and show hours</strong></div>
             <b aria-hidden="true">›</b>
           </button>
+        </div>
+
+        <section className="runway planning-runway" aria-labelledby="planning-runway-heading">
+          <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h3 id="planning-runway-heading">What we are waiting for</h3></div><span>1 complete · 4 waiting</span></div>
+          <ol>
+            <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
+            {milestoneForecasts.map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
+              <span className="runway-icon"><MilestoneIcon name={forecast.icon} /></span>
+              <details className="runway-forecast">
+                <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · forecast</small></summary>
+                <p>{forecast.rationale}</p>
+              </details>
+            </li>)}
+          </ol>
         </section>
-      </div>
+      </section>
     </div>
   </div>
 }
