@@ -1066,13 +1066,14 @@ export default function App() {
               items={mentionInboxState}
               onOpenMention={note => {
                 const receiptTarget = receiptTargetFromNote(note)
+                closeObjectDetail()
                 if (receiptTarget) {
-                  closeObjectDetail()
                   setWalletProofRequest({ target: receiptTarget, nonce: Date.now() })
                   openDestination('Wallet', 'wallet')
                   return
                 }
-                openObjectDetail(noteSourceObjectDetail(note))
+                const destination = surfaceFromNoteBacklink(note)
+                openDestination(surfaceTitle(destination), destination)
               }}
             />
             <AccountMenu email={session?.user.email ?? 'kavigrace@gmail.com'} online={Boolean(session) && online} preview={designPreview} />
@@ -1272,6 +1273,15 @@ function receiptTargetFromNote(note: ContextNote): WalletProofTarget | null {
   if (note.objectId === 'wallet-black-lotus-order') return 'black-lotus'
   if (note.objectId === 'wallet-juan-premium-order') return 'juan-premium'
   return null
+}
+
+function surfaceFromNoteBacklink(note: ContextNote): Surface {
+  const backlink = note.backlink.toLowerCase()
+  if (backlink === 'home' || backlink === 'calendar' || backlink === 'plan' || backlink === 'explore' || backlink === 'map' || backlink === 'wallet' || backlink === 'trip' || backlink === 'artists' || backlink === 'notes' || backlink === 'activity') return backlink
+  if (note.objectId.startsWith('explore-')) return 'explore'
+  if (note.objectId.startsWith('wallet-')) return 'wallet'
+  if (note.objectId.startsWith('hotel-') || note.objectId.startsWith('trip-')) return 'trip'
+  return 'notes'
 }
 
 function noteSourceObjectDetail(note: ContextNote): ObjectDetail {
