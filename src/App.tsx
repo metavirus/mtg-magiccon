@@ -744,6 +744,13 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const openObjectDetail = (detail: ObjectDetail) => setObjectDetail(detail)
+  const openActivityItem = (item: ActivityItem) => {
+    if (item.sourceKind === 'note' && item.objectDetail.kind === 'note') {
+      openDestination('Notes', 'notes')
+      return
+    }
+    openObjectDetail(item.objectDetail)
+  }
   const closeObjectDetail = () => setObjectDetail(null)
   const upsertUserSelection = async (objectId: string, objectKind: SelectionObjectKind, key: string, value: string) => {
     const mapKey = selectionKey(objectId, key)
@@ -1084,7 +1091,7 @@ export default function App() {
 
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
-        {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
+        {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
@@ -1107,7 +1114,7 @@ export default function App() {
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={session?.user.id} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
-        {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenObject={openObjectDetail} />}
+        {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} />}
       </>}
 
     </main>
@@ -3735,7 +3742,7 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
   </aside>
 }
 
-function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; onOpenPlan: () => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   const now = Date.now()
   const homeSignals = homeWorthKnowingItems(activityItems, now)
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
@@ -3748,7 +3755,7 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenAct
         </div>
         <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; the rest are useful recent context.` : 'Recent notes and useful changes land here without turning routine activity into an alarm.'}</p>
         <div className="timely-home" aria-label="Recent signals">
-          {homeSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenObject(item.objectDetail)}>
+          {homeSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
             <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
             <div>{item.severity === 'hot' && <small>HOT NOW</small>}<strong>{item.title}</strong><small>{item.summary}</small></div>
           </button>)}
@@ -3852,7 +3859,7 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenObject }: { n
   </section>
 }
 
-function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onOpenObject }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onOpenItem, onOpenObject }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [stream, setStream] = useState<ActivityStream>('hot')
   const hotCount = incomingItems.filter(item => item.reviewState === 'needs-review' && item.severity === 'hot').length
   const sourceCount = incomingItems.filter(item => item.reviewState !== 'archived' && item.sourceKind === 'monitor' && item.kind !== 'manual').length
@@ -3900,13 +3907,13 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
           <span className="activity-icon"><NavIcon name="notes" /></span>
           <div><span className="eyebrow">{note.visibility === 'shared' ? 'SHARED NOTE' : 'MY NOTE'}</span><button className="activity-title-link" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>{note.title}</button><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Details</button></div>
         </article>)}
-        {alerts.map(alert => <AlertCard key={alert.id} alert={alert} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
+        {alerts.map(alert => <AlertCard key={alert.id} alert={alert} onReviewChange={onReviewChange} onOpenItem={onOpenItem} />)}
         {stream === 'personal' && notes.length === 0 && <div className="activity-empty"><strong>No notes yet.</strong><span>Add a note from a receipt, event, trip item, or object detail.</span></div>}
         {stream === 'all' && visibleNotes.length === 0 && alerts.length === 0 && <div className="activity-empty"><strong>Nothing active right now.</strong><span>When something changes, it will show up here.</span></div>}
         {alerts.length === 0 && stream !== 'personal' && stream !== 'all' && <div className="activity-empty"><strong>{stream === 'hot' ? 'Nothing hot right now.' : 'No items here.'}</strong><span>{stream === 'archived' ? 'Archived findings stay available here.' : stream === 'hot' ? 'Useful calm: routine checks and quieter context stay out of this lane.' : 'Nothing needs attention in this view.'}</span></div>}
       </div>
       {incomingItems.length > 0 && <aside className="activity-rail" aria-label="Activity context">
-        {incomingItems.length > 0 && <button className="activity-route-card" type="button" onClick={() => onOpenObject((incomingItems.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingItems[0]).objectDetail)}>
+        {incomingItems.length > 0 && <button className="activity-route-card" type="button" onClick={() => onOpenItem(incomingItems.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingItems[0])}>
           <span className="activity-route-icon"><AlertKindIcon kind="site" /></span>
           <span><strong>Highest watch</strong><small>Hot monitoring and hard commitments float to the top first.</small></span>
         </button>}
@@ -3928,12 +3935,12 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
   </section>
 }
 
-function AlertCard({ alert, onReviewChange, onOpenObject }: { alert: ActivityItem; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function AlertCard({ alert, onReviewChange, onOpenItem }: { alert: ActivityItem; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenItem: (item: ActivityItem) => void }) {
   return <article className={`activity-card alert-${alert.severity} review-${alert.reviewState}`}>
     <span className="activity-icon"><AlertKindIcon kind={alert.kind} /></span>
     <div>
       <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
-      <button className="activity-title-link" type="button" onClick={() => onOpenObject(alert.objectDetail)}>{alert.title}</button>
+      <button className="activity-title-link" type="button" onClick={() => onOpenItem(alert)}>{alert.title}</button>
       <p>{alert.summary}</p>
       <div className="activity-meta"><span className={`review-badge ${alert.reviewState}`}>{alert.reviewState.replace('-', ' ')}</span><span>{alert.destination}</span><span>{alert.object}</span><span>{alert.source}</span></div>
       <details>
@@ -3942,7 +3949,7 @@ function AlertCard({ alert, onReviewChange, onOpenObject }: { alert: ActivityIte
         <p>{alert.nextAction}</p>
       </details>
       <div className="activity-review-actions">
-        <button type="button" onClick={() => onOpenObject(alert.objectDetail)}>Open object</button>
+        <button type="button" onClick={() => onOpenItem(alert)}>Open object</button>
         {alert.reviewState !== 'reviewed' && <button type="button" onClick={() => onReviewChange(alert, 'reviewed')}>Mark read</button>}
         {alert.reviewState !== 'archived' && <button type="button" onClick={() => onReviewChange(alert, 'archived')}>Ignore</button>}
         {alert.reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert, 'needs-review')}>Reopen</button>}
