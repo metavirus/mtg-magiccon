@@ -145,3 +145,9 @@ If public verification fails after a correct push, report propagation/cache lag 
 - After one visual miss, inspect DOM/CSS at the affected viewport.
 - After two visual misses, stop patching and look for duplicated components, stale public bundle, or cascade conflict.
 - For navigation, person bubbles, notes, receipt proof, and object drawers, prefer one source of truth over separate mobile and desktop implementations.
+
+## Public verifier assumes the wrong local artifact
+
+**Symptom:** `pnpm verify:public` fails because `dist/index.html` lacks the Pages build marker after ordinary ship checks rebuilt `dist`.
+
+**Prevention:** `verify:public` must prepare its own Pages-stamped comparison artifact. Run the single command; do not manually sequence `build:pages` and verification.

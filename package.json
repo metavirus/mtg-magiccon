@@ -11,7 +11,7 @@
     "check:ship": "pnpm build && pnpm validate:text && pnpm validate:secrets",
     "build": "powershell -ExecutionPolicy Bypass -File scripts/clean_dist.ps1 && tsc -b && vite build --configLoader runner",
     "build:pages": "pnpm build && powershell -ExecutionPolicy Bypass -File scripts/prepare_github_pages.ps1",
-    "verify:public": "powershell -ExecutionPolicy Bypass -File scripts/verify_public_pages.ps1",
+    "verify:public": "pnpm build:pages && powershell -ExecutionPolicy Bypass -File scripts/verify_public_pages.ps1",
     "publish:pages": "pnpm build:pages && pnpm validate:text && pnpm validate:secrets",
     "preview": "vite preview --configLoader runner",
     "test": "vitest run --configLoader runner",
