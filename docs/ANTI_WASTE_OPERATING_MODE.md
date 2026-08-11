@@ -38,7 +38,7 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 
 - Run `pnpm check:ship`.
-- Push the source branch. GitHub Actions deploys the `dist/` artifact to Pages.
+- Push `main` after a bounded approved fix. GitHub Actions deploys the `dist/` artifact to Pages.
 - Only `main` is allowed to publish the shared public Pages site. Feature branches may be reviewed locally or merged first; they should not overwrite the public preview.
 - After the Pages workflow completes, run `pnpm verify:public`. That script prepares the local Pages-stamped comparison artifact itself.
 - If public verification needs network access, run that exact script with the elevated/network-capable path; do not first invent a different verification method.
@@ -46,6 +46,8 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 - Treat “published” as true only after a cache-busted public URL serves the expected current asset or visible behavior.
 - If public Pages still shows stale behavior, say “pushed but not propagated/cached yet,” not “fixed.”
 - If any known environment/publish/cache/auth/Git failure appears, follow `docs/KNOWN_GREMLINS.md` before inventing a new workaround.
+
+For this app, do not add a separate “ask to push” step once Kavi has approved the bounded work. The public app is the review target. Validate, commit, push to `main`, wait for deploy, verify live, and report. Pause before push only if scope expanded, the change is destructive or hard to reverse, credentials/auth/deploy state is unsafe or ambiguous, or confidence about what will ship has dropped.
 
 ### Commit/publish discipline
 
