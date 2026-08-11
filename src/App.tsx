@@ -112,6 +112,7 @@ async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
 
 type PersonalNoteRow = {
   id: string
+  owner_id: string
   title: string
   body: string
   object_id: string
@@ -159,6 +160,7 @@ function formatContextNoteTime(value: string) {
 function personalNoteRowToContextNote(row: PersonalNoteRow): ContextNote {
   return {
     id: row.id,
+    ownerId: row.owner_id,
     objectId: row.object_id,
     objectKind: row.object_kind,
     objectTitle: row.object_title,
@@ -174,11 +176,10 @@ function personalNoteRowToContextNote(row: PersonalNoteRow): ContextNote {
   }
 }
 
-async function loadContextNotes(ownerId: string): Promise<ContextNote[]> {
+async function loadContextNotes(_ownerId: string): Promise<ContextNote[]> {
   if (!supabase) return []
   const result = await supabase.from('personal_notes')
-    .select('id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at')
-    .eq('owner_id', ownerId)
+    .select('id,owner_id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at')
     .order('updated_at', { ascending: false })
   if (result.error) throw result.error
   return (result.data as PersonalNoteRow[]).map(personalNoteRowToContextNote)
@@ -579,6 +580,7 @@ export default function App() {
     const now = new Date()
     const note: ContextNote = {
       id: `note-${now.getTime()}-${Math.random().toString(36).slice(2, 7)}`,
+      ownerId: session?.user.id,
       objectId: input.objectId,
       objectKind: input.objectKind,
       objectTitle: input.objectTitle,
@@ -610,7 +612,7 @@ export default function App() {
           backlink: note.backlink,
           author_label: note.author,
           updated_at: now.toISOString(),
-        }).select('id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at')
+        }).select('id,owner_id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at')
           .single()
         if (error) throw error
         const saved = personalNoteRowToContextNote(data as PersonalNoteRow)
@@ -812,9 +814,9 @@ export default function App() {
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
+        {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} onPrizeTixChange={(value, delta) => {
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
           if (!delta) return
           void recordUserActivity({
@@ -830,14 +832,14 @@ export default function App() {
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'notes' && <NotesSurface notes={contextNotesState} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} />}
+        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={session?.user.id} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} />}
 
         {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenObject={openObjectDetail} />}
       </>}
 
     </main>
-    <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} />
+    <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
   </div>
 }
 
@@ -1015,7 +1017,7 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
   }
 }
 
-function ObjectDetailLayer({ detail, notes, onAddNote, onDeleteNote, onClose, onNavigate }: { detail: ObjectDetail | null; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void }) {
+function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   if (!detail) return null
   return <div className="object-detail-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
@@ -1036,7 +1038,9 @@ function ObjectDetailLayer({ detail, notes, onAddNote, onDeleteNote, onClose, on
       </section>}
       {detail.facts && <section className="object-detail-section">
         <h3>Key facts</h3>
-        <div className="object-fact-grid">{detail.facts.map(fact => <div key={fact.label} className="object-fact"><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>
+        <div className="object-fact-grid">{detail.facts.map(fact => fact.detail
+          ? <button key={`${fact.label}-${fact.value}`} type="button" className="object-fact object-fact-link" onClick={() => onOpenObject(fact.detail!)}><span>{fact.label}</span><strong>{fact.value}</strong><b aria-hidden="true">›</b></button>
+          : <div key={`${fact.label}-${fact.value}`} className="object-fact"><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>
       </section>}
       {detail.rationale && <section className="object-detail-section">
         <h3>Why it matters</h3>
@@ -1052,6 +1056,7 @@ function ObjectDetailLayer({ detail, notes, onAddNote, onDeleteNote, onClose, on
       </section>}
       <ObjectNotes
         notes={notes}
+        currentOwnerId={currentOwnerId}
         onAddNote={onAddNote}
         onDeleteNote={onDeleteNote}
         objectId={detail.id}
@@ -1109,7 +1114,7 @@ type ObjectDetail = {
   image?: { src: string; alt: string; caption?: string }
   focusedNoteId?: string
   objectAnchor?: string
-  facts?: Array<{ label: string; value: string }>
+  facts?: Array<{ label: string; value: string; detail?: ObjectDetail }>
   source?: { label: string; value: string }
   rationale?: string
   actions?: Array<{ label: string; destination?: Surface }>
@@ -1213,7 +1218,7 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
         eyebrow: 'RECENT NOTES',
         title: `${cluster.author} added ${cluster.notes.length} notes`,
         summary: cluster.notes.map(note => note.body).join(' · '),
-        facts: cluster.notes.map(note => ({ label: note.context, value: note.body })),
+        facts: cluster.notes.map(note => ({ label: note.context, value: note.body, detail: noteToObjectDetail(note) })),
         rationale: 'Grouped because these notes landed within the same ten-minute burst.',
         backlinks: [{ label: 'Notes', destination: 'notes' as const }],
       } : noteToObjectDetail(latest),
@@ -1427,7 +1432,11 @@ function eventSelectionActivityFromCluster(
           eyebrow: 'SELECTION BURST',
           title: `${cluster.actorLabel} updated ${items.length} event picks`,
           summary: parts.join(' · '),
-          facts: items.slice(0, 6).map(item => ({ label: item.state, value: item.event.title })),
+          facts: items.slice(0, 6).map(item => ({
+            label: item.state,
+            value: item.event.title,
+            detail: exploreEventToObjectDetail({ ...item.event, state: item.state }),
+          })),
           rationale: 'Grouped because several event-state changes landed in the same short burst.',
           backlinks: [{ label: 'Explore', destination: 'explore' }, { label: 'Plan', destination: 'plan' }],
         },
@@ -1499,6 +1508,7 @@ function isMonitoringAlert(value: unknown): value is MonitoringAlert {
 }
 type ContextNote = {
   id: string
+  ownerId?: string
   objectId: string
   objectKind: ObjectDetailKind
   objectTitle: string
@@ -2041,10 +2051,11 @@ const exploreEventCandidates: ExploreEvent[] = [
 
 const exploreEvents = exploreEventCandidates.filter(event => event.sourceNote?.startsWith('Official Atlanta'))
 
-function PlanSurface({ events, slice, notes, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving }: {
+function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving }: {
   events: ExploreEvent[]
   slice: TrustSlice
   notes: ContextNote[]
+  currentOwnerId?: string
   onAddNote: (input: AddContextNoteInput) => void
   onDeleteNote: (id: string) => void
   onUpdateEvent: (id: string, state: ExploreState) => void
@@ -2123,7 +2134,7 @@ function PlanSurface({ events, slice, notes, onAddNote, onDeleteNote, onUpdateEv
         <section><small>PLAN EFFECT</small><strong>{selected.planEffect}</strong></section>
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
         <div className="plan-provenance"><span>{selected.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{selected.sourceNote ?? 'Source context captured for this item.'}</small></div>
-        <ObjectNotes notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={selected.title} context={`Event · ${selected.title}`} backlink="plan" compact />
+        <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={selected.title} context={`Event · ${selected.title}`} backlink="plan" compact />
       </aside>}
     </div>
   </section>
@@ -2148,7 +2159,7 @@ function planPressure(event: ExploreEvent) {
   return 'In consideration'
 }
 
-function ExploreSurface({ events, notes, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan, onOpenObject }: { events: ExploreEvent[]; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan, onOpenObject }: { events: ExploreEvent[]; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [mode, setMode] = useState<ExploreMode>('for-you')
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
@@ -2229,7 +2240,7 @@ function ExploreSurface({ events, notes, onAddNote, onDeleteNote, onUpdateEvent,
         </section>}
       </div>
 
-      <ExploreDetail event={selected} notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} onOpenObject={onOpenObject} />
+      <ExploreDetail event={selected} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} onOpenObject={onOpenObject} />
     </div>
   </section>
 }
@@ -2279,7 +2290,7 @@ function getPriceTone(price: string) {
   return 'high'
 }
 
-function ExploreDetail({ event, notes, onAddNote, onDeleteNote, open, onClose, onState, onOpenPlan, onOpenObject }: { event: ExploreEvent; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onOpenPlan, onOpenObject }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const planEnabled = event.state === 'interested' || event.state === 'tentative'
   return <aside className="explore-detail" data-open={open} aria-label={`${event.title} detail`}>
     <button className="detail-close explore-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
@@ -2306,7 +2317,7 @@ function ExploreDetail({ event, notes, onAddNote, onDeleteNote, open, onClose, o
       <strong>Plan effect</strong>
       <p>{event.planEffect}</p>
     </section>
-    <ObjectNotes notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={event.title} context={`Event · ${event.title}`} backlink="explore" compact />
+    <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={event.title} context={`Event · ${event.title}`} backlink="explore" compact />
     {(event.moreDetails || event.sourceNote) && <details className="detail-more">
       <summary><span>More details</span><small>Official and operational</small></summary>
       <div className="detail-more-body">
@@ -2393,8 +2404,9 @@ function ComplexityPill({ level }: { level: ComplexityLevel }) {
   </span>
 }
 
-function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, objectTitle, objectAnchor, focusedNoteId, context, backlink, compact }: {
+function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId, objectKind, objectTitle, objectAnchor, focusedNoteId, context, backlink, compact }: {
   notes: ContextNote[]
+  currentOwnerId?: string
   onAddNote: (input: AddContextNoteInput) => void
   onDeleteNote: (id: string) => void
   objectId: string
@@ -2407,7 +2419,7 @@ function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, obj
   compact?: boolean
 }) {
   const [body, setBody] = useState('')
-  const [visibility, setVisibility] = useState<NoteVisibility>('private')
+  const [visibility, setVisibility] = useState<NoteVisibility>('shared')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const objectNotes = notes
     .filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor))
@@ -2417,6 +2429,7 @@ function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, obj
     if (!trimmed) return
     onAddNote({ objectId, objectKind, objectTitle, objectAnchor, context, body: trimmed, visibility, backlink })
     setBody('')
+    setVisibility('shared')
   }
 
   return <section className={`object-notes ${compact ? 'compact' : ''}`} aria-label={`Notes for ${objectTitle}`}>
@@ -2428,8 +2441,8 @@ function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, obj
       {objectNotes.slice(0, compact ? 2 : 5).map(note => <article key={note.id} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
         <PersonBubbles people={[note.author]} />
         <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</small></div>
-        <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>
-        {confirmDeleteId === note.id && <div className="note-delete-confirm" role="alert">
+        {note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
+        {note.ownerId === currentOwnerId && confirmDeleteId === note.id && <div className="note-delete-confirm" role="alert">
           <span>Delete?</span>
           <button type="button" onClick={() => { onDeleteNote(note.id); setConfirmDeleteId(null) }}>Yes</button>
           <button type="button" onClick={() => setConfirmDeleteId(null)}>No</button>
@@ -2439,9 +2452,7 @@ function ObjectNotes({ notes, onAddNote, onDeleteNote, objectId, objectKind, obj
     <div className="note-composer">
       <textarea value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={`Note on ${objectTitle}`} />
       <div>
-        <div className="note-visibility" role="group" aria-label="Note visibility">
-          {(['private', 'shared'] as const).map(value => <button key={value} type="button" className={visibility === value ? 'active' : ''} onClick={() => setVisibility(value)}>{value === 'private' ? 'Mine' : 'Shared'}</button>)}
-        </div>
+        <label className="note-private"><input type="checkbox" checked={visibility === 'private'} onChange={event => setVisibility(event.target.checked ? 'private' : 'shared')} /><span>Private</span><small>Only you</small></label>
         <button type="button" className="note-save" onClick={submit} disabled={!body.trim()}>Save note</button>
       </div>
     </div>
@@ -2541,7 +2552,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   </section>
 }
 
-function WalletSurface({ onOpenObject, onOpenTrip, notes, onAddNote, onDeleteNote, prizeTixValue, onPrizeTixChange }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; onPrizeTixChange: (value: number, delta: number) => void }) {
+function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, onPrizeTixChange }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
@@ -2576,7 +2587,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, onAddNote, onDeleteNot
         <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+</button>
       </div>
     </div>
-    {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />}
+    {tab === 'home' && <WalletHomeTab openModal={openModal} onOpenObject={onOpenObject} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />}
     {tab === 'play' && <WalletPlayTab openModal={openModal} />}
     {tab === 'store' && <WalletStoreEmpty />}
     {tab === 'other' && <WalletOtherTab openModal={openModal} onOpenTrip={onOpenTrip} />}
@@ -2604,9 +2615,9 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
-function WalletHomeTab({ openModal, onOpenObject, notes, onAddNote, onDeleteNote }: { openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void; onOpenObject: (detail: ObjectDetail) => void; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
-  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Kavi', 'Chris'])
-  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
+function WalletHomeTab({ openModal, onOpenObject, notes, currentOwnerId, onAddNote, onDeleteNote }: { openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void; onOpenObject: (detail: ObjectDetail) => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
+  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Kavi', 'Chris'])
+  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
 
   return <div className="wallet-home-command">
     <section className="wallet-hero-card">
@@ -2653,7 +2664,7 @@ function WalletHomeTab({ openModal, onOpenObject, notes, onAddNote, onDeleteNote
   </div>
 }
 
-function BlackLotusProofDetail({ notes, onAddNote, onDeleteNote }: { notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
+function BlackLotusProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote }: { notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
   const orderCode = '[private-receipt-value-removed]'
 
@@ -2681,7 +2692,7 @@ function BlackLotusProofDetail({ notes, onAddNote, onDeleteNote }: { notes: Cont
           <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
         </div>
         <p>Info is the fast-use view: extracted logistics plus the QR. Use Original when someone needs the whole receipt.</p>
-        <ObjectNotes notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-black-lotus-order" objectKind="receipt" objectTitle="Kavi + Chris badge proof" context="Wallet · Black Lotus order" backlink="wallet" compact />
+        <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-black-lotus-order" objectKind="receipt" objectTitle="Kavi + Chris badge proof" context="Wallet · Black Lotus order" backlink="wallet" compact />
       </>
       : <>
         <p className="original-receipt-note">Full Gmail receipt render. This is intentionally the whole email, not a cropped proof slice.</p>
@@ -2714,7 +2725,7 @@ function BlackLotusProofDetail({ notes, onAddNote, onDeleteNote }: { notes: Cont
   </div>
 }
 
-function JuanPremiumProofDetail({ notes, onAddNote, onDeleteNote }: { notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
+function JuanPremiumProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote }: { notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
   const orderCode = '[private-receipt-value-removed]'
 
@@ -2742,7 +2753,7 @@ function JuanPremiumProofDetail({ notes, onAddNote, onDeleteNote }: { notes: Con
           </figure>
           <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
         </div>
-        <ObjectNotes notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-juan-premium-order" objectKind="receipt" objectTitle="Juan badge proof" context="Wallet · Juan Premium order" backlink="wallet" compact />
+        <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-juan-premium-order" objectKind="receipt" objectTitle="Juan badge proof" context="Wallet · Juan Premium order" backlink="wallet" compact />
       </>
       : <div className="original-html-frame">
         <p className="original-receipt-note">Full Gmail-rendered receipt body captured from Juan's confirmation email.</p>
@@ -3396,7 +3407,7 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenAct
   </div>
 }
 
-function NotesSurface({ notes, onDeleteNote, onOpenObject }: { notes: ContextNote[]; onDeleteNote: (id: string) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenObject }: { notes: ContextNote[]; currentOwnerId?: string; onDeleteNote: (id: string) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [personFilter, setPersonFilter] = useState<NotePersonFilter>('all')
   const [typeFilter, setTypeFilter] = useState<NoteTypeFilter>('all')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -3425,8 +3436,8 @@ function NotesSurface({ notes, onDeleteNote, onOpenObject }: { notes: ContextNot
             <span><strong>{note.body}</strong><small>{note.title} · {note.objectTitle}</small><em>{note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</em></span>
             <b aria-hidden="true">›</b>
           </button>
-          <button type="button" className="note-delete" aria-label={`Delete note ${note.title}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>
-          {confirmDeleteId === note.id && <div className="note-delete-confirm index-confirm" role="alert">
+          {note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note ${note.title}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
+          {note.ownerId === currentOwnerId && confirmDeleteId === note.id && <div className="note-delete-confirm index-confirm" role="alert">
             <span>Delete?</span>
             <button type="button" onClick={() => { onDeleteNote(note.id); setConfirmDeleteId(null) }}>Yes</button>
             <button type="button" onClick={() => setConfirmDeleteId(null)}>No</button>
@@ -3483,7 +3494,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
       <div className="activity-feed">
         {visibleNotes.map(note => <article key={note.id} className="activity-card personal">
           <span className="activity-icon"><NavIcon name="notes" /></span>
-          <div><span className="eyebrow">{note.visibility === 'shared' ? 'SHARED NOTE' : 'MY NOTE'}</span><h2>{note.title}</h2><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Details</button></div>
+          <div><span className="eyebrow">{note.visibility === 'shared' ? 'SHARED NOTE' : 'MY NOTE'}</span><button className="activity-title-link" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>{note.title}</button><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Details</button></div>
         </article>)}
         {alerts.map(alert => <AlertCard key={alert.id} alert={alert} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
         {stream === 'personal' && notes.length === 0 && <div className="activity-empty"><strong>No notes yet.</strong><span>Add a note from a receipt, event, trip item, or object detail.</span></div>}
@@ -3518,7 +3529,7 @@ function AlertCard({ alert, onReviewChange, onOpenObject }: { alert: ActivityIte
     <span className="activity-icon"><AlertKindIcon kind={alert.kind} /></span>
     <div>
       <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
-      <h2>{alert.title}</h2>
+      <button className="activity-title-link" type="button" onClick={() => onOpenObject(alert.objectDetail)}>{alert.title}</button>
       <p>{alert.summary}</p>
       <div className="activity-meta"><span className={`review-badge ${alert.reviewState}`}>{alert.reviewState.replace('-', ' ')}</span><span>{alert.destination}</span><span>{alert.object}</span><span>{alert.source}</span></div>
       <details>
