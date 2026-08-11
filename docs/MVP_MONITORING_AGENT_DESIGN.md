@@ -1,6 +1,6 @@
 # MVP Monitoring Agent Design
 
-Updated: 2026-08-08
+Updated: 2026-08-11
 
 Automation status: daily heartbeat `magiccon-atlanta-quiet-period-monitor` is active. It may read approved public sources and Gmail search results, report into the Codex task, and update the fixture-backed POC hydration file when a finding is ready for review. It is not authorized to write Supabase data, modify Gmail, send mail, create push notifications, or change canonical app state.
 
@@ -19,6 +19,10 @@ During the quiet period, days or weeks may pass with no visible app change. The 
 ## Inputs
 
 The detailed watch-set strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. That research note is the authority for source priority and search-radar shape; this file defines the agent behavior and safety contract.
+
+The mechanical web watch set is now recorded in `monitoring/watch-set.json`. Run `pnpm monitor:check` at the start of each daily run before ad hoc browsing. The command compares approved public watch URLs against the accepted local baseline in `.monitoring-state/watch-state.local.json`, which is intentionally ignored by Git so routine quiet checks do not dirty the repository. Use `pnpm monitor:accept` only after a baseline or reviewed change has been accepted; do not silently accept a changed source before routing it.
+
+The mechanical Gmail query map is recorded in `monitoring/gmail-watch-queries.json`. It does not access Gmail by itself; it prevents the daily run from drifting back into broad, noisy searches.
 
 ### Initial watch set
 
@@ -165,18 +169,19 @@ Do not start with:
 ## Suggested daily run outline
 
 1. Confirm project identity and current watch set.
-2. Check official site/watch URLs for changed text, new links, or removed "coming soon" language.
-3. Check MagicCon news for new posts.
-4. Search Gmail using narrow MagicCon-specific, Leap Conventions/leapevent, Pastimes, Delta, hotel, and store queries since the last run. Do not search standalone `Wizards` or standalone `Leap`; require MagicCon/MTG Festivals context for broad vendor/operator terms.
-5. Check narrowly filtered official Wizards news only when it intersects MagicCon-relevant product/context terms.
-6. Review any manually supplied or connector-available Black Lotus Discord observations as radar. Follow official links before promoting claims; keep unsupported community chatter in Activity unless it indicates an urgent Black Lotus, ticketed-play, store, sellout, map, or vendor/exclusive lead.
-7. Classify each finding into the routing map.
-8. Produce a short report:
+2. Run `pnpm monitor:check`. If it reports changed watched sources, inspect those sources first and classify the change before checking broader radar.
+3. Check official site/watch URLs for changed text, new links, or removed "coming soon" language only where the mechanical check or source strategy indicates a need.
+4. Check MagicCon news for new posts.
+5. Search Gmail using `monitoring/gmail-watch-queries.json` and a narrow date window since the last run. Do not search standalone `Wizards` or standalone `Leap`; require MagicCon/MTG Festivals context for broad vendor/operator terms.
+6. Check narrowly filtered official Wizards news only when it intersects MagicCon-relevant product/context terms.
+7. Review any manually supplied or connector-available Black Lotus Discord observations as radar. Follow official links before promoting claims; keep unsupported community chatter in Activity unless it indicates an urgent Black Lotus, ticketed-play, store, sellout, map, or vendor/exclusive lead.
+8. Classify each finding into the routing map.
+9. Produce a short report:
    - Home-worthy findings;
    - object annotations;
    - Activity-only observations;
    - unclear items needing a rare yes/no prompt.
-9. Do not ask the owner anything unless the answer changes future classification, recommendation, or alerting.
+10. Do not ask the owner anything unless the answer changes future classification, recommendation, or alerting.
 
 ## First deployable automation prompt
 

@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-11",
+  "stateFile": ".monitoring-state/watch-state.local.json",
+  "sources": [
+    {
+      "id": "atlanta-official-home",
+      "label": "MagicCon Atlanta official home",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Activity",
+      "homeWorthyWhen": "new planning-relevant links, removed coming-soon language, ticketed play, artists, map, store, catalog, prize wall, or mobile-app publication",
+      "trackLinks": true
+    },
+    {
+      "id": "atlanta-black-lotus-vip",
+      "label": "Atlanta Black Lotus VIP page",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "any material Black Lotus schedule, store, pickup, lounge, entitlement, policy, product, or event-detail change",
+      "trackLinks": true
+    },
+    {
+      "id": "global-magiccon-news",
+      "label": "Global MagicCon news",
+      "url": "https://www.mtgfestivals.com/global/en-us/magiccon-news.html",
+      "kind": "newsletter",
+      "priority": "canonical",
+      "destination": "Activity",
+      "homeWorthyWhen": "Atlanta 2026, ticketed play, Black Lotus, artist, map, app, store, prize wall, or official convention logistics news",
+      "trackLinks": true
+    }
+  ]
+}

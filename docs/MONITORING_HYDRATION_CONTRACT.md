@@ -1,6 +1,6 @@
 # Monitoring Hydration Contract
 
-Updated: 2026-08-04
+Updated: 2026-08-11
 
 ## Purpose
 
@@ -12,12 +12,13 @@ During design preview, the app reads `public/monitoring-intake.json` when presen
 
 When a daily monitoring run finds meaningful information, it may:
 
-1. search the approved web, site-tree, newsletter, Gmail, and radar sources from `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`, keeping Gmail MagicCon-specific rather than generic Wizards/Magic marketing;
-2. classify findings under `docs/MVP_MONITORING_AGENT_DESIGN.md` and `docs/POC_FINISH_GLIDE_PATH.md`;
-3. replace `public/monitoring-intake.json` with reviewed observation cards;
-4. run `pnpm validate:monitoring` plus the normal validation checks;
-5. build the GitHub Pages preview;
-6. publish the fixture-backed preview when there is something useful for Kavi to see.
+1. run `pnpm monitor:check` against `monitoring/watch-set.json` to identify deterministic public-source changes before doing broader browsing;
+2. search the approved web, site-tree, newsletter, Gmail, and radar sources from `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`, keeping Gmail MagicCon-specific rather than generic Wizards/Magic marketing and using `monitoring/gmail-watch-queries.json` as the query map;
+3. classify findings under `docs/MVP_MONITORING_AGENT_DESIGN.md` and `docs/POC_FINISH_GLIDE_PATH.md`;
+4. replace `public/monitoring-intake.json` with reviewed observation cards;
+5. run `pnpm validate:monitoring` plus the normal validation checks;
+6. build the GitHub Pages preview;
+7. publish the fixture-backed preview when there is something useful for Kavi to see.
 
 This is the POC hydration path. It is intentionally file-based so it can be replaced later by Supabase-backed reviewed observations without redesigning Home or Activity.
 
@@ -29,6 +30,7 @@ This is the POC hydration path. It is intentionally file-based so it can be repl
 - It must not treat community chatter or search results as canonical facts.
 - It must not publish a noisy "nothing changed" preview update.
 - It must not broaden into a crawler beyond the approved source strategy.
+- It must not run `pnpm monitor:accept` on changed sources until the change has been reviewed or explicitly accepted as a new baseline.
 
 ## Alert shape
 

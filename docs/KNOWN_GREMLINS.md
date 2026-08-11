@@ -109,6 +109,18 @@ If public verification fails after a correct push, report propagation/cache lag 
 - A verifier URL construction error is a script bug. Fix the script once and commit it; do not bypass it.
 - If the verifier itself was just edited, prove the script once before treating its output as authoritative.
 
+## Monitoring web fetch certificate lane
+
+**Symptom:** `pnpm monitor:check` or `pnpm monitor:accept` reports `fetch failed; cause: unable to verify the first certificate` for MTG Festivals pages.
+
+**Cause:** Node's fetch can reject the certificate chain in this Windows/Codex environment even when the same URL opens normally through browser or Windows web tooling.
+
+**Do this:**
+
+- Use the project scripts as-is; `scripts/monitoring_watch_check.mjs` already falls back to PowerShell's Windows web stack.
+- If both Node fetch and the PowerShell fallback fail, treat it as a real network/source failure and report the exact source IDs.
+- Do not replace the monitor with ad hoc browser scraping just because Node fetch alone failed.
+
 ## Service worker / PWA cache
 
 **Symptom:** iPhone or installed app shows an old shell after a successful deploy.
