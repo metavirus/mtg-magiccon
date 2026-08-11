@@ -17,6 +17,7 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 
 - Expected project capabilities are assumed available once documented: Git writes through the approved lane, package scripts, Supabase-backed state, GitHub Pages deploy/verify, and browser/viewport inspection for visual work.
 - If one of those known lanes errors, first assume agent execution failure: wrong lane, missing setup, fragile command construction, stale docs, or insufficient preflight.
+- Browser inspection is a required capability for visual/UI work. Do not phrase it as "if available"; use it. If it cannot be used after recovery, say the visual verification failed and do not claim completion.
 - Recovery is not enough. For a user-visible preventable error, record the prevention delta: the specific doc/script/command habit/removed wrong path that should prevent recurrence.
 - Hardening should simplify the path. Prefer one canonical command or standing rule over extra layers of duplicate checks.
 

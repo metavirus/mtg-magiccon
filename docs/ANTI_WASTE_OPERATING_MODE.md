@@ -30,7 +30,7 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 - Do not re-open the full project documentation set unless the change depends on product history.
 - Do not run database/readiness gates unless publishing or auth/data behavior is involved.
 - Verify with `pnpm check:ui`.
-- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is expected; if it is unavailable, recover that lane or stop before saying the visual fix is done.
+- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is mandatory, not optional; if it is unavailable, recover that lane or stop before saying the visual fix is done.
 - If the same visual target fails twice, stop patching symptoms and find the duplicated component, CSS cascade, cache, or publish root cause.
 
 ### Tier 1 — public preview UI change
@@ -42,7 +42,7 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 - Only `main` is allowed to publish the shared public Pages site. Feature branches may be reviewed locally or merged first; they should not overwrite the public preview.
 - After the Pages workflow completes, run `pnpm verify:public`. That script prepares the local Pages-stamped comparison artifact itself.
 - If public verification needs network access, run that exact script with the elevated/network-capable path; do not first invent a different verification method.
-- For visual changes, inspect the affected public or local viewport. `verify:public` proves bundle freshness, not layout correctness.
+- For visual changes, inspect the affected public or local viewport in the browser. `verify:public` proves bundle freshness, not layout correctness, and must not be treated as a substitute for browser inspection.
 - Treat “published” as true only after a cache-busted public URL serves the expected current asset or visible behavior.
 - If public Pages still shows stale behavior, say “pushed but not propagated/cached yet,” not “fixed.”
 - If any known environment/publish/cache/auth/Git failure appears, follow `docs/KNOWN_GREMLINS.md` before inventing a new workaround.

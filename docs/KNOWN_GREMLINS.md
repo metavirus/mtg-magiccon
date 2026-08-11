@@ -234,12 +234,12 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 **Do this:**
 
-- For visual work, establish a browser or viewport inspection lane before claiming done.
+- For visual work, establish and use a browser or viewport inspection lane before claiming done. Browser inspection is mandatory, not best-effort.
 - If browser control returns unusable output, treat it first as agent setup failure: re-read/use the browser-control skill, recover the binding, or use another supported viewport inspection lane.
 - Do not substitute `pnpm verify:public` for visual QA. It proves the deployed asset is fresh; it does not prove the UI looks right.
-- If no viewport lane can be made available, stop and say visual QA was not completed before any publish/done language.
+- If no viewport lane can be made available after recovery, stop and say visual QA was not completed before any publish/done language. Do not soften this as "browser if available"; the expected state is that the browser is available.
 
-**Prevention:** visual fixes require both code validation and viewport evidence. Known browser-control friction is part of the operating model, not a new surprise.
+**Prevention:** visual fixes require both code validation and viewport evidence. Known browser-control friction is part of the operating model, not a new surprise. The agent should assume browser control should work and treat failure to make it work as an agent-side process failure unless proven otherwise.
 
 ## Mistake visibility
 
