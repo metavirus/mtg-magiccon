@@ -4,14 +4,25 @@ User selections are authenticated app choices that should follow the logged-in u
 
 ## Current implementation
 
-As of August 9, `public.user_selections` is the canonical owner-scoped table for durable UI choices:
+As of August 11, the app uses two owner-scoped Supabase layers:
+
+- `public.user_selections` for current durable UI choices;
+- `public.user_activity_events` for append-only user-action history that can be grouped for Home and Activity without inventing history from current state.
+
+`public.user_selections` is the canonical table for:
 
 - event planning state such as Interested, Tentative, Committed, Hidden, and Not for me;
 - Activity review state such as Needs review, Reviewed, and Archived;
 - lightweight Wallet counters such as Prize Tix;
 - future assignment-style choices, such as who a receipt line item is for.
 
-The table uses forced RLS, explicit authenticated grants, no anonymous grants, and a unique `(owner_id, object_id, selection_key)` shape so each choice can be updated idempotently.
+`public.user_activity_events` is the canonical append-only lane for meaningful user actions such as:
+
+- changing an event selection;
+- adjusting Prize Tix;
+- future collaboration-visible state changes that should appear in Home or Activity as grouped bursts rather than as silent overwrites.
+
+Both tables use forced RLS, explicit authenticated grants, and no anonymous grants. `user_selections` keeps the unique `(owner_id, object_id, selection_key)` shape so each current choice stays idempotent, while `user_activity_events` preserves the action trail separately.
 
 ## Product rule
 
@@ -29,6 +40,7 @@ Browser storage is not acceptable for:
 - event interest/tentative/committed/hidden/nope;
 - alert review/archive;
 - wallet balances;
+- activity history;
 - receipt/store line-item assignments;
 - future shared collaboration signals.
 
