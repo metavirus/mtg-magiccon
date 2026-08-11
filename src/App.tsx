@@ -751,6 +751,23 @@ export default function App() {
     }
     openObjectDetail(item.objectDetail)
   }
+  const openMentionNote = (note: ContextNote) => {
+    const receiptTarget = receiptTargetFromNote(note)
+    closeObjectDetail()
+    if (receiptTarget) {
+      setWalletProofRequest({ target: receiptTarget, nonce: Date.now() })
+      openDestination('Wallet', 'wallet')
+      return
+    }
+    const detail = noteSourceObjectDetail(note)
+    if (detail.kind === 'note') {
+      openDestination('Notes', 'notes')
+      return
+    }
+    const destination = surfaceFromNoteBacklink(note)
+    openDestination(surfaceTitle(destination), destination)
+    setObjectDetail(detail)
+  }
   const closeObjectDetail = () => setObjectDetail(null)
   const upsertUserSelection = async (objectId: string, objectKind: SelectionObjectKind, key: string, value: string) => {
     const mapKey = selectionKey(objectId, key)
@@ -1071,17 +1088,7 @@ export default function App() {
           <div className="header-actions">
             <MentionInbox
               items={mentionInboxState}
-              onOpenMention={note => {
-                const receiptTarget = receiptTargetFromNote(note)
-                closeObjectDetail()
-                if (receiptTarget) {
-                  setWalletProofRequest({ target: receiptTarget, nonce: Date.now() })
-                  openDestination('Wallet', 'wallet')
-                  return
-                }
-                const destination = surfaceFromNoteBacklink(note)
-                openDestination(surfaceTitle(destination), destination)
-              }}
+              onOpenMention={openMentionNote}
             />
             <AccountMenu email={session?.user.email ?? 'kavigrace@gmail.com'} online={Boolean(session) && online} preview={designPreview} />
             <span className="countdown-chip"><strong>{surface === 'home' ? daysToAtlanta : 'ATL'}</strong><span>{surface === 'home' ? 'days to Atlanta' : online ? 'online' : 'offline'}</span></span>
