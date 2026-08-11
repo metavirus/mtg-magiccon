@@ -24,6 +24,7 @@ jobs:
       # Keep CI self-contained so Pages never deploys the local-setup wall.
       VITE_SUPABASE_URL: https://pavjsexxbueuzhzgemgy.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_8LvSNisG4u-KITMzdheJaw_mgywJvJd
+      NODE_OPTIONS: --use-system-ca
 
     environment:
       name: github-pages
