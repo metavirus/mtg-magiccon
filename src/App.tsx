@@ -13,6 +13,7 @@ import {
 } from './lib/trustSlice'
 
 const assetUrl = (path: string) => new URL(path, window.location.href).toString()
+const dismissablePopupSelector = 'details.account-menu, details.mention-inbox, details.inline-assignment'
 
 const states: { value: PlanningState; label: string; symbol: string }[] = [
   { value: 'interested', label: 'Interested', symbol: '♡' },
@@ -449,6 +450,30 @@ export default function App() {
     syncDesktopRail()
     window.addEventListener('resize', syncDesktopRail)
     return () => window.removeEventListener('resize', syncDesktopRail)
+  }, [])
+
+  useEffect(() => {
+    const closeDismissablePopups = (target: EventTarget | null) => {
+      const node = target instanceof Node ? target : null
+      document.querySelectorAll<HTMLDetailsElement>(dismissablePopupSelector).forEach(details => {
+        if (!details.open) return
+        if (node && details.contains(node)) return
+        details.open = false
+      })
+    }
+
+    const handlePointerDown = (event: PointerEvent) => closeDismissablePopups(event.target)
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      closeDismissablePopups(null)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [])
 
   useEffect(() => {
@@ -3373,8 +3398,20 @@ function CalendarSurface({ slice, onOpenPlan, onOpenTrip, onChangeState, online,
       <span className="agenda-destination"><NavIcon name="explore" />BL</span>
     </button>}
     {showTravel && <AgendaMarker time="4:00 PM" label="Omni check-in begins" detail="Kavi + Juan hotel shift; luggage plan may matter" onOpen={() => setDetail('preview')} />}
-    {showConvention && <AgendaMarker time="4:15 PM" label="Design the Unknown Planechase Card" detail="Casual play design session" onOpen={() => setDetail('bl-thursday')} />}
-    {showConvention && <AgendaMarker time="6:30 PM" label="Paint & Sip" onOpen={() => setDetail('bl-thursday')} />}
+    {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-thursday')}>
+      <div className="agenda-date"><strong>12</strong><span>THU</span><em>4:15-5:15 PM</em></div>
+      <div className="agenda-icon lotus-mini">✦</div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Design the Unknown Planechase Card</h2><p>Attendable design session, not just a timing inflection.</p></div>
+      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
+      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
+    </button>}
+    {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-thursday')}>
+      <div className="agenda-date"><strong>12</strong><span>THU</span><em>6:30-7:30 PM</em></div>
+      <div className="agenda-icon lotus-mini">✦</div>
+      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Paint &amp; Sip</h2><p>Attendable social event; keep it selectable like the other Black Lotus cards.</p></div>
+      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Chris']} /></span>
+      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
+    </button>}
     {showConvention && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-thursday')}>
       <div className="agenda-date"><strong>12</strong><span>THU</span><em>8-11 PM</em></div>
       <div className="agenda-icon lotus-mini">✦</div>
