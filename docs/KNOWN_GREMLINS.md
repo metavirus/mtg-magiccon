@@ -56,6 +56,16 @@ Core rule: a known environment-specific failure is no longer debugging. It is op
 
 If public verification fails after a correct push, report propagation/cache lag and wait briefly. Do not claim success from local sync alone.
 
+**Concrete proof standard before saying “propagation”:**
+
+- Check the exact target commit SHA locally.
+- Check the latest `Deploy MagicCon companion to GitHub Pages` workflow run for that SHA/branch.
+- Compare the live site's `magiccon-build-sha` meta tag to the expected local Pages artifact SHA.
+- Only call it propagation/cache lag when:
+  - the deploy workflow for the target SHA completed successfully, and
+  - the live site still serves an older SHA.
+- If the workflow for the target SHA did not complete successfully, this is not propagation. It is a deploy failure until fixed.
+
 ### GitHub Actions Node runtime warnings
 
 **Symptom:** Pages deploy succeeds but GitHub emails or annotates: `Node.js 20 is deprecated... forced to run on Node.js 24`.
