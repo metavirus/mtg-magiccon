@@ -130,6 +130,7 @@ type UserSelectionRow = {
   object_kind: SelectionObjectKind
   selection_key: string
   selection_value: string
+  updated_at: string
 }
 
 function noteAuthorFromSession(currentSession: Session | null): PersonName {
@@ -171,13 +172,18 @@ async function loadContextNotes(ownerId: string): Promise<ContextNote[]> {
   return (result.data as PersonalNoteRow[]).map(personalNoteRowToContextNote)
 }
 
-async function loadUserSelections(ownerId: string): Promise<Record<string, string>> {
-  if (!supabase) return {}
+function userSelectionMap(rows: UserSelectionRow[]) {
+  return Object.fromEntries(rows.map(row => [selectionKey(row.object_id, row.selection_key), row.selection_value]))
+}
+
+async function loadUserSelections(ownerId: string): Promise<UserSelectionRow[]> {
+  if (!supabase) return []
   const result = await supabase.from('user_selections')
-    .select('object_id,object_kind,selection_key,selection_value')
+    .select('object_id,object_kind,selection_key,selection_value,updated_at')
     .eq('owner_id', ownerId)
+    .order('updated_at', { ascending: false })
   if (result.error) throw result.error
-  return Object.fromEntries((result.data as UserSelectionRow[]).map(row => [selectionKey(row.object_id, row.selection_key), row.selection_value]))
+  return result.data as UserSelectionRow[]
 }
 
 function selectionKey(objectId: string, key: string) {
@@ -248,6 +254,7 @@ export default function App() {
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
   const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(designPreview ? contextNotes : [])
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
+  const [userSelectionRows, setUserSelectionRows] = useState<UserSelectionRow[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
 
   useEffect(() => {
@@ -319,16 +326,19 @@ export default function App() {
       setContextNotesState([])
       setAlertReview({})
       setUserSelections({})
+      setUserSelectionRows([])
       setExploreEventState(exploreEvents)
       return
     }
     try {
-      const [notes, selections] = await Promise.all([
+      const [notes, selectionRows] = await Promise.all([
         loadContextNotes(session.user.id),
         loadUserSelections(session.user.id),
       ])
+      const selections = userSelectionMap(selectionRows)
       setContextNotesState(notes)
       setUserSelections(selections)
+      setUserSelectionRows(selectionRows)
       setAlertReview(Object.fromEntries(Object.entries(selections)
         .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
         .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
@@ -569,6 +579,45 @@ export default function App() {
     }
   }
 
+  const generatedActivity = userSelectionRows
+    .map(row => selectionActivityFromRow(row, exploreEventState, userSelections, session))
+    .filter((item): item is ActivityItem => item !== null)
+  const monitorActivity: ActivityItem[] = monitorAlerts.map(alert => ({
+    id: alert.id,
+    sourceKind: 'monitor',
+    kind: alert.kind,
+    severity: alert.severity,
+    destination: alert.destination,
+    attention: alert.attention,
+    title: alert.title,
+    summary: alert.summary,
+    object: alert.object,
+    source: alert.source,
+    checkedAt: alert.checkedAt,
+    checkedAtIso: new Date(alert.checkedAt).toISOString(),
+    status: alert.status,
+    rationale: alert.rationale,
+    nextAction: alert.nextAction,
+    reviewState: alertReview[alert.id] ?? defaultAlertReviewState(alert),
+    objectDetail: alertToObjectDetail(alert),
+  }))
+  const activityItems = [...generatedActivity, ...monitorActivity].sort((a, b) => {
+    const severityRank = { hot: 0, notice: 1, quiet: 2 } as const
+    const reviewRank = { 'needs-review': 0, reviewed: 1, archived: 2 } as const
+    const reviewDelta = reviewRank[a.reviewState] - reviewRank[b.reviewState]
+    if (reviewDelta !== 0) return reviewDelta
+    const severityDelta = severityRank[a.severity] - severityRank[b.severity]
+    if (severityDelta !== 0) return severityDelta
+    return new Date(b.checkedAtIso).getTime() - new Date(a.checkedAtIso).getTime()
+  })
+  const setActivityReviewState = (item: ActivityItem, state: AlertReviewState) => {
+    if (item.sourceKind === 'monitor') {
+      setAlertReviewState(item.id, state)
+      return
+    }
+    void upsertUserSelection(`activity-${item.id}`, 'activity', 'review_state', state)
+  }
+
   return <div className="app-shell" style={desktopRailLocked ? { display: 'block', minHeight: '100vh' } : undefined}>
     <aside className="rail" style={desktopRailLocked ? {
       position: 'fixed',
@@ -672,7 +721,7 @@ export default function App() {
 
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
-        {surface === 'home' && <HomeSurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
+        {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
@@ -682,7 +731,7 @@ export default function App() {
         {surface === 'notes' && <NotesSurface notes={contextNotesState} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} />}
 
-        {surface === 'activity' && <ActivitySurface slice={slice} alerts={monitorAlerts} alertReview={alertReview} notes={contextNotesState} onReviewChange={setAlertReviewState} onOpenObject={openObjectDetail} />}
+        {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenObject={openObjectDetail} />}
       </>}
 
     </main>
@@ -945,6 +994,7 @@ type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
 type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
 type ActivityStream = 'hot' | 'changes' | 'sources' | 'personal' | 'all' | 'archived'
+type ActivitySourceKind = 'monitor' | 'selection'
 type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
 type NotePersonFilter = 'all' | PersonName
 type NoteTypeFilter = 'all' | 'wallet' | 'trip' | 'events' | 'other'
@@ -993,6 +1043,26 @@ type MonitoringAlert = {
   nextAction: string
 }
 
+type ActivityItem = {
+  id: string
+  sourceKind: ActivitySourceKind
+  kind: AlertKind
+  severity: AlertSeverity
+  destination: MonitoringAlert['destination']
+  attention: string
+  title: string
+  summary: string
+  object: string
+  source: string
+  checkedAt: string
+  checkedAtIso: string
+  status: string
+  rationale: string
+  nextAction: string
+  reviewState: AlertReviewState
+  objectDetail: ObjectDetail
+}
+
 function defaultAlertReviewState(alert: MonitoringAlert): AlertReviewState {
   return alert.severity === 'quiet' ? 'reviewed' : 'needs-review'
 }
@@ -1005,6 +1075,79 @@ function isChangeLikeAlert(alert: MonitoringAlert) {
     || haystack.includes('appears')
     || haystack.includes('unlocks')
     || haystack.includes('goes live')
+}
+
+function selectionStateToSeverity(state: ExploreState): AlertSeverity {
+  if (state === 'committed') return 'hot'
+  if (state === 'interested' || state === 'tentative') return 'notice'
+  return 'quiet'
+}
+
+function selectionStateAttention(state: ExploreState) {
+  if (state === 'committed') return 'Hard block'
+  if (state === 'tentative') return 'Tentative'
+  if (state === 'interested') return 'Interested'
+  if (state === 'hidden') return 'Hidden'
+  if (state === 'nope') return 'Not for me'
+  return 'Selection'
+}
+
+function selectionStateSummary(state: ExploreState, event: ExploreEvent) {
+  if (state === 'committed') return `${event.title} is now treated as a real commitment.`
+  if (state === 'tentative') return `${event.title} moved into the active contender set.`
+  if (state === 'interested') return `${event.title} was marked worth watching.`
+  if (state === 'hidden') return `${event.title} was hidden from the working list.`
+  if (state === 'nope') return `${event.title} was emphatically dropped.`
+  return `${event.title} changed.`
+}
+
+function selectionStateNextAction(state: ExploreState) {
+  if (state === 'committed') return 'Keep this near the top until it is read or dismissed.'
+  if (state === 'tentative') return 'Use Plan or Calendar to compare it against nearby contenders.'
+  if (state === 'interested') return 'Useful for clustering, but it does not need to crowd Home unless more changes follow.'
+  if (state === 'hidden') return 'Recover it from Hidden if it becomes relevant again.'
+  if (state === 'nope') return 'Keep it out of the main flow unless someone explicitly reopens it.'
+  return 'Review and decide whether it belongs in the active planning lane.'
+}
+
+function selectionActivityFromRow(
+  row: UserSelectionRow,
+  events: ExploreEvent[],
+  selections: Record<string, string>,
+  session: Session | null,
+): ActivityItem | null {
+  if (row.selection_key !== 'state' || !row.object_id.startsWith('explore-')) return null
+  if (!isExploreState(row.selection_value) || row.selection_value === 'none') return null
+  const eventId = row.object_id.replace(/^explore-/, '')
+  const event = events.find(candidate => candidate.id === eventId)
+  if (!event) return null
+  const state = row.selection_value
+  const reviewSelection = selections[selectionKey(`activity-selection-${eventId}`, 'review_state')]
+  const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
+    ? reviewSelection as AlertReviewState
+    : selectionStateToSeverity(state) === 'quiet'
+      ? 'reviewed'
+      : 'needs-review'
+  const author = noteAuthorFromSession(session)
+  return {
+    id: `selection-${eventId}`,
+    sourceKind: 'selection',
+    kind: 'manual',
+    severity: selectionStateToSeverity(state),
+    destination: state === 'committed' ? 'Home' : 'Activity',
+    attention: selectionStateAttention(state),
+    title: `${author} marked ${event.title} ${state}.`,
+    summary: selectionStateSummary(state, event),
+    object: event.title,
+    source: `${author} selection`,
+    checkedAt: formatContextNoteTime(row.updated_at),
+    checkedAtIso: row.updated_at,
+    status: state,
+    rationale: event.fit,
+    nextAction: selectionStateNextAction(state),
+    reviewState,
+    objectDetail: exploreEventToObjectDetail({ ...event, state }),
+  }
 }
 
 function isMonitoringAlert(value: unknown): value is MonitoringAlert {
@@ -2822,12 +2965,12 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
   </aside>
 }
 
-function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; alerts: MonitoringAlert[]; alertReview: Record<string, AlertReviewState>; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
-  const needsReview = alerts.filter(alert => (alertReview[alert.id] ?? defaultAlertReviewState(alert)) === 'needs-review')
-  const homeSignals = needsReview.filter(alert => alert.severity === 'hot' && alert.destination === 'Home')
+function HomeSurface({ slice, activityItems, onOpenPlan, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+  const needsReview = activityItems.filter(item => item.reviewState === 'needs-review')
+  const homeSignals = needsReview.filter(item => item.severity === 'hot' || item.destination === 'Home').slice(0, 3)
   const topSignal = homeSignals[0]
   const status = topSignal ? 'Review needed' : 'All quiet'
-  const statusCopy = topSignal ? `${homeSignals.length} Home-worthy signal${homeSignals.length === 1 ? '' : 's'} surfaced from the monitor.` : 'No new MagicCon signal needs attention.'
+  const statusCopy = topSignal ? `${homeSignals.length} Home-worthy signal${homeSignals.length === 1 ? '' : 's'} surfaced from monitoring and recent actions.` : 'No new MagicCon signal needs attention.'
   return <div className="home-surface">
     <section className={`home-attention ${topSignal ? 'needs-review' : 'quiet'}`}>
       <div className="home-status-orb" aria-hidden="true">{topSignal ? <AlertKindIcon kind={topSignal.kind} /> : <MilestoneIcon name="badges" />}</div>
@@ -2842,7 +2985,7 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
       </div>
     </section>
 
-    {topSignal && <button type="button" className={`home-priority-card ${topSignal.severity}`} onClick={() => onOpenObject(alertToObjectDetail(topSignal))}>
+    {topSignal && <button type="button" className={`home-priority-card ${topSignal.severity}`} onClick={() => onOpenObject(topSignal.objectDetail)}>
       <span className="priority-icon"><AlertKindIcon kind={topSignal.kind} /></span>
       <span className="priority-copy">
         <span className="eyebrow">TOP SIGNAL</span>
@@ -2878,7 +3021,7 @@ function HomeSurface({ slice, alerts, alertReview, onOpenPlan, onOpenObject, onO
         <p>{topSignal ? 'Home keeps the sharpest signals here; full history stays in Activity.' : 'When monitoring or people activity gets useful, this lane can expand without burying the rest of Home.'}</p>
         <div className="timely-home">
           <div className="timely-home-head"><span className="eyebrow">TIMELY SIGNALS</span><button type="button" onClick={onOpenActivity}>Review all</button></div>
-          {homeSignals.filter(alert => alert.id !== topSignal?.id).slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alertToObjectDetail(alert))}>
+          {homeSignals.filter(alert => alert.id !== topSignal?.id).slice(0, 2).map(alert => <button type="button" key={alert.id} className={`signal-chip-card ${alert.severity}`} onClick={() => onOpenObject(alert.objectDetail)}>
             <span><AlertKindIcon kind={alert.kind} /></span>
             <div><strong>{alert.title}</strong><small>{alert.destination} · {alert.attention}</small></div>
           </button>)}
@@ -2965,29 +3108,28 @@ function NotesSurface({ notes, onDeleteNote, onOpenObject }: { notes: ContextNot
   </section>
 }
 
-function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, onReviewChange, onOpenObject }: { slice: TrustSlice; alerts: MonitoringAlert[]; notes: ContextNote[]; alertReview: Record<string, AlertReviewState>; onReviewChange: (id: string, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onOpenObject }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [stream, setStream] = useState<ActivityStream>('hot')
-  const reviewState = (alert: MonitoringAlert) => alertReview[alert.id] ?? defaultAlertReviewState(alert)
-  const hotCount = incomingAlerts.filter(alert => reviewState(alert) === 'needs-review').length
-  const sourceCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && alert.kind !== 'manual').length
-  const changeCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived' && isChangeLikeAlert(alert)).length
-  const activeAlertCount = incomingAlerts.filter(alert => reviewState(alert) !== 'archived').length
+  const hotCount = incomingItems.filter(item => item.reviewState === 'needs-review' && item.severity === 'hot').length
+  const sourceCount = incomingItems.filter(item => item.reviewState !== 'archived' && item.sourceKind === 'monitor' && item.kind !== 'manual').length
+  const changeCount = incomingItems.filter(item => item.reviewState !== 'archived' && (item.sourceKind === 'selection' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert)))).length
+  const activeAlertCount = incomingItems.filter(item => item.reviewState !== 'archived').length
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
     { value: 'hot', label: 'Hot', icon: <span className="activity-fire" aria-hidden="true">🔥</span>, count: hotCount },
     { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount + notes.length },
     { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: changeCount },
     { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: sourceCount },
     { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: notes.length },
-    { value: 'archived', label: 'Archive', icon: <NavIcon name="activity" />, count: incomingAlerts.filter(alert => reviewState(alert) === 'archived').length },
+    { value: 'archived', label: 'Archive', icon: <NavIcon name="activity" />, count: incomingItems.filter(item => item.reviewState === 'archived').length },
   ]
-  const alerts = incomingAlerts.filter(alert => {
-    const state = reviewState(alert)
+  const alerts = incomingItems.filter(item => {
+    const state = item.reviewState
     if (stream === 'all') return state !== 'archived'
-    if (stream === 'hot') return state === 'needs-review'
+    if (stream === 'hot') return state === 'needs-review' && item.severity === 'hot'
     if (stream === 'archived') return state === 'archived'
     if (state === 'archived') return false
-    if (stream === 'changes') return isChangeLikeAlert(alert)
-    if (stream === 'sources') return alert.kind !== 'manual'
+    if (stream === 'changes') return item.sourceKind === 'selection' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert))
+    if (stream === 'sources') return item.sourceKind === 'monitor' && item.kind !== 'manual'
     return false
   })
   const visibleNotes = stream === 'all' || stream === 'personal' ? notes : []
@@ -3008,21 +3150,21 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, on
         <b>{item.count}</b>
       </button>)}
     </div>
-    <div className={`activity-layout ${incomingAlerts.length === 0 ? 'solo' : ''}`}>
+    <div className={`activity-layout ${incomingItems.length === 0 ? 'solo' : ''}`}>
       <div className="activity-feed">
         {visibleNotes.map(note => <article key={note.id} className="activity-card personal">
           <span className="activity-icon"><NavIcon name="notes" /></span>
           <div><span className="eyebrow">{note.visibility === 'shared' ? 'SHARED NOTE' : 'MY NOTE'}</span><h2>{note.title}</h2><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Details</button></div>
         </article>)}
-        {alerts.map(alert => <AlertCard key={alert.id} alert={alert} reviewState={reviewState(alert)} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
+        {alerts.map(alert => <AlertCard key={alert.id} alert={alert} onReviewChange={onReviewChange} onOpenObject={onOpenObject} />)}
         {stream === 'personal' && notes.length === 0 && <div className="activity-empty"><strong>No notes yet.</strong><span>Add a note from a receipt, event, trip item, or object detail.</span></div>}
         {stream === 'all' && visibleNotes.length === 0 && alerts.length === 0 && <div className="activity-empty"><strong>Nothing active right now.</strong><span>When something changes, it will show up here.</span></div>}
         {alerts.length === 0 && stream !== 'personal' && stream !== 'all' && <div className="activity-empty"><strong>{stream === 'hot' ? 'Nothing hot right now.' : 'No items here.'}</strong><span>{stream === 'archived' ? 'Archived findings stay available here.' : stream === 'hot' ? 'Useful calm: routine checks and quieter context stay out of this lane.' : 'Nothing needs attention in this view.'}</span></div>}
       </div>
-      {incomingAlerts.length > 0 && <aside className="activity-rail" aria-label="Activity context">
-        {incomingAlerts.length > 0 && <button className="activity-route-card" type="button" onClick={() => onOpenObject(alertToObjectDetail(incomingAlerts.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingAlerts[0]))}>
+      {incomingItems.length > 0 && <aside className="activity-rail" aria-label="Activity context">
+        {incomingItems.length > 0 && <button className="activity-route-card" type="button" onClick={() => onOpenObject((incomingItems.find(alert => alert.id === 'black-lotus-elevated-watch') ?? incomingItems[0]).objectDetail)}>
           <span className="activity-route-icon"><AlertKindIcon kind="site" /></span>
-          <span><strong>Highest watch</strong><small>Black Lotus page changes surface on Home first.</small></span>
+          <span><strong>Highest watch</strong><small>Hot monitoring and hard commitments float to the top first.</small></span>
         </button>}
         <details className="activity-context-card">
           <summary>What lands here</summary>
@@ -3042,24 +3184,24 @@ function ActivitySurface({ slice, alerts: incomingAlerts, alertReview, notes, on
   </section>
 }
 
-function AlertCard({ alert, reviewState, onReviewChange, onOpenObject }: { alert: MonitoringAlert; reviewState: AlertReviewState; onReviewChange: (id: string, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
-  return <article className={`activity-card alert-${alert.severity} review-${reviewState}`}>
+function AlertCard({ alert, onReviewChange, onOpenObject }: { alert: ActivityItem; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+  return <article className={`activity-card alert-${alert.severity} review-${alert.reviewState}`}>
     <span className="activity-icon"><AlertKindIcon kind={alert.kind} /></span>
     <div>
       <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
       <h2>{alert.title}</h2>
       <p>{alert.summary}</p>
-      <div className="activity-meta"><span className={`review-badge ${reviewState}`}>{reviewState.replace('-', ' ')}</span><span>{alert.destination}</span><span>{alert.object}</span><span>{alert.source}</span></div>
+      <div className="activity-meta"><span className={`review-badge ${alert.reviewState}`}>{alert.reviewState.replace('-', ' ')}</span><span>{alert.destination}</span><span>{alert.object}</span><span>{alert.source}</span></div>
       <details>
         <summary>Why this matters</summary>
         <p>{alert.rationale}</p>
         <p>{alert.nextAction}</p>
       </details>
       <div className="activity-review-actions">
-        <button type="button" onClick={() => onOpenObject(alertToObjectDetail(alert))}>Open object</button>
-        {reviewState !== 'reviewed' && <button type="button" onClick={() => onReviewChange(alert.id, 'reviewed')}>Reviewed</button>}
-        {reviewState !== 'archived' && <button type="button" onClick={() => onReviewChange(alert.id, 'archived')}>Archive</button>}
-        {reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert.id, 'needs-review')}>Reopen</button>}
+        <button type="button" onClick={() => onOpenObject(alert.objectDetail)}>Open object</button>
+        {alert.reviewState !== 'reviewed' && <button type="button" onClick={() => onReviewChange(alert, 'reviewed')}>Mark read</button>}
+        {alert.reviewState !== 'archived' && <button type="button" onClick={() => onReviewChange(alert, 'archived')}>Ignore</button>}
+        {alert.reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert, 'needs-review')}>Reopen</button>}
       </div>
     </div>
   </article>
