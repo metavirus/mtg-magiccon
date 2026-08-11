@@ -133,6 +133,17 @@ type UserSelectionRow = {
   updated_at: string
 }
 
+type UserActivityEventRow = {
+  id: string
+  object_id: string
+  object_kind: SelectionObjectKind
+  activity_type: string
+  actor_label: string
+  summary: string
+  details: Record<string, unknown>
+  created_at: string
+}
+
 function noteAuthorFromSession(currentSession: Session | null): PersonName {
   const haystack = `${currentSession?.user.email ?? ''} ${currentSession?.user.user_metadata?.full_name ?? ''} ${currentSession?.user.user_metadata?.name ?? ''}`.toLowerCase()
   if (haystack.includes('juan')) return 'Juan'
@@ -184,6 +195,17 @@ async function loadUserSelections(ownerId: string): Promise<UserSelectionRow[]> 
     .order('updated_at', { ascending: false })
   if (result.error) throw result.error
   return result.data as UserSelectionRow[]
+}
+
+async function loadUserActivityEvents(ownerId: string): Promise<UserActivityEventRow[]> {
+  if (!supabase) return []
+  const result = await supabase.from('user_activity_events')
+    .select('id,object_id,object_kind,activity_type,actor_label,summary,details,created_at')
+    .eq('owner_id', ownerId)
+    .order('created_at', { ascending: false })
+    .limit(200)
+  if (result.error) throw result.error
+  return result.data as UserActivityEventRow[]
 }
 
 function selectionKey(objectId: string, key: string) {
@@ -254,7 +276,7 @@ export default function App() {
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
   const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(designPreview ? contextNotes : [])
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
-  const [userSelectionRows, setUserSelectionRows] = useState<UserSelectionRow[]>([])
+  const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
 
   useEffect(() => {
@@ -326,19 +348,20 @@ export default function App() {
       setContextNotesState([])
       setAlertReview({})
       setUserSelections({})
-      setUserSelectionRows([])
+      setUserActivityRows([])
       setExploreEventState(exploreEvents)
       return
     }
     try {
-      const [notes, selectionRows] = await Promise.all([
+      const [notes, selectionRows, activityRows] = await Promise.all([
         loadContextNotes(session.user.id),
         loadUserSelections(session.user.id),
+        loadUserActivityEvents(session.user.id),
       ])
       const selections = userSelectionMap(selectionRows)
       setContextNotesState(notes)
       setUserSelections(selections)
-      setUserSelectionRows(selectionRows)
+      setUserActivityRows(activityRows)
       setAlertReview(Object.fromEntries(Object.entries(selections)
         .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
         .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
@@ -503,6 +526,50 @@ export default function App() {
     }
   }
 
+  const recordUserActivity = async (input: {
+    objectId: string
+    objectKind: SelectionObjectKind
+    activityType: string
+    summary: string
+    details?: Record<string, unknown>
+    actorLabel?: PersonName
+  }) => {
+    if (designPreview || !session || !supabase || !online) return
+    const createdAt = new Date().toISOString()
+    const optimisticId = `local-activity-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+    const optimistic: UserActivityEventRow = {
+      id: optimisticId,
+      object_id: input.objectId,
+      object_kind: input.objectKind,
+      activity_type: input.activityType,
+      actor_label: input.actorLabel ?? noteAuthorFromSession(session),
+      summary: input.summary,
+      details: input.details ?? {},
+      created_at: createdAt,
+    }
+    setUserActivityRows(current => [optimistic, ...current])
+    const result = await supabase.from('user_activity_events')
+      .insert({
+        owner_id: session.user.id,
+        object_id: optimistic.object_id,
+        object_kind: optimistic.object_kind,
+        activity_type: optimistic.activity_type,
+        actor_label: optimistic.actor_label,
+        summary: optimistic.summary,
+        details: optimistic.details,
+        created_at: optimistic.created_at,
+      })
+      .select('id,object_id,object_kind,activity_type,actor_label,summary,details,created_at')
+      .single()
+    if (result.error) {
+      setMessageTone('error')
+      setMessage(result.error.message)
+      setUserActivityRows(current => current.filter(row => row.id !== optimisticId))
+      return
+    }
+    setUserActivityRows(current => [result.data as UserActivityEventRow, ...current.filter(row => row.id !== optimisticId)])
+  }
+
   const addContextNote = (input: AddContextNoteInput) => {
     const now = new Date()
     const note: ContextNote = {
@@ -571,16 +638,31 @@ export default function App() {
   }
   const updateExploreEvent = (id: string, state: ExploreState) => {
     const currentEvent = exploreEventState.find(event => event.id === id)
+    const previousState = currentEvent?.state ?? 'none'
     const nextState: ExploreState = currentEvent?.state === state ? 'none' : state
     setExploreEventState(current => current.map(event => event.id === id ? { ...event, state: nextState } : event))
     void upsertUserSelection(`explore-${id}`, 'event', 'state', nextState)
+    if (currentEvent && previousState !== nextState) {
+      void recordUserActivity({
+        objectId: `explore-${id}`,
+        objectKind: 'event',
+        activityType: 'event_state_changed',
+        summary: `${noteAuthorFromSession(session)} marked ${currentEvent.title} ${nextState}.`,
+        details: {
+          event_id: id,
+          event_title: currentEvent.title,
+          previous_state: previousState,
+          state: nextState,
+        },
+      })
+    }
     if (id === 'bl-planechase' && ['none', 'interested', 'tentative', 'committed'].includes(nextState)) {
       void changeState(nextState as PlanningState)
     }
   }
 
-  const generatedActivity = userSelectionRows
-    .map(row => selectionActivityFromRow(row, exploreEventState, userSelections, session))
+  const generatedActivity = clusterActivityEvents(userActivityRows)
+    .map(cluster => activityFromEventCluster(cluster, exploreEventState, userSelections))
     .filter((item): item is ActivityItem => item !== null)
   const monitorActivity: ActivityItem[] = monitorAlerts.map(alert => ({
     id: alert.id,
@@ -725,7 +807,20 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={slice} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} onPrizeTixChange={value => void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))} />}
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} onPrizeTixChange={(value, delta) => {
+          void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
+          if (!delta) return
+          void recordUserActivity({
+            objectId: 'wallet-prize-tix',
+            objectKind: 'wallet',
+            activityType: 'prize_tix_adjusted',
+            summary: `${noteAuthorFromSession(session)} ${delta > 0 ? 'added' : 'spent'} ${Math.abs(delta)} Prize Tix.`,
+            details: {
+              delta,
+              next_balance: value,
+            },
+          })
+        }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
@@ -994,7 +1089,7 @@ type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
 type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
 type ActivityStream = 'hot' | 'changes' | 'sources' | 'personal' | 'all' | 'archived'
-type ActivitySourceKind = 'monitor' | 'selection'
+type ActivitySourceKind = 'monitor' | 'selection' | 'activity-log'
 type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
 type NotePersonFilter = 'all' | PersonName
 type NoteTypeFilter = 'all' | 'wallet' | 'trip' | 'events' | 'other'
@@ -1108,6 +1203,188 @@ function selectionStateNextAction(state: ExploreState) {
   if (state === 'hidden') return 'Recover it from Hidden if it becomes relevant again.'
   if (state === 'nope') return 'Keep it out of the main flow unless someone explicitly reopens it.'
   return 'Review and decide whether it belongs in the active planning lane.'
+}
+
+function activityDetailJson(value: unknown) {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : {}
+}
+
+function clusterActivityEvents(rows: UserActivityEventRow[]) {
+  type Cluster = {
+    id: string
+    activityType: string
+    objectId: string
+    objectKind: SelectionObjectKind
+    actorLabel: string
+    rows: UserActivityEventRow[]
+  }
+  const clusters: Cluster[] = []
+  for (const row of rows) {
+    const created = new Date(row.created_at).getTime()
+    const currentDetails = activityDetailJson(row.details)
+    const existing = clusters[clusters.length - 1]
+    if (existing) {
+      const previous = existing.rows[existing.rows.length - 1]
+      const previousCreated = new Date(previous.created_at).getTime()
+      const withinBurst = Math.abs(created - previousCreated) <= 10 * 60 * 1000
+      const samePrizeTixBurst = row.activity_type === 'prize_tix_adjusted'
+        && existing.activityType === 'prize_tix_adjusted'
+        && row.object_id === existing.objectId
+        && withinBurst
+      const sameEventChoiceBurst = row.activity_type === 'event_state_changed'
+        && existing.activityType === 'event_state_changed'
+        && row.actor_label === existing.actorLabel
+        && withinBurst
+        && String(currentDetails.state ?? '') !== 'none'
+      if (samePrizeTixBurst || sameEventChoiceBurst) {
+        existing.rows.push(row)
+        continue
+      }
+    }
+    clusters.push({
+      id: row.id,
+      activityType: row.activity_type,
+      objectId: row.object_id,
+      objectKind: row.object_kind,
+      actorLabel: row.actor_label,
+      rows: [row],
+    })
+  }
+  return clusters
+}
+
+function prizeTixActivityFromCluster(cluster: ReturnType<typeof clusterActivityEvents>[number], selections: Record<string, string>): ActivityItem | null {
+  const rows = [...cluster.rows].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  const deltas = rows.map(row => Number(activityDetailJson(row.details).delta ?? 0)).filter(delta => Number.isFinite(delta))
+  const net = deltas.reduce((sum, delta) => sum + delta, 0)
+  if (!net) return null
+  const latest = rows[rows.length - 1]
+  const currentBalance = Number(selections[selectionKey('wallet-prize-tix', 'balance')] ?? activityDetailJson(latest.details).next_balance ?? 0)
+  const severity: AlertSeverity = Math.abs(net) >= 500 ? 'hot' : 'notice'
+  const reviewSelection = selections[selectionKey(`activity-${cluster.id}`, 'review_state')]
+  const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
+    ? reviewSelection as AlertReviewState
+    : severity === 'hot'
+      ? 'needs-review'
+      : 'reviewed'
+  const direction = net > 0 ? 'added' : 'spent'
+  const amount = Math.abs(net).toLocaleString()
+  return {
+    id: cluster.id,
+    sourceKind: 'activity-log',
+    kind: 'manual',
+    severity,
+    destination: 'Wallet',
+    attention: net > 0 ? 'Prize Tix added' : 'Prize Tix spent',
+    title: `${cluster.actorLabel} ${direction} ${amount} Prize Tix.`,
+    summary: `${rows.length > 1 ? `${rows.length} quick taps collapsed into ` : ''}${direction} ${amount}; balance now ${currentBalance.toLocaleString()}.`,
+    object: 'Prize Tix',
+    source: `${cluster.actorLabel} wallet change`,
+    checkedAt: formatContextNoteTime(latest.created_at),
+    checkedAtIso: latest.created_at,
+    status: net > 0 ? 'added' : 'spent',
+    rationale: 'Wallet balance stays canonical in Supabase; Activity summarizes burst changes instead of logging every tap.',
+    nextAction: net > 0 ? 'Keep this visible until the balance change is acknowledged.' : 'Useful if the visible balance looks off and needs reconciling.',
+    reviewState,
+    objectDetail: {
+      id: 'wallet-prize-tix',
+      kind: 'receipt',
+      eyebrow: 'WALLET ACTIVITY',
+      title: 'Prize Tix balance',
+      summary: `${cluster.actorLabel} ${direction} ${amount} Prize Tix.`,
+      facts: [
+        { label: 'Net change', value: `${net > 0 ? '+' : '-'}${amount}` },
+        { label: 'Current balance', value: currentBalance.toLocaleString() },
+        { label: 'Burst size', value: `${rows.length} update${rows.length === 1 ? '' : 's'}` },
+      ],
+      rationale: 'Burst grouping keeps rapid counter taps from spamming Activity and Home.',
+      backlinks: [{ label: 'Wallet', destination: 'wallet' }],
+    },
+  }
+}
+
+function eventSelectionActivityFromCluster(
+  cluster: ReturnType<typeof clusterActivityEvents>[number],
+  events: ExploreEvent[],
+  selections: Record<string, string>,
+): ActivityItem | null {
+  const latest = cluster.rows[0]
+  const reviewSelection = selections[selectionKey(`activity-${cluster.id}`, 'review_state')]
+  const rows = cluster.rows
+  const items = rows.map(row => {
+    const details = activityDetailJson(row.details)
+    const eventId = String(details.event_id ?? row.object_id.replace(/^explore-/, ''))
+    const event = events.find(candidate => candidate.id === eventId)
+    const state = String(details.state ?? 'none')
+    return event && isExploreState(state) ? { event, state } : null
+  }).filter((item): item is { event: ExploreEvent; state: ExploreState } => item !== null)
+  if (!items.length) return null
+  const committedCount = items.filter(item => item.state === 'committed').length
+  const tentativeCount = items.filter(item => item.state === 'tentative').length
+  const interestedCount = items.filter(item => item.state === 'interested').length
+  const hiddenCount = items.filter(item => item.state === 'hidden').length
+  const nopeCount = items.filter(item => item.state === 'nope').length
+  const severity: AlertSeverity = committedCount > 0 ? 'hot' : 'notice'
+  const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
+    ? reviewSelection as AlertReviewState
+    : severity === 'hot'
+      ? 'needs-review'
+      : 'reviewed'
+  const parts = [
+    interestedCount ? `${interestedCount} interested` : '',
+    tentativeCount ? `${tentativeCount} tentative` : '',
+    committedCount ? `${committedCount} committed` : '',
+    hiddenCount ? `${hiddenCount} hidden` : '',
+    nopeCount ? `${nopeCount} not-for-me` : '',
+  ].filter(Boolean)
+  const focusEvent = items[0].event
+  const title = items.length === 1
+    ? `${cluster.actorLabel} marked ${focusEvent.title} ${items[0].state}.`
+    : `${cluster.actorLabel} updated ${items.length} event picks.`
+  return {
+    id: cluster.id,
+    sourceKind: 'activity-log',
+    kind: 'manual',
+    severity,
+    destination: committedCount > 0 ? 'Home' : 'Activity',
+    attention: committedCount > 0 ? 'Committed choice' : 'Event picks changed',
+    title,
+    summary: items.length === 1
+      ? selectionStateSummary(items[0].state, focusEvent)
+      : parts.join(' · '),
+    object: items.length === 1 ? focusEvent.title : `${items.length} event selections`,
+    source: `${cluster.actorLabel} selection burst`,
+    checkedAt: formatContextNoteTime(latest.created_at),
+    checkedAtIso: latest.created_at,
+    status: items.length === 1 ? items[0].state : 'grouped',
+    rationale: items.length === 1 ? focusEvent.fit : 'Rapid event-pick updates are grouped so Home and Activity stay readable.',
+    nextAction: committedCount > 0
+      ? 'Keep committed items hot until they are explicitly read or dismissed.'
+      : 'Expand in Explore or Plan if the burst changed the contender set in a meaningful way.',
+    reviewState,
+    objectDetail: items.length === 1
+      ? exploreEventToObjectDetail({ ...focusEvent, state: items[0].state })
+      : {
+          id: `activity-burst-${cluster.id}`,
+          kind: 'event',
+          eyebrow: 'SELECTION BURST',
+          title: `${cluster.actorLabel} updated ${items.length} event picks`,
+          summary: parts.join(' · '),
+          facts: items.slice(0, 6).map(item => ({ label: item.state, value: item.event.title })),
+          rationale: 'Grouped because several event-state changes landed in the same short burst.',
+          backlinks: [{ label: 'Explore', destination: 'explore' }, { label: 'Plan', destination: 'plan' }],
+        },
+  }
+}
+
+function activityFromEventCluster(
+  cluster: ReturnType<typeof clusterActivityEvents>[number],
+  events: ExploreEvent[],
+  selections: Record<string, string>,
+): ActivityItem | null {
+  if (cluster.activityType === 'prize_tix_adjusted') return prizeTixActivityFromCluster(cluster, selections)
+  if (cluster.activityType === 'event_state_changed') return eventSelectionActivityFromCluster(cluster, events, selections)
+  return null
 }
 
 function selectionActivityFromRow(
@@ -2202,7 +2479,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   </section>
 }
 
-function WalletSurface({ onOpenObject, onOpenTrip, notes, onAddNote, onDeleteNote, prizeTixValue, onPrizeTixChange }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; onPrizeTixChange: (value: number) => void }) {
+function WalletSurface({ onOpenObject, onOpenTrip, notes, onAddNote, onDeleteNote, prizeTixValue, onPrizeTixChange }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
@@ -2216,7 +2493,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, onAddNote, onDeleteNot
   }, [prizeTixValue])
   const adjustTix = (delta: number) => setTix(value => {
     const next = Math.max(0, value + delta)
-    onPrizeTixChange(next)
+    onPrizeTixChange(next, next - value)
     return next
   })
 
@@ -3112,7 +3389,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
   const [stream, setStream] = useState<ActivityStream>('hot')
   const hotCount = incomingItems.filter(item => item.reviewState === 'needs-review' && item.severity === 'hot').length
   const sourceCount = incomingItems.filter(item => item.reviewState !== 'archived' && item.sourceKind === 'monitor' && item.kind !== 'manual').length
-  const changeCount = incomingItems.filter(item => item.reviewState !== 'archived' && (item.sourceKind === 'selection' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert)))).length
+  const changeCount = incomingItems.filter(item => item.reviewState !== 'archived' && (item.sourceKind === 'selection' || item.sourceKind === 'activity-log' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert)))).length
   const activeAlertCount = incomingItems.filter(item => item.reviewState !== 'archived').length
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
     { value: 'hot', label: 'Hot', icon: <span className="activity-fire" aria-hidden="true">🔥</span>, count: hotCount },
@@ -3128,7 +3405,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
     if (stream === 'hot') return state === 'needs-review' && item.severity === 'hot'
     if (stream === 'archived') return state === 'archived'
     if (state === 'archived') return false
-    if (stream === 'changes') return item.sourceKind === 'selection' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert))
+    if (stream === 'changes') return item.sourceKind === 'selection' || item.sourceKind === 'activity-log' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert))
     if (stream === 'sources') return item.sourceKind === 'monitor' && item.kind !== 'manual'
     return false
   })
