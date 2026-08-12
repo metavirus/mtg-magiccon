@@ -1100,7 +1100,7 @@ export default function App() {
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenObject={openObjectDetail} />}
+        {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
@@ -2607,7 +2607,7 @@ function planPressure(event: ExploreEvent) {
   return 'In consideration'
 }
 
-function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan, onOpenObject }: { events: ExploreEvent[]; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan }: { events: ExploreEvent[]; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void }) {
   const [mode, setMode] = useState<ExploreMode>('for-you')
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
@@ -2707,7 +2707,7 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
       </div>
 
       <div className="explore-detail-slot" style={{ top: detailTop }}>
-        <ExploreDetail event={selected} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} onOpenObject={onOpenObject} />
+        <ExploreDetail event={selected} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
       </div>
     </div>
   </section>
@@ -2758,7 +2758,7 @@ function getPriceTone(price: string) {
   return 'high'
 }
 
-function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onOpenPlan, onOpenObject }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onOpenPlan }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void }) {
   const planEnabled = event.state === 'interested' || event.state === 'tentative'
   return <aside className="explore-detail event-detail-panel" data-open={open} aria-label={`${event.title} detail`}>
     <button className="detail-close explore-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
@@ -2794,14 +2794,7 @@ function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, 
         {event.sourceNote && <div className="more-row source-row"><span>Source</span><p>{event.sourceNote}</p></div>}
       </div>
     </details>}
-    <footer className="detail-footer">
-      <div className="detail-actions">
-        <IconAction label="Hide from this list" icon="eyeOff" pressed={event.state === 'hidden'} onClick={() => onState('hidden')} />
-        <IconAction label="Not for me" icon="thumbsDown" pressed={event.state === 'nope'} danger onClick={() => onState('nope')} />
-      </div>
-      <button className="detail-plan-link secondary-detail-link" type="button" onClick={() => onOpenObject(exploreEventToObjectDetail(event))}>Open object detail <span aria-hidden="true">›</span></button>
-      <button className="detail-plan-link" type="button" disabled={!planEnabled} onClick={onOpenPlan}>Compare in Plan <span aria-hidden="true">›</span></button>
-    </footer>
+    {planEnabled && <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Compare in Plan <span aria-hidden="true">›</span></button>}
   </aside>
 }
 
