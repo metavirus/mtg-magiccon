@@ -3754,7 +3754,6 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
   const homeSignals = homeWorthKnowingItems(activityItems, now)
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
   const pendingMilestones = milestoneForecasts.length
-  const leadSignal = homeSignals[0]
   return <div className="home-surface">
     <div className="home-top-row">
       <section className={`home-status-card ${hotCount ? 'has-hot' : ''}`} onClick={onOpenActivity}>
@@ -3764,23 +3763,12 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
         </div>
         <h2>{hotCount ? 'A few things deserve attention.' : 'Atlanta is quiet.'}</h2>
         <p>{hotCount ? 'The top signal is worth action now; the rest are recent context you will probably care about.' : 'No new signal needs immediate action, so the page can lead with what matters next instead of pretending everything is urgent.'}</p>
-        <div className="home-status-metrics" aria-label="Home status summary">
-          <div><strong>{homeSignals.length}</strong><small>worth knowing</small></div>
-          <div><strong>{pendingMilestones}</strong><small>waiting</small></div>
-          <div><strong>{slice.decision.planning_state}</strong><small>plan state</small></div>
+        <div className="home-status-summary" aria-label="Home status summary">
+          <span><strong>{homeSignals.length}</strong> worth knowing</span>
+          <span><strong>{hotCount}</strong> hot</span>
+          <span><strong>{pendingMilestones}</strong> milestones waiting</span>
+          <span><strong>{slice.decision.planning_state}</strong> plan state</span>
         </div>
-        {leadSignal && <button type="button" className={`status-lead-card ${leadSignal.severity}`} onClick={event => {
-          event.stopPropagation()
-          onOpenItem(leadSignal)
-        }}>
-          <span>{leadSignal.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={leadSignal.kind} />}</span>
-          <div>
-            <small>{leadSignal.severity === 'hot' ? 'TOP SIGNAL' : 'LATEST SIGNAL'}</small>
-            <strong>{leadSignal.title}</strong>
-            <em>{leadSignal.summary}</em>
-          </div>
-          <b aria-hidden="true">›</b>
-        </button>}
       </section>
 
       <section className="next-milestone home-top-forecast" onClick={event => {
