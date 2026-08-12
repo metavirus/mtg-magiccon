@@ -14,7 +14,7 @@ As of the v1.5 trust pass on August 9, the React preview has the first Supabase-
 
 This is intentionally still owner-scoped rather than a full collaboration model. The next trust step is shared-read semantics for the small MagicCon group, not more local-only note variants in individual destinations. Extend the shared primitive instead.
 
-As of August 11, notes also have a backend mention layer through `public.note_mentions`. That table is intentionally narrow: it records which known companion members were explicitly mentioned in a note, and leaves notification, unread, dismissal, and grouping semantics to later product decisions.
+As of August 12, notes also have a backend mention layer through `public.note_mentions` plus a first inbox tickler path. Mention rows record which known companion members were explicitly mentioned in a note, and inbox items navigate back to the source object/context where the note was made rather than opening a separate note-content drawer. Dismissal, grouping, and broader collaboration semantics remain later product decisions.
 
 ## Architecture invariant
 
@@ -80,7 +80,8 @@ Current backend contract:
 - note text remains the canonical authored text;
 - explicit mentions are extracted into `public.note_mentions`;
 - each mention points at one known `companion_members.person_key`;
-- future unread/dismissed handling belongs on the mention row, not embedded into note copy.
+- inbox mention ticklers link to the source receipt, event, trip/hotel, or Notes context;
+- future dismissed/grouped handling belongs on the mention row, not embedded into note copy.
 
 This means we can later support:
 
