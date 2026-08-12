@@ -20,8 +20,9 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
   - deployment visibility for public publish or public-state debugging;
   - authenticated Supabase/database execution for user-state or schema work.
 - Check those critical capabilities up front with the smallest observable smoke test. Observable means the tool returns usable state, not silence or a vague success.
-- Classify capability state decisively: healthy, failed for this session, or blocked on one exact prerequisite. Do not operate in a lingering "maybe usable" state.
-- If the same exact capability path fails twice, stop probing that path for the session and switch lanes: alternate browser/tooling, direct deployed artifact inspection, or code-only work with explicit unresolved verification.
+- Classify capability state decisively: `READY`, `FIXED`, or `USER-HOST-ACTION REQUIRED`. Do not operate in a lingering "maybe usable" state.
+- If a platform/environment capability fails, run one bounded agent-accessible repair, retest that same capability once, then stop if it still requires host action. Report the exact failed capability, failed command/check, host-side fix, and proof command to run afterward.
+- Do not retry the same failing command in variants, switch to WSL/Docker/admin/global reinstall paths, add wrappers, or continue coding through a missing capability unless the failure specifically requires that route.
 - Expected project capabilities are assumed available once documented: Git writes through the approved lane, package scripts, Supabase-backed state, GitHub Pages deploy/verify, and browser/viewport inspection for visual work.
 - If one of those known lanes errors, first assume agent execution failure: wrong lane, missing setup, fragile command construction, stale docs, or insufficient preflight.
 - Browser inspection is a required capability for visual/UI work. Do not phrase it as "if available"; use it. If it cannot be used after recovery, say the visual verification failed and do not claim completion.
@@ -71,6 +72,10 @@ Do not blame “propagation” by default. First prove whether the commit was pu
 ### Vite and Node
 
 Node is the build/tooling layer, not a user-facing runtime complication. Use the package scripts that already encode the correct Vite config-loader path. Do not run raw `vite` or raw `vitest` commands when a package script exists.
+
+pnpm is Corepack-managed on the native Windows host. Use normal `pnpm` or `corepack pnpm`; do not reinstall pnpm globally with npm. If pnpm acts strange, first check `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version` before diagnosing app code. A non-admin `corepack enable` shim-write failure under Program Files is not a product blocker.
+
+For browser-dependent visual work, prove the browser lane at the start with `pnpm ui:capture -- -Route <route>` after a build. The capture command serves the built app preview and uses Playwright to return URL/title, visible text, DOM, and screenshot evidence.
 
 ### Monitoring
 

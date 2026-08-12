@@ -14,11 +14,12 @@ Run `pnpm readiness` before Tier 2 data/auth/database/research/monitoring work a
 - a harmless live query reaches database `postgres`;
 - the owner proof table still has forced RLS, four policies, update `USING` and `WITH CHECK`, no anonymous grants, and exactly the intended authenticated grants.
 
-Application build, tests, text integrity, and secret scanning remain separate acceptance commands so failures identify their actual layer. Use the light wrappers for ordinary UI work:
+Application build, tests, text integrity, browser capture, and secret scanning remain separate acceptance commands so failures identify their actual layer. Use the light wrappers for ordinary UI work:
 
 ```powershell
 pnpm check:ui
 pnpm check:ship
+pnpm ui:capture -- -Route explore
 ```
 
 Use the individual commands when diagnosing a specific failure:
@@ -30,9 +31,11 @@ pnpm validate:text
 pnpm validate:secrets
 ```
 
-Current local note, August 3, 2026: after restarting the Codex desktop session, ordinary `node`, `pnpm`, and `pnpm readiness` are available on `PATH`; the previous Node PATH issue is not currently reproducing. The managed-sandbox Vite/esbuild config-resolution failure is fixed by using Vite/Vitest's `--configLoader runner` in the project scripts, which avoids bundling the config with esbuild before execution. Plain `pnpm build` and `pnpm test` should now pass inside the sandbox.
+Current local note, August 12, 2026: the native Windows host is the default lane. Node 24, Corepack-managed pnpm, Git, GitHub CLI, PostgreSQL tools, Python/uv, and Playwright are available. Do not use WSL, Docker, admin installs, or global pnpm reinstalls unless a concrete dependency requires them.
 
-Current local note, August 10, 2026: `pnpm dev`, `pnpm preview`, `pnpm build`, and `pnpm test` all use Vite/Vitest's runner config loader path. If one of those scripts fails, treat it as a real defect to diagnose, not as expected environment flakiness.
+pnpm is Corepack-managed. Use normal `pnpm` or `corepack pnpm`; if pnpm acts strange, first run `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version`. A non-admin `corepack enable` failure while writing shims under Program Files is not a product blocker.
+
+`pnpm dev`, `pnpm preview`, `pnpm build`, and `pnpm test` use Vite/Vitest's runner config loader path. For Codex visual verification, prefer `pnpm ui:capture -- -Route <route>` after `pnpm build`; it serves the built preview and uses Playwright to capture screenshot, DOM, and visible text.
 
 ## Secure local setup
 
@@ -63,4 +66,4 @@ Docker and WSL may exist on a developer machine for unrelated work, but this rep
 
 ## Failure behavior
 
-Never continue through repository, remote, Supabase project, migration, URL, or RLS ambiguity. Run one bounded repair cycle, retest the exact capability, then report the single external action still required. Do not substitute a different project, unguarded URL, or elevated browser key.
+Never continue through repository, remote, Supabase project, migration, URL, browser-control, Node, pnpm, Playwright, Git, or GitHub ambiguity. Run one bounded repair cycle, retest the exact capability once, then stop with `USER-HOST-ACTION REQUIRED` if host action is still needed. Report the exact failed capability, failed command/check, host-side fix, and proof command. Do not substitute a different project, unguarded URL, elevated browser key, WSL/Docker path, admin reinstall, or blind product coding.

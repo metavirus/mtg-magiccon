@@ -8,6 +8,7 @@ dist/
 .supabase/
 coverage/
 tmp/
+.temp/
 .monitoring-state/
 *.local
 *.log
