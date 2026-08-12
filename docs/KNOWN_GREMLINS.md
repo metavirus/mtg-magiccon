@@ -4,7 +4,34 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 
 Core rule: a known environment-specific failure is no longer debugging. It is operating procedure. If the same sandbox, Git, PowerShell, Vite, network, cache, or publish failure happens again after the correct lane is documented here, that is an agent execution failure unless the documented lane itself changed.
 
-Readiness rule: capabilities are task-specific. If a task may require browser inspection, deployment visibility, or database writes, prove that capability with a small observable smoke test before substantive work. A silent tool call is not readiness. After two failed attempts on the same exact path, classify the path as failed for the session and switch lanes.
+Readiness rule: capabilities are task-specific. If a task may require browser inspection, deployment visibility, or database writes, prove that capability with a small observable smoke test before substantive work. A silent tool call is not readiness. After one bounded repair and one retest, stop if the capability still needs host/user action. Use the report shape: failed capability, failed command/check, host-side fix, and proof command.
+
+## pnpm and Corepack on native Windows
+
+**Symptom:** `pnpm` behaves oddly, hangs, or appears missing after host setup changes.
+
+**Cause:** the shell may be stale, a shim may be shadowed, or Corepack may not be activated for that session. This is a host/tooling lane, not app code.
+
+**Do this:**
+
+- First run `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version`.
+- Use normal `pnpm` or `corepack pnpm`; both are acceptable when healthy.
+- Do not reinstall pnpm globally with npm.
+- Do not diagnose app code until the package-manager smoke itself is healthy.
+- A non-admin `corepack enable` failure caused by writing shims under Program Files is not a product blocker.
+
+## Local UI browser capture
+
+**Symptom:** visual work needs browser evidence, or a dev server/browser command is unclear.
+
+**Cause:** visual QA needs a deterministic viewport lane. Vite dev dependency optimization can be noisier than the built preview path in managed environments.
+
+**Do this:**
+
+- Run `pnpm build` first.
+- Run `pnpm ui:capture -- -Route <route>`.
+- Treat `UI_CAPTURE: PASS` plus URL/title, visible text, DOM, and screenshot paths as the local browser-readiness proof.
+- If browser control is broken after one reset/retry, stop and ask Kavi to refresh/restart the Codex task. Do not continue visual work blind.
 
 ## Git writes in Codex sandbox
 

@@ -14,7 +14,9 @@ Readiness is task-specific. Do not begin substantive work while a critical task 
 - Publish/debug-public task: confirm deployment visibility and expected branch/commit path first.
 - Database/user-state task: confirm the Supabase project and authenticated execution path first.
 
-Capability states are only `healthy`, `failed for this session`, or `blocked on one exact prerequisite`. If the same exact path fails twice, classify it and switch lanes; do not keep probing with small variations.
+Capability states are only `READY`, `FIXED`, or `USER-HOST-ACTION REQUIRED`. If a capability fails, do one bounded agent-accessible repair and retest that same capability once. If it still fails and requires host permissions or user action, stop immediately with the exact failed capability, failed command/check, host-side fix, and proof command to run afterward.
+
+Do not retry the same failing command in variants, switch to WSL/Docker/admin/global reinstall work, add wrappers, or keep coding through a missing capability unless the failure specifically requires that route.
 
 If a known lane still fails, treat that first as an agent execution failure until evidence says otherwise. Fixing the immediate symptom is not sufficient. When the failure is user-visible, the handoff must include the prevention delta: the doc, script, command habit, or removed wrong path that makes recurrence less likely. Do not add broad triple-check ceremony as penance; encode the smallest durable correction.
 
@@ -38,7 +40,7 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 - Do not re-open the full project documentation set unless the change depends on product history.
 - Do not run database/readiness gates unless publishing or auth/data behavior is involved.
 - Verify with `pnpm build` unless a narrower existing package script is clearly the canonical check for that exact surface.
-- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is mandatory, not optional; if it is unavailable, recover that lane or stop before saying the visual fix is done.
+- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is mandatory, not optional; prove the lane first with `pnpm ui:capture -- -Route <route>` when using local preview. If browser control is broken after one reset/retry, stop and request a Codex task refresh rather than continuing blind.
 - If the same visual target fails twice, stop patching symptoms and find the duplicated component, CSS cascade, cache, or publish root cause.
 
 ### Tier 1 — public preview UI change

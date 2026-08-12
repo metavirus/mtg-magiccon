@@ -17,6 +17,8 @@ Private, mobile-first planning and personal-intelligence app for one attendee at
 2. Add the project URL and a publishable key. Never add secret/service-role keys.
 3. Run `pnpm install --frozen-lockfile` and `pnpm dev`.
 
+Use native Windows. pnpm is Corepack-managed; do not reinstall pnpm globally with npm. If pnpm acts strange, first run `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version` before diagnosing app code.
+
 Run `pnpm readiness` before database or release work. See [development architecture](docs/DEVELOPMENT_ARCHITECTURE.md), [environment readiness](docs/ENVIRONMENT_READINESS.md), [project context](docs/PROJECT_CONTEXT.md), and [current frontier](CURRENT_FRONTIER.md).
 
 Before spending time on a recurring setup, Git, auth, cache, publish, or responsive issue, check [Known Gremlins](docs/KNOWN_GREMLINS.md). The project should not repeatedly rediscover the same environment failures.
@@ -31,6 +33,7 @@ For the short operating contract that keeps this hobby app from accumulating avo
 | `pnpm check:ui` | Fast Tier 0 acceptance for ordinary UI/copy/layout changes |
 | `pnpm check:ship` | Tier 1 acceptance before pushing a public preview change |
 | `pnpm preview` | Serve a built app preview using the same Vite config-loader path as build |
+| `pnpm ui:capture -- -Route explore` | Build-preview browser smoke with Playwright screenshot, DOM, and visible text readback |
 | `pnpm build` | Type-check and production build |
 | `pnpm publish:pages` | Local Pages artifact check only: run ship checks and prepare `dist/` for the GitHub Actions deploy |
 | `pnpm verify:public` | Compare the public GitHub Pages asset references with the local `dist/` artifact after a cache-busted fetch |
