@@ -2753,8 +2753,8 @@ function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, 
         <span><DetailFactIcon name="price" />{event.price}</span>
         <span><DetailFactIcon name="duration" />{event.window}</span>
       </div>
+      <EventStateRail event={event} context="explore" onState={onState} />
     </header>
-    <EventStateRail event={event} context="explore" onState={onState} />
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>WHY THIS MAY BE WORTH YOUR TIME</small>{event.fit}</p></div>
     <section className="detail-section decision-section">
       <div className="format-heading"><strong>{event.format}</strong>{event.formatHelp && <details className="format-help"><summary aria-label={`Explain ${event.format}`}>?</summary><p>{event.formatHelp}</p></details>}</div>
