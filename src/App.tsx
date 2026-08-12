@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
@@ -2615,6 +2615,8 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
   const [detailOpen, setDetailOpen] = useState(false)
   const [hiddenExpanded, setHiddenExpanded] = useState(false)
   const [query, setQuery] = useState('')
+  const eventListRef = useRef<HTMLDivElement | null>(null)
+  const [detailTop, setDetailTop] = useState(258)
   const selected = events.find(event => event.id === selectedId) ?? events[0]
   const matchesSearchAndDay = (event: ExploreEvent) => {
     const matchesDay = day === 'all' || event.day === day
@@ -2640,6 +2642,22 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
     setSelectedId(id)
     setDetailOpen(true)
   }
+
+  useEffect(() => {
+    const updateDetailTop = () => {
+      const list = eventListRef.current
+      if (!list || window.innerWidth <= 900) return
+      const listPageTop = list.getBoundingClientRect().top + window.scrollY
+      setDetailTop(Math.max(12, listPageTop - window.scrollY))
+    }
+    updateDetailTop()
+    window.addEventListener('scroll', updateDetailTop, { passive: true })
+    window.addEventListener('resize', updateDetailTop)
+    return () => {
+      window.removeEventListener('scroll', updateDetailTop)
+      window.removeEventListener('resize', updateDetailTop)
+    }
+  }, [visible.length, mode, day, eventType, query])
 
   return <section className="explore-surface">
     <div className="explore-toolbar">
@@ -2672,7 +2690,7 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
     </div>
 
     <div className="explore-layout">
-      <div className="event-list" aria-label="Event results">
+      <div ref={eventListRef} className="event-list" aria-label="Event results">
         <div className="event-list-summary"><strong>{visible.length}</strong><span>events in view</span></div>
         {visible.map(event => <ExploreEventRow key={event.id} event={event} selected={selected.id === event.id} onSelect={() => { setSelectedId(event.id); setDetailOpen(true) }} onState={state => updateEvent(event.id, state)} />)}
         {visible.length === 0 && <div className="event-empty">No events match this view. Try All or clear search.</div>}
@@ -2688,7 +2706,9 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
         </section>}
       </div>
 
-      <ExploreDetail event={selected} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} onOpenObject={onOpenObject} />
+      <div className="explore-detail-slot" style={{ top: detailTop }}>
+        <ExploreDetail event={selected} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => setDetailOpen(false)} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} onOpenObject={onOpenObject} />
+      </div>
     </div>
   </section>
 }
