@@ -2765,7 +2765,10 @@ function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, 
     <header className="detail-title-group event-detail-heading">
       <div className="detail-head">
         <span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span>
-        <span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span>
+        <span className="detail-head-actions">
+          {planEnabled && <button className="detail-plan-link detail-plan-link-header" type="button" onClick={onOpenPlan}>Compare in Plan <span aria-hidden="true">›</span></button>}
+          <span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span>
+        </span>
       </div>
       <h2>{event.title}</h2>
       <div className="detail-facts">
@@ -2794,7 +2797,6 @@ function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, 
         {event.sourceNote && <div className="more-row source-row"><span>Source</span><p>{event.sourceNote}</p></div>}
       </div>
     </details>}
-    {planEnabled && <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Compare in Plan <span aria-hidden="true">›</span></button>}
   </aside>
 }
 
