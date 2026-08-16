@@ -2507,10 +2507,17 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
   const dayEvents = planEvents.filter(event => event.day === activeDay)
   const [selectedId, setSelectedId] = useState(planEvents[0]?.id ?? '')
   const [detailOpen, setDetailOpen] = useState(false)
+  const [collapsedPlanGroups, setCollapsedPlanGroups] = useState<string[]>([])
   const selected = planEvents.find(event => event.id === selectedId) ?? dayEvents[0] ?? planEvents[0]
   const officialBlCount = planEvents.filter(event => event.kind === 'Black Lotus').length
   const contenderCount = planEvents.filter(event => event.kind !== 'Black Lotus').length
   const watchCount = planEvents.filter(event => event.availability === 'changed' || event.complexity === 'unknown').length
+  const planGroups = [
+    { key: 'committed', label: 'Committed anchors', hint: 'calendar-bound', items: dayEvents.filter(event => event.state === 'committed') },
+    { key: 'tentative', label: 'Tentative contenders', hint: 'compare against the day', items: dayEvents.filter(event => event.state === 'tentative') },
+    { key: 'interested', label: 'Interesting maybes', hint: 'promoted from Explore', items: dayEvents.filter(event => event.state === 'interested') },
+  ].filter(group => group.items.length > 0)
+  const togglePlanGroup = (key: string) => setCollapsedPlanGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
 
   const setState = (event: ExploreEvent, state: ExploreState) => {
     if (event.id === 'bl-planechase') onChangeSliceState(state as PlanningState)
@@ -2545,26 +2552,36 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
     <div className="plan-lite-layout">
       <div className="plan-day-board">
         <div className="plan-day-heading"><div><strong>{activeDay}</strong><span>{planDayContext(activeDay)}</span></div><small>{dayEvents.filter(event => event.state === 'committed').length} hard blocks</small></div>
-        {dayEvents.map(event => <article key={event.id} className={`plan-row state-${event.state} ${selected?.id === event.id ? 'selected' : ''}`}>
-          <button className="plan-row-main" type="button" onClick={() => { setSelectedId(event.id); setDetailOpen(true) }}>
-            <span className={`plan-kind type-${event.type}`} aria-hidden="true"><EventKindIcon name={event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'} /></span>
-            <span className="plan-time-chip">{event.day}<b>{event.time}</b></span>
-            <span className="plan-row-copy"><strong>{event.title}</strong><small>{event.time} · {event.window}</small></span>
-            <span className="plan-row-signal">{event.kind === 'Black Lotus' && <i>BL</i>}{planPressure(event)}</span>
-            <span className="plan-people" aria-label={event.kind === 'Black Lotus' ? 'Kavi and Chris' : 'Kavi'}><i>K</i>{event.kind === 'Black Lotus' && <i>C</i>}</span>
-          </button>
-          <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
-            {([['interested', '♡', 'Interested'], ['tentative', '◇', 'Tentative'], ['committed', '●', 'Committed']] as const).map(([state, symbol, label]) => {
-              const disabled = event.id === 'bl-planechase'
-                ? !online || saving || (state === 'committed' && !canCommitBlackLotus)
-                : false
-              const title = state === 'committed' && event.kind === 'Black Lotus' && !canCommitBlackLotus
-                ? 'Only Kavi and Chris can commit Black Lotus events.'
-                : label
-              return <button key={state} type="button" aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true">{symbol}</b><span>{label}</span></button>
-            })}
-          </div>
-        </article>)}
+        {planGroups.map(group => {
+          const collapsed = collapsedPlanGroups.includes(group.key)
+          return <section className={`plan-row-group group-${group.key}`} key={group.key}>
+            <button className="funnel-group-header" type="button" aria-expanded={!collapsed} onClick={() => togglePlanGroup(group.key)}>
+              <span><strong>{group.label}</strong><small>{group.hint}</small></span>
+              <em>{group.items.length}</em>
+              <b aria-hidden="true">⌄</b>
+            </button>
+            {!collapsed && group.items.map(event => <article key={event.id} className={`plan-row state-${event.state} ${selected?.id === event.id ? 'selected' : ''}`}>
+              <button className="plan-row-main" type="button" onClick={() => { setSelectedId(event.id); setDetailOpen(true) }}>
+                <span className={`plan-kind type-${event.type}`} aria-hidden="true"><EventKindIcon name={event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'} /></span>
+                <span className="plan-time-chip">{event.day}<b>{event.time}</b></span>
+                <span className="plan-row-copy"><strong>{event.title}</strong><small>{event.time} · {event.window}</small></span>
+                <span className="plan-row-signal">{event.kind === 'Black Lotus' && <i>BL</i>}{planPressure(event)}</span>
+                <span className="plan-people" aria-label={event.kind === 'Black Lotus' ? 'Kavi and Chris' : 'Kavi'}><i>K</i>{event.kind === 'Black Lotus' && <i>C</i>}</span>
+              </button>
+              <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
+                {([['interested', '♡', 'Interested'], ['tentative', '◇', 'Tentative'], ['committed', '●', 'Committed']] as const).map(([state, symbol, label]) => {
+                  const disabled = event.id === 'bl-planechase'
+                    ? !online || saving || (state === 'committed' && !canCommitBlackLotus)
+                    : false
+                  const title = state === 'committed' && event.kind === 'Black Lotus' && !canCommitBlackLotus
+                    ? 'Only Kavi and Chris can commit Black Lotus events.'
+                    : label
+                  return <button key={state} type="button" aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true">{symbol}</b><span>{label}</span></button>
+                })}
+              </div>
+            </article>)}
+          </section>
+        })}
         {dayEvents.length === 0 && <div className="plan-empty"><strong>No active contenders yet.</strong><span>Mark something Interested or Tentative in Explore.</span><button type="button" onClick={onOpenExplore}>Browse Explore</button></div>}
       </div>
 
@@ -2595,6 +2612,13 @@ function planDayContext(day: ExploreEvent['day']) {
   return 'Final day · airport buffer matters'
 }
 
+function exploreDayContext(day: ExploreEvent['day']) {
+  if (day === 'Thu') return 'early access and first-look decisions'
+  if (day === 'Fri') return 'first full convention day'
+  if (day === 'Sat') return 'core weekend anchors'
+  return 'final-day and travel-sensitive options'
+}
+
 function planPressure(event: ExploreEvent) {
   if (event.state === 'committed') return 'Hard block'
   if (event.id === 'bl-progressive-sealed') return 'Flexible thread'
@@ -2614,6 +2638,7 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
   const [selectedId, setSelectedId] = useState(exploreEvents[0].id)
   const [detailOpen, setDetailOpen] = useState(false)
   const [hiddenExpanded, setHiddenExpanded] = useState(false)
+  const [collapsedExploreGroups, setCollapsedExploreGroups] = useState<string[]>([])
   const [query, setQuery] = useState('')
   const eventListRef = useRef<HTMLDivElement | null>(null)
   const [detailTop, setDetailTop] = useState(258)
@@ -2636,6 +2661,11 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
   })
   const hiddenCount = events.filter(event => event.state === 'hidden' || event.state === 'nope').length
   const hiddenMatches = events.filter(event => (event.state === 'hidden' || event.state === 'nope') && matchesSearchAndDay(event))
+  const exploreDays: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
+  const exploreGroups = (day === 'all' ? exploreDays : [day])
+    .map(groupDay => ({ key: groupDay, label: `${groupDay} scan`, hint: exploreDayContext(groupDay), items: visible.filter(event => event.day === groupDay) }))
+    .filter(group => group.items.length > 0)
+  const toggleExploreGroup = (key: string) => setCollapsedExploreGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
 
   const updateEvent = (id: string, state: ExploreState) => {
     onUpdateEvent(id, state)
@@ -2692,7 +2722,17 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
     <div className="explore-layout">
       <div ref={eventListRef} className="event-list" aria-label="Event results">
         <div className="event-list-summary"><strong>{visible.length}</strong><span>events in view</span></div>
-        {visible.map(event => <ExploreEventRow key={event.id} event={event} selected={selected.id === event.id} onSelect={() => { setSelectedId(event.id); setDetailOpen(true) }} onState={state => updateEvent(event.id, state)} />)}
+        {exploreGroups.map(group => {
+          const collapsed = collapsedExploreGroups.includes(group.key)
+          return <section className="explore-row-group" key={group.key}>
+            <button className="funnel-group-header" type="button" aria-expanded={!collapsed} onClick={() => toggleExploreGroup(group.key)}>
+              <span><strong>{group.label}</strong><small>{group.hint}</small></span>
+              <em>{group.items.length}</em>
+              <b aria-hidden="true">⌄</b>
+            </button>
+            {!collapsed && group.items.map(event => <ExploreEventRow key={event.id} event={event} selected={selected.id === event.id} onSelect={() => { setSelectedId(event.id); setDetailOpen(true) }} onState={state => updateEvent(event.id, state)} />)}
+          </section>
+        })}
         {visible.length === 0 && <div className="event-empty">No events match this view. Try All or clear search.</div>}
         {mode !== 'hidden' && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
           <button type="button" className="hidden-toggle" onClick={() => setHiddenExpanded(value => !value)}>
