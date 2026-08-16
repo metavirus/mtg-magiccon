@@ -1198,7 +1198,7 @@ function exploreEventToObjectDetail(event: ExploreEvent): ObjectDetail {
     id: `explore-${event.id}`,
     kind: 'event',
     eyebrow: `${event.kind} · ${event.state === 'none' ? 'unmarked' : event.state}`,
-    title: event.title,
+    title: displayEventTitle(event),
     summary: event.fit,
     facts: [
       { label: 'When', value: `${event.day} · ${event.time}` },
@@ -2531,7 +2531,7 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
     </header>
 
     <div className="plan-lite-status" aria-label="Plan status">
-      <button type="button" onClick={() => setActiveDay('Thu')}><span>Official BL anchors</span><strong>{officialBlCount}</strong><small>real Atlanta schedule items</small></button>
+      <button type="button" onClick={() => setActiveDay('Thu')}><span>Official Lotus anchors</span><strong>{officialBlCount}</strong><small>real Atlanta schedule items</small></button>
       <button type="button" onClick={onOpenExplore}><span>Promoted contenders</span><strong>{contenderCount}</strong><small>from Explore, reversible</small></button>
       <button type="button" onClick={() => {
         const watchItem = planEvents.find(event => event.availability === 'changed' || event.complexity === 'unknown')
@@ -2562,10 +2562,10 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
             </button>
             {!collapsed && group.items.map(event => <article key={event.id} className={`plan-row state-${event.state} ${selected?.id === event.id ? 'selected' : ''}`}>
               <button className="plan-row-main" type="button" onClick={() => { setSelectedId(event.id); setDetailOpen(true) }}>
-                <span className={`plan-kind type-${event.type}`} aria-hidden="true"><EventKindIcon name={event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'} /></span>
+                <span className={`plan-kind type-${event.type}`} aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><EventKindIcon name={event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'} /></span>
                 <span className="plan-time-chip">{event.day}<b>{event.time}</b></span>
-                <span className="plan-row-copy"><strong>{event.title}</strong><small>{event.time} · {event.window}</small></span>
-                <span className="plan-row-signal">{event.kind === 'Black Lotus' && <i>BL</i>}{planPressure(event)}</span>
+                <span className="plan-row-copy"><strong>{displayEventTitle(event)}</strong><small>{event.time} · {event.window}</small></span>
+                <span className="plan-row-signal">{planPressure(event)}</span>
                 <span className="plan-people" aria-label={event.kind === 'Black Lotus' ? 'Kavi and Chris' : 'Kavi'}><i>K</i>{event.kind === 'Black Lotus' && <i>C</i>}</span>
               </button>
               <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
@@ -2589,7 +2589,7 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
         <button className="detail-close plan-detail-close" type="button" onClick={() => setDetailOpen(false)} aria-label="Close event detail">×</button>
         <header className="event-detail-heading">
           <div className="plan-inspector-head"><span>{selected.kind}</span><span className={`event-stage stage-${selected.state}`}>{eventStageLabel(selected.state)}</span></div>
-          <h3>{selected.title}</h3>
+          <h3>{displayEventTitle(selected)}</h3>
           <div className="plan-inspector-facts"><span>{selected.day} · {selected.time}</span><span>{formatEventPrice(selected.price)}</span><span>{selected.format}</span></div>
         </header>
         <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit={selected.id !== 'bl-planechase' || canCommitBlackLotus} disabled={!online || saving} />
@@ -2598,7 +2598,7 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
         {!canCommitBlackLotus && selected.kind === 'Black Lotus' && <div className="plan-watch"><span aria-hidden="true">✦</span><p><strong>Visible to everyone</strong>Only Kavi and Chris can commit Black Lotus events; everyone can still review and mark interest.</p></div>}
         <div className="plan-provenance"><span>{selected.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{selected.sourceNote ?? 'Source context captured for this item.'}</small></div>
-        <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={selected.title} context={`Event · ${selected.title}`} backlink="plan" compact />
+        <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={displayEventTitle(selected)} context={`Event · ${displayEventTitle(selected)}`} backlink="plan" compact />
         <button className="event-detail-more" type="button" onClick={() => onOpenObject(exploreEventToObjectDetail(selected))}>Full event details <b aria-hidden="true">›</b></button>
       </aside>}
     </div>
@@ -2631,6 +2631,17 @@ function planPressure(event: ExploreEvent) {
   return 'In consideration'
 }
 
+function displayEventTitle(event: Pick<ExploreEvent, 'kind' | 'title'>) {
+  if (event.kind === 'Black Lotus') return event.title.replace(/^(BL|Black Lotus)\s+/i, '')
+  return event.title
+}
+
+function eventKindLabel(event: Pick<ExploreEvent, 'kind'>) {
+  if (event.kind === 'Black Lotus') return 'Black Lotus'
+  if (event.kind === 'Ticketed play') return 'Ticketed play'
+  return event.kind
+}
+
 function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan }: { events: ExploreEvent[]; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void }) {
   const [mode, setMode] = useState<ExploreMode>('for-you')
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
@@ -2661,6 +2672,7 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
   })
   const hiddenCount = events.filter(event => event.state === 'hidden' || event.state === 'nope').length
   const hiddenMatches = events.filter(event => (event.state === 'hidden' || event.state === 'nope') && matchesSearchAndDay(event))
+  const ticketedVisibleCount = visible.filter(event => event.kind === 'Ticketed play').length
   const exploreDays: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
   const exploreGroups = (day === 'all' ? exploreDays : [day])
     .map(groupDay => ({ key: groupDay, label: `${groupDay} scan`, hint: exploreDayContext(groupDay), items: visible.filter(event => event.day === groupDay) }))
@@ -2722,6 +2734,10 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
     <div className="explore-layout">
       <div ref={eventListRef} className="event-list" aria-label="Event results">
         <div className="event-list-summary"><strong>{visible.length}</strong><span>events in view</span></div>
+        {(eventType === 'all' || eventType === 'play') && ticketedVisibleCount === 0 && <div className="ticketed-intake-banner">
+          <span><TicketMiniIcon /> Ticketed play intake</span>
+          <p>Awaiting Atlanta LEAP listings. Import should capture category, date/time, price, sold-out/conflict state, location, and My Schedule registration hints before candidates move into Plan.</p>
+        </div>}
         {exploreGroups.map(group => {
           const collapsed = collapsedExploreGroups.includes(group.key)
           return <section className="explore-row-group" key={group.key}>
@@ -2758,9 +2774,9 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
   const priceTone = getPriceTone(event.price)
   return <article className={`explore-event ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-availability={event.availability}>
     <button className="explore-event-main" type="button" onClick={onSelect}>
-      <span className="event-type-icon" aria-hidden="true"><EventKindIcon name={kindIcon} /></span>
+      <span className="event-type-icon" aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><EventKindIcon name={kindIcon} /></span>
       <span className="event-title-block">
-        <strong>{event.title}</strong>
+        <strong>{displayEventTitle(event)}</strong>
         <small>{event.day} · {event.time}</small>
       </span>
       <span className="event-scan">
@@ -2810,12 +2826,13 @@ function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, 
           <span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span>
         </span>
       </div>
-      <h2>{event.title}</h2>
+      <h2>{displayEventTitle(event)}</h2>
       <div className="detail-facts">
         <span><DetailFactIcon name="time" />{event.day} · {event.time}</span>
         <span><DetailFactIcon name="price" />{event.price}</span>
         <span><DetailFactIcon name="duration" />{event.window}</span>
       </div>
+      {event.kind === 'Ticketed play' && <div className="event-source-status"><span>LEAP intake ready</span><small>Representative listing until Atlanta ticketed play opens</small></div>}
       <EventStateRail event={event} context="explore" onState={onState} />
     </header>
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>WHY THIS MAY BE WORTH YOUR TIME</small>{event.fit}</p></div>
@@ -2829,7 +2846,7 @@ function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, 
       <strong>Plan effect</strong>
       <p>{event.planEffect}</p>
     </section>
-    <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={event.title} context={`Event · ${event.title}`} backlink="explore" compact />
+    <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} context={`Event · ${displayEventTitle(event)}`} backlink="explore" compact />
     {(event.moreDetails || event.sourceNote) && <details className="detail-more">
       <summary><span>More details</span><small>Official and operational</small></summary>
       <div className="detail-more-body">
@@ -3841,7 +3858,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
     <button className="detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
     <header className="event-detail-heading">
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span></div>
-      <h2>{event.title}</h2>
+      <h2>{displayEventTitle(event)}</h2>
       <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span><span><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span><span><DetailFactIcon name="duration" />{event.window}</span></div>
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
@@ -3849,7 +3866,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
     <section className="detail-section"><strong>{event.format}</strong><p>{event.detail}</p></section>
     {event.decisionFacts && <div className="decision-facts" aria-label="Event logistics">{event.decisionFacts.map(fact => <div key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
     <div className="plan-provenance"><span>{event.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{event.sourceNote ?? 'Source context captured for this item.'}</small></div>
-    <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={event.title} context={`Event · ${event.title}`} backlink="calendar" compact />
+    <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} context={`Event · ${displayEventTitle(event)}`} backlink="calendar" compact />
     <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Reconsider in Plan <span aria-hidden="true">›</span></button>
   </aside>
 }
