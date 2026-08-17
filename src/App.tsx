@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
+import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -416,7 +417,7 @@ type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'wallet' | 'tr
 const surfaces: Surface[] = ['home', 'calendar', 'plan', 'explore', 'map', 'wallet', 'trip', 'artists', 'notes', 'activity']
 
 export function surfaceFromHash(hash: string): Surface {
-  const candidate = hash.replace(/^#/, '').trim().toLowerCase()
+  const candidate = hashPath(hash)
   return surfaces.includes(candidate as Surface) ? candidate as Surface : 'home'
 }
 
@@ -451,6 +452,7 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [messageTone, setMessageTone] = useState<'info' | 'error'>('info')
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
+  const [exploreRouteState, setExploreRouteState] = useState<ExploreRouteState>(() => parseExploreRouteState(window.location.hash))
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [mobileNavMenu, setMobileNavMenu] = useState<'main' | 'events' | 'more' | null>(null)
   const [desktopRailLocked, setDesktopRailLocked] = useState(() => window.innerWidth >= 901)
@@ -630,6 +632,7 @@ export default function App() {
       setMobileNavMenu(null)
       setNavNotice('')
       setSurface(surfaceFromHash(window.location.hash))
+      setExploreRouteState(parseExploreRouteState(window.location.hash))
     }
     window.addEventListener('hashchange', handleLocationChange)
     window.addEventListener('popstate', handleLocationChange)
@@ -1100,7 +1103,7 @@ export default function App() {
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} />}
+        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
@@ -2642,7 +2645,17 @@ function eventKindLabel(event: Pick<ExploreEvent, 'kind'>) {
   return event.kind
 }
 
-function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan }: { events: ExploreEvent[]; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void }) {
+function exploreRouteGroupLabel(group?: ExploreRouteState['group']) {
+  if (group === 'high_signal') return 'High-signal ticketed play'
+  if (group === 'all_ticketed_play') return 'All ticketed play'
+  if (group === 'sold_out') return 'Sold-out ticketed play'
+  if (group === 'watched') return 'Watched ticketed play'
+  if (group === 'social_fit') return 'Social-fit ticketed play'
+  if (group === 'conflicts') return 'Ticketed play conflicts'
+  return ''
+}
+
+function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan }: { events: ExploreEvent[]; routeState: ExploreRouteState; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void }) {
   const [mode, setMode] = useState<ExploreMode>('for-you')
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
@@ -2653,6 +2666,7 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
   const [query, setQuery] = useState('')
   const eventListRef = useRef<HTMLDivElement | null>(null)
   const [detailTop, setDetailTop] = useState(258)
+  const routeGroupLabel = exploreRouteGroupLabel(routeState.group)
   const selected = events.find(event => event.id === selectedId) ?? events[0]
   const matchesSearchAndDay = (event: ExploreEvent) => {
     const matchesDay = day === 'all' || event.day === day
@@ -2684,6 +2698,13 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
     setSelectedId(id)
     setDetailOpen(true)
   }
+
+  useEffect(() => {
+    if (routeState.mode) setMode(routeState.mode)
+    if (routeState.day) setDay(routeState.day)
+    if (routeState.eventType) setEventType(routeState.eventType)
+    if (routeState.group) setCollapsedExploreGroups([])
+  }, [routeState.day, routeState.eventType, routeState.group, routeState.mode])
 
   useEffect(() => {
     const updateDetailTop = () => {
@@ -2734,6 +2755,7 @@ function ExploreSurface({ events, notes, currentOwnerId, onAddNote, onDeleteNote
     <div className="explore-layout">
       <div ref={eventListRef} className="event-list" aria-label="Event results">
         <div className="event-list-summary"><strong>{visible.length}</strong><span>events in view</span></div>
+        {routeGroupLabel && <div className="explore-route-chip"><span>{routeGroupLabel}</span><small>Opened from a grouped signal; this slice is ready for future ticketed-play drops.</small></div>}
         {(eventType === 'all' || eventType === 'play') && ticketedVisibleCount === 0 && <div className="ticketed-intake-banner">
           <span><TicketMiniIcon /> Ticketed play intake</span>
           <p>Awaiting Atlanta LEAP listings. Import should capture category, date/time, price, sold-out/conflict state, location, and My Schedule registration hints before candidates move into Plan.</p>
