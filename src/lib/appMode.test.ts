@@ -44,6 +44,7 @@ describe('application mode', () => {
   it('maps stable surface hashes and falls back to Home', () => {
     expect(surfaceFromHash('#activity')).toBe('activity')
     expect(surfaceFromHash('#Wallet')).toBe('wallet')
+    expect(surfaceFromHash('#explore?type=play&group=high_signal')).toBe('explore')
     expect(surfaceFromHash('#calendar-con')).toBe('home')
     expect(surfaceFromHash('')).toBe('home')
   })

@@ -99,10 +99,11 @@ if (-not $ready) {
 }
 
 $safeRoute = if ($Route.StartsWith('#')) { $Route.Substring(1) } else { $Route }
+$safeFileRoute = $safeRoute -replace '[\\/:*?"<>|#&=]', '-'
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$shotPath = Join-Path $tempRoot "$stamp-$safeRoute-$Width`x$Height.png"
-$domPath = Join-Path $tempRoot "$stamp-$safeRoute-dom.html"
-$textPath = Join-Path $tempRoot "$stamp-$safeRoute-text.txt"
+$shotPath = Join-Path $tempRoot "$stamp-$safeFileRoute-$Width`x$Height.png"
+$domPath = Join-Path $tempRoot "$stamp-$safeFileRoute-dom.html"
+$textPath = Join-Path $tempRoot "$stamp-$safeFileRoute-text.txt"
 $targetUrl = "$baseUrl`?preview=1&ui-capture=$stamp#$safeRoute"
 
 $node = Get-Command node.exe -ErrorAction SilentlyContinue

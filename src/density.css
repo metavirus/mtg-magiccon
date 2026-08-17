@@ -143,6 +143,9 @@ html,body{max-width:100%;overflow-x:hidden}
 .ticketed-intake-banner{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;padding:8px 10px;border:1px dashed #3d5574;border-radius:12px;background:rgba(14,26,42,.72);color:#9fb2c9}
 .ticketed-intake-banner span{display:inline-flex;align-items:center;gap:6px;color:#d4e4f7;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 .ticketed-intake-banner p{margin:0;color:#8fa2bb;font-size:10px;line-height:1.35}
+.explore-route-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border:1px solid #334b6a;border-radius:999px;background:rgba(20,38,61,.72);color:#a9bdd6}
+.explore-route-chip span{color:#dbeaff;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.explore-route-chip small{color:#8195ae;font-size:10px;text-align:right}
 .explore-event-main{grid-template-columns:30px minmax(0,1fr) auto}
 .event-mini-track{display:none}
 .event-scan{display:grid;justify-items:end;align-content:center;gap:5px;min-width:86px}
