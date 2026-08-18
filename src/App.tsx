@@ -1477,7 +1477,6 @@ function detailKindLabel(kind: ObjectDetailKind) {
   return labels[kind]
 }
 type CalendarFilter = 'all' | 'convention' | 'travel'
-type ExploreMode = 'for-you' | 'all' | 'changed' | 'hidden'
 type ExploreType = 'all' | 'play' | 'info' | 'social' | 'other'
 type ExploreState = 'none' | 'interested' | 'tentative' | 'committed' | 'hidden' | 'nope'
 type ComplexityLevel = 'easy' | 'focused' | 'demanding' | 'very-hard' | 'unknown' | 'inconclusive'
@@ -2546,11 +2545,11 @@ function exploreRouteGroupLabel(group?: ExploreRouteState['group']) {
 }
 
 function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan }: { events: ExploreEvent[]; routeState: ExploreRouteState; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void }) {
-  const [mode, setMode] = useState<ExploreMode>('for-you')
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
   const [selectedId, setSelectedId] = useState(exploreEvents[0].id)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [showHidden, setShowHidden] = useState(false)
   const [hiddenExpanded, setHiddenExpanded] = useState(false)
   const [collapsedExploreGroups, setCollapsedExploreGroups] = useState<string[]>([])
   const [query, setQuery] = useState('')
@@ -2565,14 +2564,8 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
     return matchesDay && matchesType && (!query.trim() || text.includes(query.trim().toLowerCase()))
   }
   const visible = events.filter(event => {
-    const matchesMode = mode === 'hidden'
-      ? event.state === 'hidden' || event.state === 'nope'
-      : mode === 'changed'
-        ? event.availability === 'changed' || event.availability === 'sold-out'
-        : mode === 'for-you'
-          ? event.state !== 'hidden' && event.state !== 'nope'
-          : true
-    return matchesMode && matchesSearchAndDay(event)
+    const matchesHidden = showHidden ? true : event.state !== 'hidden' && event.state !== 'nope'
+    return matchesHidden && matchesSearchAndDay(event)
   })
   const hiddenCount = events.filter(event => event.state === 'hidden' || event.state === 'nope').length
   const hiddenMatches = events.filter(event => (event.state === 'hidden' || event.state === 'nope') && matchesSearchAndDay(event))
@@ -2590,7 +2583,6 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
   }
 
   useEffect(() => {
-    if (routeState.mode) setMode(routeState.mode)
     if (routeState.day) setDay(routeState.day)
     if (routeState.eventType) setEventType(routeState.eventType)
     if (routeState.group) setCollapsedExploreGroups([])
@@ -2610,25 +2602,17 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
       window.removeEventListener('scroll', updateDetailTop)
       window.removeEventListener('resize', updateDetailTop)
     }
-  }, [visible.length, mode, day, eventType, query])
+  }, [visible.length, showHidden, day, eventType, query])
 
   return <section className="explore-surface">
     <div className="explore-toolbar">
       <label className="explore-search"><span aria-hidden="true">⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Find event, format, guest" /></label>
-      <div className="explore-days" aria-label="Event days">
-        {(['all', 'Thu', 'Fri', 'Sat', 'Sun'] as const).map(value => <button key={value} type="button" className={day === value ? 'active' : ''} onClick={() => setDay(value)}>{value === 'all' ? 'All days' : value}</button>)}
-      </div>
     </div>
 
     <div className="explore-list-head">
       <div className="explore-list-filters">
-        <div className="explore-tabs" aria-label="Explore views">
-          {([
-            ['for-you', 'For you'],
-            ['all', 'All'],
-            ['changed', 'Changed'],
-            ['hidden', hiddenCount ? `Hidden ${hiddenCount}` : 'Hidden'],
-          ] as const).map(([value, label]) => <button key={value} type="button" className={mode === value ? 'active' : ''} onClick={() => setMode(value)} aria-label={value === 'hidden' ? label : undefined} title={value === 'hidden' ? label : undefined}>{value === 'hidden' ? <EyeOffMini /> : label}</button>)}
+        <div className="explore-days" aria-label="Event days">
+          {(['all', 'Thu', 'Fri', 'Sat', 'Sun'] as const).map(value => <button key={value} type="button" className={day === value ? 'active' : ''} onClick={() => setDay(value)}>{value === 'all' ? 'All days' : value}</button>)}
         </div>
         <div className="explore-type-tabs" aria-label="Event types">
           {([
@@ -2639,6 +2623,7 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
             ['other', 'Other'],
           ] as const).map(([value, label]) => <button key={value} type="button" className={eventType === value ? 'active' : ''} onClick={() => setEventType(current => current === value && value !== 'all' ? 'all' : value)}>{label}</button>)}
         </div>
+        <button className={`explore-hidden-pill ${showHidden ? 'active' : ''}`} type="button" aria-pressed={showHidden} onClick={() => setShowHidden(value => !value)}><EyeOffMini /> Hidden{hiddenCount > 0 ? ` ${hiddenCount}` : ''}</button>
       </div>
     </div>
 
@@ -2662,7 +2647,7 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
           </section>
         })}
         {visible.length === 0 && <div className="event-empty">No events match this view. Try All or clear search.</div>}
-        {mode !== 'hidden' && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
+        {!showHidden && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
           <button type="button" className="hidden-toggle" onClick={() => setHiddenExpanded(value => !value)}>
             <span><EyeOffMini /> Hidden / not for me</span>
             <small>{hiddenMatches.length} matching · recoverable</small>
