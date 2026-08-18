@@ -147,8 +147,42 @@ export type TicketedPlaySignalGroup = {
   }
 }
 
+export type TicketedPlayInventoryDiff = {
+  added: HydratedTicketedPlayEvent[]
+  removed: HydratedTicketedPlayEvent[]
+  changed: Array<{
+    previous: HydratedTicketedPlayEvent
+    current: HydratedTicketedPlayEvent
+    fields: Array<'availability' | 'time' | 'location' | 'price'>
+  }>
+  signals: TicketedPlaySignalGroup[]
+}
+
 export function blocksCalendar(event: Pick<HydratedTicketedPlayEvent, 'purchaseStatus' | 'timeKind'>): boolean {
   return (event.purchaseStatus === 'purchased' || event.purchaseStatus === 'registered') && event.timeKind === 'fixed_block'
+}
+
+export function diffTicketedPlayInventory(input: {
+  previous: HydratedTicketedPlayEvent[]
+  current: HydratedTicketedPlayEvent[]
+  retrievedAt: string
+}): TicketedPlayInventoryDiff {
+  const previousByKey = new Map(input.previous.map(event => [event.sourceEventKey, event]))
+  const currentByKey = new Map(input.current.map(event => [event.sourceEventKey, event]))
+  const added = input.current.filter(event => !previousByKey.has(event.sourceEventKey))
+  const removed = input.previous.filter(event => !currentByKey.has(event.sourceEventKey))
+  const changed = input.current.flatMap(current => {
+    const previous = previousByKey.get(current.sourceEventKey)
+    if (!previous) return []
+    const fields = changedFields(previous, current)
+    return fields.length > 0 ? [{ previous, current, fields }] : []
+  })
+  const signals = [
+    ...buildAddedSignals(added, input.retrievedAt),
+    ...buildChangedSignals(changed, input.retrievedAt),
+  ]
+
+  return { added, removed, changed, signals }
 }
 
 export function shouldKeepSoldOutVisible(event: Pick<HydratedTicketedPlayEvent, 'availability' | 'purchaseStatus' | 'soldOutFirstSeenAt'>, now = new Date()): boolean {
@@ -166,6 +200,127 @@ export function inferExploreBucket(input: { sourceCategories: string[]; title: s
   if (/\b(panel|seminar|preview|announcement|learn|info)\b/.test(haystack)) return 'info'
   if (/\b(reception|party|mixer|meet\s*&\s*greet|meet and greet|social)\b/.test(haystack)) return 'social'
   return 'other'
+}
+
+function changedFields(
+  previous: HydratedTicketedPlayEvent,
+  current: HydratedTicketedPlayEvent,
+): Array<'availability' | 'time' | 'location' | 'price'> {
+  const fields: Array<'availability' | 'time' | 'location' | 'price'> = []
+  if (previous.availability !== current.availability) fields.push('availability')
+  if (
+    previous.date !== current.date ||
+    previous.startsAt !== current.startsAt ||
+    previous.endsAt !== current.endsAt ||
+    previous.durationMinutes !== current.durationMinutes ||
+    previous.timeKind !== current.timeKind
+  ) {
+    fields.push('time')
+  }
+  if (previous.locationName !== current.locationName || previous.room !== current.room) fields.push('location')
+  if (previous.priceAmount !== current.priceAmount || previous.priceDisplay !== current.priceDisplay) fields.push('price')
+  return fields
+}
+
+function buildAddedSignals(events: HydratedTicketedPlayEvent[], retrievedAt: string): TicketedPlaySignalGroup[] {
+  if (events.length === 0) return []
+  const highSignalEvents = events.filter(isHighSignalEvent)
+  const signals: TicketedPlaySignalGroup[] = [
+    {
+      id: signalId('ticketed-play-drop', retrievedAt, 'all'),
+      kind: 'ticketed_play_drop',
+      severity: events.length >= 5 ? 'worth_knowing' : 'activity',
+      title: `${events.length} ticketed play ${events.length === 1 ? 'event landed' : 'events landed'}`,
+      summary: 'New LEAP listings are ready to triage in Explore.',
+      affectedEventIds: events.map(event => event.id),
+      groupTags: ['ticketed-play', 'first-drop'],
+      destinationRoute: 'explore',
+      destinationFilter: { exploreBucket: 'play', group: 'all_ticketed_play' },
+    },
+  ]
+
+  if (highSignalEvents.length > 0) {
+    signals.unshift({
+      id: signalId('ticketed-play-drop', retrievedAt, 'high-signal'),
+      kind: 'ticketed_play_drop',
+      severity: 'hot',
+      title: `${highSignalEvents.length} high-signal ${highSignalEvents.length === 1 ? 'event' : 'events'} landed`,
+      summary: 'These new listings look especially worth reviewing first.',
+      affectedEventIds: highSignalEvents.map(event => event.id),
+      groupTags: ['ticketed-play', 'high-signal'],
+      destinationRoute: 'explore',
+      destinationFilter: { exploreBucket: 'play', group: 'high_signal' },
+    })
+  }
+
+  return signals
+}
+
+function buildChangedSignals(
+  changed: TicketedPlayInventoryDiff['changed'],
+  retrievedAt: string,
+): TicketedPlaySignalGroup[] {
+  const soldOut = changed
+    .filter(change => change.fields.includes('availability') && change.current.availability === 'sold_out')
+    .map(change => change.current)
+  const timeChanged = changed.filter(change => change.fields.includes('time')).map(change => change.current)
+  const locationChanged = changed.filter(change => change.fields.includes('location')).map(change => change.current)
+  const priceChanged = changed.filter(change => change.fields.includes('price')).map(change => change.current)
+  const signals: TicketedPlaySignalGroup[] = []
+
+  if (soldOut.length > 0) {
+    signals.push({
+      id: signalId('ticketed-play-sold-out', retrievedAt, soldOut.map(event => event.sourceEventKey).join('-')),
+      kind: 'availability_change',
+      severity: 'worth_knowing',
+      title: `${soldOut.length} watched ${soldOut.length === 1 ? 'event sold out' : 'events sold out'}`,
+      summary: 'Sold-out events stay visible briefly so purchased or watched items can be reconciled.',
+      affectedEventIds: soldOut.map(event => event.id),
+      groupTags: ['ticketed-play', 'sold-out'],
+      destinationRoute: 'explore',
+      destinationFilter: { exploreBucket: 'play', availability: 'sold_out', group: 'sold_out' },
+    })
+  }
+
+  if (timeChanged.length > 0) signals.push(changeSignal('time_change', 'time changed', timeChanged, retrievedAt))
+  if (locationChanged.length > 0) signals.push(changeSignal('location_change', 'location changed', locationChanged, retrievedAt))
+  if (priceChanged.length > 0) signals.push(changeSignal('price_change', 'price changed', priceChanged, retrievedAt))
+
+  return signals
+}
+
+function changeSignal(
+  kind: Extract<TicketedPlaySignalGroup['kind'], 'time_change' | 'location_change' | 'price_change'>,
+  label: string,
+  events: HydratedTicketedPlayEvent[],
+  retrievedAt: string,
+): TicketedPlaySignalGroup {
+  return {
+    id: signalId(`ticketed-play-${kind}`, retrievedAt, events.map(event => event.sourceEventKey).join('-')),
+    kind,
+    severity: 'worth_knowing',
+    title: `${events.length} ticketed play ${events.length === 1 ? 'event' : 'events'} ${label}`,
+    summary: 'Review the affected listings before turning them into plan or calendar commitments.',
+    affectedEventIds: events.map(event => event.id),
+    groupTags: ['ticketed-play', kind],
+    destinationRoute: 'explore',
+    destinationFilter: { exploreBucket: 'play', group: 'watched' },
+  }
+}
+
+function isHighSignalEvent(event: HydratedTicketedPlayEvent): boolean {
+  if (event.purchaseStatus === 'purchased' || event.purchaseStatus === 'registered') return true
+  if (event.sourceCategories.some(category => category.toLowerCase() === 'black lotus')) return true
+  if (event.relevanceReasons.length >= 2) return true
+  if (event.difficulty === 'social' || event.difficulty === 'challenging') return true
+  if (event.playFormat === 'commander' || event.playFormat === 'two_headed_giant') return true
+  return false
+}
+
+function signalId(prefix: string, retrievedAt: string, scope: string): string {
+  const stamp = retrievedAt.replace(/[^0-9TZ]/g, '').replace(/Z$/, 'z')
+  const safeScope = scope.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'all'
+  return `${prefix}-${stamp}-${safeScope}`
 }
 
 export function parseLeapTicketedPlayListing(input: {

@@ -1,6 +1,6 @@
 # Ticketed play hydration contract
 
-Updated: 2026-08-16
+Updated: 2026-08-18
 
 This contract prepares the app for Atlanta ticketed-play listings without pretending the listings exist yet. LEAP is a one-way source hydrator: it tells the app what public ticketed-play inventory exists and how those source facts changed. The MagicCon companion app owns browsing, ranking, planning state, notes, purchased proof, Calendar blocking, and Home/Activity signal behavior.
 
@@ -87,6 +87,8 @@ Activity-only by default:
 - sold-out changes for irrelevant events after the initial grouped signal.
 
 Raw wording churn with no planning consequence belongs in source history/event detail only.
+
+`src/lib/ticketedPlayHydration.ts` now owns the pure inventory-diff boundary for this behavior. It compares previous and current hydrated LEAP event snapshots, reports added/removed/changed events, and emits grouped signal candidates for first drops, high-signal new events, sold-out transitions, and time/location/price changes. The diff layer only prepares signals and Explore routing filters; it does not write Supabase, mutate planning state, or decide final Home/Activity presentation.
 
 ## Initial ranking defaults
 
