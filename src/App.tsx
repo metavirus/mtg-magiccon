@@ -1006,7 +1006,7 @@ export default function App() {
   const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems) : []
   const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
-  const headerTitle = surface === 'home' && homeHeaderHotCount ? 'Atlanta needs attention.' : surfaceTitle(surface)
+  const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
   const headerSubtitle = surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
 
   return <div className="app-shell" style={desktopRailLocked ? { display: 'block', minHeight: '100vh' } : undefined}>
