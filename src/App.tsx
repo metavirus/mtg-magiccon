@@ -398,10 +398,21 @@ function selectionKey(objectId: string, key: string) {
   return `${objectId}::${key}`
 }
 
-function applySelectionState(events: ExploreEvent[], selections: Record<string, string>, trustSlice: TrustSlice | null) {
+function isKaviCompanion(companion?: CompanionMember) {
+  return companion?.key === 'kavi'
+}
+
+function kaviDefaultExploreState(event: ExploreEvent): ExploreState | null {
+  if (event.kind !== 'Ticketed play') return null
+  if (event.complexity === 'very-hard' || event.tags.includes('competitive')) return 'nope'
+  return null
+}
+
+function applySelectionState(events: ExploreEvent[], selections: Record<string, string>, trustSlice: TrustSlice | null, companion?: CompanionMember) {
   return events.map(event => {
     const selected = selections[selectionKey(`explore-${event.id}`, 'state')]
-    const state = isExploreState(selected) ? selected : event.state
+    const personalDefault = isKaviCompanion(companion) ? kaviDefaultExploreState(event) : null
+    const state = isExploreState(selected) ? selected : personalDefault ?? event.state
     if (event.id === 'bl-planechase' && trustSlice && !selected) {
       return { ...event, state: trustSlice.decision.planning_state as ExploreState }
     }
@@ -589,13 +600,13 @@ export default function App() {
       setAlertReview(Object.fromEntries(Object.entries(selections)
         .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
         .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
-      setExploreEventState(applySelectionState(exploreEvents, selections, slice))
+      setExploreEventState(applySelectionState(exploreEvents, selections, slice, currentCompanionFromSession(session, companionMembers)))
     } else failures.push('selections')
     if (failures.length) {
       setMessageTone('error')
       setMessage(`${failures.join(', ')} could not be refreshed. Other account data is still available.`)
     } else setMessage('')
-  }, [designPreview, online, session, slice])
+  }, [companionMembers, designPreview, online, session, slice])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
 
@@ -2681,7 +2692,7 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
         <small>{event.day} · {event.time}</small>
       </span>
       <span className="event-scan">
-        <ComplexityPill level={event.complexity} />
+        {event.kind !== 'Ticketed play' && <ComplexityPill level={event.complexity} />}
         <span className={`event-price price-${priceTone}`}><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>
       </span>
     </button>
