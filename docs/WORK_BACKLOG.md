@@ -107,6 +107,7 @@
 - [x] Add `pnpm validate:monitoring` as a pre-publish guard for the POC monitoring intake file, including shape checks, enum checks, duplicate-ID checks, Home-noise checks, and obvious private-artifact leakage checks.
 - [x] Enable the first scheduled monitoring heartbeat after user approval. It can read approved public/Gmail sources and update the POC hydration file when useful, but cannot write Supabase data, modify Gmail, send messages, or change canonical app state.
 - [x] Add deterministic daily monitoring scaffolding so the heartbeat checks an explicit public watch set before ad hoc browsing. `pnpm monitor:check` compares approved public URLs against an ignored local accepted baseline; `monitoring/gmail-watch-queries.json` keeps Gmail searches narrow and MagicCon-specific.
+- [x] Add the first cloud surveyor runtime as a skinny GitHub Actions workflow: scheduled first-party diff checks, artifact output, compact summary, no Gmail/Discord/LEAP, and no database writes.
 
 ## Parked
 
