@@ -30,10 +30,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
@@ -47,7 +47,7 @@ jobs:
 
       - name: Restore monitoring baseline
         id: monitoring-state-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .monitoring-state
           key: monitoring-state-${{ github.run_id }}
@@ -86,14 +86,14 @@ jobs:
 
       - name: Save monitoring baseline
         if: always()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: .monitoring-state
           key: monitoring-state-${{ github.run_id }}
 
       - name: Upload monitoring artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: daily-magiccon-surveyor
           path: work/monitoring/monitor-check.json
