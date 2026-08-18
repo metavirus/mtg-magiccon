@@ -1124,7 +1124,7 @@ export default function App() {
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
-        {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} onOpenWallet={() => openDestination('Wallet', 'wallet')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
           if (!delta) return
@@ -1744,12 +1744,12 @@ function clusterActivityEvents(rows: UserActivityEventRow[]) {
   const clusters: Cluster[] = []
   for (const row of rows) {
     const created = new Date(row.created_at).getTime()
-    const currentDetails = activityDetailJson(row.details)
     const existing = clusters[clusters.length - 1]
     if (existing) {
       const previous = existing.rows[existing.rows.length - 1]
       const previousCreated = new Date(previous.created_at).getTime()
       const withinBurst = Math.abs(created - previousCreated) <= 10 * 60 * 1000
+      const withinSelectionSession = Math.abs(created - previousCreated) <= 3 * 60 * 60 * 1000
       const samePrizeTixBurst = row.activity_type === 'prize_tix_adjusted'
         && existing.activityType === 'prize_tix_adjusted'
         && row.object_id === existing.objectId
@@ -1757,8 +1757,7 @@ function clusterActivityEvents(rows: UserActivityEventRow[]) {
       const sameEventChoiceBurst = row.activity_type === 'event_state_changed'
         && existing.activityType === 'event_state_changed'
         && row.actor_label === existing.actorLabel
-        && withinBurst
-        && String(currentDetails.state ?? '') !== 'none'
+        && withinSelectionSession
       if (samePrizeTixBurst || sameEventChoiceBurst) {
         existing.rows.push(row)
         continue
@@ -3035,48 +3034,74 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris'> }) 
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person[0]}</span>)}</span>
 }
 
-function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
-  return <section className="map-surface" aria-label="Map">
-    <article className="map-card trip-area-card">
-      <span className="eyebrow">ORIENTATION NOW</span>
-      <h2>Omni to Building C, visually.</h2>
-      <p>The Omni sits east of the campus, and Building C is the west-side target.</p>
-      <div className="campus-photo-map" aria-label="Aerial-style Omni to GWCC Building C orientation map">
-        <img src="./gwcc-campus-reference.png" alt="Aerial view showing the Omni hotel on the east side of Georgia World Congress Center and Building C on the west side." />
-        <button type="button" className="campus-label omni-label" onClick={onOpenTrip}>
-          <strong>Omni</strong>
-          <small>hotel base</small>
-        </button>
-        <span className="campus-label building-c-label">
-          <strong>GWCC Building C</strong>
-          <small>MagicCon target</small>
-        </span>
-        <span className="campus-label building-b-label">
-          <strong>Building B</strong>
-          <small>middle campus</small>
-        </span>
-        <span className="campus-label route-label">
-          <strong>Walk west</strong>
-          <small>hotel → venue</small>
-        </span>
-      </div>
-      <div className="map-quick-facts">
-        <span><strong>Venue</strong>GWCC Building C</span>
-        <span><strong>Hotel base</strong>Omni at Centennial Park</span>
-        <span><strong>Useful cue</strong>Building C sits farther west, toward Mercedes-Benz Stadium / Northside Dr.</span>
-      </div>
-    </article>
-    <article className="map-card event-map-card">
-      <span className="eyebrow">EVENT MAP LATER</span>
-      <h2>Floor map becomes the real tool later.</h2>
-      <p>When the official 2026 map appears, this should switch from campus orientation to clickable con-floor navigation.</p>
-      <ul>
-        <li>Artist Alley, vendors, show store, prize wall, ticketed play, panels, and BL lounge become clickable areas.</li>
-        <li>Receipts, event cards, and artist cards can backlink into exact map spots.</li>
-        <li>Offline cache matters here because this is an onsite panic surface.</li>
-      </ul>
-      <div className="map-source-note">Source cues: Atlanta FAQ identifies GWCC Building C; GWCC navigation identifies Building C access/rideshare context.</div>
-    </article>
+function MapSurface({ onOpenTrip, onOpenWallet }: { onOpenTrip: () => void; onOpenWallet: () => void }) {
+  const [tab, setTab] = useState<'map' | 'info'>('map')
+  const logistics = logisticsToObjectDetail()
+
+  return <section className="map-shell" aria-label="Map and info">
+    <div className="map-tabs" role="tablist" aria-label="Map and info view">
+      <button type="button" role="tab" aria-selected={tab === 'map'} className={tab === 'map' ? 'active' : ''} onClick={() => setTab('map')}>Map</button>
+      <button type="button" role="tab" aria-selected={tab === 'info'} className={tab === 'info' ? 'active' : ''} onClick={() => setTab('info')}>Info</button>
+    </div>
+
+    {tab === 'map' ? <div className="map-surface">
+      <article className="map-card trip-area-card">
+        <span className="eyebrow">ORIENTATION NOW</span>
+        <h2>Omni to Building C, visually.</h2>
+        <p>The Omni sits east of the campus, and Building C is the west-side target.</p>
+        <div className="campus-photo-map" aria-label="Aerial-style Omni to GWCC Building C orientation map">
+          <img src="./gwcc-campus-reference.png" alt="Aerial view showing the Omni hotel on the east side of Georgia World Congress Center and Building C on the west side." />
+          <button type="button" className="campus-label omni-label" onClick={onOpenTrip}>
+            <strong>Omni</strong>
+            <small>hotel base</small>
+          </button>
+          <span className="campus-label building-c-label">
+            <strong>GWCC Building C</strong>
+            <small>MagicCon target</small>
+          </span>
+          <span className="campus-label building-b-label">
+            <strong>Building B</strong>
+            <small>middle campus</small>
+          </span>
+          <span className="campus-label route-label">
+            <strong>Walk west</strong>
+            <small>hotel → venue</small>
+          </span>
+        </div>
+        <div className="map-quick-facts">
+          <span><strong>Venue</strong>GWCC Building C</span>
+          <span><strong>Hotel base</strong>Omni at Centennial Park</span>
+          <span><strong>Useful cue</strong>Building C sits farther west, toward Mercedes-Benz Stadium / Northside Dr.</span>
+        </div>
+      </article>
+      <article className="map-card event-map-card">
+        <span className="eyebrow">EVENT MAP LATER</span>
+        <h2>Floor map becomes the real tool later.</h2>
+        <p>When the official 2026 map appears, this should switch from campus orientation to clickable con-floor navigation.</p>
+        <ul>
+          <li>Artist Alley, vendors, show store, prize wall, ticketed play, panels, and BL lounge become clickable areas.</li>
+          <li>Receipts, event cards, and artist cards can backlink into exact map spots.</li>
+          <li>Offline cache matters here because this is an onsite panic surface.</li>
+        </ul>
+        <div className="map-source-note">Source cues: Atlanta FAQ identifies GWCC Building C; GWCC navigation identifies Building C access/rideshare context.</div>
+      </article>
+    </div> : <div className="map-surface map-info-surface">
+      <article className="map-card map-info-card">
+        <span className="eyebrow">ONSITE INFO</span>
+        <h2>{logistics.title}</h2>
+        <p>{logistics.summary}</p>
+        <div className="map-info-grid">
+          {logistics.facts?.map(fact => <span key={fact.label}><strong>{fact.label}</strong>{fact.value}</span>)}
+        </div>
+      </article>
+      <article className="map-card map-info-card">
+        <span className="eyebrow">SOURCE</span>
+        <h2>Why this lives here now</h2>
+        <p>{logistics.rationale}</p>
+        <div className="map-source-note">{logistics.source?.label}: {logistics.source?.value}</div>
+        <button type="button" onClick={onOpenWallet}>Open Wallet proof</button>
+      </article>
+    </div>}
   </section>
 }
 
@@ -3160,7 +3185,6 @@ function WalletHomeTab({ openBlackLotusProof, openJuanProof, onOpenObject }: { o
       </div>
       <div className="wallet-hero-actions">
         <button className="primary-show" type="button" onClick={openBlackLotusProof}><NavIcon name="wallet" /> Black Lotus proof</button>
-        <button type="button" onClick={() => onOpenObject(logisticsToObjectDetail())}><NavIcon name="calendar" /> Hours</button>
       </div>
       <div className="wallet-badge-fan" aria-label="Primary badge cards">
         <button className="mini-pass lotus-pass" type="button" onClick={openBlackLotusProof}>
