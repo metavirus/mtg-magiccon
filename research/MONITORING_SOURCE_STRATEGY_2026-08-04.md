@@ -1,6 +1,6 @@
 # MagicCon Atlanta Monitoring Source Strategy
 
-Updated: 2026-08-08
+Updated: 2026-08-17
 
 ## Decision question
 
@@ -12,6 +12,8 @@ Canonical evidence comes from Kavi's inbox and first-party publisher/operator so
 
 The Atlanta official site tree is itself a canonical watch target. The monitor should not only check individual bookmarked URLs; it should also notice new, removed, renamed, or materially changed pages under `https://mcatlanta.mtgfestivals.com/en-us/`.
 
+The first cloud-surveyor pass should stay simple: daily first-party page diffs plus sparse official-news checks. Gmail, LEAP, Discord, and broad search are useful, but they should not make the first cloud job fragile.
+
 ## Source priority
 
 ### P0 — canonical and high-alert by default
@@ -21,8 +23,11 @@ These are the sources most likely to contain decision-changing information.
 - Gmail messages about MagicCon or the Atlanta trip: MagicCon, Magic Con, MTG Festivals, ReedPop MagicCon mail, Leap Conventions/leapevent, Pastimes, Delta, Omni, Courtyard, Booking/KAYAK, official store, prize wall, QR codes, confirmations, or receipts. Generic Wizards/Magic marketing and standalone Leap wording are out of scope unless the same message also mentions MagicCon, MTG Festivals, Atlanta 2026, ReedPop, leapevent, Leap Conventions, or Pastimes.
 - Atlanta official site tree: `https://mcatlanta.mtgfestivals.com/en-us.html` and all discovered `mcatlanta.mtgfestivals.com/en-us/` pages.
 - Atlanta Black Lotus VIP page: `https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html`.
+- Atlanta How to Buy page, because ticketed-play readiness language can change there before a standalone ticketed-play page is discoverable.
+- Atlanta FAQ page, because ticketed-play registration, sold-out, Companion/location, refund, and transfer rules are operationally consequential.
+- Atlanta Info and Mobile App pages, because map/schedule/app availability can become useful late in the planning window.
 - Global MagicCon news index: `https://www.mtgfestivals.com/global/en-us/magiccon-news.html`.
-- Leap order and ticketed-play schedule surfaces, when authenticated or public access is available.
+- Leap order and ticketed-play schedule surfaces, once Atlanta inventory exists or Kavi asks for a targeted check. LEAP is the future hydration source, but it is parked from the daily public-diff MVP until it becomes useful.
 
 Black Lotus page changes should be Home-worthy unless clearly cosmetic, because the page already contains the Thursday First Look schedule, Black Lotus included events, online store entitlement, pickup windows, special access, lounge state, and FAQ claims.
 
@@ -42,7 +47,8 @@ These sources are first-party or operator-adjacent and often become more useful 
 
 These are not canonical, but they may reveal things worth checking.
 
-- Daily or every-few-days search queries:
+- Targeted search queries, run only as a conditional radar lane after an official diff, a user prompt, or a quiet-period periodic sweep—not as broad daily crawling:
+  - `"MagicCon Atlanta 2026"`
   - `"MagicCon Atlanta" "ticketed play"`
   - `"MagicCon Atlanta" "Black Lotus"`
   - `"MagicCon Atlanta" "artist directory"`
@@ -56,7 +62,7 @@ These are not canonical, but they may reveal things worth checking.
 - Vendor and sponsor channels only after the official exhibitor/vendor list exists, with special attention to con-exclusive merch such as playmats, sleeves, deck boxes, promos, pins, and limited-quantity products.
 - Artist pages/social only after the official artist list exists, and only to enrich signature/card planning rather than generating fan-noise.
 - Reddit and community posts as weak radar for timing, sellouts, store drops, app changes, and operational pain points. Community claims require a canonical follow-up before becoming app facts.
-- MagicCon Black Lotus VIP Discord, now specifically identified by Kavi as high-signal radar. The most useful channels are likely `#questions-for-staff` and Black Lotus community channels such as `#magiccon-discussion`, `#deckbuilding-and-theorycrafting`, and `#trades`. Treat staff answers, official links, and "article just released" chatter as leads to preserve and verify; treat ordinary community discussion as Activity-worthy context, not canonical fact.
+- MagicCon Black Lotus VIP Discord, now specifically identified by Kavi as high-signal radar. The most useful channels are likely `#questions-for-staff` and Black Lotus community channels such as `#magiccon-discussion`, `#deckbuilding-and-theorycrafting`, and `#trades`. Treat staff answers, official links, and "article just released" chatter as leads to preserve and verify; treat ordinary community discussion as Activity-worthy context, not canonical fact. Automated Discord remains backlog until there is a reviewed read-only profile and guardrail design.
 
 ### P3 — deliberately not monitored for MVP
 
@@ -153,9 +159,10 @@ The monitor should run breadth-first but report sparse:
 
 1. Check the Atlanta official site tree and detect new/deleted/materially changed pages.
 2. Check the Black Lotus page as a separately elevated target.
-3. Check the global news index for new MagicCon posts.
-4. If Gmail is enabled, run the narrow query set and extract only candidate confirmations, receipts, travel changes, or announcement emails.
-5. Check narrowly filtered official Wizards news/search results only for MagicCon-relevant product/context evidence.
-6. Run a small external-search radar set for new high-signal Atlanta mentions.
-7. Route findings to Home, Activity, Wallet, Trip, Explore, Calendar, Map, or Notes under `docs/POC_FINISH_GLIDE_PATH.md`.
-8. Preserve exact URLs, retrieval time, useful wording, and confidence. Do not write canonical facts or app state without a reviewed workflow.
+3. Check How to Buy, FAQ, Info, and Mobile App as explicit first-party diff targets so ticketed-play readiness, app/map readiness, and operational rule changes are not missed.
+4. Check the global news index for new MagicCon posts.
+5. If Gmail is enabled later, run the narrow query set and extract only candidate confirmations, receipts, travel changes, or announcement emails. The reference repo's durable OAuth pattern is useful, but MagicCon should adopt it only when cloud Gmail is actually being implemented.
+6. Check narrowly filtered official Wizards news/search results only for MagicCon-relevant product/context evidence.
+7. Run a small external-search radar set for new high-signal Atlanta mentions only after official diffs, user prompts, or occasional quiet-period sweeps.
+8. Route findings to Home, Activity, Wallet, Trip, Explore, Calendar, Map, or Notes under `docs/POC_FINISH_GLIDE_PATH.md`.
+9. Preserve exact URLs, retrieval time, useful wording, and confidence. Do not write canonical facts or app state without a reviewed workflow.

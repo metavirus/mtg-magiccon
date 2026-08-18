@@ -31,21 +31,60 @@ function extractTitle(html) {
   return match ? normalizeHtml(match[1]).slice(0, 160) : '';
 }
 
-function extractLinks(html, baseUrl) {
-  const links = new Set();
-  const re = /href=["']([^"']+)["']/gi;
+function extractLinkRecords(html, baseUrl) {
+  const links = new Map();
+  const re = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   for (const match of html.matchAll(re)) {
     try {
       const url = new URL(match[1], baseUrl);
       if (url.protocol === 'http:' || url.protocol === 'https:') {
         url.hash = '';
-        links.add(url.toString());
+        const label = normalizeHtml(match[2]).slice(0, 120);
+        const key = `${url.toString()} ${label}`.trim();
+        links.set(key, { label, url: url.toString() });
       }
     } catch {
       // Ignore malformed page links; the content hash still catches meaningful changes.
     }
   }
-  return [...links].sort();
+  return [...links.values()].sort((a, b) => `${a.label} ${a.url}`.localeCompare(`${b.label} ${b.url}`));
+}
+
+function compactLinkRecord(link) {
+  return link.label ? `${link.label} -> ${link.url}` : link.url;
+}
+
+function diffLinkRecords(previousLinks = [], currentLinks = []) {
+  const previous = new Set(previousLinks.map(compactLinkRecord));
+  const current = new Set(currentLinks.map(compactLinkRecord));
+  return {
+    added: [...current].filter((link) => !previous.has(link)).sort(),
+    removed: [...previous].filter((link) => !current.has(link)).sort()
+  };
+}
+
+function summarizeLinkDelta(previous, current) {
+  if (!previous.links || !current.links) {
+    return {
+      added: [],
+      removed: [],
+      note: 'Accepted baseline predates labeled-link tracking; accept a reviewed baseline before interpreting link/menu deltas.'
+    };
+  }
+  const delta = diffLinkRecords(previous.links, current.links);
+  return {
+    added: delta.added.slice(0, 25),
+    removed: delta.removed.slice(0, 25),
+    truncated: delta.added.length > 25 || delta.removed.length > 25
+  };
+}
+
+function summarizeCurrent(current) {
+  const { links, ...summary } = current;
+  return {
+    ...summary,
+    linkSample: current.linkSample.slice(0, 12)
+  };
 }
 
 async function readJson(filePath, fallback) {
@@ -88,7 +127,8 @@ async function fetchSource(source) {
     }
   }
   const normalizedText = normalizeHtml(html);
-  const links = source.trackLinks ? extractLinks(html, source.url) : [];
+  const linkRecords = source.trackLinks ? extractLinkRecords(html, source.url) : [];
+  const links = linkRecords.map((link) => link.url);
 
   return {
     id: source.id,
@@ -98,9 +138,11 @@ async function fetchSource(source) {
     ok,
     title: extractTitle(html),
     textHash: hashText(normalizedText),
-    linkHash: hashText(links.join('\n')),
+    linkHash: hashText(linkRecords.map(compactLinkRecord).join('\n')),
     textSample: normalizedText.slice(0, 500),
-    linkCount: links.length
+    linkCount: links.length,
+    linkSample: linkRecords.slice(0, 40),
+    links: linkRecords
   };
 }
 
@@ -140,8 +182,9 @@ for (const source of watchSet.sources) {
           linkHash: previous.linkHash,
           acceptedAt: previous.acceptedAt
         },
-        current
+        current: summarizeCurrent(current)
       });
+      changes.at(-1).linkDelta = summarizeLinkDelta(previous, current);
       state.pending ??= {};
       state.pending[source.id] = { ...current, detectedAt: checkedAt };
     }

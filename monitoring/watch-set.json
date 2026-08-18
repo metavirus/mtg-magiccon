@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-11",
+  "updatedAt": "2026-08-17",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "sources": [
     {
@@ -21,6 +21,46 @@
       "priority": "canonical",
       "destination": "Home",
       "homeWorthyWhen": "any material Black Lotus schedule, store, pickup, lounge, entitlement, policy, product, or event-detail change",
+      "trackLinks": true
+    },
+    {
+      "id": "atlanta-how-to-buy",
+      "label": "Atlanta How to Buy",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/how-to-buy.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Activity",
+      "homeWorthyWhen": "ticketed-play dashboard opens, coming-soon language changes, purchase flow changes, transfer rules change, or badge/ticket buying timing changes",
+      "trackLinks": true
+    },
+    {
+      "id": "atlanta-faq",
+      "label": "Atlanta FAQ",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/faq.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Activity",
+      "homeWorthyWhen": "ticketed-play rules, registration deadlines, sold-out guidance, Companion/location instructions, refund/transfer policy, venue hours, or will-call details materially change",
+      "trackLinks": true
+    },
+    {
+      "id": "atlanta-info",
+      "label": "Atlanta Info overview",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Activity",
+      "homeWorthyWhen": "mobile app, map, hotels/travel, accessibility, contact, or operational info pages move from coming-soon/placeholder to useful Atlanta-specific content",
+      "trackLinks": true
+    },
+    {
+      "id": "atlanta-mobile-app",
+      "label": "Atlanta mobile app page",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/mobile-app.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official app, schedule, map, exhibitor, bookmark, reminder, or push-notification details become available for Atlanta",
       "trackLinks": true
     },
     {
