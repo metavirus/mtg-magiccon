@@ -611,7 +611,6 @@ export default function App() {
   }, [designPreview, online, session])
 
   useEffect(() => {
-    if (!designPreview) return
     let active = true
     void fetch(`${import.meta.env.BASE_URL}monitoring-intake.json`, { cache: 'no-store' })
       .then(response => response.ok ? response.json() : null)
@@ -625,7 +624,7 @@ export default function App() {
         // built-in fixture alerts so local design review never goes blank.
       })
     return () => { active = false }
-  }, [designPreview])
+  }, [])
 
   useEffect(() => {
     const handleLocationChange = () => {
