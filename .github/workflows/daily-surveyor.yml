@@ -74,6 +74,7 @@ jobs:
           Add-Content $env:GITHUB_STEP_SUMMARY "- Watched sources: $($report.sourceCount)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Changed sources: $($report.changeCount)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Fetch failures: $($report.failureCount)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Ticketed play signals: $($report.ticketedPlay.signalCount) ($($report.ticketedPlay.status))"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Mode: $($report.mode)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Summary: $($report.summary)"
           if ($report.changeCount -gt 0) {

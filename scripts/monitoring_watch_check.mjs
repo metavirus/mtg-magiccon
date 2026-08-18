@@ -9,6 +9,17 @@ const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
 const accept = process.argv.includes('--accept');
 const execFileAsync = promisify(execFile);
+const ticketedPlayEmptyDiff = {
+  enabled: false,
+  status: 'waiting-for-inventory',
+  previousEventCount: 0,
+  currentEventCount: 0,
+  addedCount: 0,
+  removedCount: 0,
+  changedCount: 0,
+  signalCount: 0,
+  signals: []
+};
 
 function hashText(text) {
   return createHash('sha256').update(text).digest('hex');
@@ -96,6 +107,128 @@ async function readJson(filePath, fallback) {
   }
 }
 
+function eventKey(event) {
+  return event.sourceEventKey || event.id;
+}
+
+function eventChangedFields(previous, current) {
+  const fields = [];
+  if (previous.availability !== current.availability) fields.push('availability');
+  if (
+    previous.date !== current.date ||
+    previous.startsAt !== current.startsAt ||
+    previous.endsAt !== current.endsAt ||
+    previous.durationMinutes !== current.durationMinutes ||
+    previous.timeKind !== current.timeKind
+  ) {
+    fields.push('time');
+  }
+  if (previous.locationName !== current.locationName || previous.room !== current.room) fields.push('location');
+  if (previous.priceAmount !== current.priceAmount || previous.priceDisplay !== current.priceDisplay) fields.push('price');
+  return fields;
+}
+
+function eventIsHighSignal(event) {
+  if (event.purchaseStatus === 'purchased' || event.purchaseStatus === 'registered') return true;
+  if ((event.sourceCategories || []).some((category) => category.toLowerCase() === 'black lotus')) return true;
+  if ((event.relevanceReasons || []).length >= 2) return true;
+  if (event.difficulty === 'social' || event.difficulty === 'challenging') return true;
+  if (event.playFormat === 'commander' || event.playFormat === 'two_headed_giant') return true;
+  return false;
+}
+
+function signalId(prefix, retrievedAt, scope) {
+  const stamp = retrievedAt.replace(/[^0-9TZ]/g, '').replace(/Z$/, 'z');
+  const safeScope = scope.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'all';
+  return `${prefix}-${stamp}-${safeScope}`;
+}
+
+function buildTicketedPlaySignals(added, changed, retrievedAt) {
+  const signals = [];
+  const highSignalAdded = added.filter(eventIsHighSignal);
+  if (highSignalAdded.length > 0) {
+    signals.push({
+      id: signalId('ticketed-play-drop', retrievedAt, 'high-signal'),
+      kind: 'ticketed_play_drop',
+      severity: 'hot',
+      title: `${highSignalAdded.length} high-signal ${highSignalAdded.length === 1 ? 'event' : 'events'} landed`,
+      affectedEventIds: highSignalAdded.map((event) => event.id),
+      destinationRoute: 'explore',
+      destinationFilter: { exploreBucket: 'play', group: 'high_signal' }
+    });
+  }
+  if (added.length > 0) {
+    signals.push({
+      id: signalId('ticketed-play-drop', retrievedAt, 'all'),
+      kind: 'ticketed_play_drop',
+      severity: added.length >= 5 ? 'worth_knowing' : 'activity',
+      title: `${added.length} ticketed play ${added.length === 1 ? 'event landed' : 'events landed'}`,
+      affectedEventIds: added.map((event) => event.id),
+      destinationRoute: 'explore',
+      destinationFilter: { exploreBucket: 'play', group: 'all_ticketed_play' }
+    });
+  }
+
+  const soldOut = changed
+    .filter((change) => change.fields.includes('availability') && change.current.availability === 'sold_out')
+    .map((change) => change.current);
+  if (soldOut.length > 0) {
+    signals.push({
+      id: signalId('ticketed-play-sold-out', retrievedAt, soldOut.map(eventKey).join('-')),
+      kind: 'availability_change',
+      severity: 'worth_knowing',
+      title: `${soldOut.length} watched ${soldOut.length === 1 ? 'event sold out' : 'events sold out'}`,
+      affectedEventIds: soldOut.map((event) => event.id),
+      destinationRoute: 'explore',
+      destinationFilter: { exploreBucket: 'play', availability: 'sold_out', group: 'sold_out' }
+    });
+  }
+
+  return signals;
+}
+
+async function summarizeTicketedPlayInventory(config, checkedAt) {
+  if (!config?.currentSnapshotFile) return ticketedPlayEmptyDiff;
+
+  const currentPath = path.join(root, config.currentSnapshotFile);
+  const stateFile = config.stateFile || '.monitoring-state/ticketed-play-inventory.local.json';
+  const statePath = path.join(root, stateFile);
+  const currentSnapshot = await readJson(currentPath, { events: [] });
+  const current = Array.isArray(currentSnapshot) ? currentSnapshot : currentSnapshot.events || [];
+  const state = await readJson(statePath, { version: 1, accepted: [] });
+  const previous = Array.isArray(state.accepted) ? state.accepted : [];
+  const previousByKey = new Map(previous.map((event) => [eventKey(event), event]));
+  const currentByKey = new Map(current.map((event) => [eventKey(event), event]));
+  const added = current.filter((event) => !previousByKey.has(eventKey(event)));
+  const removed = previous.filter((event) => !currentByKey.has(eventKey(event)));
+  const changed = current.flatMap((event) => {
+    const previousEvent = previousByKey.get(eventKey(event));
+    if (!previousEvent) return [];
+    const fields = eventChangedFields(previousEvent, event);
+    return fields.length > 0 ? [{ previous: previousEvent, current: event, fields }] : [];
+  });
+  const signals = buildTicketedPlaySignals(added, changed, checkedAt);
+
+  if (accept) {
+    await mkdir(path.dirname(statePath), { recursive: true });
+    await writeFile(statePath, `${JSON.stringify({ version: 1, accepted: current, acceptedAt: checkedAt }, null, 2)}\n`, 'utf8');
+  }
+
+  return {
+    enabled: true,
+    status: current.length > 0 ? 'checked' : 'empty-snapshot',
+    currentSnapshotFile: config.currentSnapshotFile,
+    stateFile,
+    previousEventCount: previous.length,
+    currentEventCount: current.length,
+    addedCount: added.length,
+    removedCount: removed.length,
+    changedCount: changed.length,
+    signalCount: signals.length,
+    signals
+  };
+}
+
 async function fetchSource(source) {
   let status = 200;
   let ok = true;
@@ -153,6 +286,7 @@ const checkedAt = new Date().toISOString();
 const results = [];
 const changes = [];
 const failures = [];
+let ticketedPlay = ticketedPlayEmptyDiff;
 
 for (const source of watchSet.sources) {
   try {
@@ -198,6 +332,23 @@ for (const source of watchSet.sources) {
   }
 }
 
+try {
+  ticketedPlay = await summarizeTicketedPlayInventory(watchSet.ticketedPlayInventory, checkedAt);
+} catch (error) {
+  ticketedPlay = {
+    ...ticketedPlayEmptyDiff,
+    enabled: Boolean(watchSet.ticketedPlayInventory),
+    status: 'failed',
+    error: error.message
+  };
+  failures.push({
+    id: 'ticketed-play-inventory',
+    label: 'Ticketed play inventory snapshot',
+    url: watchSet.ticketedPlayInventory?.currentSnapshotFile || '',
+    error: error.message
+  });
+}
+
 state.version = 1;
 state.checkedAt = checkedAt;
 state.watchSetVersion = watchSet.version;
@@ -212,6 +363,7 @@ const output = {
   sourceCount: watchSet.sources.length,
   changeCount: changes.length,
   failureCount: failures.length,
+  ticketedPlay,
   changes,
   failures,
   summary: changes.length

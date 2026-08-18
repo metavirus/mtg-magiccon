@@ -1,6 +1,6 @@
 # Monitoring Hydration Contract
 
-Updated: 2026-08-11
+Updated: 2026-08-18
 
 ## Purpose
 
@@ -53,6 +53,10 @@ This is the POC hydration path. It is intentionally file-based so it can be repl
 The app validates only the shape needed to avoid crashing. The monitor remains responsible for preserving source quality, useful wording, and exact references in the generated file.
 
 `pnpm validate:monitoring` is the pre-publish guard for this file. It checks required fields, allowed enum values, duplicate IDs, lowercase kebab-case IDs, quiet findings routed to Home, and obvious private-artifact leakage risks. It is intentionally conservative and does not certify that a finding is true or canonical.
+
+## Surveyor artifact shape
+
+`pnpm monitor:check` writes a machine-readable report to stdout and the GitHub Actions artifact. In addition to public watch-source counts, the report now includes a `ticketedPlay` section. Until a LEAP inventory snapshot is configured, it reports `status: waiting-for-inventory` with zero signals. Once a reviewed snapshot source exists, this section may carry grouped ticketed-play signal candidates from the pure inventory-diff layer, such as first-drop, high-signal event, sold-out, time, location, or price changes. These are routing candidates only; they do not write Supabase, mutate selections, or publish app alerts by themselves.
 
 ## Publication rule
 
