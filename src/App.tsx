@@ -2705,7 +2705,6 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
         <small>{event.day} · {event.time}</small>
       </span>
       <span className="event-scan">
-        {event.kind !== 'Ticketed play' && <ComplexityPill level={event.complexity} />}
         <span className={`event-price price-${priceTone}`}><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>
       </span>
     </button>
