@@ -987,7 +987,7 @@ export default function App() {
     reviewState: alertReview[alert.id] ?? defaultAlertReviewState(alert),
     objectDetail: alertToObjectDetail(alert),
   }))
-  const activityItems = [...generatedActivity, ...noteActivity, ...monitorActivity].sort((a, b) => {
+  const activityItems = [...generatedActivity, ...noteActivity, ...monitorActivity].filter(shouldShowActivityItem).sort((a, b) => {
     const severityRank = { hot: 0, notice: 1, quiet: 2 } as const
     const reviewRank = { 'needs-review': 0, reviewed: 1, archived: 2 } as const
     const reviewDelta = reviewRank[a.reviewState] - reviewRank[b.reviewState]
@@ -1487,7 +1487,7 @@ type WalletTab = 'home' | 'play' | 'store' | 'other'
 type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
 type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
-type ActivityStream = 'hot' | 'changes' | 'sources' | 'personal' | 'all' | 'archived'
+type ActivityStream = 'hot' | 'events' | 'changes' | 'sources' | 'personal' | 'archived' | 'all'
 type ActivitySourceKind = 'monitor' | 'selection' | 'activity-log' | 'note'
 type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
 type NotePersonFilter = 'all' | PersonName
@@ -1632,6 +1632,30 @@ function homeWorthKnowingItems(items: ActivityItem[], now = Date.now()) {
       return new Date(b.checkedAtIso).getTime() - new Date(a.checkedAtIso).getTime()
     })
     .slice(0, 5)
+}
+
+function isBeforeToday(iso: string, now = new Date()) {
+  const checkedAt = new Date(iso).getTime()
+  if (!Number.isFinite(checkedAt)) return false
+  const startOfToday = new Date(now)
+  startOfToday.setHours(0, 0, 0, 0)
+  return checkedAt < startOfToday.getTime()
+}
+
+function isEventActivityItem(item: ActivityItem) {
+  return item.objectDetail.kind === 'event'
+    || item.destination === 'Explore'
+    || item.destination === 'Calendar'
+    || item.source.toLowerCase().includes('selection')
+    || item.object.toLowerCase().includes('event')
+}
+
+function shouldShowActivityItem(item: ActivityItem) {
+  if (item.sourceKind === 'activity-log' && item.objectDetail.id === 'wallet-prize-tix') return false
+  const selectionActivity = item.sourceKind === 'selection'
+    || (item.sourceKind === 'activity-log' && item.source.toLowerCase().includes('selection'))
+  if (selectionActivity && isBeforeToday(item.checkedAtIso)) return false
+  return true
 }
 
 function isChangeLikeAlert(alert: MonitoringAlert) {
@@ -3955,16 +3979,18 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenObject }: { n
 function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onOpenItem, onOpenObject }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const [stream, setStream] = useState<ActivityStream>('hot')
   const hotCount = incomingItems.filter(item => item.reviewState === 'needs-review' && item.severity === 'hot').length
+  const eventCount = incomingItems.filter(item => item.reviewState !== 'archived' && isEventActivityItem(item)).length
   const sourceCount = incomingItems.filter(item => item.reviewState !== 'archived' && item.sourceKind === 'monitor' && item.kind !== 'manual').length
   const changeCount = incomingItems.filter(item => item.reviewState !== 'archived' && (item.sourceKind === 'selection' || item.sourceKind === 'activity-log' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert)))).length
   const activeAlertCount = incomingItems.filter(item => item.reviewState !== 'archived').length
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
     { value: 'hot', label: 'Hot', icon: <span className="activity-fire" aria-hidden="true">🔥</span>, count: hotCount },
-    { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount },
+    { value: 'events', label: 'Events', icon: <NavIcon name="calendar" />, count: eventCount },
     { value: 'changes', label: 'Changes', icon: <AlertKindIcon kind="newsletter" />, count: changeCount },
     { value: 'sources', label: 'Sources', icon: <AlertKindIcon kind="email" />, count: sourceCount },
     { value: 'personal', label: 'Notes', icon: <NavIcon name="notes" />, count: notes.length },
     { value: 'archived', label: 'Archive', icon: <NavIcon name="activity" />, count: incomingItems.filter(item => item.reviewState === 'archived').length },
+    { value: 'all', label: 'All', icon: <NavIcon name="activity" />, count: activeAlertCount },
   ]
   const alerts = incomingItems.filter(item => {
     const state = item.reviewState
@@ -3972,6 +3998,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
     if (stream === 'hot') return state === 'needs-review' && item.severity === 'hot'
     if (stream === 'archived') return state === 'archived'
     if (state === 'archived') return false
+    if (stream === 'events') return isEventActivityItem(item)
     if (stream === 'changes') return item.sourceKind === 'selection' || item.sourceKind === 'activity-log' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert))
     if (stream === 'sources') return item.sourceKind === 'monitor' && item.kind !== 'manual'
     return false
