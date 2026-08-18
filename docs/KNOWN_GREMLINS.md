@@ -173,6 +173,7 @@ If public verification fails after a correct push, report propagation/cache lag 
 **Do this:**
 
 - Use the project scripts as-is; `scripts/monitoring_watch_check.mjs` already falls back to PowerShell's Windows web stack.
+- The package scripts run Node with `--use-system-ca`; do not remove that flag unless the public-source fetch path is re-proven without it.
 - If both Node fetch and the PowerShell fallback fail, treat it as a real network/source failure and report the exact source IDs.
 - Do not replace the monitor with ad hoc browser scraping just because Node fetch alone failed.
 
