@@ -2276,67 +2276,6 @@ const exploreEventCandidates: ExploreEvent[] = [
     planEffect: 'Hold as a meaningful Friday contender, but do not over-rank until the official format is published.',
   },
   {
-    id: 'commander-cocktails',
-    title: 'Commander & Cocktails',
-    day: 'Fri',
-    time: '5 PM anchor',
-    window: 'Flexible league',
-    price: '$60',
-    kind: 'Ticketed play',
-    type: 'social',
-    format: 'Commander league',
-    tags: ['social', 'flexible', 'past favorite'],
-    state: 'interested',
-    availability: 'open',
-    complexity: 'easy',
-    complexityWhy: 'Loose league structure lowers schedule pressure; commander politics matter more than tournament precision.',
-    fit: 'Strong fit: social, flexible, and already known to be your kind of event.',
-    detail: 'Useful as a weekend-long texture event. Keep it visible, but do not let the listed time block a stronger fixed event.',
-    formatHelp: 'A league is a flexible participation structure: the listed time is an anchor, while games may be played elsewhere in the weekend window.',
-    decisionFacts: [
-      { label: 'Structure', value: 'Flexible league' },
-      { label: 'Prep', value: 'Bring a Commander deck' },
-      { label: 'Best for', value: 'Social, lower-pressure play' },
-    ],
-    moreDetails: [
-      { label: 'Scheduling', value: 'The Leap time may need to be moved before another overlapping event can be purchased.' },
-      { label: 'Operational', value: 'Registration and Companion instructions stay available here when the Atlanta listing is published.' },
-    ],
-    sourceNote: 'Representative Vegas structure; not an announced Atlanta event.',
-    planEffect: 'Promoting it keeps the 5 PM anchor visible without creating a hard conflict.',
-  },
-  {
-    id: 'planar-sealed',
-    title: 'Deluxe Planar Sealed - Strixhaven',
-    day: 'Fri',
-    time: '1-5 PM',
-    window: '4 hours',
-    price: '$80',
-    kind: 'Ticketed play',
-    type: 'play',
-    format: 'Planar sealed',
-    tags: ['novel', 'long', 'nonrefundable'],
-    state: 'tentative',
-    availability: 'open',
-    complexity: 'demanding',
-    complexityWhy: 'Sealed deckbuilding plus plane-based novelty creates real mental load; not a qualifier, but it asks for focus.',
-    fit: 'Potentially interesting because it is weird; the cost and four-hour block make the commitment meaningful.',
-    detail: 'Build from a supplied mixed-booster pool, then play three Swiss rounds. The planar twist adds novelty and more board-state tracking than ordinary Sealed.',
-    formatHelp: 'Sealed means building a 40-card deck from product opened at the event. “Planar” adds Planechase-style shared effects, so the rules and board state change during play.',
-    decisionFacts: [
-      { label: 'Structure', value: '3 Swiss rounds' },
-      { label: 'Play window', value: 'About 4–5 hours' },
-      { label: 'Supplies', value: 'Pool provided; lands available' },
-      { label: 'Prize tix', value: '1,300 win · 600 loss', icon: 'ticket' },
-    ],
-    moreDetails: [
-      { label: 'Product', value: 'Six boosters across Draft, Play, and Collector products in the representative listing.' },
-      { label: 'Registration', value: 'Companion code and account instructions belong here rather than in the decision summary.' },
-    ],
-    sourceNote: 'Representative MagicCon Vegas listing supplied for design; Atlanta details may differ.',
-    planEffect: 'Tentative placement would compete with the Black Lotus anchor and a 3 PM loose event.',
-  },
-  {
     id: 'bl-planechase',
     title: 'BL Planechase Unknown',
     day: 'Sat',
@@ -2365,35 +2304,6 @@ const exploreEventCandidates: ExploreEvent[] = [
     ],
     sourceNote: 'Official Atlanta Black Lotus page, retrieved Aug 3, 2026.',
     planEffect: 'Stays in Plan as a strong Black Lotus contender until a better Saturday shape appears.',
-  },
-  {
-    id: 'designing-unknown',
-    title: 'Designing Unknown with Gavin',
-    day: 'Fri',
-    time: '3-5 PM',
-    window: '2 hours',
-    price: 'free',
-    kind: 'Panel',
-    type: 'info',
-    format: 'Design panel',
-    tags: ['guest', 'low risk'],
-    state: 'none',
-    availability: 'open',
-    complexity: 'inconclusive',
-    complexityWhy: 'Assessment attempted, but this is not a play format; decision value comes from guest relevance and schedule fit.',
-    fit: 'Low financial risk and easy to leave, but less distinctive than your strongest contenders.',
-    detail: 'A good candidate for opportunistic attendance if the nearby plan has a fuzzy tail.',
-    formatHelp: 'A panel is informational rather than a play event. Complexity is intentionally not inferred from a game format.',
-    decisionFacts: [
-      { label: 'Structure', value: 'Two-hour panel' },
-      { label: 'Cost', value: 'Free' },
-      { label: 'Exit flexibility', value: 'Easy to leave early' },
-    ],
-    moreDetails: [
-      { label: 'Guest context', value: 'Speaker background and topic detail will be added when the Atlanta listing supplies them.' },
-    ],
-    sourceNote: 'Representative event used to test mixed play and information listings.',
-    planEffect: 'Interested would place a soft visual block after Planar Sealed without treating it like a paid lock.',
   },
   {
     id: 'bl-mystery-booster-drafts',
@@ -2447,44 +2357,6 @@ const exploreEventCandidates: ExploreEvent[] = [
     ],
     sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
     planEffect: 'Small Sunday anchor that may overlap with drafts; easy to choose later.',
-  },
-  {
-    id: 'rcq',
-    title: 'Regional Championship Qualifier',
-    day: 'Sun',
-    time: '9 AM-5 PM',
-    window: 'All day',
-    price: '$75',
-    kind: 'Competitive',
-    type: 'play',
-    format: 'Qualifier',
-    tags: ['competitive', 'decklist', 'cut to top 8'],
-    state: 'nope',
-    availability: 'open',
-    complexity: 'very-hard',
-    complexityWhy: 'Qualifier stakes, long play window, expected preparation, and competitive opponent pool make this a personal mismatch.',
-    fit: 'Probably not for you: high stakes and high prep load.',
-    detail: 'This belongs in the emphatic no drawer unless a specific friend/social reason changes the calculus.',
-    planEffect: 'No Plan placement. Keep recoverable but out of the normal browsing field.',
-  },
-  {
-    id: 'precon-battle',
-    title: 'Commander Precon Battle',
-    day: 'Sat',
-    time: '10 AM-noon',
-    window: '2 hours',
-    price: '$95',
-    kind: 'Ticketed play',
-    type: 'play',
-    format: 'Precon',
-    tags: ['open and play', 'low prep'],
-    state: 'hidden',
-    availability: 'open',
-    complexity: 'easy',
-    complexityWhy: 'A supplied preconstructed deck makes this open-and-play. Hidden because you usually already have the deck experience.',
-    fit: 'Easy, but likely not worth paying for unless the product or friends make it special.',
-    detail: 'Recoverable clutter: simple and beginner-friendly, but not a strong owner-centered recommendation.',
-    planEffect: 'Hidden events do not enter Plan unless restored.',
   },
 ]
 
@@ -2629,7 +2501,6 @@ function exploreDayContext(day: ExploreEvent['day']) {
 function planPressure(event: ExploreEvent) {
   if (event.state === 'committed') return 'Hard block'
   if (event.id === 'bl-progressive-sealed') return 'Flexible thread'
-  if (event.id === 'commander-cocktails') return 'Flexible anchor'
   if (event.id === 'bl-friday-play-event') return 'Details pending'
   if (event.id === 'bl-mystery-booster-drafts') return 'On demand'
   if (event.id === 'bl-feedback-session') return 'Soft overlap'
@@ -2858,7 +2729,7 @@ function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, 
         <span><DetailFactIcon name="price" />{event.price}</span>
         <span><DetailFactIcon name="duration" />{event.window}</span>
       </div>
-      {event.kind === 'Ticketed play' && <div className="event-source-status"><span>LEAP intake ready</span><small>Representative listing until Atlanta ticketed play opens</small></div>}
+      {event.kind === 'Ticketed play' && <div className="event-source-status"><span>LEAP intake ready</span><small>Official listing staged for review before app hydration</small></div>}
       <EventStateRail event={event} context="explore" onState={onState} />
     </header>
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>WHY THIS MAY BE WORTH YOUR TIME</small>{event.fit}</p></div>

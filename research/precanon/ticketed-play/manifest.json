@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "official-magiccon-atlanta-2026-ticketed-play",
+  "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html",
+  "retrievedAt": "2026-08-18T18:29:16.739Z",
+  "eventCount": 138,
+  "rawSnapshot": "snapshots/2026-08-18_ticketed-play-v1.raw.json",
+  "normalizedDraft": "snapshots/2026-08-18_ticketed-play-v1.normalized-draft.json",
+  "rawHash": "8b52ea1be1fe626cfe573e6466d20d80f661c890ae231e70a70e2eceb1edf86f",
+  "normalizedHash": "d0d2ca5c17aedb4d9848a56deb0f153cb8c1dbdd3631e7263af5d2a7a77e3271"
+}

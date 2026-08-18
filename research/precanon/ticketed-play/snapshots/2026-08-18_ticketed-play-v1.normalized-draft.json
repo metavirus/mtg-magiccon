@@ -1,0 +1,2770 @@
+{
+  "schemaVersion": 1,
+  "stage": "precanon_normalized_draft",
+  "sourceId": "official-magiccon-atlanta-2026-ticketed-play",
+  "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html",
+  "retrievedAt": "2026-08-18T18:29:16.739Z",
+  "eventCount": 138,
+  "events": [
+    {
+      "sourceEventKey": "944011",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944011&panel-name=2HG-Collector-Booster-Sealed-Magic-The-Gathering-Star-Trek-500-Click-here-for-more-info",
+      "sourceTitle": "2HG - Collector Booster Sealed - Magic: The Gathering | Star Trek - $500 (Click here for more info)",
+      "title": "2HG - Collector Booster Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 500,
+        "display": "$500",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944014",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944014&panel-name=Deluxe-Sealed-Magic-The-Gathering-Star-Trek-110-Click-here-for-more-info",
+      "sourceTitle": "Deluxe Sealed - Magic: The Gathering | Star Trek - $110 (Click here for more info)",
+      "title": "Deluxe Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 110,
+        "display": "$110",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944012",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944012&panel-name=Commander-Precon-Battle-Chaos-with-Commander-Party-100-Click-here-for-more-info",
+      "sourceTitle": "Commander - Precon Battle - Chaos with Commander Party - $100 (Click here for more info)",
+      "title": "Commander - Precon Battle - Chaos with Commander Party",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "optional_window",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944013",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944013&panel-name=Grand-Melee-Deluxe-Sealed-with-Ify-Nwadiwe-and-Brian-David-Gilbert-90-Click-here-for-more-info",
+      "sourceTitle": "Grand Melee - Deluxe Sealed - with Ify Nwadiwe and Brian David Gilbert - $90 (Click here for more info)",
+      "title": "Grand Melee - Deluxe Sealed - with Ify Nwadiwe and Brian David Gilbert",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 90,
+        "display": "$90",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944017",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944017&panel-name=Unknown-with-Gavin-Verhey-100-Click-here-for-more-info",
+      "sourceTitle": "Unknown with Gavin Verhey - $100 (Click here for more info)",
+      "title": "Unknown with Gavin Verhey",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "unknown",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944016",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944016&panel-name=Pro-Tour-Qualifier-Black-Sealed-Magic-The-Gathering-Star-Trek-125-Click-here-for-more-info",
+      "sourceTitle": "Pro Tour Qualifier - Black - Sealed - Magic: The Gathering | Star Trek - $125 (Click here for more info)",
+      "title": "Pro Tour Qualifier - Black - Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 125,
+        "display": "$125",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944015",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944015&panel-name=Commander-Sealed-Draft-with-Commander-at-Home-180-Click-here-for-more-info",
+      "sourceTitle": "Commander Sealed Draft with Commander at Home - $180 (Click here for more info)",
+      "title": "Commander Sealed Draft with Commander at Home",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 180,
+        "display": "$180",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944019",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944019&panel-name=Team-Trios-Full-Box-Sealed-Magic-The-Gathering-Star-Trek-225-Click-here-for-more-info",
+      "sourceTitle": "Team Trios - Full-Box Sealed - Magic: The Gathering | Star Trek - $225 (Click here for more info)",
+      "title": "Team Trios - Full-Box Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 225,
+        "display": "$225",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944018",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944018&panel-name=Last-Commander-Standing-Qualifier-60-Click-here-for-more-info",
+      "sourceTitle": "Last Commander Standing Qualifier - $60 (Click here for more info)",
+      "title": "Last Commander Standing Qualifier",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944020",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944020&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
+      "sourceTitle": "Draft - Mystery Booster Commander Edition - $50 (Click here for more info)",
+      "title": "Draft - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944021",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944021&panel-name=Legacy-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
+      "sourceTitle": "Legacy Cup - MagicCon: Atlanta - $60 (Click here for more info)",
+      "title": "Legacy Cup - MagicCon: Atlanta",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944024",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944024&panel-name=Deluxe-Sealed-Chase-the-Planes-Reality-Fracture-80-Click-here-for-more-info",
+      "sourceTitle": "Deluxe Sealed - Chase the Planes - Reality Fracture - $80 (Click here for more info)",
+      "title": "Deluxe Sealed - Chase the Planes - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944025",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944025&panel-name=Magic-Presents-All-Leylines-Draft-your-Draft-Chaos-40-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: All Leylines - Draft your Draft - Chaos - $40 (Click here for more info)",
+      "title": "Magic Presents: All Leylines - Draft your Draft - Chaos",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 40,
+        "display": "$40",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944023",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944023&panel-name=Collector-Commander-Precon-Battle-Magic-The-Gathering-Star-Trek-150-Click-here-for-more-info",
+      "sourceTitle": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek - $150 (Click here for more info)",
+      "title": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "optional_window",
+      "availability": "listed",
+      "price": {
+        "amount": 150,
+        "display": "$150",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944022",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944022&panel-name=Magic-The-Gauntlet-Sealed-Draft-Merge-Reality-Fracture-60-Click-here-for-more-info",
+      "sourceTitle": "Magic: The Gauntlet - Sealed, Draft, Merge - Reality Fracture - $60 (Click here for more info)",
+      "title": "Magic: The Gauntlet - Sealed, Draft, Merge - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944026",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944026&panel-name=Standard-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
+      "sourceTitle": "Standard Cup - MagicCon: Atlanta - $60 (Click here for more info)",
+      "title": "Standard Cup - MagicCon: Atlanta",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944027",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944027&panel-name=Mega-Draft-Mystery-Booster-Commander-Edition-90-Click-here-for-more-info",
+      "sourceTitle": "Mega-Draft - Mystery Booster Commander Edition - $90 (Click here for more info)",
+      "title": "Mega-Draft - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 90,
+        "display": "$90",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944029",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944029&panel-name=2HG-Sealed-Chase-the-Planes-Reality-Fracture-80-Click-here-for-more-info",
+      "sourceTitle": "2HG - Sealed - Chase the Planes - Reality Fracture - $80 (Click here for more info)",
+      "title": "2HG - Sealed - Chase the Planes - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944028",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944028&panel-name=Savvy-Pin-Traders-Deluxe-Sealed-League-Reality-Fracture-with-Veggie-Wagon-featuring-a-special-pin-85-Click-here-for-more-info",
+      "sourceTitle": "Savvy Pin Traders - Deluxe Sealed League - Reality Fracture with Veggie Wagon featuring a special pin! - $85 (Click here for more info)",
+      "title": "Savvy Pin Traders - Deluxe Sealed League - Reality Fracture with Veggie Wagon featuring a special pin!",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "challenging",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 85,
+        "display": "$85",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944030",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944030&panel-name=Battlebox-Sneaky-Snacker-Qualifier-50-Click-here-for-more-info",
+      "sourceTitle": "Battlebox - Sneaky Snacker Qualifier - $50 (Click here for more info)",
+      "title": "Battlebox - Sneaky Snacker Qualifier",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944032",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944032&panel-name=Collector-Booster-Sealed-Reality-Fracture-180-Click-here-for-more-info",
+      "sourceTitle": "Collector Booster Sealed - Reality Fracture - $180 (Click here for more info)",
+      "title": "Collector Booster Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 180,
+        "display": "$180",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944031",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944031&panel-name=Commander-Full-Box-Sealed-Magic-The-Gathering-Star-Trek-225-Click-here-for-more-info",
+      "sourceTitle": "Commander Full-Box Sealed - Magic: The Gathering | Star Trek - $225 (Click here for more info)",
+      "title": "Commander Full-Box Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 225,
+        "display": "$225",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944033",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944033&panel-name=Constructed-Commander-Challenge-Pauper-25-Click-here-for-more-info",
+      "sourceTitle": "Constructed Commander Challenge - Pauper - $25 (Click here for more info)",
+      "title": "Constructed Commander Challenge - Pauper",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 25,
+        "display": "$25",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944034",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944034&panel-name=All-Play-Sealed-Magic-The-Gathering-Star-Trek-45-Click-here-for-more-info",
+      "sourceTitle": "All Play - Sealed - Magic: The Gathering | Star Trek - $45 (Click here for more info)",
+      "title": "All Play - Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 45,
+        "display": "$45",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944036",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944036&panel-name=Competitive-Draft-Reality-Fracture-100-Click-here-for-more-info",
+      "sourceTitle": "Competitive Draft - Reality Fracture - $100 (Click here for more info)",
+      "title": "Competitive Draft - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944035",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944035&panel-name=Magic-Presents-Open-the-Archives-Mega-Draft-Secrets-of-Strixhaven-40-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven - $40 (Click here for more info)",
+      "title": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 40,
+        "display": "$40",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944037",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944037&panel-name=Team-Trios-Standard-Sealed-130-Click-here-for-more-info",
+      "sourceTitle": "Team Trios - Standard Sealed - $130 (Click here for more info)",
+      "title": "Team Trios - Standard Sealed",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 130,
+        "display": "$130",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944038",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944038&panel-name=Prismatic-Pride-Commander-Sealed-%E2%80%93-Presented-by-Wizards-Pride-90-Click-here-for-more-info",
+      "sourceTitle": "Prismatic Pride Commander Sealed – Presented by Wizards Pride - $90 (Click here for more info)",
+      "title": "Prismatic Pride Commander Sealed – Presented by Wizards Pride",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 90,
+        "display": "$90",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944039",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944039&panel-name=2HG-Full-Box-Sealed-Mystery-Booster-Commander-Edition-320-Click-here-for-more-info",
+      "sourceTitle": "2HG - Full-Box Sealed - Mystery Booster Commander Edition - $320 (Click here for more info)",
+      "title": "2HG - Full-Box Sealed - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 320,
+        "display": "$320",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944041",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944041&panel-name=Magic-Presents-Reality-Echoes-Pick-Two-Special-Draft-Reality-Fracture-30-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture - $30 (Click here for more info)",
+      "title": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944040",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944040&panel-name=Last-Commander-Standing-Qualifier-60-Click-here-for-more-info",
+      "sourceTitle": "Last Commander Standing Qualifier - $60 (Click here for more info)",
+      "title": "Last Commander Standing Qualifier",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944043",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944043&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
+      "sourceTitle": "Draft - Mystery Booster Commander Edition - $50 (Click here for more info)",
+      "title": "Draft - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944042",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944042&panel-name=LoadingReadyRun-Presents-2026-Year-in-Review-Sealed-100-Click-here-for-more-info",
+      "sourceTitle": "LoadingReadyRun! Presents 2026 Year in Review - Sealed - $100 (Click here for more info)",
+      "title": "LoadingReadyRun! Presents 2026 Year in Review - Sealed",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944044",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944044&panel-name=Hexhaven-Study-Hall-Sealed-Search-the-Library-with-Brian-David-Marshall-100-Click-here-for-more-info",
+      "sourceTitle": "Hexhaven Study Hall Sealed - Search the Library with Brian David Marshall - $100 (Click here for more info)",
+      "title": "Hexhaven Study Hall Sealed - Search the Library with Brian David Marshall",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944045",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944045&panel-name=Deluxe-Sealed-Magic-The-Gathering-Star-Trek-110-Click-here-for-more-info",
+      "sourceTitle": "Deluxe Sealed - Magic: The Gathering | Star Trek - $110 (Click here for more info)",
+      "title": "Deluxe Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 110,
+        "display": "$110",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944046",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944046&panel-name=Friday-Night-Magic-2HG-Commander-Night-Constructed-40-Click-here-for-more-info",
+      "sourceTitle": "Friday Night Magic - 2HG Commander Night - Constructed - $40 (Click here for more info)",
+      "title": "Friday Night Magic - 2HG Commander Night - Constructed",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 40,
+        "display": "$40",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944048",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944048&panel-name=Friday-Night-Magic-Standard-Win-a-Box-30-Click-here-for-more-info",
+      "sourceTitle": "Friday Night Magic - Standard - Win a Box - $30 (Click here for more info)",
+      "title": "Friday Night Magic - Standard - Win a Box",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944047",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944047&panel-name=Friday-Night-Magic-2HG-Sealed-Reality-Fracture-70-Click-here-for-more-info",
+      "sourceTitle": "Friday Night Magic - 2HG - Sealed - Reality Fracture - $70 (Click here for more info)",
+      "title": "Friday Night Magic - 2HG - Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 70,
+        "display": "$70",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944049",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944049&panel-name=Friday-Night-Magic-Commander-Precon-Battle-Magic-The-Gathering-Star-Trek-100-Click-here-for-more-info",
+      "sourceTitle": "Friday Night Magic - Commander Precon Battle - Magic: The Gathering | Star Trek - $100 (Click here for more info)",
+      "title": "Friday Night Magic - Commander Precon Battle - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944051",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944051&panel-name=Friday-Night-Magic-Pick-Two-Draft-Magic-The-Gathering-Star-Trek-25-Click-here-for-more-info",
+      "sourceTitle": "Friday Night Magic - Pick-Two Draft - Magic: The Gathering | Star Trek - $25 (Click here for more info)",
+      "title": "Friday Night Magic - Pick-Two Draft - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 25,
+        "display": "$25",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944052",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944052&panel-name=Team-Trios-Collector-Booster-Sealed-Magic-The-Gathering-Star-Trek-750-Click-here-for-more-info",
+      "sourceTitle": "Team Trios - Collector Booster Sealed - Magic: The Gathering | Star Trek - $750 (Click here for more info)",
+      "title": "Team Trios - Collector Booster Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 750,
+        "display": "$750",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944050",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944050&panel-name=Friday-Night-Magic-Sealed-Reality-Fracture-35-Click-here-for-more-info",
+      "sourceTitle": "Friday Night Magic - Sealed - Reality Fracture - $35 (Click here for more info)",
+      "title": "Friday Night Magic - Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 35,
+        "display": "$35",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944054",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944054&panel-name=Mini-Masters-Extravaganza-20-Click-here-for-more-info",
+      "sourceTitle": "Mini-Masters Extravaganza - $20 (Click here for more info)",
+      "title": "Mini-Masters Extravaganza",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 20,
+        "display": "$20",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944055",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944055&panel-name=Friday-Night-Magic-Pauper-Win-a-Box-30-Click-here-for-more-info",
+      "sourceTitle": "Friday Night Magic - Pauper - Win a Box - $30 (Click here for more info)",
+      "title": "Friday Night Magic - Pauper - Win a Box",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944056",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944056&panel-name=Friday-Night-Magic-Modern-Win-a-Box-30-Click-here-for-more-info",
+      "sourceTitle": "Friday Night Magic - Modern - Win a Box - $30 (Click here for more info)",
+      "title": "Friday Night Magic - Modern - Win a Box",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944057",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944057&panel-name=Magic-presents-Turbo-Tower-Lightning-Round-Commander-20-Click-here-for-more-info",
+      "sourceTitle": "Magic presents: Turbo Tower - Lightning Round - Commander - $20 (Click here for more info)",
+      "title": "Magic presents: Turbo Tower - Lightning Round - Commander",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 20,
+        "display": "$20",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944058",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944058&panel-name=Turbo-Four-Pack-Sealed-Magic-The-Gathering-Star-Trek-30-Click-here-for-more-info",
+      "sourceTitle": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek - $30 (Click here for more info)",
+      "title": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944059",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944059&panel-name=Turbo-2HG-Four-pack-Sealed-Reality-Fracture-50-Click-here-for-more-info",
+      "sourceTitle": "Turbo - 2HG - Four-pack Sealed - Reality Fracture - $50 (Click here for more info)",
+      "title": "Turbo - 2HG - Four-pack Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944061",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944061&panel-name=Magic-The-Gauntlet-Sealed-Draft-Merge-Magic-The-Gathering-Star-Trek-68-Click-here-for-more-info",
+      "sourceTitle": "Magic: The Gauntlet - Sealed, Draft, Merge - Magic: The Gathering | Star Trek - $68 (Click here for more info)",
+      "title": "Magic: The Gauntlet - Sealed, Draft, Merge - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 68,
+        "display": "$68",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944063",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944063&panel-name=Last-Commander-Standing-Qualifier-60-Click-here-for-more-info",
+      "sourceTitle": "Last Commander Standing Qualifier - $60 (Click here for more info)",
+      "title": "Last Commander Standing Qualifier",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944060",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944060&panel-name=2HG-Draft-your-Draft-Chaos-80-Click-here-for-more-info",
+      "sourceTitle": "2HG - Draft your Draft - Chaos - $80 (Click here for more info)",
+      "title": "2HG - Draft your Draft - Chaos",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944062",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944062&panel-name=Collector-Commander-Precon-Battle-Magic-The-Gathering-Star-Trek-150-Click-here-for-more-info",
+      "sourceTitle": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek - $150 (Click here for more info)",
+      "title": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "optional_window",
+      "availability": "listed",
+      "price": {
+        "amount": 150,
+        "display": "$150",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944064",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944064&panel-name=Grand-Melee-Mega-Sealed-Mystery-Booster-Commander-Edition-160-Click-here-for-more-info",
+      "sourceTitle": "Grand Melee - Mega Sealed - Mystery Booster Commander Edition - $160 (Click here for more info)",
+      "title": "Grand Melee - Mega Sealed - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 160,
+        "display": "$160",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944066",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944066&panel-name=Magic-Presents-Open-the-Archives-Mega-Draft-Secrets-of-Strixhaven-40-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven - $40 (Click here for more info)",
+      "title": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 40,
+        "display": "$40",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944065",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944065&panel-name=Limited-Championship-Qualifier-Sealed-Magic-The-Gathering-Star-Trek-125-Click-here-for-more-info",
+      "sourceTitle": "Limited Championship Qualifier - Sealed - Magic: The Gathering | Star Trek - $125 (Click here for more info)",
+      "title": "Limited Championship Qualifier - Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 125,
+        "display": "$125",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944067",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944067&panel-name=The-Tale-of-Kamigawa--Kamigawa-Neon-Dynasty-Progressive-Sealed-featuring-The-Magic-Story-Podcast-175-Click-here-for-more-info",
+      "sourceTitle": "The Tale of Kamigawa | Kamigawa: Neon Dynasty Progressive Sealed - featuring The Magic Story Podcast - $175 (Click here for more info)",
+      "title": "The Tale of Kamigawa | Kamigawa: Neon Dynasty Progressive Sealed - featuring The Magic Story Podcast",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 175,
+        "display": "$175",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944069",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944069&panel-name=Collector-Booster-Sealed-Magic-The-Gathering-Star-Trek-250-Click-here-for-more-info",
+      "sourceTitle": "Collector Booster Sealed - Magic: The Gathering | Star Trek - $250 (Click here for more info)",
+      "title": "Collector Booster Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 250,
+        "display": "$250",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944070",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944070&panel-name=Team-Trios-Collector-Booster-Sealed-Reality-Fracture-500-Click-here-for-more-info",
+      "sourceTitle": "Team Trios - Collector Booster Sealed - Reality Fracture - $500 (Click here for more info)",
+      "title": "Team Trios - Collector Booster Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 500,
+        "display": "$500",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944068",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944068&panel-name=Tribble-Takeover-Sealed-60-Click-here-for-more-info",
+      "sourceTitle": "Tribble Takeover - Sealed - $60 (Click here for more info)",
+      "title": "Tribble Takeover - Sealed",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944071",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944071&panel-name=Pro-Tour-Qualifier-Black-Top-32-0-Click-here-for-more-info",
+      "sourceTitle": "Pro Tour Qualifier - Black - Top 32 - $0 (Click here for more info)",
+      "title": "Pro Tour Qualifier - Black - Top 32",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944072",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944072&panel-name=All-Play-Sealed-Reality-Fracture-35-Click-here-for-more-info",
+      "sourceTitle": "All Play - Sealed - Reality Fracture - $35 (Click here for more info)",
+      "title": "All Play - Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 35,
+        "display": "$35",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944074",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944074&panel-name=Starfleet-Academy-League-55-Click-here-for-more-info",
+      "sourceTitle": "Starfleet Academy League - $55 (Click here for more info)",
+      "title": "Starfleet Academy League",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "competitive",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 55,
+        "display": "$55",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944073",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944073&panel-name=Magic-The-Menu-with-Brian-David-Marshall-185-Click-here-for-more-info",
+      "sourceTitle": "Magic: The Menu with Brian David-Marshall - $185 (Click here for more info)",
+      "title": "Magic: The Menu with Brian David-Marshall",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 185,
+        "display": "$185",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944075",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944075&panel-name=2HG-Collector-Booster-Sealed-Reality-Fracture-335-Click-here-for-more-info",
+      "sourceTitle": "2HG - Collector Booster Sealed - Reality Fracture - $335 (Click here for more info)",
+      "title": "2HG - Collector Booster Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 335,
+        "display": "$335",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944076",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944076&panel-name=Magic-Presents-Reality-Echoes-Pick-Two-Special-Draft-Reality-Fracture-30-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture - $30 (Click here for more info)",
+      "title": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944078",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944078&panel-name=Standard-Cup-MagicCon-Atlanta-Top-8-0-Click-here-for-more-info",
+      "sourceTitle": "Standard Cup - MagicCon: Atlanta - Top 8 - $0 (Click here for more info)",
+      "title": "Standard Cup - MagicCon: Atlanta - Top 8",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944077",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944077&panel-name=Chase-the-Planes-Sealed-Magic-The-Gathering-Star-Trek%E2%84%A2-45-Click-here-for-more-info",
+      "sourceTitle": "Chase the Planes - Sealed - Magic: The Gathering | Star Trek™ - $45 (Click here for more info)",
+      "title": "Chase the Planes - Sealed - Magic: The Gathering | Star Trek™",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 45,
+        "display": "$45",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944079",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944079&panel-name=Pro-Tour-Qualifier-Gold-Sealed-Magic-The-Gathering-Star-Trek-125-Click-here-for-more-info",
+      "sourceTitle": "Pro Tour Qualifier - Gold - Sealed - Magic: The Gathering | Star Trek - $125 (Click here for more info)",
+      "title": "Pro Tour Qualifier - Gold - Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 125,
+        "display": "$125",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944082",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944082&panel-name=Unknown-for-Charity-with-Gavin-Verhey-100-Click-here-for-more-info",
+      "sourceTitle": "Unknown for Charity with Gavin Verhey - $100 (Click here for more info)",
+      "title": "Unknown for Charity with Gavin Verhey",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "unknown",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944083",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944083&panel-name=cEDH-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
+      "sourceTitle": "cEDH Cup - MagicCon: Atlanta - $60 (Click here for more info)",
+      "title": "cEDH Cup - MagicCon: Atlanta",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944080",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944080&panel-name=2HG-Full-Box-Sealed-Mystery-Booster-Commander-Edition-320-Click-here-for-more-info",
+      "sourceTitle": "2HG - Full-Box Sealed - Mystery Booster Commander Edition - $320 (Click here for more info)",
+      "title": "2HG - Full-Box Sealed - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 320,
+        "display": "$320",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944081",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944081&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
+      "sourceTitle": "Draft - Mystery Booster Commander Edition - $50 (Click here for more info)",
+      "title": "Draft - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944084",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944084&panel-name=Pauper-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
+      "sourceTitle": "Pauper Cup - MagicCon: Atlanta - $60 (Click here for more info)",
+      "title": "Pauper Cup - MagicCon: Atlanta",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944086",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944086&panel-name=Magic-Presents-Reality-Echoes-Pick-Two-Special-Draft-Reality-Fracture-30-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture - $30 (Click here for more info)",
+      "title": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944092",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944092&panel-name=Mage-Tower-League-Vigorbloom-80-Click-here-for-more-info",
+      "sourceTitle": "Mage Tower League - Vigorbloom - $80 (Click here for more info)",
+      "title": "Mage Tower League - Vigorbloom",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "unknown",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944089",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944089&panel-name=Mage-Tower-League-Theorix-80-Click-here-for-more-info",
+      "sourceTitle": "Mage Tower League - Theorix - $80 (Click here for more info)",
+      "title": "Mage Tower League - Theorix",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "unknown",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944090",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944090&panel-name=Mage-Tower-League-Stingerquill-80-Click-here-for-more-info",
+      "sourceTitle": "Mage Tower League - Stingerquill - $80 (Click here for more info)",
+      "title": "Mage Tower League - Stingerquill",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "unknown",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944091",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944091&panel-name=Mage-Tower-League-Konstrari-80-Click-here-for-more-info",
+      "sourceTitle": "Mage Tower League - Konstrari - $80 (Click here for more info)",
+      "title": "Mage Tower League - Konstrari",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "unknown",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944088",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944088&panel-name=Mage-Tower-League-Fatehold-80-Click-here-for-more-info",
+      "sourceTitle": "Mage Tower League - Fatehold - $80 (Click here for more info)",
+      "title": "Mage Tower League - Fatehold",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "unknown",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944093",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944093&panel-name=Last-Commander-Standing-Qualifier-60-Click-here-for-more-info",
+      "sourceTitle": "Last Commander Standing Qualifier - $60 (Click here for more info)",
+      "title": "Last Commander Standing Qualifier",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944087",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944087&panel-name=Commander-Precon-Battle-Chaos-with-Commander-Party-100-Click-here-for-more-info",
+      "sourceTitle": "Commander - Precon Battle - Chaos with Commander Party - $100 (Click here for more info)",
+      "title": "Commander - Precon Battle - Chaos with Commander Party",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "optional_window",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944085",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944085&panel-name=Collector-Chaos-Sealed-320-Click-here-for-more-info",
+      "sourceTitle": "Collector Chaos Sealed - $320 (Click here for more info)",
+      "title": "Collector Chaos Sealed",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 320,
+        "display": "$320",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944094",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944094&panel-name=Modern-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
+      "sourceTitle": "Modern Cup - MagicCon: Atlanta - $60 (Click here for more info)",
+      "title": "Modern Cup - MagicCon: Atlanta",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944096",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944096&panel-name=Constructed-Commander-Challenge-Secrets-of-Strixhaven-and-Reality-Fracture-25-Click-here-for-more-info",
+      "sourceTitle": "Constructed Commander Challenge - Secrets of Strixhaven and Reality Fracture - $25 (Click here for more info)",
+      "title": "Constructed Commander Challenge - Secrets of Strixhaven and Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 25,
+        "display": "$25",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944095",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944095&panel-name=Battlebox-Sneaky-Snacker-Qualifier-50-Click-here-for-more-info",
+      "sourceTitle": "Battlebox - Sneaky Snacker Qualifier - $50 (Click here for more info)",
+      "title": "Battlebox - Sneaky Snacker Qualifier",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944097",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944097&panel-name=Competitive-Draft-Magic-The-Gathering-Star-Trek-100-Click-here-for-more-info",
+      "sourceTitle": "Competitive Draft - Magic: The Gathering | Star Trek - $100 (Click here for more info)",
+      "title": "Competitive Draft - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944098",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944098&panel-name=Team-Trios-Sealed-Reality-Fracture-120-Click-here-for-more-info",
+      "sourceTitle": "Team Trios - Sealed - Reality Fracture - $120 (Click here for more info)",
+      "title": "Team Trios - Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 120,
+        "display": "$120",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944099",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944099&panel-name=2HG-Deluxe-Sealed-Reality-Fracture-80-Click-here-for-more-info",
+      "sourceTitle": "2HG - Deluxe Sealed - Reality Fracture - $80 (Click here for more info)",
+      "title": "2HG - Deluxe Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944100",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944100&panel-name=Mega-Draft-Magic-The-Gathering-Star-Trek-45-Click-here-for-more-info",
+      "sourceTitle": "Mega-Draft - Magic: The Gathering | Star Trek - $45 (Click here for more info)",
+      "title": "Mega-Draft - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 45,
+        "display": "$45",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944102",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944102&panel-name=All-Play-Sealed-Magic-The-Gathering-Star-Trek-45-Click-here-for-more-info",
+      "sourceTitle": "All Play - Sealed - Magic: The Gathering | Star Trek - $45 (Click here for more info)",
+      "title": "All Play - Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 45,
+        "display": "$45",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944101",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944101&panel-name=Deluxe-Sealed-Magic-The-Gathering-Star-Trek-with-Birds-of-Paradise-110-Click-here-for-more-info",
+      "sourceTitle": "Deluxe Sealed - Magic: The Gathering | Star Trek with Birds of Paradise - $110 (Click here for more info)",
+      "title": "Deluxe Sealed - Magic: The Gathering | Star Trek with Birds of Paradise",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 110,
+        "display": "$110",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944103",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944103&panel-name=Chaos-Chaos-Chaos-with-LoadingReadyRun-120-Click-here-for-more-info",
+      "sourceTitle": "Chaos Chaos Chaos with LoadingReadyRun! - $120 (Click here for more info)",
+      "title": "Chaos Chaos Chaos with LoadingReadyRun!",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 120,
+        "display": "$120",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944104",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944104&panel-name=Magic-Presents-2HG-Commander-Night-Constructed-60-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: 2HG Commander Night - Constructed - $60 (Click here for more info)",
+      "title": "Magic Presents: 2HG Commander Night - Constructed",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 60,
+        "display": "$60",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944105",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944105&panel-name=Standard-Sealed-128-Click-here-for-more-info",
+      "sourceTitle": "Standard Sealed - $128 (Click here for more info)",
+      "title": "Standard Sealed",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 128,
+        "display": "$128",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944106",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944106&panel-name=Team-Trios-Sealed-Magic-The-Gathering-Star-Trek-140-Click-here-for-more-info",
+      "sourceTitle": "Team Trios - Sealed - Magic: The Gathering | Star Trek - $140 (Click here for more info)",
+      "title": "Team Trios - Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 140,
+        "display": "$140",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944107",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944107&panel-name=Constructed-Commander-Challenge-Starship-Commander-25-Click-here-for-more-info",
+      "sourceTitle": "Constructed Commander Challenge - Starship Commander - $25 (Click here for more info)",
+      "title": "Constructed Commander Challenge - Starship Commander",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 25,
+        "display": "$25",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944108",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944108&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
+      "sourceTitle": "Draft - Mystery Booster Commander Edition - $50 (Click here for more info)",
+      "title": "Draft - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944110",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944110&panel-name=Commander-Precon-Battle-Chaos-with-Commander-Party-100-Click-here-for-more-info",
+      "sourceTitle": "Commander - Precon Battle - Chaos with Commander Party - $100 (Click here for more info)",
+      "title": "Commander - Precon Battle - Chaos with Commander Party",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "optional_window",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944109",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944109&panel-name=2HG-Full-Box-Sealed-Mystery-Booster-Commander-Edition-320-Click-here-for-more-info",
+      "sourceTitle": "2HG - Full-Box Sealed - Mystery Booster Commander Edition - $320 (Click here for more info)",
+      "title": "2HG - Full-Box Sealed - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 320,
+        "display": "$320",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944111",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944111&panel-name=Commander-and-Cocktails-League-with-Brian-David-Marshall-200-Click-here-for-more-info",
+      "sourceTitle": "Commander and Cocktails League with Brian David-Marshall - $200 (Click here for more info)",
+      "title": "Commander and Cocktails League with Brian David-Marshall",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 200,
+        "display": "$200",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944112",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944112&panel-name=Mini-Masters-Extravaganza-20-Click-here-for-more-info",
+      "sourceTitle": "Mini-Masters Extravaganza - $20 (Click here for more info)",
+      "title": "Mini-Masters Extravaganza",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 20,
+        "display": "$20",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944113",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944113&panel-name=Magic-presents-Turbo-Tower-Lightning-Round-Commander-20-Click-here-for-more-info",
+      "sourceTitle": "Magic presents: Turbo Tower - Lightning Round - Commander - $20 (Click here for more info)",
+      "title": "Magic presents: Turbo Tower - Lightning Round - Commander",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 20,
+        "display": "$20",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944115",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944115&panel-name=Turbo-2HG-Sealed-Reality-Fracture-70-Click-here-for-more-info",
+      "sourceTitle": "Turbo - 2HG - Sealed - Reality Fracture - $70 (Click here for more info)",
+      "title": "Turbo - 2HG - Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 70,
+        "display": "$70",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944114",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944114&panel-name=Turbo-Four-Pack-Sealed-Magic-The-Gathering-Star-Trek-30-Click-here-for-more-info",
+      "sourceTitle": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek - $30 (Click here for more info)",
+      "title": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944116",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944116&panel-name=Sunday-Sealed-and-Stacked-125-Click-here-for-more-info",
+      "sourceTitle": "Sunday Sealed and Stacked - $125 (Click here for more info)",
+      "title": "Sunday Sealed and Stacked",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 125,
+        "display": "$125",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944123",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944123&panel-name=Duel-Commander-Show-Down-50-Click-here-for-more-info",
+      "sourceTitle": "Duel Commander Show Down - $50 (Click here for more info)",
+      "title": "Duel Commander Show Down",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944122",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944122&panel-name=2HG-Grand-Melee-Deluxe-Sealed-Magic-The-Gathering-Star-Trek-225-Click-here-for-more-info",
+      "sourceTitle": "2HG - Grand Melee - Deluxe Sealed - Magic: The Gathering | Star Trek - $225 (Click here for more info)",
+      "title": "2HG - Grand Melee - Deluxe Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 225,
+        "display": "$225",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944121",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944121&panel-name=Commander-Precon-Battle-Chaos-with-Commander-Party-100-Click-here-for-more-info",
+      "sourceTitle": "Commander - Precon Battle - Chaos with Commander Party - $100 (Click here for more info)",
+      "title": "Commander - Precon Battle - Chaos with Commander Party",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "optional_window",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944120",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944120&panel-name=Deluxe-Sealed-Reality-Fracture-80-Click-here-for-more-info",
+      "sourceTitle": "Deluxe Sealed - Reality Fracture - $80 (Click here for more info)",
+      "title": "Deluxe Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 80,
+        "display": "$80",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944118",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944118&panel-name=Last-Commander-Standing-Top-16-0-Click-here-for-more-info",
+      "sourceTitle": "Last Commander Standing - Top 16 - $0 (Click here for more info)",
+      "title": "Last Commander Standing - Top 16",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944119",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944119&panel-name=Starfleet-Academy-League-55-Click-here-for-more-info",
+      "sourceTitle": "Starfleet Academy League - $55 (Click here for more info)",
+      "title": "Starfleet Academy League",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "competitive",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 55,
+        "display": "$55",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944117",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944117&panel-name=2HG-Standard-Sealed-135-Click-here-for-more-info",
+      "sourceTitle": "2HG - Standard Sealed - $135 (Click here for more info)",
+      "title": "2HG - Standard Sealed",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 135,
+        "display": "$135",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944125",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944125&panel-name=cEDH-Cup-MagicCon-Atlanta-Top-16-0-Click-here-for-more-info",
+      "sourceTitle": "cEDH Cup - MagicCon: Atlanta - Top 16 - $0 (Click here for more info)",
+      "title": "cEDH Cup - MagicCon: Atlanta - Top 16",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944124",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944124&panel-name=Pro-Tour-Qualifier-Gold-Top-32-0-Click-here-for-more-info",
+      "sourceTitle": "Pro Tour Qualifier - Gold - Top 32 - $0 (Click here for more info)",
+      "title": "Pro Tour Qualifier - Gold - Top 32",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944126",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944126&panel-name=Full-Box-Sealed-Mystery-Booster-Commander-320-Click-here-for-more-info",
+      "sourceTitle": "Full Box Sealed - Mystery Booster Commander - $320 (Click here for more info)",
+      "title": "Full Box Sealed - Mystery Booster Commander",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 320,
+        "display": "$320",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944127",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944127&panel-name=Magic-The-Menu-Brunch-with-Numot-the-Nummy-185-Click-here-for-more-info",
+      "sourceTitle": "Magic: The Menu - Brunch - with Numot the Nummy - $185 (Click here for more info)",
+      "title": "Magic: The Menu - Brunch - with Numot the Nummy",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 185,
+        "display": "$185",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944131",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944131&panel-name=2HG-Unknown-with-Gavin-Verhey-200-Click-here-for-more-info",
+      "sourceTitle": "2HG - Unknown with Gavin Verhey - $200 (Click here for more info)",
+      "title": "2HG - Unknown with Gavin Verhey",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "unknown",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 200,
+        "display": "$200",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944130",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944130&panel-name=Collector-Booster-Sealed-Magic-The-Gathering-Star-Trek-250-Click-here-for-more-info",
+      "sourceTitle": "Collector Booster Sealed - Magic: The Gathering | Star Trek - $250 (Click here for more info)",
+      "title": "Collector Booster Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 250,
+        "display": "$250",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944128",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944128&panel-name=Team-Trios-Full-Box-Sealed-Reality-Fracture-165-Click-here-for-more-info",
+      "sourceTitle": "Team Trios - Full-Box Sealed - Reality Fracture - $165 (Click here for more info)",
+      "title": "Team Trios - Full-Box Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 165,
+        "display": "$165",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944142",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944142&panel-name=Mystery-Mats-Commander-Mega-Draft-Mystery-Booster-Commander-Edition-115-Click-here-for-more-info",
+      "sourceTitle": "Mystery Mats - Commander Mega Draft - Mystery Booster Commander Edition - $115 (Click here for more info)",
+      "title": "Mystery Mats - Commander Mega Draft - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 115,
+        "display": "$115",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944132",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944132&panel-name=Commander-Full-Box-Sealed-Magic-The-Gathering-Star-Trek-with-Ify-Nwadiwe-and-Brian-David-Gilbert-200-Click-here-for-more-info",
+      "sourceTitle": "Commander - Full Box Sealed - Magic: The Gathering | Star Trek with Ify Nwadiwe and Brian David Gilbert - $200 (Click here for more info)",
+      "title": "Commander - Full Box Sealed - Magic: The Gathering | Star Trek with Ify Nwadiwe and Brian David Gilbert",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "challenging",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 200,
+        "display": "$200",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944129",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944129&panel-name=Savvy-Pin-Traders-Deluxe-Sealed-League-Reality-Fracture-with-Veggie-Wagon-featuring-a-special-pin-85-Click-here-for-more-info",
+      "sourceTitle": "Savvy Pin Traders - Deluxe Sealed League - Reality Fracture with Veggie Wagon featuring a special pin! - $85 (Click here for more info)",
+      "title": "Savvy Pin Traders - Deluxe Sealed League - Reality Fracture with Veggie Wagon featuring a special pin!",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "league",
+      "difficulty": "challenging",
+      "timeKind": "league_window",
+      "availability": "listed",
+      "price": {
+        "amount": 85,
+        "display": "$85",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944134",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944134&panel-name=Battlebox-Sneaky-Snacker-Top-8-0-Click-here-for-more-info",
+      "sourceTitle": "Battlebox - Sneaky Snacker - Top 8 - $0 (Click here for more info)",
+      "title": "Battlebox - Sneaky Snacker - Top 8",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944135",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944135&panel-name=Pauper-Cup-MagicCon-Atlanta-Top-8-0-Click-here-for-more-info",
+      "sourceTitle": "Pauper Cup - MagicCon: Atlanta - Top 8 - $0 (Click here for more info)",
+      "title": "Pauper Cup - MagicCon: Atlanta - Top 8",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944133",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944133&panel-name=Limited-Championship-Qualifier-Top-64-0-Click-here-for-more-info",
+      "sourceTitle": "Limited Championship Qualifier - Top 64 - $0 (Click here for more info)",
+      "title": "Limited Championship Qualifier - Top 64",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944136",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944136&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
+      "sourceTitle": "Draft - Mystery Booster Commander Edition - $50 (Click here for more info)",
+      "title": "Draft - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 50,
+        "display": "$50",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944140",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944140&panel-name=Competitive-Draft-Reality-Fracture-100-Click-here-for-more-info",
+      "sourceTitle": "Competitive Draft - Reality Fracture - $100 (Click here for more info)",
+      "title": "Competitive Draft - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 100,
+        "display": "$100",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944143",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944143&panel-name=Magic-Presents-Open-the-Archives-Mega-Draft-Secrets-of-Strixhaven-40-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven - $40 (Click here for more info)",
+      "title": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 40,
+        "display": "$40",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944139",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944139&panel-name=Modern-Cup-MagicCon-Atlanta-Top-8-0-Click-here-for-more-info",
+      "sourceTitle": "Modern Cup - MagicCon: Atlanta - Top 8 - $0 (Click here for more info)",
+      "title": "Modern Cup - MagicCon: Atlanta - Top 8",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "constructed",
+      "difficulty": "competitive",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 0,
+        "display": "$0",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944138",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944138&panel-name=Oops-All-Jace-Sealed-Reality-Fracture-40-Click-here-for-more-info",
+      "sourceTitle": "Oops All Jace - Sealed - Reality Fracture - $40 (Click here for more info)",
+      "title": "Oops All Jace - Sealed - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 40,
+        "display": "$40",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944137",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944137&panel-name=2HG-Commander-Full-Box-Sealed-with-Commander-Party-Mystery-Booster-Commander-Edition-320-Click-here-for-more-info",
+      "sourceTitle": "2HG - Commander Full-Box Sealed with Commander Party - Mystery Booster Commander Edition - $320 (Click here for more info)",
+      "title": "2HG - Commander Full-Box Sealed with Commander Party - Mystery Booster Commander Edition",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "competitive",
+      "timeKind": "optional_window",
+      "availability": "listed",
+      "price": {
+        "amount": 320,
+        "display": "$320",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944141",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944141&panel-name=Magic-Presents-Pride-2026-Constructed-Commander-30-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: Pride 2026 - Constructed Commander - $30 (Click here for more info)",
+      "title": "Magic Presents: Pride 2026 - Constructed Commander",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944145",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944145&panel-name=Magic-Presents-Reality-Echoes-Pick-Two-Special-Draft-Reality-Fracture-30-Click-here-for-more-info",
+      "sourceTitle": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture - $30 (Click here for more info)",
+      "title": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "draft",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944144",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944144&panel-name=Collector-Commander-Precon-Battle-Magic-The-Gathering-Star-Trek-150-Click-here-for-more-info",
+      "sourceTitle": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek - $150 (Click here for more info)",
+      "title": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "optional_window",
+      "availability": "listed",
+      "price": {
+        "amount": 150,
+        "display": "$150",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944146",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944146&panel-name=Turbo-2HG-Sealed-Magic-The-Gathering-Star-Trek-90-Click-here-for-more-info",
+      "sourceTitle": "Turbo - 2HG - Sealed - Magic: The Gathering | Star Trek - $90 (Click here for more info)",
+      "title": "Turbo - 2HG - Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "two_headed_giant",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 90,
+        "display": "$90",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944147",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944147&panel-name=All-Play-Sealed-Magic-The-Gathering-Star-Trek-45-Click-here-for-more-info",
+      "sourceTitle": "All Play - Sealed - Magic: The Gathering | Star Trek - $45 (Click here for more info)",
+      "title": "All Play - Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 45,
+        "display": "$45",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944149",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944149&panel-name=Magic-presents-Turbo-Tower-Lightning-Round-Commander-20-Click-here-for-more-info",
+      "sourceTitle": "Magic presents: Turbo Tower - Lightning Round - Commander - $20 (Click here for more info)",
+      "title": "Magic presents: Turbo Tower - Lightning Round - Commander",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "commander",
+      "difficulty": "social",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 20,
+        "display": "$20",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    },
+    {
+      "sourceEventKey": "944148",
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944148&panel-name=Turbo-Four-Pack-Sealed-Magic-The-Gathering-Star-Trek-30-Click-here-for-more-info",
+      "sourceTitle": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek - $30 (Click here for more info)",
+      "title": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek",
+      "exploreBucket": "play",
+      "kind": "ticketed_play",
+      "playFormat": "sealed",
+      "difficulty": "unknown",
+      "timeKind": "fixed_block",
+      "availability": "listed",
+      "price": {
+        "amount": 30,
+        "display": "$30",
+        "currency": "USD"
+      },
+      "purchaseRequired": true,
+      "purchaseStatus": "none",
+      "canonicalStatus": "precanon_draft"
+    }
+  ]
+}
