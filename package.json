@@ -19,6 +19,7 @@
     "preview": "vite preview --configLoader runner",
     "test": "vitest run --configLoader runner",
     "ticketed:precanon": "node --use-system-ca scripts/scrape_ticketed_play_precanon.mjs",
+    "ticketed:hydrate-static": "node --use-system-ca scripts/build_ticketed_explore_events.mjs",
     "monitor:check": "node --use-system-ca scripts/monitoring_watch_check.mjs",
     "monitor:accept": "node --use-system-ca scripts/monitoring_watch_check.mjs --accept",
     "validate:monitoring": "powershell -ExecutionPolicy Bypass -File scripts/validate_monitoring_intake.ps1",

@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
+import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
 import {
@@ -2360,7 +2361,10 @@ const exploreEventCandidates: ExploreEvent[] = [
   },
 ]
 
-const exploreEvents = exploreEventCandidates.filter(event => event.sourceNote?.startsWith('Official Atlanta'))
+const exploreEvents = [
+  ...exploreEventCandidates.filter(event => event.sourceNote?.startsWith('Official Atlanta')),
+  ...(ticketedPlayExploreEvents as ExploreEvent[]),
+]
 
 function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
   events: ExploreEvent[]
