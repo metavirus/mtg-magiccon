@@ -2,6 +2,15 @@ name: Daily MagicCon surveyor
 
 on:
   workflow_dispatch:
+    inputs:
+      accept_baseline:
+        description: Accept the current watched-source snapshots as the new baseline
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
   schedule:
     - cron: "15 15 * * *"
 
@@ -49,7 +58,11 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path work/monitoring | Out-Null
-          node scripts/monitoring_watch_check.mjs | Tee-Object -FilePath work/monitoring/monitor-check.json
+          $args = @("scripts/monitoring_watch_check.mjs")
+          if ("${{ inputs.accept_baseline }}" -eq "true") {
+            $args += "--accept"
+          }
+          node @args | Tee-Object -FilePath work/monitoring/monitor-check.json
 
       - name: Summarize survey
         shell: pwsh
@@ -61,6 +74,7 @@ jobs:
           Add-Content $env:GITHUB_STEP_SUMMARY "- Watched sources: $($report.sourceCount)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Changed sources: $($report.changeCount)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Fetch failures: $($report.failureCount)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Mode: $($report.mode)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Summary: $($report.summary)"
           if ($report.changeCount -gt 0) {
             Add-Content $env:GITHUB_STEP_SUMMARY ""
