@@ -991,6 +991,11 @@ export default function App() {
     }
     void upsertUserSelection(`activity-${item.id}`, 'activity', 'review_state', state)
   }
+  const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems) : []
+  const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
+  const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
+  const headerTitle = surface === 'home' && homeHeaderHotCount ? 'Atlanta needs attention.' : surfaceTitle(surface)
+  const headerSubtitle = surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
 
   return <div className="app-shell" style={desktopRailLocked ? { display: 'block', minHeight: '100vh' } : undefined}>
     <aside className="rail" style={desktopRailLocked ? {
@@ -1081,10 +1086,10 @@ export default function App() {
           <div className="hero-context">
             <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!previousSurface} aria-label="Back to previous view">‹</button>
             <button className="back-caret mobile-menu-caret" type="button" onClick={() => setMobileNavMenu('main')} aria-label="Open main navigation" aria-expanded={mobileNavMenu === 'main'}><span aria-hidden="true">☰</span></button>
-            <span className="kicker">{surfaceLabel(surface)}</span>
+            <span className="kicker">{headerLabel}</span>
           </div>
-          <h1>{surfaceTitle(surface)}</h1>
-          <p>{surfaceSubtitle(surface)}</p>
+          <h1>{headerTitle}</h1>
+          <p>{headerSubtitle}</p>
         </div>
         <div className="header-status">
           <div className="header-actions">
@@ -2095,8 +2100,8 @@ const contextNotes: ContextNote[] = ([
 
 const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title: string; window: string; calendarDate: string; month: 'AUG' | 'OCT'; confidence: string; rationale: string }> = [
   {
-    id: 'ticketed-play', icon: 'ticketed-play', title: 'Ticketed play', window: 'Aug 18–25', calendarDate: '18–25', month: 'AUG', confidence: 'best guess',
-    rationale: 'Vegas 2026 opened ticketed play about 11½ weeks before its convention. Applying that offset to Atlanta points to Aug 18–25. This is a historical forecast, not an Atlanta date.',
+    id: 'ticketed-play', icon: 'ticketed-play', title: 'Ticketed play sales', window: 'Aug 25 · 10 AM PT', calendarDate: '25', month: 'AUG', confidence: 'official',
+    rationale: 'The official Atlanta Ticketed Play Schedule page says ticketed-play events go on sale Aug 25 at 10:00 AM PT. Event inventory still needs hydration once the listings appear.',
   },
   {
     id: 'artists', icon: 'artists', title: 'Artist directory', window: 'Oct 9–16', calendarDate: '9–16', month: 'OCT', confidence: 'wide estimate',
@@ -3727,9 +3732,9 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDe
 
     <div className="calendar-month" id="calendar-now"><span>AUG</span><strong>Waiting season</strong></div>
     <button className="agenda-row agenda-action milestone-row" type="button" onClick={() => setDetail('ticketed-play')}>
-      <div className="agenda-date"><strong>{milestoneForecasts[0].calendarDate}</strong><span>FORECAST</span></div>
+      <div className="agenda-date"><strong>{milestoneForecasts[0].calendarDate}</strong><span>OFFICIAL</span></div>
       <div className="agenda-icon"><NavIcon name="calendar" /></div>
-      <div className="agenda-copy"><div><span className="agenda-kind">Milestone forecast</span><span className="soft-chip">{milestoneForecasts[0].confidence}</span></div><h2>Ticketed play may open</h2><p>{milestoneForecasts[0].window} · the event-planning phase begins.</p></div>
+      <div className="agenda-copy"><div><span className="agenda-kind">Ticketed play milestone</span><span className="soft-chip">{milestoneForecasts[0].confidence}</span></div><h2>Ticketed play sales open</h2><p>{milestoneForecasts[0].window} · event inventory hydration is next.</p></div>
       <span className="agenda-destination"><NavIcon name="notes" />Details</span>
     </button>
 
@@ -3968,12 +3973,12 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
         <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
         <div>
           <span className="eyebrow">NEXT EXPECTED</span>
-          <h2>Ticketed play opens the real planning season.</h2>
-          <p>That is when event comparison, schedule conflicts, and real trip choices become worth doing for real.</p>
+          <h2>Ticketed play sales now have a date.</h2>
+          <p>The official schedule page is live: sales open August 25 at 10 AM PT, and real event hydration is next.</p>
         </div>
         <details className="timing-clue">
-          <summary><span>Best guess</span><strong>mid–late Aug</strong></summary>
-          <p>Vegas announced ticketed-play sales on Feb 3 for a Feb 10 opening—about 11½ weeks before its May 1 start. The equivalent Atlanta window is roughly Aug 18–25. This is a forecast, not an Atlanta fact.</p>
+          <summary><span>Official</span><strong>Aug 25</strong></summary>
+          <p>The Atlanta Ticketed Play Schedule page says event sales open August 25 at 10:00 AM PT. The next important watch is when the actual event listings become available.</p>
         </details>
       </section>
     </div>
@@ -4018,13 +4023,13 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
         </div>
 
         <section className="runway planning-runway" aria-labelledby="planning-runway-heading">
-          <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h3 id="planning-runway-heading">What we are waiting for</h3></div><span>1 complete · 4 waiting</span></div>
+          <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h3 id="planning-runway-heading">What we are waiting for</h3></div><span>2 known · 3 waiting</span></div>
           <ol>
             <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
             {milestoneForecasts.map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
               <span className="runway-icon"><MilestoneIcon name={forecast.icon} /></span>
               <details className="runway-forecast">
-                <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · forecast</small></summary>
+                <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · {forecast.confidence}</small></summary>
                 <p>{forecast.rationale}</p>
               </details>
             </li>)}
