@@ -1,0 +1,86 @@
+name: Daily MagicCon surveyor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 15 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-magiccon-surveyor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      NODE_OPTIONS: --use-system-ca
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Set up pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.16.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore monitoring baseline
+        id: monitoring-state-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: .monitoring-state
+          key: monitoring-state-${{ github.run_id }}
+          restore-keys: |
+            monitoring-state-
+
+      - name: Run monitoring watch check
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work/monitoring | Out-Null
+          node scripts/monitoring_watch_check.mjs | Tee-Object -FilePath work/monitoring/monitor-check.json
+
+      - name: Summarize survey
+        shell: pwsh
+        run: |
+          $report = Get-Content work/monitoring/monitor-check.json -Raw | ConvertFrom-Json
+          Add-Content $env:GITHUB_STEP_SUMMARY "## Daily MagicCon surveyor"
+          Add-Content $env:GITHUB_STEP_SUMMARY ""
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Checked at: $($report.checkedAt)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Watched sources: $($report.sourceCount)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Changed sources: $($report.changeCount)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Fetch failures: $($report.failureCount)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Summary: $($report.summary)"
+          if ($report.changeCount -gt 0) {
+            Add-Content $env:GITHUB_STEP_SUMMARY ""
+            Add-Content $env:GITHUB_STEP_SUMMARY "### Changed sources"
+            foreach ($change in $report.changes) {
+              Add-Content $env:GITHUB_STEP_SUMMARY "- $($change.label) (`$($change.id)`)"
+            }
+          }
+
+      - name: Save monitoring baseline
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .monitoring-state
+          key: monitoring-state-${{ github.run_id }}
+
+      - name: Upload monitoring artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-magiccon-surveyor
+          path: work/monitoring/monitor-check.json
+          if-no-files-found: error
