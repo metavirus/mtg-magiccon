@@ -2448,15 +2448,15 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
     </header>
 
     <div className="plan-lite-status" aria-label="Plan status">
-      <button type="button" onClick={() => setActiveDay('Thu')}><span>Official Lotus anchors</span><strong>{officialBlCount}</strong><small>real Atlanta schedule items</small></button>
-      <button type="button" onClick={onOpenExplore}><span>Promoted contenders</span><strong>{contenderCount}</strong><small>from Explore, reversible</small></button>
+      <button type="button" onClick={() => setActiveDay('Thu')}><span>Official Atlanta anchors</span><strong>{officialBlCount}</strong><small>Black Lotus schedule items</small></button>
+      <button type="button" onClick={onOpenExplore}><span>Explore contenders</span><strong>{contenderCount}</strong><small>reversible event picks</small></button>
       <button type="button" onClick={() => {
         const watchItem = planEvents.find(event => event.availability === 'changed' || event.complexity === 'unknown')
         if (watchItem) {
           setActiveDay(watchItem.day)
           setSelectedId(watchItem.id)
         }
-      }}><span>Watch items</span><strong>{watchCount}</strong><small>TBD / source-change sensitive</small></button>
+      }}><span>Watch list</span><strong>{watchCount}</strong><small>TBD or changed-source items</small></button>
     </div>
 
     <nav className="plan-day-tabs" aria-label="Convention planning days">
@@ -2635,19 +2635,23 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
 
     <div className="explore-list-head">
       <div className="explore-list-filters">
-        <div className="explore-days" aria-label="Event days">
-          {(['all', 'Thu', 'Fri', 'Sat', 'Sun'] as const).map(value => <button key={value} type="button" className={day === value ? 'active' : ''} onClick={() => setDay(value)}>{value === 'all' ? 'All days' : value}</button>)}
+        <div className="explore-filter-row explore-filter-row-days">
+          <div className="explore-days" aria-label="Event days">
+            {(['all', 'Thu', 'Fri', 'Sat', 'Sun'] as const).map(value => <button key={value} type="button" className={day === value ? 'active' : ''} onClick={() => setDay(value)}>{value === 'all' ? 'All days' : value}</button>)}
+          </div>
         </div>
-        <div className="explore-type-tabs" aria-label="Event types">
-          {([
-            ['all', 'All types'],
-            ['play', 'Play'],
-            ['info', 'Info'],
-            ['social', 'Social'],
-            ['other', 'Other'],
-          ] as const).map(([value, label]) => <button key={value} type="button" className={eventType === value ? 'active' : ''} onClick={() => setEventType(current => current === value && value !== 'all' ? 'all' : value)}>{label}</button>)}
+        <div className="explore-filter-row explore-filter-row-types">
+          <div className="explore-type-tabs" aria-label="Event types">
+            {([
+              ['all', 'All types'],
+              ['play', 'Play'],
+              ['info', 'Info'],
+              ['social', 'Social'],
+              ['other', 'Other'],
+            ] as const).map(([value, label]) => <button key={value} type="button" className={eventType === value ? 'active' : ''} onClick={() => setEventType(current => current === value && value !== 'all' ? 'all' : value)}>{label}</button>)}
+          </div>
+          <button className={`explore-hidden-pill ${showHidden ? 'active' : ''}`} type="button" aria-pressed={showHidden} onClick={() => setShowHidden(value => !value)}><EyeOffMini /> Hidden{hiddenCount > 0 ? ` ${hiddenCount}` : ''}</button>
         </div>
-        <button className={`explore-hidden-pill ${showHidden ? 'active' : ''}`} type="button" aria-pressed={showHidden} onClick={() => setShowHidden(value => !value)}><EyeOffMini /> Hidden{hiddenCount > 0 ? ` ${hiddenCount}` : ''}</button>
       </div>
     </div>
 
