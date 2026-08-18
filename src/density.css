@@ -454,8 +454,9 @@ html,body{max-width:100%;overflow-x:hidden}
   .activity-inbox-head h2{padding-right:40px;font-size:15px}
   .activity-inbox-head p{font-size:10px}
   .activity-inbox-head .review-count{position:absolute;top:10px;right:12px;margin:0;width:30px;height:30px;border-radius:9px;font-size:15px}
-  .activity-tabs{grid-template-columns:repeat(7,minmax(42px,1fr));overflow:visible}
-  .activity-tabs button{height:30px;padding:0 3px;font-size:8px}
+  .activity-tabs{display:flex;grid-template-columns:none;justify-self:stretch;max-width:100%;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none}
+  .activity-tabs::-webkit-scrollbar{display:none}
+  .activity-tabs button{flex:0 0 auto;height:30px;padding:0 10px;font-size:9px;white-space:nowrap}
   .activity-tab-icon{width:12px;height:12px}
   .activity-tab-icon .nav-icon,.activity-tab-icon .alert-kind-icon{width:12px;height:12px}
   .activity-tabs button b{min-width:16px;height:16px;font-size:8px}
@@ -553,7 +554,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .receipt-head{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px}
 .receipt-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#182a43;color:#8fb9f3}
 .receipt-icon .nav-icon{width:16px;height:16px}
-.receipt-head p{margin:0;color:#92a3ba;font-size:10px}.receipt-head>strong{color:#70d8b1;font-size:15px}
+.receipt-head p{margin:0;color:#92a3ba;font-size:10px}.receipt-head>strong{color:#e8eef7;font-size:15px}
 .store-receipt{border-left:3px solid #70d8b1}.future-store{border-left:3px dashed #5f7694;opacity:.86}.play-fixture{border-left:3px solid #6e9bd7}
 .receipt-lines{display:grid;border:1px solid #273a53;border-radius:10px;overflow:visible}
 .receipt-lines button,.receipt-line-row,.static-receipt-lines div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;min-height:34px;padding:7px 9px;border:0;background:#101c2c;color:#c9d6e6;text-align:left;cursor:pointer}

@@ -439,10 +439,10 @@ function hashForSurface(next: Surface) {
 
 const destinations = [
   { name: 'Home', icon: 'home' as NavIconName, surface: 'home' as Surface },
-  { name: 'Calendar', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
-  { name: 'Plan', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
   { name: 'Explore', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
-  { name: 'Map', icon: 'map' as NavIconName, surface: 'map' as Surface },
+  { name: 'Plan', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
+  { name: 'Calendar', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
+  { name: 'Map & Info', icon: 'map' as NavIconName, surface: 'map' as Surface },
   { name: 'Wallet', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
   { name: 'Trip', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
   { name: 'Artists', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
@@ -1059,11 +1059,12 @@ export default function App() {
           </header>
           : <header><span className="eyebrow">{mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>}
         <div className={mobileNavMenu === 'main' ? 'mobile-drawer-nav mobile-drawer-nav-main' : undefined}>
-          {(mobileNavMenu === 'main' ? destinations : mobileNavMenu === 'events' ? [
-            { name: 'Explore', note: 'Discover', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
-            { name: 'Plan', note: 'Compare', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
-            { name: 'Calendar', note: 'Agenda', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
-          ] : [
+          {(mobileNavMenu === 'main' ? destinations : mobileNavMenu === 'events' ? destinations
+            .filter(destination => ['explore', 'plan', 'calendar'].includes(destination.surface))
+            .map(destination => ({
+              ...destination,
+              note: destination.surface === 'explore' ? 'Discover' : destination.surface === 'plan' ? 'Compare' : 'Agenda',
+            })) : [
             { name: 'Trip', note: 'Hotels & flights', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
             { name: 'Artists', note: 'Historical seeds', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
             { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
@@ -1073,7 +1074,7 @@ export default function App() {
               <span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}
             </button>
             : <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
-              <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{'note' in destination ? destination.note : ''}</small><b aria-hidden="true">›</b>
+              <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{(destination as { note?: string }).note ?? ''}</small><b aria-hidden="true">›</b>
             </button>)}
         </div>
         {mobileNavMenu === 'main' && <footer className="mobile-drawer-foot">
@@ -1110,7 +1111,7 @@ export default function App() {
               onOpenMention={openMentionNote}
             />
             <AccountMenu email={session?.user.email ?? 'kavigrace@gmail.com'} online={Boolean(session) && online} preview={designPreview} />
-            <span className="countdown-chip"><strong>{surface === 'home' ? daysToAtlanta : 'ATL'}</strong><span>{surface === 'home' ? 'days to Atlanta' : online ? 'online' : 'offline'}</span></span>
+            <span className="countdown-chip"><strong>{daysToAtlanta}</strong><span>days to Atlanta</span></span>
           </div>
           {surface === 'explore' && <FunnelNav current="explore" onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
           {surface === 'plan' && <FunnelNav current="plan" onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
@@ -2473,10 +2474,6 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
   }
 
   return <section className="plan-lite">
-    <header className="plan-lite-head">
-      <div><span className="eyebrow">PLANNING BOARD</span><h2>Shape the convention days</h2><p>Compare contenders before they become calendar commitments.</p></div>
-    </header>
-
     <nav className="plan-day-tabs" aria-label="Convention planning days">
       {days.map(day => <button key={day} type="button" className={activeDay === day ? 'active' : ''} onClick={() => { setActiveDay(day); setSelectedId(null); setDetailOpen(false) }}><strong>{day}</strong></button>)}
     </nav>
@@ -3189,11 +3186,9 @@ function WalletHomeTab({ openBlackLotusProof, openJuanProof, onOpenObject }: { o
     <section className="receipt-list wallet-home-receipts" aria-label="Badge receipts">
       <button className="receipt-card wallet-receipt-button" type="button" onClick={openBlackLotusProof}>
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Black Lotus badge order</h2><p>2 × Black Lotus VIP Early Bird · Kavi + Chris</p></div><strong>$2,025.26</strong></div>
-        <div className="receipt-lines"><div><span>Showable QR captured</span><b>QR</b></div><div><span>Original email reference</span><b>Gmail</b></div><div><span>Opens</span><b>Info + Original</b></div></div>
       </button>
       <button className="receipt-card wallet-receipt-button" type="button" onClick={openJuanProof}>
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Juan Premium Weekend</h2><p>Premium Weekend Early Bird · Juan</p></div><strong>$191.42</strong></div>
-        <div className="receipt-lines"><div><span>Showable QR captured</span><b>QR</b></div><div><span>Original receipt captured</span><b>Gmail</b></div><div><span>Opens</span><b>Info + Original</b></div></div>
       </button>
     </section>
   </div>
