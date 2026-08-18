@@ -1,25 +1,55 @@
 {
-  "generatedAt": "2026-08-09T12:00:00-07:00",
+  "generatedAt": "2026-08-18T10:29:32-07:00",
   "mode": "monitoring-intake",
   "source": "quiet-period-monitor",
   "notes": [
-    "Only a real, manually captured Black Lotus Discord observation remains in the public review fixture."
+    "Deterministic monitor found newly linked Atlanta Magic Play surfaces on Aug 18. Gmail watch queries found no new relevant notices since Aug 17."
   ],
   "alerts": [
     {
-      "id": "chris-mystery-booster-discord-lead",
-      "kind": "manual",
+      "id": "atlanta-ticketed-play-aug-25-sale",
+      "kind": "site",
+      "severity": "hot",
+      "destination": "Home",
+      "attention": "Ticketed play date",
+      "title": "Ticketed Play sales open August 25 at 10 AM PT",
+      "summary": "The official Atlanta Ticketed Play Schedule page now says ticketed play events go on sale August 25 at 10:00 AM PT, with event sales closing one hour before each event starts.",
+      "object": "Calendar · Ticketed play milestone",
+      "source": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html",
+      "checkedAt": "2026-08-18T17:29:32.154Z",
+      "status": "changed official page",
+      "rationale": "This is the main planning-phase unlock the app has been waiting for; it should be Home-worthy and tied to Calendar/Explore follow-up.",
+      "nextAction": "Review the official schedule page on August 25 and hydrate real ticketed-play inventory once events are available."
+    },
+    {
+      "id": "atlanta-magic-play-pages-published",
+      "kind": "site",
       "severity": "notice",
       "destination": "Activity",
-      "attention": "Friend signal",
-      "title": "Chris asked about Mystery Booster Commander",
-      "summary": "Chris asked whether Atlanta will have Mystery Booster Commander events or Festival in a Box product. The thread pointed toward an official article, but no Atlanta event has been confirmed from it.",
-      "object": "Explore · Mystery Booster Commander lead",
-      "source": "Discord · MagicCon Black Lotus VIP #magiccon-discussion",
-      "checkedAt": "Aug 3, 7:33 AM",
-      "status": "manual screenshot lead",
-      "rationale": "This is useful planning context because Chris raised it directly, but it remains a lead until an official Atlanta source confirms the event or product.",
-      "nextAction": "Verify against an official Atlanta event page or article before treating it as an Atlanta fact."
+      "attention": "New official surfaces",
+      "title": "Atlanta Magic Play pages are now linked",
+      "summary": "The Atlanta site tree now links Magic Play, Ticketed Play Schedule, On-Demand Events, Prize Wall, and Your Guide to Playing Magic at MagicCon pages.",
+      "object": "Activity · Official site tree",
+      "source": "https://mcatlanta.mtgfestivals.com/en-us/magic-play.html",
+      "checkedAt": "2026-08-18T17:29:32.154Z",
+      "status": "new planning-relevant links",
+      "rationale": "This is a real site-tree expansion, not a cosmetic edit. It creates canonical landing pages for event inventory, ODE rules, prize tix, and play logistics.",
+      "nextAction": "Keep these pages in the watch set and route later content changes to Explore, Calendar, Wallet, or Home depending on consequence."
+    },
+    {
+      "id": "atlanta-on-demand-prize-wall-details",
+      "kind": "site",
+      "severity": "notice",
+      "destination": "Activity",
+      "attention": "Play logistics",
+      "title": "ODE and Prize Wall logistics are published",
+      "summary": "The official On-Demand Events page describes ODE vouchers sold in $5 increments, up to $100 per visit, and lists registration hours. The Prize Wall page explains Prize Tix redemption.",
+      "object": "Wallet · Prize Tix and on-demand play",
+      "source": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html",
+      "checkedAt": "2026-08-18T17:29:32.154Z",
+      "status": "official logistics available",
+      "rationale": "Useful for Wallet/Prize Tix and onsite planning, but not as urgent as the August 25 ticketed-play sale time.",
+      "nextAction": "Annotate Prize Tix/Wallet planning later; keep Home focused on the sale-date alert unless prize-wall inventory itself appears."
     }
   ]
 }
