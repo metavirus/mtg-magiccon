@@ -1951,14 +1951,14 @@ const monitoringAlerts: MonitoringAlert[] = [
     severity: 'hot',
     destination: 'Home',
     attention: 'Milestone signal',
-    title: 'Ticketed play announcement would open planning mode',
-    summary: 'When Atlanta ticketed play goes live, Home should announce it and Explore becomes the triage lane.',
+    title: 'Ticketed Play schedule is published',
+    summary: 'The official schedule page exists now. Purchasing opens August 25 at 10 AM PT, and event inventory hydration is the next watch.',
     object: 'Milestone · Ticketed play',
     source: 'MagicCon news + ticketed-play page',
     checkedAt: 'Aug 4, 8:28 AM',
-    status: 'watch route ready',
-    rationale: 'This is the highest-value quiet-period signal because ticketed play changes the app from watch mode into planning mode.',
-    nextAction: 'If observed live, show on Home, add a Calendar milestone, and open Explore with Play selected.',
+    status: 'official schedule published',
+    rationale: 'Publishing the Ticketed Play schedule page is the first planning-phase milestone; the next actionable milestone is purchasing opening on Aug 25.',
+    nextAction: 'Watch Aug 25 for purchase availability and hydrate real ticketed-play inventory once event listings are available.',
   },
   {
     id: 'black-lotus-page-change',
@@ -2100,8 +2100,8 @@ const contextNotes: ContextNote[] = ([
 
 const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title: string; window: string; calendarDate: string; month: 'AUG' | 'OCT'; confidence: string; rationale: string }> = [
   {
-    id: 'ticketed-play', icon: 'ticketed-play', title: 'Ticketed play sales', window: 'Aug 25 · 10 AM PT', calendarDate: '25', month: 'AUG', confidence: 'official',
-    rationale: 'The official Atlanta Ticketed Play Schedule page says ticketed-play events go on sale Aug 25 at 10:00 AM PT. Event inventory still needs hydration once the listings appear.',
+    id: 'ticketed-play', icon: 'ticketed-play', title: 'Ticketed play purchasing', window: 'Aug 25 · 10 AM PT', calendarDate: '25', month: 'AUG', confidence: 'official next',
+    rationale: 'The Ticketed Play schedule page has been published. The next logical milestone is purchasing opening Aug 25 at 10:00 AM PT, followed by hydrating real event inventory once listings are available.',
   },
   {
     id: 'artists', icon: 'artists', title: 'Artist directory', window: 'Oct 9–16', calendarDate: '9–16', month: 'OCT', confidence: 'wide estimate',
@@ -3734,7 +3734,7 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDe
     <button className="agenda-row agenda-action milestone-row" type="button" onClick={() => setDetail('ticketed-play')}>
       <div className="agenda-date"><strong>{milestoneForecasts[0].calendarDate}</strong><span>OFFICIAL</span></div>
       <div className="agenda-icon"><NavIcon name="calendar" /></div>
-      <div className="agenda-copy"><div><span className="agenda-kind">Ticketed play milestone</span><span className="soft-chip">{milestoneForecasts[0].confidence}</span></div><h2>Ticketed play sales open</h2><p>{milestoneForecasts[0].window} · event inventory hydration is next.</p></div>
+      <div className="agenda-copy"><div><span className="agenda-kind">Next ticketed play milestone</span><span className="soft-chip">{milestoneForecasts[0].confidence}</span></div><h2>Ticketed play purchasing opens</h2><p>{milestoneForecasts[0].window} · schedule page is already published.</p></div>
       <span className="agenda-destination"><NavIcon name="notes" />Details</span>
     </button>
 
@@ -3973,12 +3973,12 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
         <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
         <div>
           <span className="eyebrow">NEXT EXPECTED</span>
-          <h2>Ticketed play sales now have a date.</h2>
-          <p>The official schedule page is live: sales open August 25 at 10 AM PT, and real event hydration is next.</p>
+          <h2>Ticketed play purchasing is next.</h2>
+          <p>The schedule page is published. Now the next milestone is buying ticketed play on August 25 at 10 AM PT.</p>
         </div>
         <details className="timing-clue">
           <summary><span>Official</span><strong>Aug 25</strong></summary>
-          <p>The Atlanta Ticketed Play Schedule page says event sales open August 25 at 10:00 AM PT. The next important watch is when the actual event listings become available.</p>
+          <p>Publishing the schedule page was the big milestone we just crossed. The next watch is purchasing opening August 25 at 10:00 AM PT, then real event-listing hydration.</p>
         </details>
       </section>
     </div>
