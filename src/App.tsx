@@ -525,6 +525,7 @@ export default function App() {
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
   const currentCompanion = currentCompanionFromSession(effectiveSession, companionMembers)
+  const shouldLoadOwnerTrustSlice = isKaviCompanion(currentCompanion)
   // Badge tier is useful trip context, not an authorization boundary. Active
   // companions can plan around every visible event, including Black Lotus.
   const canCommitBlackLotus = true
@@ -619,7 +620,8 @@ export default function App() {
     const applySession = (next: Session | null) => {
       setSession(next)
       const cached = readTrustSliceCache()
-      setSlice(next && cached?.ownerId === next.user.id ? cached : null)
+      const nextCompanion = currentCompanionFromSession(next, companionMembers)
+      setSlice(next && isKaviCompanion(nextCompanion) && cached?.ownerId === next.user.id ? cached : null)
     }
     void supabase.auth.getSession().then(({ data }) => {
       applySession(data.session)
@@ -627,7 +629,7 @@ export default function App() {
     })
     const { data } = supabase.auth.onAuthStateChange((_event, next) => applySession(next))
     return () => data.subscription.unsubscribe()
-  }, [designPreview, isPreviewOwnerMode])
+  }, [companionMembers, designPreview, isPreviewOwnerMode])
 
   const refresh = useCallback(async () => {
     if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || !online) return
@@ -635,6 +637,13 @@ export default function App() {
     setMessage('')
     setMessageTone('info')
     try {
+      if (!shouldLoadOwnerTrustSlice) {
+        // The legacy Black Lotus trust slice is Kavi-owner scoped. It proves the
+        // old evidence path, but it must never gate companion access to visible
+        // Black Lotus planning context.
+        setSlice(null)
+        return
+      }
       const next = await loadTrustSlice(effectiveOwnerId)
       if (next) writeTrustSliceCache(next)
       setSlice(next)
@@ -644,7 +653,7 @@ export default function App() {
     } finally {
       setLoading(false)
     }
-  }, [designPreview, isPreviewOwnerMode, online, effectiveOwnerId])
+  }, [designPreview, isPreviewOwnerMode, online, effectiveOwnerId, shouldLoadOwnerTrustSlice])
 
   useEffect(() => { void refresh() }, [refresh])
 
