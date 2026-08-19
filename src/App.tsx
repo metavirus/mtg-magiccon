@@ -498,6 +498,7 @@ export default function App() {
   const [messageTone, setMessageTone] = useState<'info' | 'error'>('info')
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
   const [exploreRouteState, setExploreRouteState] = useState<ExploreRouteState>(() => parseExploreRouteState(window.location.hash))
+  const [exploreFocusRequest, setExploreFocusRequest] = useState<{ eventId: string; noteId?: string; nonce: number } | null>(null)
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [mobileNavMenu, setMobileNavMenu] = useState<'main' | 'events' | 'more' | null>(null)
   const [desktopRailLocked, setDesktopRailLocked] = useState(() => window.innerWidth >= 901)
@@ -809,6 +810,14 @@ export default function App() {
       setWalletProofRequest({ target: receiptTarget, nonce: Date.now() })
       openDestination('Wallet', 'wallet')
       return
+    }
+    if (note.objectKind === 'event' || note.objectId.startsWith('explore-')) {
+      const eventId = note.objectId.replace(/^explore-/, '')
+      if (exploreEventState.some(event => event.id === eventId)) {
+        setExploreFocusRequest({ eventId, noteId: note.id, nonce: Date.now() })
+        openDestination('Explore', 'explore')
+        return
+      }
     }
     const detail = noteSourceObjectDetail(note)
     if (detail.kind === 'note') {
@@ -1169,7 +1178,7 @@ export default function App() {
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
+        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} onOpenWallet={() => openDestination('Wallet', 'wallet')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
@@ -2631,7 +2640,7 @@ function exploreRouteGroupLabel(group?: ExploreRouteState['group']) {
   return ''
 }
 
-function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan, onOpenCalendar }: { events: ExploreEvent[]; routeState: ExploreRouteState; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
+function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan, onOpenCalendar }: { events: ExploreEvent[]; routeState: ExploreRouteState; focusRequest: { eventId: string; noteId?: string; nonce: number } | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -2676,6 +2685,22 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
     if (routeState.eventType) setEventType(routeState.eventType)
     if (routeState.group) setCollapsedExploreGroups([])
   }, [routeState.day, routeState.eventType, routeState.group, routeState.mode])
+
+  useEffect(() => {
+    if (!focusRequest) return
+    const event = events.find(candidate => candidate.id === focusRequest.eventId)
+    if (!event) return
+    setDay(event.day)
+    setEventType('all')
+    setShowHidden(event.state === 'hidden' || event.state === 'nope')
+    setCollapsedExploreGroups(groups => groups.filter(group => group !== event.day))
+    setSelectedId(event.id)
+    setDetailOpen(true)
+    window.setTimeout(() => {
+      const row = Array.from(eventListRef.current?.querySelectorAll<HTMLElement>('[data-event-id]') ?? []).find(candidate => candidate.dataset.eventId === event.id)
+      row?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, 0)
+  }, [events, focusRequest])
 
   useEffect(() => {
     const updateDetailTop = () => {
@@ -2783,7 +2808,7 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
       </div>
 
       {selected && <div className="explore-detail-slot" style={{ top: workbarPinned ? workbarHeight + 12 : detailTop }}>
-        <ExploreDetail event={selected} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => { setSelectedId(null); setDetailOpen(false) }} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
+        <ExploreDetail event={selected} focusedNoteId={focusRequest?.eventId === selected.id ? focusRequest.noteId : undefined} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => { setSelectedId(null); setDetailOpen(false) }} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
       </div>}
     </div>
   </section>
@@ -2792,7 +2817,7 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
 function ExploreEventRow({ event, selected, onSelect, onState }: { event: ExploreEvent; selected: boolean; onSelect: () => void; onState: (state: ExploreState) => void }) {
   const kindIcon: EventKindIconName = event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'
   const priceTone = getPriceTone(event.price)
-  return <article className={`explore-event ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-availability={event.availability}>
+  return <article className={`explore-event ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-event-id={event.id} data-availability={event.availability}>
     <button className="explore-event-main" type="button" onClick={onSelect}>
       <span className="event-type-icon" aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><EventKindIcon name={kindIcon} /></span>
       <span className="event-title-block">
@@ -2832,7 +2857,7 @@ function getPriceTone(price: string) {
   return 'high'
 }
 
-function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onOpenPlan }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void }) {
+function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onOpenPlan }: { event: ExploreEvent; focusedNoteId?: string; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void }) {
   const planEnabled = event.state === 'interested' || event.state === 'tentative'
   return <aside className="explore-detail event-detail-panel" data-open={open} aria-label={`${event.title} detail`}>
     <header className="detail-title-group event-detail-heading">
@@ -2864,7 +2889,7 @@ function ExploreDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, 
       <strong>Plan effect</strong>
       <p>{event.planEffect}</p>
     </section>
-    <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} context={`Event · ${displayEventTitle(event)}`} backlink="explore" compact />
+    <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} focusedNoteId={focusedNoteId} context={`Event · ${displayEventTitle(event)}`} backlink="explore" compact />
     {(event.moreDetails || event.sourceNote) && <details className="detail-more">
       <summary><span>More details</span><small>Official and operational</small></summary>
       <div className="detail-more-body">
