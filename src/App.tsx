@@ -1736,7 +1736,7 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
 }
 
 function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentPerson: PersonName = 'Kavi') {
-  return items
+  const eligibleItems = items
     .filter(item => item.reviewState === 'needs-review')
     .filter(item => {
       if (item.sourceKind === 'activity-log' && item.objectDetail.id === 'wallet-prize-tix') return false
@@ -1746,6 +1746,17 @@ function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentP
       const maxAgeDays = item.severity === 'hot' || item.attention === 'Companion picks changed' ? 7 : item.sourceKind === 'note' ? 4 : 3
       return now - checkedAt <= maxAgeDays * 24 * 60 * 60 * 1000
     })
+  const seenSelectionActors = new Set<string>()
+  const collapsedItems = [...eligibleItems]
+    .sort((a, b) => new Date(b.checkedAtIso).getTime() - new Date(a.checkedAtIso).getTime())
+    .filter(item => {
+      if (!item.source.endsWith('selection burst')) return true
+      const actorKey = item.actor ?? item.source
+      if (seenSelectionActors.has(actorKey)) return false
+      seenSelectionActors.add(actorKey)
+      return true
+    })
+  return collapsedItems
     .sort((a, b) => {
       const severityScore = (b.severity === 'hot' ? 2 : 0) - (a.severity === 'hot' ? 2 : 0)
       if (severityScore) return severityScore
