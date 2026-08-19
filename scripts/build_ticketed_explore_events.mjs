@@ -30,11 +30,11 @@ function complexityWhy(event) {
   return 'Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.'
 }
 
-function detailLine(lines) {
-  return lines
-    .slice(0, 100)
-    .find(line => line.length > 80 && !/Skip to content|MagicCon:|November 13|Facebook|Instagram|TikTok/i.test(line))
-    ?? 'Official ticketed-play detail captured from MagicCon Atlanta.'
+function officialDescription(rawEvent) {
+  const lines = rawEvent.rawLines ?? []
+  const locationIndex = lines.findIndex(line => line === rawEvent.rawLocation)
+  const description = locationIndex >= 0 ? lines[locationIndex + 1] : undefined
+  return description?.trim() || 'Official ticketed-play event from MagicCon Atlanta.'
 }
 
 function moreDetails(rawEvent, event) {
@@ -78,7 +78,8 @@ const events = normalized.events.map(event => {
     complexity: complexityFrom(event),
     complexityWhy: complexityWhy(event),
     fit: `Official ticketed-play listing: ${title}.`,
-    detail: detailLine(rawEvent.rawLines ?? []),
+    detail: event.officialDescription ?? officialDescription(rawEvent),
+    officialUrl: event.sourceUrl,
     decisionFacts: [
       { label: 'When', value: `${day} · ${time}` },
       { label: 'Price', value: price },

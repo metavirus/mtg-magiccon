@@ -82,6 +82,11 @@ function extractFirst(lines, pattern) {
   return lines.find(line => pattern.test(line))
 }
 
+function extractOfficialDescription(lines, location) {
+  const locationIndex = lines.findIndex(line => line === location)
+  return locationIndex >= 0 ? lines[locationIndex + 1]?.trim() || null : null
+}
+
 function hashObject(value) {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex')
 }
@@ -138,6 +143,8 @@ async function main() {
       .find(title => title && !/^event information$/i.test(title)) ?? titleFromUrl(detail.url)
     const allText = `${rawTitle}\n${detail.text}`
     const price = priceFromTitle(rawTitle)
+    const rawLocation = extractFirst(lines, /^Ticketed Play$/i)
+    const officialDescription = extractOfficialDescription(lines, rawLocation)
     events.push({
       sourceId: SOURCE_ID,
       sourceEventKey,
@@ -147,7 +154,7 @@ async function main() {
       rawLines: lines,
       rawDateLabel: extractFirst(lines, /\b(Fri|Sat|Sun),\s+Nov\s+\d{1,2},\s+2026\b/i),
       rawTimeLabel: extractFirst(lines, /\b\d{1,2}:\d{2}\s*(AM|PM)\s*-\s*\d{1,2}:\d{2}\s*(AM|PM)\b/i),
-      rawLocation: extractFirst(lines, /^Ticketed Play$/i),
+      rawLocation,
       rawAvailability: availabilityFromTitle(rawTitle),
       rawPrice: price?.display,
       rawDetailText: detail.text,
@@ -157,6 +164,7 @@ async function main() {
         sourceUrl: detail.url,
         sourceTitle: rawTitle,
         title: cleanTitle(rawTitle),
+        officialDescription,
         exploreBucket: inferExploreBucket(allText),
         kind: 'ticketed_play',
         playFormat: inferFormat(rawTitle, detail.text),

@@ -1231,7 +1231,7 @@ export default function App() {
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={slice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={slice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </>}
@@ -2099,6 +2099,7 @@ type ExploreEvent = {
   complexityWhy: string
   fit: string
   detail: string
+  officialUrl?: string
   formatHelp?: string
   decisionFacts?: Array<{ label: string; value: string; icon?: 'ticket' }>
   moreDetails?: Array<{ label: string; value: string }>
@@ -2644,7 +2645,7 @@ function PlanParticipantBadges({ participants, compact = false, currentPerson }:
   </span>
 }
 
-function PlanSurface({ events, selectionRows, companions, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
+function PlanSurface({ events, selectionRows, companions, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
   events: ExploreEvent[]
   selectionRows: UserSelectionRow[]
   companions: CompanionMember[]
@@ -2657,7 +2658,6 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   onDeleteNote: (id: string) => void
   onUpdateEvent: (id: string, state: ExploreState) => void
   onChangeSliceState: (state: PlanningState) => void
-  onOpenObject: (detail: ObjectDetail) => void
   onOpenExplore: () => void
   onOpenCalendar: () => void
   online: boolean
@@ -2846,16 +2846,28 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
           <div className="plan-inspector-head"><span>{selected.kind}</span><div className="detail-head-actions"><span className={`event-stage stage-${selected.state}`}>{eventStageLabel(selected.state)}</span><button className="detail-close plan-detail-close" type="button" onClick={() => { setSelectedId(null); setDetailOpen(false) }} aria-label="Close event detail">×</button></div></div>
           <h3>{displayEventTitle(selected)}</h3>
           <div className="plan-inspector-facts"><span>{selected.day} · {selected.time}</span><span>{formatEventPrice(selected.price)}</span><span>{selected.format}</span></div>
+          <OfficialEventLink event={selected} />
         </header>
         <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
         <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit={selected.id !== 'bl-planechase' || canCommitBlackLotus} disabled={!online || saving} />
-        <div className="event-context-block"><small>HOW THIS AFFECTS THE PLAN</small><strong>{selected.planEffect}</strong></div>
-        <p>{selected.fit}</p>
+        <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>WHY THIS MAY BE WORTH YOUR TIME</small>{selected.fit}</p></div>
+        <section className="detail-section decision-section">
+          <div className="format-heading"><strong>{selected.format}</strong>{selected.formatHelp && <details className="format-help"><summary aria-label={`Explain ${selected.format}`}>?</summary><p>{selected.formatHelp}</p></details>}</div>
+          <p>{renderLinkedText(selected.detail)}</p>
+          {selected.decisionFacts && <div className="decision-facts" aria-label="Event at a glance">{selected.decisionFacts.map(fact => <div key={fact.label}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
+          <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {selected.complexityWhy}</p>
+        </section>
+        <section className="detail-section plan-summary"><strong>Plan effect</strong><p>{selected.planEffect}</p></section>
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
         {!canCommitBlackLotus && selected.kind === 'Black Lotus' && <div className="plan-watch"><span aria-hidden="true">✦</span><p><strong>Visible to everyone</strong>Only Kavi and Chris can commit Black Lotus events; everyone can still review and mark interest.</p></div>}
-        <div className="plan-provenance"><span>{selected.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{renderLinkedText(selected.sourceNote ?? 'Source context captured for this item.')}</small></div>
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={displayEventTitle(selected)} context={`Event · ${displayEventTitle(selected)}`} backlink="plan" compact />
-        <button className="event-detail-more" type="button" onClick={() => onOpenObject(exploreEventToObjectDetail(selected))}>Full event details <b aria-hidden="true">›</b></button>
+        {(selected.moreDetails || selected.sourceNote) && <details className="detail-more">
+          <summary><span>More details</span><small>Official and operational</small></summary>
+          <div className="detail-more-body">
+            {selected.moreDetails?.map(item => <div className="more-row" key={item.label}><span>{item.label}</span><p>{renderLinkedText(item.value)}</p></div>)}
+            {selected.sourceNote && <div className="more-row source-row"><span>Source</span><p>{renderLinkedText(selected.sourceNote)}</p></div>}
+          </div>
+        </details>}
       </aside>}
     </div>
   </section>
@@ -3145,7 +3157,7 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
         <span><DetailFactIcon name="price" />{event.price}</span>
         <span><DetailFactIcon name="duration" />{event.window}</span>
       </div>
-      {event.kind === 'Ticketed play' && <div className="event-source-status"><span>LEAP intake ready</span><small>Official listing staged for review before app hydration</small></div>}
+      <OfficialEventLink event={event} />
       <EventStateRail event={event} context="explore" onState={onState} />
     </header>
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>WHY THIS MAY BE WORTH YOUR TIME</small>{event.fit}</p></div>
@@ -3208,6 +3220,15 @@ function DetailFactIcon({ name }: { name: 'time' | 'price' | 'duration' }) {
     duration: <><path d="M7 4h10M7 20h10M8 4c0 4 1.7 5.3 4 7 2.3-1.7 4-3 4-7M8 20c0-4 1.7-5.3 4-7 2.3 1.7 4 3 4 7" /></>,
   }
   return <svg className="detail-fact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
+}
+
+function OfficialEventLink({ event }: { event: ExploreEvent }) {
+  if (!event.officialUrl) return null
+  return <a className="official-event-link" href={event.officialUrl} target="_blank" rel="noreferrer"><PaperclipIcon /><span>Official event details</span><small>Opens MagicCon listing ↗</small></a>
+}
+
+function PaperclipIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9.5 12.5 5.7-5.7a3 3 0 0 1 4.2 4.2l-8.5 8.5a5 5 0 0 1-7.1-7.1l8.1-8.1" /><path d="m7.4 14.6 7.8-7.8" /></svg>
 }
 
 function TicketMiniIcon() {
@@ -4178,6 +4199,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span><button className="detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button></span></div>
       <h2>{displayEventTitle(event)}</h2>
       <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span><span><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span><span><DetailFactIcon name="duration" />{event.window}</span></div>
+      <OfficialEventLink event={event} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
     <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>WHAT YOU NEED TO KNOW</small>{event.state === 'committed' ? `This is on the calendar for ${event.day} at ${event.time}. ${event.planEffect}` : `This is not a hard calendar commitment yet. ${event.planEffect}`}</p></div>
