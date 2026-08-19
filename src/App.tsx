@@ -71,12 +71,13 @@ function surfaceSubtitle(surface: Surface) {
   return subtitles[surface]
 }
 
-async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
+async function loadTrustSlice(ownerId: string): Promise<TrustSlice | null> {
   if (!supabase) throw new Error('Supabase is not configured.')
 
   const occurrenceResult = await supabase.from('occurrences').select('*')
-    .eq('owner_id', ownerId).eq('title', 'Black Lotus Planechase Unknown').single()
+    .eq('owner_id', ownerId).eq('title', 'Black Lotus Planechase Unknown').maybeSingle()
   if (occurrenceResult.error) throw occurrenceResult.error
+  if (!occurrenceResult.data) return null
 
   const [observationResult, decisionResult] = await Promise.all([
     supabase.from('source_observations').select('*')
@@ -111,11 +112,6 @@ async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
     itinerary: itineraryResult.data,
     savedAt: new Date().toISOString(),
   } as TrustSlice
-}
-
-function isMissingTrustSliceError(error: unknown) {
-  return typeof error === 'object' && error !== null && 'code' in error
-    && (error as { code?: string }).code === 'PGRST116'
 }
 
 type PersonalNoteRow = {
@@ -637,17 +633,11 @@ export default function App() {
     setMessageTone('info')
     try {
       const next = await loadTrustSlice(effectiveOwnerId)
-      writeTrustSliceCache(next)
+      if (next) writeTrustSliceCache(next)
       setSlice(next)
     } catch (error) {
-      if (isMissingTrustSliceError(error)) {
-        // Premium companions do not need a private Black Lotus trust slice to use shared app data.
-        setSlice(null)
-        setMessage('')
-      } else {
-        setMessageTone('error')
-        setMessage(error instanceof Error ? error.message : 'The current view could not be refreshed.')
-      }
+      setMessageTone('error')
+      setMessage(error instanceof Error ? error.message : 'The current view could not be refreshed.')
     } finally {
       setLoading(false)
     }
@@ -835,6 +825,12 @@ export default function App() {
   if (!effectiveSession && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} messageTone={messageTone} />
 
   const daysToAtlanta = Math.max(0, Math.ceil((new Date('2026-11-13T00:00:00-08:00').getTime() - Date.now()) / 86_400_000))
+  const displaySlice: TrustSlice = slice ?? {
+    ...DESIGN_PREVIEW_SLICE,
+    ownerId: effectiveOwnerId ?? DESIGN_PREVIEW_SLICE.ownerId,
+    decision: { ...DESIGN_PREVIEW_SLICE.decision, planning_state: 'none' },
+    itinerary: { ...DESIGN_PREVIEW_SLICE.itinerary, active: false },
+  }
   const lastChecked = slice ? new Date(slice.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not yet'
   const openDestination = (name: string, next?: Surface) => {
     setMobileNavMenu(null)
@@ -1273,9 +1269,9 @@ export default function App() {
       </header>
 
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
-      {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
-        {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+      <>
+        {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
+        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
@@ -1295,10 +1291,10 @@ export default function App() {
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={slice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
-        {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
-      </>}
+        {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
+      </>
 
     </main>
       <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
