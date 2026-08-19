@@ -22,7 +22,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: 2HG - Collector Booster Sealed - Star Trek.",
-    "detail": "2HG - Collector Booster Sealed - Magic: The Gathering | Star Trek - $500 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944011&panel-name=2HG-Collector-Booster-Sealed-Magic-The-Gathering-Star-Trek-500-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -79,7 +80,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Deluxe Sealed - Star Trek.",
-    "detail": "Deluxe Sealed - Magic: The Gathering | Star Trek - $110 (Click here for more info)",
+    "detail": "The Final Frontier beckons - build the best 40-card deck you can to battle it out for three rounds.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944014&panel-name=Deluxe-Sealed-Magic-The-Gathering-Star-Trek-110-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -137,7 +139,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Commander - Precon Battle - Chaos with Commander Party.",
-    "detail": "Commander - Precon Battle - Chaos with Commander Party - $100 (Click here for more info)",
+    "detail": "Don't have a Commander deck? No problem! Receive a random preconstructed Commander deck to keep and battle it out in this multiplayer event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944012&panel-name=Commander-Precon-Battle-Chaos-with-Commander-Party-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -194,7 +197,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Grand Melee - Deluxe Sealed - with Ify Nwadiwe and Brian David Gilbert.",
-    "detail": "Grand Melee - Deluxe Sealed - with Ify Nwadiwe and Brian David Gilbert - $90 (Click here for more info)",
+    "detail": "Join us for one giant game! Do you have the spells and skills to outlast your competitors? Join us for this fantastic and special format: a Grand Melee!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944013&panel-name=Grand-Melee-Deluxe-Sealed-with-Ify-Nwadiwe-and-Brian-David-Gilbert-90-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -251,6 +255,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Unknown with Gavin Verhey.",
     "detail": "Join Gavin Verhey and friends as they take you on a journey into the Unknown. This event and the fun within will be at the whim of your host(s)!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944017&panel-name=Unknown-with-Gavin-Verhey-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -303,7 +308,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Pro Tour Qualifier - Black - Sealed - Star Trek.",
-    "detail": "Pro Tour Qualifier - Black - Sealed - Magic: The Gathering | Star Trek - $125 (Click here for more info)",
+    "detail": "The most direct way to the Pro Tour! Join this fun, competitive event which can send you straight to the next Pro Tour! Day Two takes place Saturday, November 14th, at 12:00 pm.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944016&panel-name=Pro-Tour-Qualifier-Black-Sealed-Magic-The-Gathering-Star-Trek-125-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -357,6 +363,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Commander Sealed Draft with Commander at Home.",
     "detail": "Commander at Home wants you to join us for a Commander event you won't forget! Don't have a deck? No problem! Play with fun variants and celebrate your favorite format with us!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944015&panel-name=Commander-Sealed-Draft-with-Commander-at-Home-180-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -412,7 +419,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Team Trios - Full-Box Sealed - Star Trek.",
-    "detail": "Team Trios - Full-Box Sealed - Magic: The Gathering | Star Trek - $225 (Click here for more info)",
+    "detail": "One entry pays for the full team! Trios events require three (3) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944019&panel-name=Team-Trios-Full-Box-Sealed-Magic-The-Gathering-Star-Trek-225-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -470,6 +478,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Last Commander Standing Qualifier.",
     "detail": "Bring your best, bring your baddest and compete in the ultimate multiplayer battle. Can you face down all your competitors and be the Last Commander Standing?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944018&panel-name=Last-Commander-Standing-Qualifier-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -523,6 +532,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Draft - Mystery Booster Commander Edition.",
     "detail": "Join us as we draft once more into the Mystery! Draft the best pool you can to build a Commander deck and battle it out over 2 rounds!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944020&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -580,6 +590,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Legacy Cup - MagicCon: Atlanta.",
     "detail": "Legacy players join together for fun, prizes, bragging rights, and a trophy. Legacy Cup Top 8 takes place after the conclusion of Swiss rounds.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944021&panel-name=Legacy-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -632,7 +643,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Deluxe Sealed - Chase the Planes - Reality Fracture.",
-    "detail": "Deluxe Sealed - Chase the Planes - Reality Fracture - $80 (Click here for more info)",
+    "detail": "Explore Arcavios with us—specifically the Echoverse and all its reflections. Be the best mage you can be in this exciting Sealed event. Use a pool that's a mix of Collector Boosters and Play Boosters to build your best deck and battle it out!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944024&panel-name=Deluxe-Sealed-Chase-the-Planes-Reality-Fracture-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -688,7 +700,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic Presents: All Leylines - Draft your Draft - Chaos.",
-    "detail": "Magic Presents: All Leylines - Draft your Draft - Chaos - $40 (Click here for more info)",
+    "detail": "Join us for this speciality chaos draft. Every player starts with a Leyline of Anticipation in play. Do your best to find a worthy deck amidst all this fast flying chaos!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944025&panel-name=Magic-Presents-All-Leylines-Draft-your-Draft-Chaos-40-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -746,7 +759,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Collector Commander - Precon Battle - Star Trek.",
-    "detail": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek - $150 (Click here for more info)",
+    "detail": "Don't have a Commander deck? No problem! Receive a random Collector Edition Magic: The Gathering | Star Trek™ preconstructed Commander deck to keep and battle it out in this multiplayer event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944023&panel-name=Collector-Commander-Precon-Battle-Magic-The-Gathering-Star-Trek-150-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -802,7 +816,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic: The Gauntlet - Sealed, Draft, Merge - Reality Fracture.",
-    "detail": "Magic: The Gauntlet - Sealed, Draft, Merge - Reality Fracture - $60 (Click here for more info)",
+    "detail": "Enter the gauntlet! A round of Reality Fracture Sealed followed by a Reality Fracture draft that will play out for one round each and then merge. Combine your sealed and the draft pools to create a new deck for your final round!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944022&panel-name=Magic-The-Gauntlet-Sealed-Draft-Merge-Reality-Fracture-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -860,6 +875,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Standard Cup - MagicCon: Atlanta.",
     "detail": "Standard players join for fun, prizes, bragging rights, and a trophy. Standard Cup Top 8 takes place Saturday, November 14th, at 1pm.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944026&panel-name=Standard-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -913,6 +929,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Mega-Draft - Mystery Booster Commander Edition.",
     "detail": "It's a Mystery Booster Commander Edition Draft, with twice the packs! Can you draft up a strategy that will help you beat the competition?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944027&panel-name=Mega-Draft-Mystery-Booster-Commander-Edition-90-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -968,7 +985,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: 2HG - Sealed - Chase the Planes - Reality Fracture.",
-    "detail": "2HG - Sealed - Chase the Planes - Reality Fracture - $80 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944029&panel-name=2HG-Sealed-Chase-the-Planes-Reality-Fracture-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1026,7 +1044,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Savvy Pin Traders - Deluxe Sealed League - Reality Fracture with Veggie Wagon featuring a special pin!.",
-    "detail": "Savvy Pin Traders - Deluxe Sealed League - Reality Fracture with Veggie Wagon featuring a special pin! - $85 (Click here for more info)",
+    "detail": "Veggie Wagon welcomes you to the market. What will you open? What will you keep? What will you trade away? Can you swap your way into a winning deck? Happy savvy trading. Featuring a special savvy trading pin!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944028&panel-name=Savvy-Pin-Traders-Deluxe-Sealed-League-Reality-Fracture-with-Veggie-Wagon-featuring-a-special-pin-85-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1080,6 +1099,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Battlebox - Sneaky Snacker Qualifier.",
     "detail": "Come prove your mettle and show how sneaky you can be in this Battlebox qualifier. The top 4 players qualify for Battlebox Finals on Sunday, November 15th at 12:30 pm.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944030&panel-name=Battlebox-Sneaky-Snacker-Qualifier-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1137,6 +1157,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Collector Booster Sealed - Reality Fracture.",
     "detail": "Open the coolest cards with six Collector Boosters full of rare cards, shiny foil cards, and special alt-art, alt-frame cards. Can you make the most of your Echoverse?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944032&panel-name=Collector-Booster-Sealed-Reality-Fracture-180-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1193,7 +1214,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Commander Full-Box Sealed - Star Trek.",
-    "detail": "Commander Full-Box Sealed - Magic: The Gathering | Star Trek - $225 (Click here for more info)",
+    "detail": "There's a Commander deck waiting for you inside a box. Can you find it among all your options? Once you and your deck are ready battle it out for two rounds.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944031&panel-name=Commander-Full-Box-Sealed-Magic-The-Gathering-Star-Trek-225-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1251,6 +1273,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Constructed Commander Challenge - Pauper.",
     "detail": "Calling all Pauper and Commander lovers. It's time to bring your talents to bear. Bring your favorite Uncommon creature (Legendary or not) and a 99 card deck of cards printed at the rarity of common. Let's get together and battle it out!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944033&panel-name=Constructed-Commander-Challenge-Pauper-25-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1302,7 +1325,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: All Play - Sealed - Star Trek.",
-    "detail": "All Play - Sealed - Magic: The Gathering | Star Trek - $45 (Click here for more info)",
+    "detail": "Hold Nothing Back - As no deck building needed. Crack your packs, shuffle up all the cards, use basic lands from outside the game, and battle!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944034&panel-name=All-Play-Sealed-Magic-The-Gathering-Star-Trek-45-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1360,6 +1384,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Competitive Draft - Reality Fracture.",
     "detail": "Bring your competitive spirit to this draft and be prepared to face the strong and the mighty.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944036&panel-name=Competitive-Draft-Reality-Fracture-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1415,7 +1440,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven.",
-    "detail": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven - $40 (Click here for more info)",
+    "detail": "Join us for a Secrets of Strixhaven draft with a slight twist. Every player has an emblem that allows all Mystical Archive cards regardless of color to be played in any deck. The archives are open, come play some spells!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944035&panel-name=Magic-Presents-Open-the-Archives-Mega-Draft-Secrets-of-Strixhaven-40-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1473,6 +1499,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Team Trios - Standard Sealed.",
     "detail": "One entry pays for the full team! Trios events require three (3) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944037&panel-name=Team-Trios-Standard-Sealed-130-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1529,7 +1556,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Prismatic Pride Commander Sealed – Presented by Wizards Pride.",
-    "detail": "Prismatic Pride Commander Sealed – Presented by Wizards Pride - $90 (Click here for more info)",
+    "detail": "Join the Wizards Pride team for a special Commander Sealed event: Prismatic Pride! Presented in partnership with our Pride ERG, we're celebrating our LGBTQ+ characters and players through the universal language of Magic.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944038&panel-name=Prismatic-Pride-Commander-Sealed-%E2%80%93-Presented-by-Wizards-Pride-90-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1586,7 +1614,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: 2HG - Full-Box Sealed - Mystery Booster Commander Edition.",
-    "detail": "2HG - Full-Box Sealed - Mystery Booster Commander Edition - $320 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944039&panel-name=2HG-Full-Box-Sealed-Mystery-Booster-Commander-Edition-320-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1642,7 +1671,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture.",
-    "detail": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture - $30 (Click here for more info)",
+    "detail": "Join a pod of four and draft it out in this specialty Echoverse Pick-Two Draft.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944041&panel-name=Magic-Presents-Reality-Echoes-Pick-Two-Special-Draft-Reality-Fracture-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1700,6 +1730,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Last Commander Standing Qualifier.",
     "detail": "Bring your best, bring your baddest and compete in the ultimate multiplayer battle. Can you face down all your competitors and be the Last Commander Standing?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944040&panel-name=Last-Commander-Standing-Qualifier-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1753,6 +1784,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Draft - Mystery Booster Commander Edition.",
     "detail": "Join us as we draft once more into the Mystery! Draft the best pool you can to build a Commander deck and battle it out over 2 rounds!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944043&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1808,7 +1840,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: LoadingReadyRun! Presents 2026 Year in Review - Sealed.",
-    "detail": "LoadingReadyRun! Presents 2026 Year in Review - Sealed - $100 (Click here for more info)",
+    "detail": "Celebrate the amazing year Magic: The Gathering has had by building a sealed pool with a pack of each set from 2026!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944042&panel-name=LoadingReadyRun-Presents-2026-Year-in-Review-Sealed-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1864,7 +1897,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Hexhaven Study Hall Sealed - Search the Library with Brian David Marshall.",
-    "detail": "Hexhaven Study Hall Sealed - Search the Library with Brian David Marshall - $100 (Click here for more info)",
+    "detail": "Study Hall Proctor Brian David-Marshall is here to make sure you get all your work done. Build 2 decks and he'll assist in several brief dashes to the library to grab all the extra spells you might need. Can you master the minimatches for a big benefit when it's test time?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944044&panel-name=Hexhaven-Study-Hall-Sealed-Search-the-Library-with-Brian-David-Marshall-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1921,7 +1955,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Deluxe Sealed - Star Trek.",
-    "detail": "Deluxe Sealed - Magic: The Gathering | Star Trek - $110 (Click here for more info)",
+    "detail": "The Final Frontier beckons - build the best 40-card deck you can to battle it out for three rounds.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944045&panel-name=Deluxe-Sealed-Magic-The-Gathering-Star-Trek-110-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -1978,7 +2013,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Friday Night Magic - 2HG Commander Night - Constructed.",
-    "detail": "Friday Night Magic - 2HG Commander Night - Constructed - $40 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944046&panel-name=Friday-Night-Magic-2HG-Commander-Night-Constructed-40-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2032,6 +2068,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Friday Night Magic - Standard - Win a Box.",
     "detail": "Friday Night Magic! Nothing screams Magic more than FNM, and this tournament celebrates that history with a great Standard event!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944048&panel-name=Friday-Night-Magic-Standard-Win-a-Box-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2083,7 +2120,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Friday Night Magic - 2HG - Sealed - Reality Fracture.",
-    "detail": "Friday Night Magic - 2HG - Sealed - Reality Fracture - $70 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944047&panel-name=Friday-Night-Magic-2HG-Sealed-Reality-Fracture-70-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2140,7 +2178,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Friday Night Magic - Commander Precon Battle - Star Trek.",
-    "detail": "Friday Night Magic - Commander Precon Battle - Magic: The Gathering | Star Trek - $100 (Click here for more info)",
+    "detail": "Want to play Commander at Friday Night Magic but don't have a deck, or wish you had a new deck? We've got you covered! Receive a random preconstructed Commander deck to keep and battle it out in this multiplayer event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944049&panel-name=Friday-Night-Magic-Commander-Precon-Battle-Magic-The-Gathering-Star-Trek-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2196,7 +2235,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Friday Night Magic - Pick-Two Draft - Star Trek.",
-    "detail": "Friday Night Magic - Pick-Two Draft - Magic: The Gathering | Star Trek - $25 (Click here for more info)",
+    "detail": "Friday Night Magic! Nothing screams Magic more than FNM, and this tournament celebrates drafting specifically!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944051&panel-name=Friday-Night-Magic-Pick-Two-Draft-Magic-The-Gathering-Star-Trek-25-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2253,7 +2293,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Team Trios - Collector Booster Sealed - Star Trek.",
-    "detail": "Team Trios - Collector Booster Sealed - Magic: The Gathering | Star Trek - $750 (Click here for more info)",
+    "detail": "One entry pays for the full team! Trios events require three (3) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944052&panel-name=Team-Trios-Collector-Booster-Sealed-Magic-The-Gathering-Star-Trek-750-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2310,6 +2351,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Friday Night Magic - Sealed - Reality Fracture.",
     "detail": "Friday Night Magic! Nothing screams Magic more than FNM, and this tournament celebrates that history with a great Sealed event!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944050&panel-name=Friday-Night-Magic-Sealed-Reality-Fracture-35-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2366,6 +2408,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Mini-Masters Extravaganza.",
     "detail": "It's a Mini-Masters Extravaganza! Join us for this fun and fast format. Receive a booster pack and 15 lands to join together and play out your pack! If you win - receive a booster to add to your deck and battle your next opponent.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944054&panel-name=Mini-Masters-Extravaganza-20-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2423,6 +2466,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Friday Night Magic - Pauper - Win a Box.",
     "detail": "Friday Night Magic! Nothing screams Magic more than FNM, and this tournament celebrates that history with a great Pauper event!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944055&panel-name=Friday-Night-Magic-Pauper-Win-a-Box-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2476,6 +2520,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Friday Night Magic - Modern - Win a Box.",
     "detail": "Friday Night Magic! Nothing screams Magic more than FNM, and this tournament celebrates that history with a great Modern event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944056&panel-name=Friday-Night-Magic-Modern-Win-a-Box-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2528,7 +2573,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Magic presents: Turbo Tower - Lightning Round - Commander.",
-    "detail": "Magic presents: Turbo Tower - Lightning Round - Commander - $20 (Click here for more info)",
+    "detail": "Play a lightning-quick round of Commander with this fast and broken Commander format!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944057&panel-name=Magic-presents-Turbo-Tower-Lightning-Round-Commander-20-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2580,7 +2626,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Turbo - Four-Pack Sealed - Star Trek.",
-    "detail": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek - $30 (Click here for more info)",
+    "detail": "Build the best deck you can and battle it out in one exciting round!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944058&panel-name=Turbo-Four-Pack-Sealed-Magic-The-Gathering-Star-Trek-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2636,7 +2683,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Turbo - 2HG - Four-pack Sealed - Reality Fracture.",
-    "detail": "Turbo - 2HG - Four-pack Sealed - Reality Fracture - $50 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944059&panel-name=Turbo-2HG-Four-pack-Sealed-Reality-Fracture-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2692,7 +2740,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic: The Gauntlet - Sealed, Draft, Merge - Star Trek.",
-    "detail": "Magic: The Gauntlet - Sealed, Draft, Merge - Magic: The Gathering | Star Trek - $68 (Click here for more info)",
+    "detail": "Enter the gauntlet! A round of Magic: The Gathering | Star Trek™ Sealed followed by a Star Trek™ draft that will play out for one round each and then merge. Combine the sealed and the draft pools to create a new deck for your final round!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944061&panel-name=Magic-The-Gauntlet-Sealed-Draft-Merge-Magic-The-Gathering-Star-Trek-68-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2750,6 +2799,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Last Commander Standing Qualifier.",
     "detail": "Bring your best, bring your baddest and compete in the ultimate multiplayer battle. Can you face down all your competitors and be the Last Commander Standing?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944063&panel-name=Last-Commander-Standing-Qualifier-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2802,6 +2852,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: 2HG - Draft your Draft - Chaos.",
     "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944060&panel-name=2HG-Draft-your-Draft-Chaos-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2859,7 +2910,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Collector Commander - Precon Battle - Star Trek.",
-    "detail": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek - $150 (Click here for more info)",
+    "detail": "Don't have a Commander deck? No problem! Receive a random Collector Edition Magic: The Gathering | Star Trek™ preconstructed Commander deck to keep and battle it out in this multiplayer event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944062&panel-name=Collector-Commander-Precon-Battle-Magic-The-Gathering-Star-Trek-150-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2916,7 +2968,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Grand Melee - Mega Sealed - Mystery Booster Commander Edition.",
-    "detail": "Grand Melee - Mega Sealed - Mystery Booster Commander Edition - $160 (Click here for more info)",
+    "detail": "Join us for a Commander Sealed Grand Melee. You will receive 12 boosters to create your deck, battle in the melee, and win prizes.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944064&panel-name=Grand-Melee-Mega-Sealed-Mystery-Booster-Commander-Edition-160-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -2972,7 +3025,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven.",
-    "detail": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven - $40 (Click here for more info)",
+    "detail": "Join us for a Secrets of Strixhaven draft with a slight twist. Every player has an emblem that allows all Mystical Archive cards regardless of color to be played in any deck. The archives are open, come play some spells!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944066&panel-name=Magic-Presents-Open-the-Archives-Mega-Draft-Secrets-of-Strixhaven-40-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3029,7 +3083,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Limited Championship Qualifier - Sealed - Star Trek.",
-    "detail": "Limited Championship Qualifier - Sealed - Magic: The Gathering | Star Trek - $125 (Click here for more info)",
+    "detail": "Join the competition. There’s a qualification waiting for you—if you can build the sealed deck to grasp it.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944065&panel-name=Limited-Championship-Qualifier-Sealed-Magic-The-Gathering-Star-Trek-125-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3081,7 +3136,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: The Tale of Kamigawa | Kamigawa: Neon Dynasty Progressive Sealed - featuring The Magic Story Podcast.",
-    "detail": "The Tale of Kamigawa | Kamigawa: Neon Dynasty Progressive Sealed - featuring The Magic Story Podcast - $175 (Click here for more info)",
+    "detail": "Ninjas stalk the rooftops. Spirit dragons soar through the skies. Clever kami parade through the streets, bringing gifts and secrets to all. This is Kamigawa, a plane of technology, tradition, and magic unlike anywhere else in the Multiverse! Join The Magic Story Podcast with a flashback to Kamigawa: Neon Dyntasty, where we were first introduced to this high-tech version of Kamigawa.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944067&panel-name=The-Tale-of-Kamigawa--Kamigawa-Neon-Dynasty-Progressive-Sealed-featuring-The-Magic-Story-Podcast-175-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3138,7 +3194,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Collector Booster Sealed - Star Trek.",
-    "detail": "Collector Booster Sealed - Magic: The Gathering | Star Trek - $250 (Click here for more info)",
+    "detail": "Open the coolest cards in the entire Quadrant with six Collector Boosters full of rare cards, shiny foil cards, and special alt-art, alt-frame cards and battle it out for three rounds.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944069&panel-name=Collector-Booster-Sealed-Magic-The-Gathering-Star-Trek-250-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3195,7 +3252,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Team Trios - Collector Booster Sealed - Reality Fracture.",
-    "detail": "Team Trios - Collector Booster Sealed - Reality Fracture - $500 (Click here for more info)",
+    "detail": "One entry pays for the full team! Trios events require three (3) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944070&panel-name=Team-Trios-Collector-Booster-Sealed-Reality-Fracture-500-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3252,6 +3310,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Tribble Takeover - Sealed.",
     "detail": "They may be cute, but they are also nothing but trouble. Help clear the ship of this fuzzy infestation while playing strategically with your sealed deck and maybe just maybe you can take home your own troublesome pest.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944068&panel-name=Tribble-Takeover-Sealed-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3309,6 +3368,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Pro Tour Qualifier - Black - Top 32.",
     "detail": "The most direct way to the Pro Tour! Join this fun, competitive event which can send you straight to the next Pro Tour!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944071&panel-name=Pro-Tour-Qualifier-Black-Top-32-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3361,6 +3421,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: All Play - Sealed - Reality Fracture.",
     "detail": "Hold Nothing Back - As no deck building needed. Crack your packs, shuffle up all the cards, use basic lands from outside the game, and battle!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944072&panel-name=All-Play-Sealed-Reality-Fracture-35-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3419,6 +3480,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Starfleet Academy League.",
     "detail": "Starfleet Academy wants you! Admission is competitive, with many viable candidates on the field. We need applicants who excel in key areas: aptitude, game experience, and deck building. The trials may be rigorous including performance under pressure, and psychological scrutiny. Buckle down and you will pass the exams, rank up and become one of Starfleet's finest.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944074&panel-name=Starfleet-Academy-League-55-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3467,6 +3529,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic: The Menu with Brian David-Marshall.",
     "detail": "Enjoy Magic: the Menu! This is a multi-course event and the menu is never the same. Feast on play boosters, collector boosters, promos and much more! It's Chef's Choice - and the Chef is BDM (Brian David-Marshall) who will cater several formats of fun over hours of gluttonous delight to whet your magic appetite.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944073&panel-name=Magic-The-Menu-with-Brian-David-Marshall-185-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3511,7 +3574,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: 2HG - Collector Booster Sealed - Reality Fracture.",
-    "detail": "2HG - Collector Booster Sealed - Reality Fracture - $335 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944075&panel-name=2HG-Collector-Booster-Sealed-Reality-Fracture-335-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3567,7 +3631,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture.",
-    "detail": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture - $30 (Click here for more info)",
+    "detail": "Join a pod of four and draft it out in this specialty Echoverse Pick-Two Draft.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944076&panel-name=Magic-Presents-Reality-Echoes-Pick-Two-Special-Draft-Reality-Fracture-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3624,7 +3689,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Standard Cup - MagicCon: Atlanta - Top 8.",
-    "detail": "Only the badge holder can register for event entries. If you purchased a badge for someone else, you must register and purchase their event entries until the badge is transferred to them.",
+    "detail": "The top Standard players battle it out bragging rights, and a trophy.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944078&panel-name=Standard-Cup-MagicCon-Atlanta-Top-8-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3672,7 +3738,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Chase the Planes - Sealed - Star Trek™.",
-    "detail": "Chase the Planes - Sealed - Magic: The Gathering | Star Trek™ - $45 (Click here for more info)",
+    "detail": "We can go on some adventures and not even leave the ship or the table. To the Holodeck!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944077&panel-name=Chase-the-Planes-Sealed-Magic-The-Gathering-Star-Trek%E2%84%A2-45-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3729,7 +3796,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Pro Tour Qualifier - Gold - Sealed - Star Trek.",
-    "detail": "Pro Tour Qualifier - Gold - Sealed - Magic: The Gathering | Star Trek - $125 (Click here for more info)",
+    "detail": "The most direct way to the Pro Tour! Join this fun, competitive event which can send you straight to the next Pro Tour! Day Two takes place Sunday, November 15th, at 11:30 am",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944079&panel-name=Pro-Tour-Qualifier-Gold-Sealed-Magic-The-Gathering-Star-Trek-125-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3782,6 +3850,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Unknown for Charity with Gavin Verhey.",
     "detail": "Join Gavin Verhey and friends as they take you on a journey into the Unknown. This event and the fun within will be at the whim of your host(s)!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944082&panel-name=Unknown-for-Charity-with-Gavin-Verhey-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3835,6 +3904,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: cEDH Cup - MagicCon: Atlanta.",
     "detail": "cEDH players join for fun, prizes, bragging rights and a trophy! Top 16 to take place Sunday, November 15th, at 11:30 am.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944083&panel-name=cEDH-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3887,7 +3957,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: 2HG - Full-Box Sealed - Mystery Booster Commander Edition.",
-    "detail": "2HG - Full-Box Sealed - Mystery Booster Commander Edition - $320 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944080&panel-name=2HG-Full-Box-Sealed-Mystery-Booster-Commander-Edition-320-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3941,6 +4012,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Draft - Mystery Booster Commander Edition.",
     "detail": "Join us as we draft once more into the Mystery! Draft the best pool you can to build a Commander deck and battle it out over 2 rounds!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944081&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -3998,6 +4070,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Pauper Cup - MagicCon: Atlanta.",
     "detail": "Pauper players join for fun, prizes, bragging rights, and a trophy. Pauper Cup Top 8 takes place Sunday, November 15th, at 12:30 pm.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944084&panel-name=Pauper-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4049,7 +4122,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture.",
-    "detail": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture - $30 (Click here for more info)",
+    "detail": "Join a pod of four and draft it out in this specialty Echoverse Pick-Two Draft.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944086&panel-name=Magic-Presents-Reality-Echoes-Pick-Two-Special-Draft-Reality-Fracture-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4107,6 +4181,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Mage Tower League - Vigorbloom.",
     "detail": "Vigorbloom wants you. The substrate beckons and the battlemages need your support. Bring all ten of your green fingers to bear to help win Mage Tower.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944092&panel-name=Mage-Tower-League-Vigorbloom-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4160,6 +4235,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Mage Tower League - Theorix.",
     "detail": "Command your power over this reality with your sharp mind for math, acknowledge the power of patterns and keep an eye for dismantling the theoretical. Twist reality to give us the edge in Mage Tower!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944089&panel-name=Mage-Tower-League-Theorix-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4213,6 +4289,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Mage Tower League - Stingerquill.",
     "detail": "Sticks and Stones can break your bones, and with Stingerquill the words wil also hurt you. Using harsh verbal magic enough to cut apart both your body, your conviciton and your souil. Razor wit and sharp talent are needed on the Stingerquill campus. Ambition is welcome, your sharp style and wit will be needed to turn the tide in Mage Tower.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944090&panel-name=Mage-Tower-League-Stingerquill-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4266,6 +4343,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Mage Tower League - Konstrari.",
     "detail": "Are you ready to channel of your creativity and artistic inspiration into building. Into infrastructure? Can you cobble together constructs or even soldiers, then help us build an army in Mage Tower!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944091&panel-name=Mage-Tower-League-Konstrari-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4319,6 +4397,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Mage Tower League - Fatehold.",
     "detail": "We don't need to hope for victory, we only choose the path that is optimal to our end goals. Calling the most diligent mages and daring futurists to Fatehold campus. History will be a rich tapestry interconnected with human nature - and with careful study we use it to shift our fate in Mage Tower!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944088&panel-name=Mage-Tower-League-Fatehold-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4372,6 +4451,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Last Commander Standing Qualifier.",
     "detail": "Bring your best, bring your baddest and compete in the ultimate multiplayer battle. Can you face down all your competitors and be the Last Commander Standing?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944093&panel-name=Last-Commander-Standing-Qualifier-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4425,7 +4505,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Commander - Precon Battle - Chaos with Commander Party.",
-    "detail": "Commander - Precon Battle - Chaos with Commander Party - $100 (Click here for more info)",
+    "detail": "Don't have a Commander deck? No problem! Receive a random preconstructed Commander deck to keep and battle it out in this multiplayer event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944087&panel-name=Commander-Precon-Battle-Chaos-with-Commander-Party-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4482,6 +4563,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Collector Chaos Sealed.",
     "detail": "Build the best deck you can out of this chaos collection of some of the coolest card treatments a booster can provide and battle it out for three rounds.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944085&panel-name=Collector-Chaos-Sealed-320-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4539,6 +4621,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Modern Cup - MagicCon: Atlanta.",
     "detail": "Modern players join for fun, prizes, bragging rights, and a trophy. Modern Cup Top 8 takes place on Sunday, November 15th, at 1pm.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944094&panel-name=Modern-Cup-MagicCon-Atlanta-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4591,7 +4674,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Constructed Commander Challenge - Secrets of Strixhaven and Reality Fracture.",
-    "detail": "Constructed Commander Challenge - Secrets of Strixhaven and Reality Fracture - $25 (Click here for more info)",
+    "detail": "Calling all adventures to the Echoverse. Have you been entranced by Strixhaven and Hexhaven? Do you love a good reflection? Build your best 100 card deck led by a champion from the either Strixhaven, Secrets of Strixhaven or Reality Fracture and bring it to the battle.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944096&panel-name=Constructed-Commander-Challenge-Secrets-of-Strixhaven-and-Reality-Fracture-25-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4645,6 +4729,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Battlebox - Sneaky Snacker Qualifier.",
     "detail": "Come prove your mettle and show how sneaky you can be in this Battlebox qualifier. The top 4 players qualify for Battlebox Finals on Sunday, November 15th at 12:30 pm.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944095&panel-name=Battlebox-Sneaky-Snacker-Qualifier-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4701,7 +4786,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Competitive Draft - Star Trek.",
-    "detail": "Competitive Draft - Magic: The Gathering | Star Trek - $100 (Click here for more info)",
+    "detail": "Bring your competitive spirit to this draft and be prepared to face the strong and the mighty.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944097&panel-name=Competitive-Draft-Magic-The-Gathering-Star-Trek-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4758,6 +4844,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Team Trios - Sealed - Reality Fracture.",
     "detail": "One entry pays for the full team! Trios events require three (3) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944098&panel-name=Team-Trios-Sealed-Reality-Fracture-120-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4815,6 +4902,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: 2HG - Deluxe Sealed - Reality Fracture.",
     "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944099&panel-name=2HG-Deluxe-Sealed-Reality-Fracture-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4872,6 +4960,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Mega-Draft - Star Trek.",
     "detail": "It's a Magic: The Gathering | Star Trek™ draft, with twice the packs! Can you draft up a strategy that will help you beat the competition?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944100&panel-name=Mega-Draft-Magic-The-Gathering-Star-Trek-45-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4927,7 +5016,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: All Play - Sealed - Star Trek.",
-    "detail": "All Play - Sealed - Magic: The Gathering | Star Trek - $45 (Click here for more info)",
+    "detail": "Hold Nothing Back - As no deck building needed. Crack your packs, shuffle up all the cards, use basic lands from outside the game, and battle!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944102&panel-name=All-Play-Sealed-Magic-The-Gathering-Star-Trek-45-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -4984,7 +5074,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Deluxe Sealed - Star Trek with Birds of Paradise.",
-    "detail": "Deluxe Sealed - Magic: The Gathering | Star Trek with Birds of Paradise - $110 (Click here for more info)",
+    "detail": "Do you dream of the stars? Birds of Paradise welcomes you to participate in this rather stellar Sealed event. Do you think you can outshine a comet? Could you settle for a little moon dust? Come and find out! You can sit with us!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944101&panel-name=Deluxe-Sealed-Magic-The-Gathering-Star-Trek-with-Birds-of-Paradise-110-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5041,6 +5132,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Chaos Chaos Chaos with LoadingReadyRun!.",
     "detail": "Boosters? Yes! Mystery? Yes! Chaos? Yes! LoadingReadyRun? Yes! Join a Draft Your Draft where you Rochester draft a chaos collection of boosters, then open those boosters to draft Melee style in groups of sixteen players. Be prepared for fun and chaos with folks from LRR who will guide you through your games.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944103&panel-name=Chaos-Chaos-Chaos-with-LoadingReadyRun-120-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5097,7 +5189,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Magic Presents: 2HG Commander Night - Constructed.",
-    "detail": "Magic Presents: 2HG Commander Night - Constructed - $60 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944104&panel-name=Magic-Presents-2HG-Commander-Night-Constructed-60-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5151,6 +5244,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Standard Sealed.",
     "detail": "Have you got what it takes to master this Standard Limited format? Try your hand at this deck-building challenge and see if you have what it takes to be a Limited format master.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944105&panel-name=Standard-Sealed-128-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5206,7 +5300,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Team Trios - Sealed - Star Trek.",
-    "detail": "Team Trios - Sealed - Magic: The Gathering | Star Trek - $140 (Click here for more info)",
+    "detail": "One entry pays for the full team! Trios events require three (3) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944106&panel-name=Team-Trios-Sealed-Magic-The-Gathering-Star-Trek-140-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5263,7 +5358,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Constructed Commander Challenge - Starship Commander.",
-    "detail": "Constructed Commander Challenge - Starship Commander - $25 (Click here for more info)",
+    "detail": "Select your favorite Legendary creature or Planeswalker, and pair them with the Spacecraft or Space Station of your choice. Build the coolest themed deck you can for your Starship Commander pair and battle it out! Each player starts with a Command Tower in Play!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944107&panel-name=Constructed-Commander-Challenge-Starship-Commander-25-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5317,6 +5413,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Draft - Mystery Booster Commander Edition.",
     "detail": "Join us as we draft once more into the Mystery! Draft the best pool you can to build a Commander deck and battle it out over 2 rounds!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944108&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5374,7 +5471,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Commander - Precon Battle - Chaos with Commander Party.",
-    "detail": "Commander - Precon Battle - Chaos with Commander Party - $100 (Click here for more info)",
+    "detail": "Don't have a Commander deck? No problem! Receive a random preconstructed Commander deck to keep and battle it out in this multiplayer event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944110&panel-name=Commander-Precon-Battle-Chaos-with-Commander-Party-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5431,7 +5529,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: 2HG - Full-Box Sealed - Mystery Booster Commander Edition.",
-    "detail": "2HG - Full-Box Sealed - Mystery Booster Commander Edition - $320 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944109&panel-name=2HG-Full-Box-Sealed-Mystery-Booster-Commander-Edition-320-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5485,7 +5584,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Commander and Cocktails League with Brian David-Marshall.",
-    "detail": "Commander and Cocktails League with Brian David-Marshall - $200 (Click here for more info)",
+    "detail": "Join Brian David-Marshall as he discusses brewing commander decks while you brew a new Commander deck for the weekend’s sealed Commander and Cocktails League. You will receive 24 assorted boosters to create your deck, a league card to play games and win prizes, a tiki mug, and receive a unique recipe card featuring a specially crafted cocktail for this event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944111&panel-name=Commander-and-Cocktails-League-with-Brian-David-Marshall-200-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5538,6 +5638,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Mini-Masters Extravaganza.",
     "detail": "It's a Mini-Masters Extravaganza! Join us for this fun and fast format. Receive a booster pack and 15 lands to join together and play out your pack! If you win - receive a booster to add to your deck and battle your next opponent.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944112&panel-name=Mini-Masters-Extravaganza-20-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5594,7 +5695,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Magic presents: Turbo Tower - Lightning Round - Commander.",
-    "detail": "Magic presents: Turbo Tower - Lightning Round - Commander - $20 (Click here for more info)",
+    "detail": "Play a lightning-quick round of Commander with this fast and broken Commander format!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944113&panel-name=Magic-presents-Turbo-Tower-Lightning-Round-Commander-20-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5647,6 +5749,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Turbo - 2HG - Sealed - Reality Fracture.",
     "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944115&panel-name=Turbo-2HG-Sealed-Reality-Fracture-70-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5702,7 +5805,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Turbo - Four-Pack Sealed - Star Trek.",
-    "detail": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek - $30 (Click here for more info)",
+    "detail": "Build the best deck you can and battle it out in one exciting round!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944114&panel-name=Turbo-Four-Pack-Sealed-Magic-The-Gathering-Star-Trek-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5759,6 +5863,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Sunday Sealed and Stacked.",
     "detail": "We hope you didn't think this was going to be a lazy Sunday! We've got a pile of boosters, and we hope you're ready to bring your best Sealed strategy and see if you can survive the competition.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944116&panel-name=Sunday-Sealed-and-Stacked-125-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5811,7 +5916,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Duel Commander Show Down.",
-    "detail": "Only the badge holder can register for event entries. If you purchased a badge for someone else, you must register and purchase their event entries until the badge is transferred to them.",
+    "detail": "Bring your fiercest Duel Commander deck for this Showdown!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944123&panel-name=Duel-Commander-Show-Down-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5864,7 +5970,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: 2HG - Grand Melee - Deluxe Sealed - Star Trek.",
-    "detail": "2HG - Grand Melee - Deluxe Sealed - Magic: The Gathering | Star Trek - $225 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944122&panel-name=2HG-Grand-Melee-Deluxe-Sealed-Magic-The-Gathering-Star-Trek-225-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5914,7 +6021,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Commander - Precon Battle - Chaos with Commander Party.",
-    "detail": "Commander - Precon Battle - Chaos with Commander Party - $100 (Click here for more info)",
+    "detail": "Don't have a Commander deck? No problem! Receive a random preconstructed Commander deck to keep and battle it out in this multiplayer event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944121&panel-name=Commander-Precon-Battle-Chaos-with-Commander-Party-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -5972,6 +6080,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Deluxe Sealed - Reality Fracture.",
     "detail": "Explore the Echoverse and build your best deck with a mix of Reality Fracture Collector and Play Boosters",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944120&panel-name=Deluxe-Sealed-Reality-Fracture-80-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6029,6 +6138,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Last Commander Standing - Top 16.",
     "detail": "The sixteen baddest standouts are here for a showdown. Who will be the Last Commander Standing?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944118&panel-name=Last-Commander-Standing-Top-16-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6079,6 +6189,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Starfleet Academy League.",
     "detail": "Starfleet Academy wants you! Admission is competitive, with many viable candidates on the field. We need applicants who excel in key areas: aptitude, game experience, and deck building. The trials may be rigorous including performance under pressure, and psychological scrutiny. Buckle down and you will pass the exams, rank up and become one of Starfleet's finest.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944119&panel-name=Starfleet-Academy-League-55-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6128,6 +6239,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: 2HG - Standard Sealed.",
     "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944117&panel-name=2HG-Standard-Sealed-135-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6184,7 +6296,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: cEDH Cup - MagicCon: Atlanta - Top 16.",
-    "detail": "Only the badge holder can register for event entries. If you purchased a badge for someone else, you must register and purchase their event entries until the badge is transferred to them.",
+    "detail": "The Top 16 cEDH Cup players play it out to find the champion!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944125&panel-name=cEDH-Cup-MagicCon-Atlanta-Top-16-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6238,6 +6351,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Pro Tour Qualifier - Gold - Top 32.",
     "detail": "The most direct way to the Pro Tour! Join this fun, competitive event which can send you straight to the next Pro Tour!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944124&panel-name=Pro-Tour-Qualifier-Gold-Top-32-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6291,6 +6405,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Full Box Sealed - Mystery Booster Commander.",
     "detail": "There's a Commander deck waiting for you in this box of Mystery Booster Commander Edition. Are you ready to find it?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944126&panel-name=Full-Box-Sealed-Mystery-Booster-Commander-320-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6346,7 +6461,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic: The Menu - Brunch - with Numot the Nummy.",
-    "detail": "Magic: The Menu - Brunch - with Numot the Nummy - $185 (Click here for more info)",
+    "detail": "Enjoy Magic: the Menu! Brunch edition! This is a multi-course event and the menu is never the same. Feast on play boosters, collector boosters, promos and much more! It's Chef's Choice - and the Chef is Numot the Nummy who will cater several formats of fun over hours of gluttonous delight to whet your magic appetite.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944127&panel-name=Magic-The-Menu-Brunch-with-Numot-the-Nummy-185-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6391,6 +6507,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: 2HG - Unknown with Gavin Verhey.",
     "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944131&panel-name=2HG-Unknown-with-Gavin-Verhey-200-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6443,7 +6560,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Collector Booster Sealed - Star Trek.",
-    "detail": "Collector Booster Sealed - Magic: The Gathering | Star Trek - $250 (Click here for more info)",
+    "detail": "Open the coolest cards in the entire Quadrant with six Collector Boosters full of rare cards, shiny foil cards, and special alt-art, alt-frame cards and battle it out for three rounds.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944130&panel-name=Collector-Booster-Sealed-Magic-The-Gathering-Star-Trek-250-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6499,7 +6617,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Team Trios - Full-Box Sealed - Reality Fracture.",
-    "detail": "Team Trios - Full-Box Sealed - Reality Fracture - $165 (Click here for more info)",
+    "detail": "One entry pays for the full team! Trios events require three (3) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944128&panel-name=Team-Trios-Full-Box-Sealed-Reality-Fracture-165-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6556,7 +6675,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Mystery Mats - Commander Mega Draft - Mystery Booster Commander Edition.",
-    "detail": "Mystery Mats - Commander Mega Draft - Mystery Booster Commander Edition - $115 (Click here for more info)",
+    "detail": "Unveil the mystery with Mystery Booster Commander Edition and receive a random playmat from Magic event history! (e.g., a mat from a Grand Prix, Nationals, Convention, Legacy Champs etc.)",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944142&panel-name=Mystery-Mats-Commander-Mega-Draft-Mystery-Booster-Commander-Edition-115-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6613,7 +6733,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Commander - Full Box Sealed - Star Trek with Ify Nwadiwe and Brian David Gilbert.",
-    "detail": "Commander - Full Box Sealed - Magic: The Gathering | Star Trek with Ify Nwadiwe and Brian David Gilbert - $200 (Click here for more info)",
+    "detail": "Ify Nwadiwe and Brian David Gilbert host a special kind of Commander Sealed event. Build a Commander deck from a whole box worth of boosters and answer Um, Actually questions from the hosts along the way!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944132&panel-name=Commander-Full-Box-Sealed-Magic-The-Gathering-Star-Trek-with-Ify-Nwadiwe-and-Brian-David-Gilbert-200-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6671,7 +6792,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "demanding",
     "complexityWhy": "Likely real gameplay commitment: paid, structured, and worth comparing carefully against the weekend plan.",
     "fit": "Official ticketed-play listing: Savvy Pin Traders - Deluxe Sealed League - Reality Fracture with Veggie Wagon featuring a special pin!.",
-    "detail": "Savvy Pin Traders - Deluxe Sealed League - Reality Fracture with Veggie Wagon featuring a special pin! - $85 (Click here for more info)",
+    "detail": "Veggie Wagon welcomes you to the market. What will you open? What will you keep? What will you trade away? Can you swap your way into a winning deck? Happy savvy trading. Featuring a special savvy trading pin!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944129&panel-name=Savvy-Pin-Traders-Deluxe-Sealed-League-Reality-Fracture-with-Veggie-Wagon-featuring-a-special-pin-85-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6725,6 +6847,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Battlebox - Sneaky Snacker - Top 8.",
     "detail": "This is it, the time to find out who has what it takes to sneaky snatch the trophy. The Top 4 players from each qualifier will face off in the Battlebox Finals",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944134&panel-name=Battlebox-Sneaky-Snacker-Top-8-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6777,7 +6900,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Pauper Cup - MagicCon: Atlanta - Top 8.",
-    "detail": "Rounds: Three (3) single-elimination rounds. Rounds are untimed.Estimated length of play: 3 to 4 hours",
+    "detail": "Pauper players join for fun, prizes, bragging rights, and a trophy.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944135&panel-name=Pauper-Cup-MagicCon-Atlanta-Top-8-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6826,7 +6950,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Limited Championship Qualifier - Top 64.",
-    "detail": "Only the badge holder can register for event entries. If you purchased a badge for someone else, you must register and purchase their event entries until the badge is transferred to them.",
+    "detail": "The Top 64 clash to find eight Limited Championship competitors.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944133&panel-name=Limited-Championship-Qualifier-Top-64-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6880,6 +7005,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Draft - Mystery Booster Commander Edition.",
     "detail": "Join us as we draft once more into the Mystery! Draft the best pool you can to build a Commander deck and battle it out over 2 rounds!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944136&panel-name=Draft-Mystery-Booster-Commander-Edition-50-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6937,6 +7063,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Competitive Draft - Reality Fracture.",
     "detail": "Bring your competitive spirit to this draft and be prepared to face the strong and the mighty.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944140&panel-name=Competitive-Draft-Reality-Fracture-100-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -6992,7 +7119,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven.",
-    "detail": "Magic Presents: Open the Archives - Mega Draft - Secrets of Strixhaven - $40 (Click here for more info)",
+    "detail": "Join us for a Secrets of Strixhaven draft with a slight twist. Every player has an emblem that allows all Mystical Archive cards regardless of color to be played in any deck. The archives are open, come play some spells!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944143&panel-name=Magic-Presents-Open-the-Archives-Mega-Draft-Secrets-of-Strixhaven-40-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7050,6 +7178,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: Modern Cup - MagicCon: Atlanta - Top 8.",
     "detail": "Modern Cup Top 8 players conclude their event for fun, prizes, bragging rights, and a trophy.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944139&panel-name=Modern-Cup-MagicCon-Atlanta-Top-8-0-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7098,6 +7227,7 @@ export const ticketedPlayExploreEvents = [
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Oops All Jace - Sealed - Reality Fracture.",
     "detail": "Reality has fractured and Jace is watching. He's everywhere. Can you borrow a spell or two off of him in all this Chaos to best your opponent?",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944138&panel-name=Oops-All-Jace-Sealed-Reality-Fracture-40-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7155,7 +7285,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "very-hard",
     "complexityWhy": "Competitive category: probably high-prep/high-pressure unless there is a specific reason to prioritize it.",
     "fit": "Official ticketed-play listing: 2HG - Commander Full-Box Sealed with Commander Party - Mystery Booster Commander Edition.",
-    "detail": "2HG - Commander Full-Box Sealed with Commander Party - Mystery Booster Commander Edition - $320 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944137&panel-name=2HG-Commander-Full-Box-Sealed-with-Commander-Party-Mystery-Booster-Commander-Edition-320-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7212,7 +7343,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Magic Presents: Pride 2026 - Constructed Commander.",
-    "detail": "Magic Presents: Pride 2026 - Constructed Commander - $30 (Click here for more info)",
+    "detail": "Join us for a Pride event, every commander has Partner! Bring your favorite two or build something new. We look forward to playing Magic with you.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944141&panel-name=Magic-Presents-Pride-2026-Constructed-Commander-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7260,7 +7392,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture.",
-    "detail": "Magic Presents: Reality Echoes - Pick Two Special Draft - Reality Fracture - $30 (Click here for more info)",
+    "detail": "Join a pod of four and draft it out in this specialty Echoverse Pick-Two Draft.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944145&panel-name=Magic-Presents-Reality-Echoes-Pick-Two-Special-Draft-Reality-Fracture-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7318,7 +7451,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Collector Commander - Precon Battle - Star Trek.",
-    "detail": "Collector Commander - Precon Battle - Magic: The Gathering | Star Trek - $150 (Click here for more info)",
+    "detail": "Don't have a Commander deck? No problem! Receive a random Collector Edition Magic: The Gathering | Star Trek™ preconstructed Commander deck to keep and battle it out in this multiplayer event.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944144&panel-name=Collector-Commander-Precon-Battle-Magic-The-Gathering-Star-Trek-150-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7374,7 +7508,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Turbo - 2HG - Sealed - Star Trek.",
-    "detail": "Turbo - 2HG - Sealed - Magic: The Gathering | Star Trek - $90 (Click here for more info)",
+    "detail": "One entry pays for the full team! 2HG events require two (2) players per team. All players should bring a teammate or find teammates. Players must have all members of their team present to play.",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944146&panel-name=Turbo-2HG-Sealed-Magic-The-Gathering-Star-Trek-90-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7430,7 +7565,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: All Play - Sealed - Star Trek.",
-    "detail": "All Play - Sealed - Magic: The Gathering | Star Trek - $45 (Click here for more info)",
+    "detail": "Hold Nothing Back - As no deck building needed. Crack your packs, shuffle up all the cards, use basic lands from outside the game, and battle!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944147&panel-name=All-Play-Sealed-Magic-The-Gathering-Star-Trek-45-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7487,7 +7623,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "easy",
     "complexityWhy": "Social play shape: likely more compatible with a relaxed convention weekend than pure competitive events.",
     "fit": "Official ticketed-play listing: Magic presents: Turbo Tower - Lightning Round - Commander.",
-    "detail": "Magic presents: Turbo Tower - Lightning Round - Commander - $20 (Click here for more info)",
+    "detail": "Play a lightning-quick round of Commander with this fast and broken Commander format!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944149&panel-name=Magic-presents-Turbo-Tower-Lightning-Round-Commander-20-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
@@ -7539,7 +7676,8 @@ export const ticketedPlayExploreEvents = [
     "complexity": "inconclusive",
     "complexityWhy": "Official ticketed-play listing; details are staged for review because fit depends on exact format, friends, and schedule conflicts.",
     "fit": "Official ticketed-play listing: Turbo - Four-Pack Sealed - Star Trek.",
-    "detail": "Turbo - Four-Pack Sealed - Magic: The Gathering | Star Trek - $30 (Click here for more info)",
+    "detail": "Build the best deck you can and battle it out in one exciting round!",
+    "officialUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944148&panel-name=Turbo-Four-Pack-Sealed-Magic-The-Gathering-Star-Trek-30-Click-here-for-more-info",
     "decisionFacts": [
       {
         "label": "When",
