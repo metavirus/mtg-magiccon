@@ -40,7 +40,7 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 - Do not re-open the full project documentation set unless the change depends on product history.
 - Do not run database/readiness gates unless publishing or auth/data behavior is involved.
 - Verify with `pnpm build` unless a narrower existing package script is clearly the canonical check for that exact surface.
-- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is mandatory, not optional; prove the lane first with `pnpm ui:capture -- -Route <route>` when using local preview. If browser control is broken after one reset/retry, stop and request a Codex task refresh rather than continuing blind.
+- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is mandatory, not optional; prove the lane first with `pnpm ui:capture -- -Route <route>` when using local preview. If the interactive in-app browser is needed and appears broken, first apply the stale-tab recovery in `docs/KNOWN_GREMLINS.md`: prove the local HTTP response, avoid the selected generated error tab, and claim/open a real app tab. If browser readback still fails after one reset and one retry, stop and request the exact host action rather than continuing blind.
 - If the same visual target fails twice, stop patching symptoms and find the duplicated component, CSS cascade, cache, or publish root cause.
 
 ### Tier 1 — public preview UI change
@@ -125,7 +125,7 @@ Use the full project gate:
 
 - After two failed attempts on the same UI defect, stop and inspect the actual DOM/CSS/published asset path before making another patch.
 - After any mobile-navigation or responsive claim, verify a phone-sized viewport.
-- For browser-dependent work, if browser control/readback fails twice on the same path, classify it as failed for the session and switch to a concrete alternate lane rather than narrating uncertainty.
+- For browser-dependent work, if browser control/readback fails twice on the same path after the documented stale-tab recovery, classify it as failed for the session and switch to a concrete alternate lane or exact host-action request rather than narrating uncertainty.
 - After any GitHub Pages publish claim, verify the public page with a cache-busting query or explicitly report that propagation is still pending.
 - When public Pages looks stale, inspect the exact deploy workflow run and compare the live `magiccon-build-sha` to the expected artifact SHA before using the word “propagation.”
 - If a fix starts requiring broad architecture work, pause and name the root cause instead of burning tokens on edge adjustments.

@@ -37,6 +37,8 @@ pnpm is Corepack-managed. Use normal `pnpm` or `corepack pnpm`; if pnpm acts str
 
 `pnpm dev`, `pnpm preview`, `pnpm build`, and `pnpm test` use Vite/Vitest's runner config loader path. For Codex visual verification, prefer `pnpm ui:capture -- -Route <route>` after `pnpm build`; it serves the built preview and uses Playwright to capture screenshot, DOM, and visible text.
 
+For interactive in-app Browser inspection against local Vite, avoid stale selected tabs. First prove `http://127.0.0.1:5173/` returns HTTP 200, then claim or open a real app tab and read URL/title/visible text. If a prior failed load left Chrome on a generated `data:` error page, do not retry that selected tab; follow the stale-tab recovery in `docs/KNOWN_GREMLINS.md`.
+
 ## Secure local setup
 
 Browser configuration lives in ignored `.env.local` and contains only the project URL and modern publishable key. Never place a secret/service-role key in browser configuration.
