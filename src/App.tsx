@@ -3798,20 +3798,7 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDe
     {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <AgendaMarker time="8:30 AM" label="Online store pre-order pickup begins" detail="Pickup window runs until 5 PM" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} />}
-    {showConvention && hasSelectedEvent('bl-friday-play-event') && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => setDetail('bl-friday')}>
-      <div className="agenda-date"><strong>13</strong><span>FRI</span><em>2-6 PM</em></div>
-      <div className="agenda-icon lotus-mini"><EventKindIcon name="lotus" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>PLAY EVENT with Special Guests</h2><p>Published as under construction, so details may still move.</p></div>
-      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
-    </button>}
-
     {showSaturday && <CalendarDayHeader day="SAT" date="November 14" label="Chosen Saturday events" />}
-    {showConvention && hasSelectedEvent('bl-planechase') && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => openEvent('bl-planechase')}>
-      <div className="agenda-date"><strong>14</strong><span>SAT</span><em>11:30-3 PM</em></div>
-      <div className="agenda-icon lotus-mini"><EventKindIcon name="lotus" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Black Lotus event</span><h2>{slice.occurrence.title.replace('Black Lotus ', '')}</h2><p>{slice.decision.planning_state === 'committed' ? 'Committed on the day.' : 'Current contender; does not block the full day unless committed.'}</p></div>
-      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
-    </button>}
 
     {showConvention && <CalendarDayHeader day="SUN" date="November 15" label={showSunday ? 'Chosen Sunday events' : 'Final day'} />}
     {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-sunday')} />}
