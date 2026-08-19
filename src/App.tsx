@@ -2669,8 +2669,6 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
 
   const updateEvent = (id: string, state: ExploreState) => {
     onUpdateEvent(id, state)
-    setSelectedId(id)
-    setDetailOpen(true)
   }
 
   useEffect(() => {
