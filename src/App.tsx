@@ -113,6 +113,11 @@ async function loadTrustSlice(ownerId: string): Promise<TrustSlice> {
   } as TrustSlice
 }
 
+function isMissingTrustSliceError(error: unknown) {
+  return typeof error === 'object' && error !== null && 'code' in error
+    && (error as { code?: string }).code === 'PGRST116'
+}
+
 type PersonalNoteRow = {
   id: string
   owner_id: string
@@ -635,8 +640,14 @@ export default function App() {
       writeTrustSliceCache(next)
       setSlice(next)
     } catch (error) {
-      setMessageTone('error')
-      setMessage(error instanceof Error ? error.message : 'The current view could not be refreshed.')
+      if (isMissingTrustSliceError(error)) {
+        // Premium companions do not need a private Black Lotus trust slice to use shared app data.
+        setSlice(null)
+        setMessage('')
+      } else {
+        setMessageTone('error')
+        setMessage(error instanceof Error ? error.message : 'The current view could not be refreshed.')
+      }
     } finally {
       setLoading(false)
     }
