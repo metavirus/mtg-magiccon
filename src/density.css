@@ -786,6 +786,8 @@ html,body{max-width:100%;overflow-x:hidden}
 .plan-source-mark{position:absolute;left:7px;bottom:6px;display:grid;place-items:center;width:16px;height:16px;border:1px solid #8f62ae;border-radius:5px;background:#2b1c3c;color:#d7afea}
 .plan-source-mark .event-kind-svg{width:10px;height:10px}
 .explore-detail .event-state-rail{position:relative;overflow:visible}
+.explore-detail .event-state-rail button:first-of-type{border-radius:10px 0 0 10px}
+.explore-detail .event-state-rail button:last-of-type{border-radius:0 10px 10px 0}
 .explore-actions{overflow:visible}
 .explore-event{cursor:pointer}
 .explore-event button,.explore-event a{cursor:pointer}
