@@ -2850,10 +2850,9 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
         </header>
         <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
         <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit={selected.id !== 'bl-planechase' || canCommitBlackLotus} disabled={!online || saving} />
-        <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>WHY THIS MAY BE WORTH YOUR TIME</small>{selected.fit}</p></div>
+        <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(selected.detail)}</p></div>
         <section className="detail-section decision-section">
           <div className="format-heading"><strong>{selected.format}</strong>{selected.formatHelp && <details className="format-help"><summary aria-label={`Explain ${selected.format}`}>?</summary><p>{selected.formatHelp}</p></details>}</div>
-          <p>{renderLinkedText(selected.detail)}</p>
           {selected.decisionFacts && <div className="decision-facts" aria-label="Event at a glance">{selected.decisionFacts.map(fact => <div key={fact.label}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
           <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {selected.complexityWhy}</p>
         </section>
@@ -3104,7 +3103,10 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
     const timer = window.setTimeout(() => setShowCommitHint(false), 2200)
     return () => window.clearTimeout(timer)
   }, [showCommitHint])
-  return <article className={`explore-event ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-event-id={event.id} data-availability={event.availability}>
+  return <article className={`explore-event ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-event-id={event.id} data-availability={event.availability} onClick={clickEvent => {
+    if ((clickEvent.target as HTMLElement).closest('button, a, input, textarea, select')) return
+    onSelect()
+  }}>
     <button className="explore-event-main" type="button" onClick={onSelect}>
       <span className="event-type-icon" aria-label={`${event.type} event`} data-kind-label={`${event.type} event`}><EventKindIcon name={kindIcon} /></span>
       <span className="event-title-block">
@@ -3125,8 +3127,8 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
     <div className="explore-actions" aria-label={`${event.title} actions`}>
       <IconAction label="Interested" icon="bookmark" pressed={event.state === 'interested'} onClick={() => onState('interested')} />
       <IconAction label="Tentative" icon="diamond" pressed={event.state === 'tentative'} onClick={() => onState('tentative')} />
-      <IconAction label="Commit from Plan" icon="lock" pressed={false} onClick={() => setShowCommitHint(true)} />
-      {showCommitHint && <span className="commit-route-hint" role="status">Choose Interested or Tentative first, then commit it in Plan.</span>}
+      <IconAction label={event.state === 'committed' ? 'Committed — manage in Plan' : 'Commit from Plan'} icon="lock" pressed={event.state === 'committed'} onClick={() => setShowCommitHint(true)} />
+      {showCommitHint && <span className="commit-route-hint" role="status">{event.state === 'committed' ? 'This event is committed. Manage it in Plan.' : 'Choose Interested or Tentative first, then commit it in Plan.'}</span>}
     </div>
   </article>
 }
@@ -3168,10 +3170,9 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
       <OfficialEventLink event={event} />
       <EventStateRail event={event} context="explore" onState={onState} />
     </header>
-    <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>WHY THIS MAY BE WORTH YOUR TIME</small>{event.fit}</p></div>
+    <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(event.detail)}</p></div>
     <section className="detail-section decision-section">
       <div className="format-heading"><strong>{event.format}</strong>{event.formatHelp && <details className="format-help"><summary aria-label={`Explain ${event.format}`}>?</summary><p>{event.formatHelp}</p></details>}</div>
-      <p>{renderLinkedText(event.detail)}</p>
       {event.decisionFacts && <div className="decision-facts" aria-label="Event at a glance">{event.decisionFacts.map(fact => <div key={fact.label}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
       <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {event.complexityWhy}</p>
     </section>
