@@ -1230,7 +1230,7 @@ export default function App() {
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
+        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={slice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
@@ -4300,7 +4300,7 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
   </div>
 }
 
-function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenObject }: { notes: ContextNote[]; currentOwnerId?: string; onDeleteNote: (id: string) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote }: { notes: ContextNote[]; currentOwnerId?: string; onDeleteNote: (id: string) => void; onOpenNote: (note: ContextNote) => void }) {
   const [personFilter, setPersonFilter] = useState<NotePersonFilter>('all')
   const [typeFilter, setTypeFilter] = useState<NoteTypeFilter>('all')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -4324,7 +4324,7 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenObject }: { n
       {Object.entries(grouped).map(([context, contextItems]) => <section className="notes-context-group" key={context}>
         <header><div><span className="eyebrow">{contextItems[0].objectKind}</span><h3>{context}</h3></div><PersonBubbles people={[...new Set(contextItems.map(note => note.author))]} /></header>
         {contextItems.map(note => <article key={note.id} className="note-index-row">
-          <button type="button" className="note-index-open" onClick={() => onOpenObject(noteToObjectDetail(note))}>
+          <button type="button" className="note-index-open" onClick={() => onOpenNote(note)}>
             <PersonBubbles people={[note.author]} />
             <span><strong>{note.body}</strong><small>{note.title} · {note.objectTitle}</small><em>{note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</em></span>
             <b aria-hidden="true">›</b>
