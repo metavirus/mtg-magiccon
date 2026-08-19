@@ -3098,6 +3098,12 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
   const kindIcon: EventKindIconName = event.type === 'play' ? 'play' : event.type === 'info' ? 'info' : event.type === 'social' ? 'social' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'
   const blackLotus = event.kind === 'Black Lotus'
   const priceTone = getPriceTone(event.price)
+  const [showCommitHint, setShowCommitHint] = useState(false)
+  useEffect(() => {
+    if (!showCommitHint) return
+    const timer = window.setTimeout(() => setShowCommitHint(false), 2200)
+    return () => window.clearTimeout(timer)
+  }, [showCommitHint])
   return <article className={`explore-event ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-event-id={event.id} data-availability={event.availability}>
     <button className="explore-event-main" type="button" onClick={onSelect}>
       <span className="event-type-icon" aria-label={`${event.type} event`} data-kind-label={`${event.type} event`}><EventKindIcon name={kindIcon} /></span>
@@ -3119,6 +3125,8 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
     <div className="explore-actions" aria-label={`${event.title} actions`}>
       <IconAction label="Interested" icon="bookmark" pressed={event.state === 'interested'} onClick={() => onState('interested')} />
       <IconAction label="Tentative" icon="diamond" pressed={event.state === 'tentative'} onClick={() => onState('tentative')} />
+      <IconAction label="Commit from Plan" icon="lock" pressed={false} onClick={() => setShowCommitHint(true)} />
+      {showCommitHint && <span className="commit-route-hint" role="status">Choose Interested or Tentative first, then commit it in Plan.</span>}
     </div>
   </article>
 }
