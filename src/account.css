@@ -91,23 +91,49 @@
 
 .tutorial-overlay {
   position: fixed;
-  z-index: 120;
+  z-index: 125;
   inset: 0;
   display: grid;
-  place-items: center;
+  align-items: center;
   padding: 22px;
-  background: rgba(3, 10, 20, .78);
-  backdrop-filter: blur(8px);
+  background: rgba(3, 10, 20, .24);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
 }
+
+.tutorial-overlay.placement-right,
+.tutorial-overlay.placement-bottom-right { justify-content: end; }
+.tutorial-overlay.placement-left,
+.tutorial-overlay.placement-bottom-left { justify-content: start; }
+.tutorial-overlay.placement-bottom-right,
+.tutorial-overlay.placement-bottom-left { align-items: end; }
 
 .tutorial-card {
   position: relative;
+  z-index: 130;
   width: min(520px, 100%);
   padding: 36px;
   border: 1px solid #425b7a;
   border-radius: 22px;
   background: linear-gradient(145deg, #152740, #101b2c 72%);
   box-shadow: 0 30px 90px rgba(0, 0, 0, .58);
+  pointer-events: auto;
+  animation: tutorial-arrive .24s ease-out both;
+}
+
+@keyframes tutorial-arrive {
+  from { opacity: 0; transform: translateY(12px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tutorial-highlight {
+  position: relative;
+  z-index: 121 !important;
+  border-radius: 16px;
+  outline: 3px solid #f1c968 !important;
+  outline-offset: 5px;
+  box-shadow: 0 0 0 10px rgba(241, 201, 104, .18), 0 12px 45px rgba(0, 0, 0, .45) !important;
+  transition: outline-color .2s ease, box-shadow .2s ease;
 }
 
 .tutorial-close {
@@ -194,11 +220,12 @@
 .tutorial-card footer small { color: #8294aa; white-space: nowrap; }
 
 @media (max-width: 600px) {
-  .tutorial-overlay { align-items: end; padding: 10px; }
+  .tutorial-overlay { align-items: end; justify-content: stretch; padding: 10px; background: rgba(3, 10, 20, .42); }
   .tutorial-card { padding: 28px 22px 22px; border-radius: 20px; }
   .tutorial-card > p { min-height: 104px; font-size: 15px; }
   .tutorial-card footer { gap: 8px; }
   .tutorial-card footer button { padding-inline: 12px; }
+  .tutorial-highlight { outline-width: 2px !important; outline-offset: 2px; box-shadow: 0 0 0 5px rgba(241, 201, 104, .16) !important; }
 }
 
 .account-popover button:disabled {
