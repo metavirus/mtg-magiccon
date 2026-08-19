@@ -24,7 +24,17 @@ As of August 11, the app uses two owner-scoped Supabase layers:
 
 Both tables use forced RLS, explicit authenticated grants, and no anonymous grants. `user_selections` keeps the unique `(owner_id, object_id, selection_key)` shape so each current choice stays idempotent, while `user_activity_events` preserves the action trail separately.
 
-`public.companion_members` is the read-only authenticated roster that lets these user-owned records render stable people labels across the app. It does not replace auth: when a member has an auth account, `auth_email` / `user_id` can map that account to the person bubble. Until collaboration rules are intentionally expanded, notes and selections remain owned by the logged-in user, while shared notes are visible across authenticated companion members.
+`public.companion_members` is the read-only authenticated roster that lets these user-owned records render stable people labels across the app. It does not replace auth: each expected companion should be preconfigured with `person_key`, display name, bubble label/color, badge tier, active flag, and `auth_email` before they first sign in. The auth trigger links `user_id` from the confirmed Google account on first login, so a new companion should not need any manual post-login row repair.
+
+New-companion readiness is a real product requirement, not a nice-to-have. Before sending someone the app link, verify:
+
+- their `companion_members` row is active and has the exact Google `auth_email`;
+- the auth-link trigger is installed, so first login hydrates `user_id`;
+- shared notes, note mentions, event-selection rows, and activity rows are readable across active companions;
+- owner-private choices such as non-event UI chrome remain private unless explicitly shared;
+- legacy Black Lotus trust-slice tables are not treated as a companion access gate. Black Lotus schedule/items are visible planning context for the group even when the old owner-scoped trust-slice rows only exist under Kavi.
+
+Current collaboration rules deliberately share the useful group-planning layer: active companions can read each other's event planning states, shared notes, note mentions addressed to them, and grouped activity. Writes remain owner-scoped except the explicit Kavi/Juan Prize Tix sharing rule.
 
 `public.note_mentions` is the first mention-ready collaboration scaffold. It is not part of the selection layer, but it matters for future shared-activity semantics because a shared note that explicitly mentions Chris should rank and route differently from a generic shared note.
 
@@ -50,7 +60,7 @@ Browser storage is not acceptable for:
 
 ## Collaboration path
 
-The current table is owner-scoped. Multi-person collaboration should not simply expose every owner row to everyone. The next model should decide which selection keys are:
+The current table is owner-scoped for writes, with narrow read-sharing for group planning. Multi-person collaboration should not simply expose every owner row to everyone. The next model should decide which additional selection keys are:
 
 - private owner preference;
 - shared group signal;
