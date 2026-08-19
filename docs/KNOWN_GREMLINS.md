@@ -31,7 +31,22 @@ Readiness rule: capabilities are task-specific. If a task may require browser in
 - Run `pnpm build` first.
 - Run `pnpm ui:capture -- -Route <route>`.
 - Treat `UI_CAPTURE: PASS` plus URL/title, visible text, DOM, and screenshot paths as the local browser-readiness proof.
-- If browser control is broken after one reset/retry, stop and ask Kavi to refresh/restart the Codex task. Do not continue visual work blind.
+- If interactive browser control is needed and appears broken, apply the stale-tab recovery below before asking Kavi to refresh/restart the Codex task. Do not continue visual work blind.
+
+## In-app browser stale error tab after local server restart
+
+**Symptom:** the Codex in-app Browser can initialize, but a local app navigation/readback fails because the selected tab is a generated Chrome error page such as `data:text/html,...` from an earlier `ERR_CONNECTION_REFUSED`, or because `http://127.0.0.1:5173/` was not reachable when the tab first loaded.
+
+**Cause:** the browser-control lane is real, but the selected tab can be stale or poisoned by a generated browser error document after Vite was down. Retrying the same selected tab is wasted effort and can look like browser control is broken when the actual issue is tab state.
+
+**Do this:**
+
+- First prove the local app server with a tiny HTTP read: `Invoke-WebRequest http://127.0.0.1:5173/`.
+- If the server is not reachable, start one controlled Vite process with `pnpm dev --host 127.0.0.1`, keep that process, and retest HTTP once.
+- Re-read/use the current `browser:control-in-app-browser` skill path if the browser runtime shape changed. The current bundled browser client exposes `setupBrowserRuntime()`.
+- Do not keep driving a selected `data:` or Chrome error tab. Use `browser.user.openTabs()` to find the real `http://127.0.0.1:5173/` tab and `browser.user.claimTab(...)`, or open a fresh app tab after the server responds.
+- A passing smoke must read observable page state: URL, title, visible text, DOM, or screenshot. Generic JavaScript output is not enough.
+- If a fresh/claimed app tab still cannot be read after one reset and one retry, stop with the exact host action: close stale in-app Browser tabs, open `http://127.0.0.1:5173/` after Vite is running, or restart the Codex task. Do not continue visual work blind.
 
 ## Git writes in Codex sandbox
 
