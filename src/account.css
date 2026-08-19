@@ -149,18 +149,6 @@
   box-shadow: 0 0 10px rgba(241, 201, 104, .5);
 }
 
-.tutorial-connector::after {
-  content: '';
-  position: absolute;
-  right: -1px;
-  top: 50%;
-  width: 9px;
-  height: 9px;
-  border-top: 2px solid #f1c968;
-  border-right: 2px solid #f1c968;
-  transform: translateY(-50%) rotate(45deg);
-}
-
 .tutorial-close {
   position: absolute;
   top: 14px;

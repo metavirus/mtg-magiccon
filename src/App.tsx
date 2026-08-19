@@ -4717,31 +4717,54 @@ function OnboardingTutorial({ surface, onNavigate, onClose }: { surface: Surface
   useEffect(() => {
     if (surface !== current.surface) onNavigate(current.surface)
     setConnector(null)
+    let target: HTMLElement | undefined
+    let resizeObserver: ResizeObserver | undefined
+    let animationFrame = 0
+
+    const updateConnector = () => {
+      if (!target || !cardRef.current) return
+      const targetRect = target.getBoundingClientRect()
+      const cardRect = cardRef.current.getBoundingClientRect()
+      const targetCenterX = targetRect.left + targetRect.width / 2
+      const targetCenterY = targetRect.top + targetRect.height / 2
+      const targetIsLeft = targetCenterX < cardRect.left + cardRect.width / 2
+      const startX = targetIsLeft ? cardRect.left : cardRect.right
+      const startY = Math.min(cardRect.bottom - 30, Math.max(cardRect.top + 30, targetCenterY))
+      const endX = targetIsLeft ? targetRect.right : targetRect.left
+      const endY = targetCenterY
+      setConnector({
+        left: startX,
+        top: startY,
+        width: Math.hypot(endX - startX, endY - startY),
+        angle: Math.atan2(endY - startY, endX - startX) * 180 / Math.PI,
+      })
+    }
+
+    const scheduleConnectorUpdate = () => {
+      window.cancelAnimationFrame(animationFrame)
+      animationFrame = window.requestAnimationFrame(updateConnector)
+    }
+
     const timer = window.setTimeout(() => {
       const targets = [...document.querySelectorAll<HTMLElement>(`[data-tour-target="${current.target}"]`)]
-      const target = targets.find(node => node.getClientRects().length > 0)
+      target = targets.find(node => node.getClientRects().length > 0)
       target?.classList.add('tutorial-highlight')
       target?.scrollIntoView({ block: 'center', behavior: 'smooth' })
-      if (target && cardRef.current) {
-        const targetRect = target.getBoundingClientRect()
-        const cardRect = cardRef.current.getBoundingClientRect()
-        const targetCenterX = targetRect.left + targetRect.width / 2
-        const targetCenterY = targetRect.top + targetRect.height / 2
-        const targetIsLeft = targetCenterX < cardRect.left + cardRect.width / 2
-        const startX = targetIsLeft ? cardRect.left : cardRect.right
-        const startY = Math.min(cardRect.bottom - 30, Math.max(cardRect.top + 30, targetCenterY))
-        const endX = targetIsLeft ? targetRect.right : targetRect.left
-        const endY = targetCenterY
-        setConnector({
-          left: startX,
-          top: startY,
-          width: Math.hypot(endX - startX, endY - startY),
-          angle: Math.atan2(endY - startY, endX - startX) * 180 / Math.PI,
-        })
+      scheduleConnectorUpdate()
+      window.addEventListener('resize', scheduleConnectorUpdate)
+      window.addEventListener('scroll', scheduleConnectorUpdate, true)
+      if (target && cardRef.current && 'ResizeObserver' in window) {
+        resizeObserver = new ResizeObserver(scheduleConnectorUpdate)
+        resizeObserver.observe(target)
+        resizeObserver.observe(cardRef.current)
       }
     }, 180)
     return () => {
       window.clearTimeout(timer)
+      window.cancelAnimationFrame(animationFrame)
+      window.removeEventListener('resize', scheduleConnectorUpdate)
+      window.removeEventListener('scroll', scheduleConnectorUpdate, true)
+      resizeObserver?.disconnect()
       setConnector(null)
       document.querySelectorAll('.tutorial-highlight').forEach(node => node.classList.remove('tutorial-highlight'))
     }
