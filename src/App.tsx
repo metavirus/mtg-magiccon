@@ -2025,7 +2025,10 @@ function eventSelectionActivityFromCluster(
   const hiddenCount = items.filter(item => item.state === 'hidden').length
   const nopeCount = items.filter(item => item.state === 'nope').length
   const clearedCount = items.filter(item => item.state === 'none').length
-  const severity: AlertSeverity = committedCount > 0 ? 'hot' : 'notice'
+  // A companion changing the shared contender set is inherently time-sensitive
+  // planning context. Home already collapses these to the latest burst per user,
+  // so every remaining event-pick summary should use the Hot treatment.
+  const severity: AlertSeverity = 'hot'
   const isAnotherPerson = cluster.actorLabel.trim().toLowerCase() !== currentPerson.toLowerCase()
   const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
     ? reviewSelection as AlertReviewState
@@ -2052,7 +2055,7 @@ function eventSelectionActivityFromCluster(
     sourceKind: 'activity-log',
     kind: 'manual',
     severity,
-    destination: committedCount > 0 || isAnotherPerson ? 'Home' : 'Activity',
+    destination: 'Home',
     attention: committedCount > 0 ? 'Committed choice' : isAnotherPerson ? 'Companion picks changed' : 'Event picks changed',
     title,
     summary: items.length === 1
