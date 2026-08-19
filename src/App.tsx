@@ -63,7 +63,7 @@ function surfaceSubtitle(surface: Surface) {
     explore: 'Browse likely contenders without drowning in event text.',
     map: 'Trip-area orientation now; official event map when Atlanta publishes it.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
-    trip: 'Who is staying where, and the one transition worth noticing.',
+    trip: 'Every stay, address, and roommate in one shared view.',
     artists: 'Confirmed artists will show up here once Atlanta publishes them.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
     activity: 'Signals, changes, and notes in one review lane.',
@@ -1264,8 +1264,15 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
-          void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
+          if (currentCompanion?.name === 'Juan') {
+            const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
+            if (canWrite && supabase && kaviOwnerId) {
+              void supabase.from('user_selections').upsert({ owner_id: kaviOwnerId, object_id: 'wallet-prize-tix', object_kind: 'wallet', selection_key: 'balance', selection_value: String(value), updated_at: new Date().toISOString() }, { onConflict: 'owner_id,object_id,selection_key' }).then(({ error }) => {
+                if (error) { setMessageTone('error'); setMessage(`Prize Tix could not be saved: ${error.message}`) }
+              })
+            }
+          } else void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
           if (!delta) return
           void recordUserActivity({
             objectId: 'wallet-prize-tix',
@@ -1496,7 +1503,7 @@ function noteSourceObjectDetail(note: ContextNote): ObjectDetail {
 
   if (note.objectId === 'hotel-courtyard') return focusDetailOnNote(tripHotelDetail('courtyard'), note)
   if (note.objectId === 'hotel-omni') return focusDetailOnNote(tripHotelDetail('omni'), note)
-  if (note.objectId === 'hotel-chris') return focusDetailOnNote(tripHotelDetail('chris'), note)
+  if (note.objectId === 'hotel-chris' || note.objectId === 'hotel-hilton') return focusDetailOnNote(tripHotelDetail('hilton'), note)
   if (note.objectId === 'trip-luggage-thursday') return focusDetailOnNote(tripTransitionDetail(), note)
   if (note.objectId === 'atlanta-operational-logistics') return focusDetailOnNote(logisticsToObjectDetail(), note)
 
@@ -3575,8 +3582,8 @@ function NotesFilterBar({
   </div>
 }
 
-function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris'> }) {
-  return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person[0]}</span>)}</span>
+function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'Kyle'> }) {
+  return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person === 'Kyle' ? 'Ky' : person[0]}</span>)}</span>
 }
 
 function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
@@ -3715,14 +3722,11 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
 
 function WalletHomeTab({ openBlackLotusProof, openJuanProof, onOpenObject }: { openBlackLotusProof: () => void; openJuanProof: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   return <div className="wallet-home-command">
-    <section className="wallet-hero-card">
+    <section className="wallet-hero-card wallet-hero-card-no-actions">
       <div className="wallet-hero-copy">
         <div className="wallet-hero-topline"><span className="eyebrow">BADGES</span></div>
         <h2>Atlanta passes</h2>
         <p>Black Lotus order proof is captured from the Leap email, including the showable order QR.</p>
-      </div>
-      <div className="wallet-hero-actions">
-        <button className="primary-show" type="button" onClick={openBlackLotusProof}><NavIcon name="wallet" /> Black Lotus proof</button>
       </div>
       <div className="wallet-badge-fan" aria-label="Primary badge cards">
         <button className="mini-pass lotus-pass" type="button" onClick={openBlackLotusProof}>
@@ -3747,10 +3751,10 @@ function WalletHomeTab({ openBlackLotusProof, openJuanProof, onOpenObject }: { o
     </section>
     <section className="receipt-list wallet-home-receipts" aria-label="Badge receipts">
       <button className="receipt-card wallet-receipt-button" type="button" onClick={openBlackLotusProof}>
-        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Black Lotus badge order</h2><p>2 × Black Lotus VIP Early Bird · Kavi + Chris</p></div><strong>$2,025.26</strong></div>
+        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="lotus" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Black Lotus badge order</h2><p>2 × Black Lotus VIP Early Bird · Kavi + Chris</p></div><span className="receipt-people-total"><PersonBubbles people={['Kavi', 'Chris']} /><strong>$2,025.26</strong></span></div>
       </button>
       <button className="receipt-card wallet-receipt-button" type="button" onClick={openJuanProof}>
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Juan Premium Weekend</h2><p>Premium Weekend Early Bird · Juan</p></div><strong>$191.42</strong></div>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">BADGE RECEIPT</span><h2>Juan Premium Weekend</h2><p>Premium Weekend Early Bird · Juan</p></div><span className="receipt-people-total"><PersonBubbles people={['Juan']} /><strong>$191.42</strong></span></div>
       </button>
     </section>
   </div>
@@ -3955,13 +3959,17 @@ function WalletOtherTab({ openModal, onOpenTrip }: { openModal: (eyebrow: string
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Other wallet references">
       <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">DELTA RECEIPT</span><h2>Flights · Kavi + Juan</h2><p>Confirmation HOGFBX · SNA ⇄ ATL</p></div></div>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">DELTA RECEIPT</span><h2>Flights · Kavi + Juan</h2><p>Confirmation HOGFBX · SNA ⇄ ATL</p></div><PersonBubbles people={['Kavi', 'Juan']} /></div>
         <div className="receipt-lines"><button type="button" onClick={() => openModal('FLIGHT DETAIL', 'DL 1521', <p>SNA to ATL · Nov 11 · 12:20 PM–7:34 PM · confirmation HOGFBX.</p>)}><span>DL 1521 · Nov 11 · SNA to ATL</span><b>7:34 PM</b></button><button type="button" onClick={() => openModal('FLIGHT DETAIL', 'DL 1602', <p>ATL to SNA · Nov 15 · 8:35 PM–10:29 PM · confirmation HOGFBX.</p>)}><span>DL 1602 · Nov 15 · ATL to SNA</span><b>8:35 PM</b></button></div>
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
       <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTELS</span><h2>Omni + Courtyard</h2><p>Atlanta lodging</p></div></div>
-        <div className="receipt-lines"><button type="button" onClick={() => openModal('HOTEL DETAIL', 'Courtyard', <p>Courtyard by Marriott Atlanta Downtown · Nov 11–12 · Kavi, Juan, Chris.</p>)}><span>Courtyard · Nov 11-12</span><b>K/J/C</b></button><button type="button" onClick={() => openModal('HOTEL DETAIL', 'Omni', <p>Omni Atlanta Hotel at Centennial Park · Nov 12–15 · Kavi and Juan.</p>)}><span>Omni · Nov 12-15</span><b>K/J</b></button></div>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL RECEIPTS</span><h2>Atlanta lodging</h2><p>Shared proof for every traveler</p></div><PersonBubbles people={['Kavi', 'Juan', 'Chris', 'Kyle']} /></div>
+        <div className="receipt-lines">
+          <button type="button" onClick={() => openModal('HOTEL DETAIL', 'Courtyard', <p>Courtyard by Marriott Atlanta Downtown · Nov 11–12 · Kavi, Juan, Chris.</p>)}><span>Courtyard · Nov 11-12</span><b>K/J/C</b></button>
+          <button type="button" onClick={() => openModal('HOTEL DETAIL', 'Omni', <p>Omni Atlanta Hotel at Centennial Park · Nov 12–15 · Kavi and Juan.</p>)}><span>Omni · Nov 12-15</span><b>K/J</b></button>
+          <button type="button" onClick={() => openModal('HOTEL RECEIPT', 'Hilton Atlanta · Chris + Kyle', <div className="proof-detail"><div className="proof-info-list"><div><span>Stay</span><strong>Nov 12–16 · 4 nights</strong></div><div><span>Guests</span><strong>Chris + Kyle · 2 adults</strong></div><div><span>Room</span><strong>2 double beds</strong></div><div><span>Reserved by</span><strong>Kyle Mandell</strong></div><div><span>Hotel</span><strong>255 Courtland Street NE, Atlanta, GA 30303</strong></div><div><span>Source proof</span><strong>Gmail · “magiccon hotel receipt” · Aug 19</strong></div></div><p>The original receipt image remains attached to Kyle's source email; Wallet keeps the extracted proof easy to find.</p></div>)}><span>Hilton · Nov 12-16</span><b>C/Ky</b></button>
+        </div>
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
     </section>
@@ -3981,7 +3989,7 @@ function TripSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) =>
   </section>
 }
 
-function tripHotelDetail(kind: 'courtyard' | 'omni' | 'chris'): ObjectDetail {
+function tripHotelDetail(kind: 'courtyard' | 'omni' | 'hilton'): ObjectDetail {
   if (kind === 'courtyard') return {
     id: 'hotel-courtyard',
     kind: 'hotel',
@@ -3998,18 +4006,23 @@ function tripHotelDetail(kind: 'courtyard' | 'omni' | 'chris'): ObjectDetail {
     actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet', destination: 'wallet' }],
     backlinks: [{ label: 'Calendar', destination: 'calendar' }],
   }
-  if (kind === 'chris') return {
-    id: 'hotel-chris',
+  if (kind === 'hilton') return {
+    id: 'hotel-hilton',
     kind: 'hotel',
-    eyebrow: 'Hotel · Thursday onward',
-    title: "Chris's hotel",
-    summary: 'Chris branches to his own hotel after the Thursday Black Lotus First Look block. Hotel details are still pending.',
+    eyebrow: 'Hotel · Nov 12-16',
+    title: 'Hilton Atlanta',
+    summary: 'Convention stay for Chris and Kyle, reserved under Kyle Mandell.',
     facts: [
-      { label: 'People', value: 'Chris' },
-      { label: 'Status', value: 'Hotel details pending' },
+      { label: 'Address', value: '255 Courtland Street NE, Atlanta, GA 30303' },
+      { label: 'People', value: 'Chris + Kyle' },
+      { label: 'Stay', value: 'Nov 12-16 · 4 nights' },
+      { label: 'Room', value: '2 adults · 2 double beds' },
+      { label: 'Check-in', value: '4 PM' },
+      { label: 'Check-out', value: '11 AM' },
     ],
-    rationale: 'Keep this visible as an intentional missing fact rather than pretending the trip plan is complete.',
-    actions: [{ label: 'Open Trip', destination: 'trip' }],
+    source: { label: 'Gmail receipt', value: 'Hilton Atlanta reservation for Kyle Mandell' },
+    rationale: 'Everyone can see the shared lodging plan; the traveler bubbles identify occupants rather than restricting access.',
+    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet', destination: 'wallet' }],
     backlinks: [{ label: 'Calendar', destination: 'calendar' }],
   }
   return {
@@ -4051,9 +4064,9 @@ function tripTransitionDetail(): ObjectDetail {
 
 function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   return <>
-    <div className="trip-layout">
+    <div className="trip-layout trip-layout-hotels">
       <section className="trip-flow-card" aria-labelledby="lodging-flow-title">
-        <div className="trip-section-head"><div><span className="eyebrow">LODGING FLOW</span><h2 id="lodging-flow-title">Wednesday through Sunday</h2></div><TravelerDots people={['Kavi', 'Juan', 'Chris']} /></div>
+        <div className="trip-section-head"><div><span className="eyebrow">SHARED LODGING</span><h2 id="lodging-flow-title">Where everyone is staying</h2><p>One arrival night, then two convention bases.</p></div><TravelerDots people={['Kavi', 'Juan', 'Chris', 'Kyle']} /></div>
         <div className="trip-flow">
           <button type="button" className="trip-stop shared-stop object-card-button" onClick={() => onOpenObject(tripHotelDetail('courtyard'))}>
             <time><strong>11</strong><span>WED</span></time>
@@ -4061,24 +4074,14 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
             <div><small>SHARED ARRIVAL NIGHT</small><h3>Courtyard Atlanta Downtown</h3><p>One room · one night</p></div>
             <TravelerDots people={['Kavi', 'Juan', 'Chris']} />
           </button>
-          <div className="trip-connector"><span>hotel change</span></div>
-          <button type="button" className="trip-stop lotus-transition object-card-button" onClick={() => onOpenObject(exploreEventToObjectDetail(exploreEventCandidates.find(event => event.id === 'bl-first-look-thursday') ?? exploreEventCandidates[0]))}>
-            <time><strong>12</strong><span>THU</span></time>
-            <div className="trip-stop-icon lotus-mini"><EventKindIcon name="lotus" /></div>
-            <div><small>BLACK LOTUS FIRST LOOK</small><h3>Kavi + Chris attend</h3><p>The lodging paths separate afterward.</p></div>
-            <TravelerDots people={['Kavi', 'Chris']} />
-          </button>
+          <div className="trip-connector"><span>Thursday hotel split</span></div>
           <div className="trip-branches" aria-label="Thursday hotel split">
             <button type="button" className="trip-branch omni-branch object-card-button" onClick={() => onOpenObject(tripHotelDetail('omni'))}><span className="branch-line" aria-hidden="true" /><div><small>NOV 12-15 · 3 NIGHTS</small><h3>Omni at Centennial Park</h3><p>Kavi and Juan · convention hotel</p></div><TravelerDots people={['Kavi', 'Juan']} /></button>
-            <button type="button" className="trip-branch chris-branch object-card-button" onClick={() => onOpenObject(tripHotelDetail('chris'))}><span className="branch-line" aria-hidden="true" /><div><small>THURSDAY ONWARD</small><h3>Chris's hotel</h3><p>Hotel details pending</p></div><TravelerDots people={['Chris']} /></button>
+            <button type="button" className="trip-branch hilton-branch object-card-button" onClick={() => onOpenObject(tripHotelDetail('hilton'))}><span className="branch-line" aria-hidden="true" /><div><small>NOV 12-16 · 4 NIGHTS</small><h3>Hilton Atlanta</h3><p>Chris and Kyle · two double beds</p></div><TravelerDots people={['Chris', 'Kyle']} /></button>
           </div>
         </div>
       </section>
 
-      <button type="button" className="trip-insight object-card-button" aria-label="Thursday transition insight" onClick={() => onOpenObject(tripTransitionDetail())}>
-        <span className="insight-icon"><NavIcon name="wallet" /></span>
-        <div><span className="eyebrow">ONE THING WORTH SETTLING</span><h2>Where do the bags go Thursday?</h2><p>The shared Courtyard stay ends before Kavi and Chris finish First Look. Omni check-in begins at 4 PM, so the luggage handoff is the only trip transition that may need a small plan.</p></div>
-      </button>
     </div>
 
     <div className="hotel-grid" aria-label="Confirmed hotel details">
@@ -4098,8 +4101,16 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
         <div className="hotel-facts"><span>Check-in 4 PM</span><span>Check-out 11 AM</span><span>Connected to GWCC</span></div>
         <div className="hotel-links"><a href="https://www.google.com/maps/search/?api=1&query=Omni%20Atlanta%20Hotel%20at%20Centennial%20Park" target="_blank" rel="noreferrer"><NavIcon name="map" />Maps ↗</a><a href="https://www.omnihotels.com/hotels/atlanta-centennial-park" target="_blank" rel="noreferrer">Official hotel ↗</a></div>
       </article>
+      <article className="hotel-card hilton-card object-card-button" role="button" tabIndex={0} onClick={() => onOpenObject(tripHotelDetail('hilton'))} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onOpenObject(tripHotelDetail('hilton')) }}>
+        <div className="hotel-card-head"><span className="hotel-icon"><NavIcon name="trip" /></span><TravelerDots people={['Chris', 'Kyle']} /></div>
+        <span className="eyebrow">NOV 12-16 · 4 NIGHTS</span>
+        <h2>Hilton Atlanta</h2>
+        <p className="hotel-address">255 Courtland Street NE, Atlanta, GA 30303</p>
+        <div className="hotel-facts"><span>Check-in 4 PM</span><span>Check-out 11 AM</span><span>2 double beds</span><span>Reserved by Kyle</span></div>
+        <div className="hotel-links"><a href="https://www.google.com/maps/search/?api=1&query=Hilton%20Atlanta%20255%20Courtland%20Street%20NE%20Atlanta%20GA%2030303" target="_blank" rel="noreferrer"><NavIcon name="map" />Maps ↗</a><button type="button" onClick={event => { event.stopPropagation(); onOpenObject(tripHotelDetail('hilton')) }}>Receipt details</button></div>
+      </article>
     </div>
-    <p className="trip-source-note">Hotel addresses and Omni check-in/out times verified from official property pages. Booking details stay private.</p>
+    <p className="trip-source-note">All travelers can see the complete lodging plan. Occupant bubbles show who is staying where; receipt details remain in the shared trip record.</p>
   </>
 }
 
