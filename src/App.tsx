@@ -151,6 +151,7 @@ type NoteMentionRow = {
 }
 
 type UserSelectionRow = {
+  owner_id: string
   object_id: string
   object_kind: SelectionObjectKind
   selection_key: string
@@ -353,11 +354,10 @@ function userSelectionMap(rows: UserSelectionRow[]) {
   return Object.fromEntries(rows.map(row => [selectionKey(row.object_id, row.selection_key), row.selection_value]))
 }
 
-async function loadUserSelections(ownerId: string): Promise<UserSelectionRow[]> {
+async function loadUserSelections(_ownerId: string): Promise<UserSelectionRow[]> {
   if (!supabase) return []
   const result = await supabase.from('user_selections')
-    .select('object_id,object_kind,selection_key,selection_value,updated_at')
-    .eq('owner_id', ownerId)
+    .select('owner_id,object_id,object_kind,selection_key,selection_value,updated_at')
     .order('updated_at', { ascending: false })
   if (result.error) throw result.error
   return result.data as UserSelectionRow[]
@@ -510,6 +510,7 @@ export default function App() {
   const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(designPreview ? contextNotes : [])
   const [mentionInboxState, setMentionInboxState] = useState<MentionInboxItem[]>([])
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
+  const [sharedSelectionRows, setSharedSelectionRows] = useState<UserSelectionRow[]>([])
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
@@ -606,6 +607,7 @@ export default function App() {
       setMentionInboxState([])
       setAlertReview({})
       setUserSelections({})
+      setSharedSelectionRows([])
       setUserActivityRows([])
       setExploreEventState(exploreEvents)
       return
@@ -615,6 +617,7 @@ export default function App() {
       setMentionInboxState([])
       setAlertReview({})
       setUserSelections({})
+      setSharedSelectionRows([])
       setUserActivityRows([])
       setExploreEventState(exploreEvents)
       return
@@ -633,7 +636,8 @@ export default function App() {
     if (activityResult.status === 'fulfilled') setUserActivityRows(activityResult.value)
     else failures.push('activity')
     if (selectionsResult.status === 'fulfilled') {
-      const selections = userSelectionMap(selectionsResult.value)
+      setSharedSelectionRows(selectionsResult.value)
+      const selections = userSelectionMap(selectionsResult.value.filter(row => row.owner_id === effectiveOwnerId))
       setUserSelections(selections)
       setAlertReview(Object.fromEntries(Object.entries(selections)
         .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
@@ -1207,7 +1211,7 @@ export default function App() {
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
@@ -1227,7 +1231,7 @@ export default function App() {
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={slice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </>}
@@ -2538,29 +2542,17 @@ type AgendaPlacement = { event: ExploreEvent; start: number; end: number; lane: 
 
 const planPeople: PersonName[] = ['Kavi', 'Chris', 'Juan', 'Kyle']
 
-function planParticipants(event: ExploreEvent, currentPerson: PersonName): PlanParticipant[] {
+function planParticipants(event: ExploreEvent, currentPerson: PersonName, selectionRows: UserSelectionRow[], companions: CompanionMember[]): PlanParticipant[] {
   const participants: PlanParticipant[] = []
-  if (['interested', 'tentative', 'committed'].includes(event.state)) {
+  selectionRows
+    .filter(row => row.object_id === `explore-${event.id}` && row.selection_key === 'state' && ['interested', 'tentative', 'committed'].includes(row.selection_value))
+    .forEach(row => {
+      const person = companions.find(member => member.userId === row.owner_id)?.name
+      if (person && !participants.some(participant => participant.person === person)) participants.push({ person, state: row.selection_value as PlanParticipantState })
+    })
+  if (!participants.some(participant => participant.person === currentPerson) && ['interested', 'tentative', 'committed'].includes(event.state)) {
     participants.push({ person: currentPerson, state: event.state as PlanParticipantState })
   }
-  if (!['127.0.0.1', 'localhost'].includes(window.location.hostname)) return participants
-
-  const title = displayEventTitle(event)
-  const demo: Array<{ pattern: RegExp; people: PlanParticipant[] }> = [
-    { pattern: /Progressive Sealed League/i, people: [{ person: 'Chris', state: 'interested' }] },
-    { pattern: /^First Look Thursday$/i, people: [{ person: 'Chris', state: 'tentative' }] },
-    { pattern: /Welcome Reception/i, people: [{ person: 'Chris', state: 'committed' }, { person: 'Juan', state: 'interested' }] },
-    { pattern: /Hexhaven Study Hall/i, people: [{ person: 'Chris', state: 'interested' }] },
-    { pattern: /Magic: The Menu/i, people: [{ person: 'Chris', state: 'interested' }, { person: 'Juan', state: 'tentative' }] },
-    { pattern: /Commander and Cocktails/i, people: [{ person: 'Chris', state: 'committed' }] },
-    { pattern: /Friday Night Magic - 2HG Commander Night/i, people: [{ person: 'Chris', state: 'tentative' }, { person: 'Kyle', state: 'interested' }] },
-    { pattern: /Prismatic Pride/i, people: [{ person: 'Juan', state: 'interested' }] },
-  ]
-  demo.find(item => item.pattern.test(title))?.people.forEach(person => {
-    const existing = participants.find(item => item.person === person.person)
-    if (existing) Object.assign(existing, person)
-    else participants.push(person)
-  })
   return participants
 }
 
@@ -2652,8 +2644,10 @@ function PlanParticipantBadges({ participants, compact = false, currentPerson }:
   </span>
 }
 
-function PlanSurface({ events, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
+function PlanSurface({ events, selectionRows, companions, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
   events: ExploreEvent[]
+  selectionRows: UserSelectionRow[]
+  companions: CompanionMember[]
   slice: TrustSlice
   focusRequest: { eventId: string; nonce: number } | null
   notes: ContextNote[]
@@ -2682,7 +2676,7 @@ function PlanSurface({ events, slice, focusRequest, notes, currentOwnerId, curre
   const [workbarPinned, setWorkbarPinned] = useState(false)
   const [workbarHeight, setWorkbarHeight] = useState(0)
   const candidateEvents = events.map(event => event.id === 'bl-planechase' ? { ...event, state: slice.decision.planning_state as ExploreState } : event)
-  const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson)]))
+  const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
   const planEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).length > 0)
   const visiblePlanEvents = planEvents.filter(event => (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person)))
   const dayEvents = visiblePlanEvents.filter(event => event.day === activeDay)
@@ -4016,7 +4010,7 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, events, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ slice, events, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [detail, setDetail] = useState<CalendarDetail | null>(null)
@@ -4027,7 +4021,7 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, currentPerson, 
   const [toolbarPinned, setToolbarPinned] = useState(false)
   const [toolbarHeight, setToolbarHeight] = useState(0)
   const candidateEvents = events.map(event => event.id === 'bl-planechase' ? { ...event, state: slice.decision.planning_state as ExploreState } : event)
-  const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson)]))
+  const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
   const committedEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed'))
   const selectedEvent = candidateEvents.find(event => event.id === selectedEventId) ?? null
   const openEvent = (id: string) => {
