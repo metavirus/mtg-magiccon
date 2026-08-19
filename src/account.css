@@ -85,6 +85,122 @@
   background: #243d5e;
 }
 
+.account-popover button + button {
+  margin-top: 6px;
+}
+
+.tutorial-overlay {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(3, 10, 20, .78);
+  backdrop-filter: blur(8px);
+}
+
+.tutorial-card {
+  position: relative;
+  width: min(520px, 100%);
+  padding: 36px;
+  border: 1px solid #425b7a;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #152740, #101b2c 72%);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .58);
+}
+
+.tutorial-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #425b7a;
+  border-radius: 11px;
+  background: #122239;
+  color: #b9c7d8;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tutorial-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+  place-items: center;
+  border-radius: 14px;
+  background: #203b61;
+  color: #8bb8ff;
+}
+
+.tutorial-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.tutorial-card h2 {
+  margin: 10px 0 12px;
+  color: #f3f7fc;
+  font-family: Georgia, serif;
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.05;
+}
+
+.tutorial-card > p {
+  min-height: 76px;
+  margin: 0;
+  color: #b8c7da;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.tutorial-progress {
+  display: flex;
+  gap: 7px;
+  margin: 26px 0 20px;
+}
+
+.tutorial-progress span {
+  width: 28px;
+  height: 4px;
+  border-radius: 999px;
+  background: #30455f;
+}
+
+.tutorial-progress .active { background: #82b1ff; }
+.tutorial-progress .done { background: #597da9; }
+
+.tutorial-card footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.tutorial-card footer button {
+  min-height: 42px;
+  padding: 9px 16px;
+  border: 1px solid #425b7a;
+  border-radius: 11px;
+  cursor: pointer;
+}
+
+.tutorial-back { justify-self: start; background: transparent; color: #aebdd0; }
+.tutorial-back:disabled { cursor: default; opacity: .35; }
+.tutorial-next { justify-self: end; background: #284f80; color: #fff; }
+.tutorial-card footer small { color: #8294aa; white-space: nowrap; }
+
+@media (max-width: 600px) {
+  .tutorial-overlay { align-items: end; padding: 10px; }
+  .tutorial-card { padding: 28px 22px 22px; border-radius: 20px; }
+  .tutorial-card > p { min-height: 104px; font-size: 15px; }
+  .tutorial-card footer { gap: 8px; }
+  .tutorial-card footer button { padding-inline: 12px; }
+}
+
 .account-popover button:disabled {
   color: #8fa1b8;
   cursor: default;
