@@ -329,9 +329,10 @@ export function parseLeapTicketedPlayListing(input: {
   rawDescription?: string
 }): ParsedLeapTicketedPlayListing {
   const sourceCategories = input.rawCategories ?? []
+  const titleText = input.rawTitle.toLowerCase()
   const haystack = `${input.rawTitle} ${sourceCategories.join(' ')} ${input.rawDescription ?? ''}`.toLowerCase()
   const price = parseDollarPrice(input.rawTitle)
-  const playFormat = inferPlayFormat(haystack)
+  const playFormat = inferPlayFormat(titleText, haystack)
   const kind: HydratedEventKind = haystack.includes('ticketed play') || playFormat ? 'ticketed_play' : 'unknown'
 
   return {
@@ -342,7 +343,7 @@ export function parseLeapTicketedPlayListing(input: {
     kind,
     playFormat,
     difficulty: inferDifficulty(sourceCategories),
-    timeKind: inferTimeKind(haystack),
+    timeKind: inferTimeKind(titleText, haystack),
     availability: inferAvailability(input.rawTitle),
     ...(price ? { priceAmount: price.amount, priceCurrency: 'USD' as const, priceDisplay: price.display } : {}),
     purchaseRequired: Boolean(price),
@@ -375,12 +376,12 @@ function inferAvailability(rawTitle: string): SourceAvailability {
   return 'unknown'
 }
 
-function inferPlayFormat(haystack: string): PlayFormat | null {
+function inferPlayFormat(titleText: string, haystack: string): PlayFormat | null {
   if (/\b(2hg|two[-\s]?headed)\b/.test(haystack)) return 'two_headed_giant'
   if (/\bcommander\b/.test(haystack)) return 'commander'
   if (/\bsealed\b/.test(haystack)) return 'sealed'
   if (/\bdraft\b/.test(haystack)) return 'draft'
-  if (/\bleague\b/.test(haystack)) return 'league'
+  if (/\bleague\b/.test(titleText)) return 'league'
   if (/\bconstructed\b/.test(haystack)) return 'constructed'
   if (/\bcasual\b/.test(haystack)) return 'casual_play'
   return null
@@ -395,8 +396,8 @@ function inferDifficulty(sourceCategories: string[]): EventDifficulty | null {
   return null
 }
 
-function inferTimeKind(haystack: string): EventTimeKind {
-  if (/\bleague\b/.test(haystack)) return 'league_window'
+function inferTimeKind(titleText: string, haystack: string): EventTimeKind {
+  if (/\bleague\b/.test(titleText)) return 'league_window'
   if (/\b(drop[-\s]?in|come and go|any time|optional)\b/.test(haystack)) return 'drop_in'
   if (/\b(pickup|pick up|claim)\b/.test(haystack)) return 'pickup_window'
   return 'fixed_block'

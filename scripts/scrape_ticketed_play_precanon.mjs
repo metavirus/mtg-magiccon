@@ -56,7 +56,6 @@ function inferFormat(title, body) {
   if (/\bsealed\b/.test(titleText)) return 'sealed'
   if (/\bconstructed|legacy|modern|standard|pauper\b/.test(titleText)) return 'constructed'
   if (/\bcommander\b/.test(haystack)) return 'commander'
-  if (/\bleague\b/.test(haystack)) return 'league'
   if (/\bdraft\b/.test(haystack)) return 'draft'
   if (/\bsealed\b/.test(haystack)) return 'sealed'
   if (/\bconstructed|legacy|modern|standard|pauper\b/.test(haystack)) return 'constructed'
@@ -64,8 +63,9 @@ function inferFormat(title, body) {
 }
 
 function inferTimeKind(title, body) {
+  const titleText = title.toLowerCase()
   const haystack = `${title} ${body}`.toLowerCase()
-  if (/\bleague\b/.test(haystack)) return 'league_window'
+  if (/\bleague\b/.test(titleText)) return 'league_window'
   if (/\bcommander party\b/.test(haystack)) return 'optional_window'
   return 'fixed_block'
 }

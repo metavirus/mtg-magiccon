@@ -171,7 +171,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944012.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Flexible listing: keep visible without treating the whole stated window as a hard block until purchased."
   },
   {
     "id": "ticketed-944013",
@@ -235,16 +235,15 @@ export const ticketedPlayExploreEvents = [
     "title": "Unknown with Gavin Verhey",
     "day": "Fri",
     "time": "11:30 AM–3:59 PM",
-    "window": "League / flexible",
+    "window": "Fixed event",
     "price": "$100",
     "kind": "Ticketed play",
     "type": "play",
-    "format": "League",
+    "format": "Ticketed play",
     "tags": [
       "official atlanta",
       "ticketed play",
-      "league",
-      "flexible"
+      "ticketed play"
     ],
     "state": "none",
     "availability": "open",
@@ -281,7 +280,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944017.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Paid ticketed event: only becomes a hard calendar block after purchase/commitment."
   },
   {
     "id": "ticketed-944016",
@@ -781,7 +780,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944023.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Flexible listing: keep visible without treating the whole stated window as a hard block until purchased."
   },
   {
     "id": "ticketed-944022",
@@ -1057,7 +1056,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944028.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944030",
@@ -2894,7 +2893,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944062.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Flexible listing: keep visible without treating the whole stated window as a hard block until purchased."
   },
   {
     "id": "ticketed-944064",
@@ -3445,7 +3444,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944074.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944073",
@@ -3767,16 +3766,15 @@ export const ticketedPlayExploreEvents = [
     "title": "Unknown for Charity with Gavin Verhey",
     "day": "Sat",
     "time": "2 PM–5:55 PM",
-    "window": "League / flexible",
+    "window": "Fixed event",
     "price": "$100",
     "kind": "Ticketed play",
     "type": "play",
-    "format": "League",
+    "format": "Ticketed play",
     "tags": [
       "official atlanta",
       "ticketed play",
-      "league",
-      "flexible"
+      "ticketed play"
     ],
     "state": "none",
     "availability": "open",
@@ -3813,7 +3811,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944082.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Paid ticketed event: only becomes a hard calendar block after purchase/commitment."
   },
   {
     "id": "ticketed-944083",
@@ -4138,7 +4136,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944092.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944089",
@@ -4191,7 +4189,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944089.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944090",
@@ -4244,7 +4242,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944090.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944091",
@@ -4297,7 +4295,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944091.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944088",
@@ -4350,7 +4348,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944088.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944093",
@@ -4461,7 +4459,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944087.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Flexible listing: keep visible without treating the whole stated window as a hard block until purchased."
   },
   {
     "id": "ticketed-944085",
@@ -5410,7 +5408,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944110.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Flexible listing: keep visible without treating the whole stated window as a hard block until purchased."
   },
   {
     "id": "ticketed-944109",
@@ -5517,7 +5515,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944111.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944112",
@@ -5950,7 +5948,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944121.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Flexible listing: keep visible without treating the whole stated window as a hard block until purchased."
   },
   {
     "id": "ticketed-944120",
@@ -6106,7 +6104,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944119.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944117",
@@ -6377,7 +6375,7 @@ export const ticketedPlayExploreEvents = [
     "title": "2HG - Unknown with Gavin Verhey",
     "day": "Sun",
     "time": "12 PM–3:59 PM",
-    "window": "League / flexible",
+    "window": "Fixed event",
     "price": "$200",
     "kind": "Ticketed play",
     "type": "play",
@@ -6385,8 +6383,7 @@ export const ticketedPlayExploreEvents = [
     "tags": [
       "official atlanta",
       "ticketed play",
-      "2hg",
-      "flexible"
+      "2hg"
     ],
     "state": "none",
     "availability": "open",
@@ -6423,7 +6420,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944131.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Paid ticketed event: only becomes a hard calendar block after purchase/commitment."
   },
   {
     "id": "ticketed-944130",
@@ -6704,7 +6701,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944129.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased."
   },
   {
     "id": "ticketed-944134",
@@ -7192,7 +7189,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944137.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Flexible listing: keep visible without treating the whole stated window as a hard block until purchased."
   },
   {
     "id": "ticketed-944141",
@@ -7355,7 +7352,7 @@ export const ticketedPlayExploreEvents = [
       }
     ],
     "sourceNote": "Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID 944144.",
-    "planEffect": "Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased."
+    "planEffect": "Flexible listing: keep visible without treating the whole stated window as a hard block until purchased."
   },
   {
     "id": "ticketed-944146",

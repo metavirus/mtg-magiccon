@@ -363,11 +363,10 @@ async function loadUserSelections(ownerId: string): Promise<UserSelectionRow[]> 
   return result.data as UserSelectionRow[]
 }
 
-async function loadUserActivityEvents(ownerId: string): Promise<UserActivityEventRow[]> {
+async function loadUserActivityEvents(_ownerId: string): Promise<UserActivityEventRow[]> {
   if (!supabase) return []
   const result = await supabase.from('user_activity_events')
     .select('id,object_id,object_kind,activity_type,actor_label,summary,details,created_at')
-    .eq('owner_id', ownerId)
     .order('created_at', { ascending: false })
     .limit(200)
   if (result.error) throw result.error
@@ -499,6 +498,7 @@ export default function App() {
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
   const [exploreRouteState, setExploreRouteState] = useState<ExploreRouteState>(() => parseExploreRouteState(window.location.hash))
   const [exploreFocusRequest, setExploreFocusRequest] = useState<{ eventId: string; noteId?: string; nonce: number } | null>(null)
+  const [planFocusRequest, setPlanFocusRequest] = useState<{ eventId: string; nonce: number } | null>(null)
   const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [mobileNavMenu, setMobileNavMenu] = useState<'main' | 'events' | 'more' | null>(null)
   const [desktopRailLocked, setDesktopRailLocked] = useState(() => window.innerWidth >= 901)
@@ -680,7 +680,9 @@ export default function App() {
     const handleLocationChange = () => {
       setMobileNavMenu(null)
       setNavNotice('')
-      setSurface(surfaceFromHash(window.location.hash))
+      const nextSurface = surfaceFromHash(window.location.hash)
+      if (nextSurface !== 'explore') setExploreFocusRequest(null)
+      setSurface(nextSurface)
       setExploreRouteState(parseExploreRouteState(window.location.hash))
     }
     window.addEventListener('hashchange', handleLocationChange)
@@ -775,6 +777,7 @@ export default function App() {
   const openDestination = (name: string, next?: Surface) => {
     setMobileNavMenu(null)
     if (next) {
+      if (next !== 'explore') setExploreFocusRequest(null)
       if (next !== surface) setPreviousSurface(surface)
       setSurface(next)
       setNavNotice('')
@@ -788,6 +791,7 @@ export default function App() {
   const goBack = () => {
     if (!previousSurface) return
     const destination = previousSurface
+    if (destination !== 'explore') setExploreFocusRequest(null)
     setPreviousSurface(surface)
     setSurface(destination)
     setNavNotice('')
@@ -796,9 +800,34 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const openObjectDetail = (detail: ObjectDetail) => setObjectDetail(detail)
+  const openPlanEventContext = (eventId: string) => {
+    closeObjectDetail()
+    setPlanFocusRequest({ eventId, nonce: Date.now() })
+    openDestination('Plan', 'plan')
+  }
   const openActivityItem = (item: ActivityItem) => {
+    if (item.objectDetail.id.startsWith('explore-')) {
+      const eventId = item.objectDetail.id.replace(/^explore-/, '')
+      if (item.sourceKind === 'note') {
+        setExploreFocusRequest({ eventId, noteId: item.objectDetail.focusedNoteId, nonce: Date.now() })
+        openDestination('Explore', 'explore')
+      } else if (item.status === 'committed') openPlanEventContext(eventId)
+      else {
+        setExploreFocusRequest({ eventId, nonce: Date.now() })
+        openDestination('Explore', 'explore')
+      }
+      return
+    }
+    if (item.objectDetail.id.startsWith('activity-burst-')) {
+      openDestination('Explore', 'explore')
+      return
+    }
     if (item.sourceKind === 'note' && item.objectDetail.kind === 'note') {
       openDestination('Notes', 'notes')
+      return
+    }
+    if (!['Home', 'Activity'].includes(item.destination)) {
+      openDestination(item.destination, item.destination.toLowerCase() as Surface)
       return
     }
     openObjectDetail(item.objectDetail)
@@ -812,9 +841,10 @@ export default function App() {
       return
     }
     if (note.objectKind === 'event' || note.objectId.startsWith('explore-')) {
-      const eventId = note.objectId.replace(/^explore-/, '')
-      if (exploreEventState.some(event => event.id === eventId)) {
-        setExploreFocusRequest({ eventId, noteId: note.id, nonce: Date.now() })
+      const legacyEventId = note.objectId.replace(/^explore-/, '')
+      const event = exploreEventState.find(candidate => candidate.id === legacyEventId || candidate.title === note.objectTitle || displayEventTitle(candidate) === note.objectTitle)
+      if (event) {
+        setExploreFocusRequest({ eventId: event.id, noteId: note.id, nonce: Date.now() })
         openDestination('Explore', 'explore')
         return
       }
@@ -1016,7 +1046,7 @@ export default function App() {
   }
 
   const generatedActivity = clusterActivityEvents(userActivityRows)
-    .map(cluster => activityFromEventCluster(cluster, exploreEventState, userSelections))
+    .map(cluster => activityFromEventCluster(cluster, exploreEventState, userSelections, currentCompanion?.name ?? 'Kavi'))
     .filter((item): item is ActivityItem => item !== null)
   const noteActivity = contextNotesToActivity(contextNotesState, userSelections)
   const monitorActivity: ActivityItem[] = monitorAlerts.map(alert => ({
@@ -1148,7 +1178,7 @@ export default function App() {
       <header className={`hero ${['explore', 'plan', 'calendar'].includes(surface) ? 'hero-has-funnel' : ''}`}>
         <div>
           <div className="hero-context">
-            <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!previousSurface} aria-label="Back to previous view">‹</button>
+            <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!previousSurface} aria-label="Back to previous view"><span aria-hidden="true">‹</span></button>
             <button className="back-caret mobile-menu-caret" type="button" onClick={() => setMobileNavMenu('main')} aria-label="Open main navigation" aria-expanded={mobileNavMenu === 'main'}><span aria-hidden="true">☰</span></button>
             <span className="kicker">{headerLabel}</span>
           </div>
@@ -1177,9 +1207,9 @@ export default function App() {
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
-        {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} onOpenWallet={() => openDestination('Wallet', 'wallet')} />}
+        {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
           if (!delta) return
@@ -1197,9 +1227,9 @@ export default function App() {
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
-        {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} />}
+        {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </>}
 
     </main>
@@ -1563,7 +1593,7 @@ type ExploreType = 'all' | 'play' | 'info' | 'social' | 'other'
 type ExploreState = 'none' | 'interested' | 'tentative' | 'committed' | 'hidden' | 'nope'
 type ComplexityLevel = 'easy' | 'focused' | 'demanding' | 'very-hard' | 'unknown' | 'inconclusive'
 type ActionIconName = 'bookmark' | 'diamond' | 'lock' | 'eyeOff'
-type EventKindIconName = 'lotus' | 'panel' | 'competitive' | 'ticketed'
+type EventKindIconName = 'lotus' | 'panel' | 'competitive' | 'ticketed' | 'play' | 'info' | 'social'
 type MilestoneIconName = 'badges' | 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
 type WalletTab = 'home' | 'play' | 'store' | 'other'
 type AlertKind = 'site' | 'email' | 'newsletter' | 'manual'
@@ -1637,6 +1667,11 @@ type ActivityItem = {
   nextAction: string
   reviewState: AlertReviewState
   objectDetail: ObjectDetail
+  actor?: PersonName
+}
+
+function personNameFromLabel(label: string): PersonName | undefined {
+  return (['Kavi', 'Chris', 'Juan', 'Kyle'] as PersonName[]).find(person => person.toLowerCase() === label.trim().toLowerCase())
 }
 
 function defaultAlertReviewState(alert: MonitoringAlert): AlertReviewState {
@@ -1667,6 +1702,7 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
     const sourceDetail = noteSourceObjectDetail(latest)
     return {
       id: `note-${cluster.id}`,
+      actor: cluster.author,
       sourceKind: 'note' as const,
       kind: 'manual' as const,
       severity: 'notice' as const,
@@ -1846,6 +1882,7 @@ function prizeTixActivityFromCluster(cluster: ReturnType<typeof clusterActivityE
   const amount = Math.abs(net).toLocaleString()
   return {
     id: cluster.id,
+    actor: personNameFromLabel(cluster.actorLabel),
     sourceKind: 'activity-log',
     kind: 'manual',
     severity,
@@ -1882,6 +1919,7 @@ function eventSelectionActivityFromCluster(
   cluster: ReturnType<typeof clusterActivityEvents>[number],
   events: ExploreEvent[],
   selections: Record<string, string>,
+  currentPerson: PersonName,
 ): ActivityItem | null {
   const latest = cluster.rows[0]
   const reviewSelection = selections[selectionKey(`activity-${cluster.id}`, 'review_state')]
@@ -1900,9 +1938,10 @@ function eventSelectionActivityFromCluster(
   const hiddenCount = items.filter(item => item.state === 'hidden').length
   const nopeCount = items.filter(item => item.state === 'nope').length
   const severity: AlertSeverity = committedCount > 0 ? 'hot' : 'notice'
+  const isAnotherPerson = cluster.actorLabel.trim().toLowerCase() !== currentPerson.toLowerCase()
   const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
     ? reviewSelection as AlertReviewState
-    : severity === 'hot'
+    : severity === 'hot' || isAnotherPerson
       ? 'needs-review'
       : 'reviewed'
   const parts = [
@@ -1918,6 +1957,7 @@ function eventSelectionActivityFromCluster(
     : `${cluster.actorLabel} updated ${items.length} event picks.`
   return {
     id: cluster.id,
+    actor: personNameFromLabel(cluster.actorLabel),
     sourceKind: 'activity-log',
     kind: 'manual',
     severity,
@@ -1960,9 +2000,10 @@ function activityFromEventCluster(
   cluster: ReturnType<typeof clusterActivityEvents>[number],
   events: ExploreEvent[],
   selections: Record<string, string>,
+  currentPerson: PersonName,
 ): ActivityItem | null {
   if (cluster.activityType === 'prize_tix_adjusted') return prizeTixActivityFromCluster(cluster, selections)
-  if (cluster.activityType === 'event_state_changed') return eventSelectionActivityFromCluster(cluster, events, selections)
+  if (cluster.activityType === 'event_state_changed') return eventSelectionActivityFromCluster(cluster, events, selections, currentPerson)
   return null
 }
 
@@ -1988,6 +2029,7 @@ function selectionActivityFromRow(
   const author = noteAuthorFromSession(session)
   return {
     id: `selection-${eventId}`,
+    actor: author,
     sourceKind: 'selection',
     kind: 'manual',
     severity,
@@ -2489,11 +2531,134 @@ function FunnelNav({ current, onOpenExplore, onOpenPlan, onOpenCalendar }: { cur
   </nav>
 }
 
-function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
+type PlanView = 'list' | 'agenda'
+type PlanParticipantState = 'interested' | 'tentative' | 'committed'
+type PlanParticipant = { person: PersonName; state: PlanParticipantState; purchased?: boolean }
+type AgendaPlacement = { event: ExploreEvent; start: number; end: number; lane: number; lanes: number }
+
+const planPeople: PersonName[] = ['Kavi', 'Chris', 'Juan', 'Kyle']
+
+function planParticipants(event: ExploreEvent, currentPerson: PersonName): PlanParticipant[] {
+  const participants: PlanParticipant[] = []
+  if (['interested', 'tentative', 'committed'].includes(event.state)) {
+    participants.push({ person: currentPerson, state: event.state as PlanParticipantState })
+  }
+  if (!['127.0.0.1', 'localhost'].includes(window.location.hostname)) return participants
+
+  const title = displayEventTitle(event)
+  const demo: Array<{ pattern: RegExp; people: PlanParticipant[] }> = [
+    { pattern: /Progressive Sealed League/i, people: [{ person: 'Chris', state: 'interested' }] },
+    { pattern: /^First Look Thursday$/i, people: [{ person: 'Chris', state: 'tentative' }] },
+    { pattern: /Welcome Reception/i, people: [{ person: 'Chris', state: 'committed' }, { person: 'Juan', state: 'interested' }] },
+    { pattern: /Hexhaven Study Hall/i, people: [{ person: 'Chris', state: 'interested' }] },
+    { pattern: /Magic: The Menu/i, people: [{ person: 'Chris', state: 'interested' }, { person: 'Juan', state: 'tentative' }] },
+    { pattern: /Commander and Cocktails/i, people: [{ person: 'Chris', state: 'committed' }] },
+    { pattern: /Friday Night Magic - 2HG Commander Night/i, people: [{ person: 'Chris', state: 'tentative' }, { person: 'Kyle', state: 'interested' }] },
+    { pattern: /Prismatic Pride/i, people: [{ person: 'Juan', state: 'interested' }] },
+  ]
+  demo.find(item => item.pattern.test(title))?.people.forEach(person => {
+    const existing = participants.find(item => item.person === person.person)
+    if (existing) Object.assign(existing, person)
+    else participants.push(person)
+  })
+  return participants
+}
+
+function parseAgendaInterval(event: ExploreEvent): { start: number; end: number } | null {
+  const match = event.time.replace(/[–—]/g, '-').match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?\s*-\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/i)
+  if (!match) return null
+  let startHour = Number(match[1])
+  const startMinute = Number(match[2] ?? 0)
+  const endHourRaw = Number(match[4])
+  const endMinute = Number(match[5] ?? 0)
+  const endMeridiem = match[6].toUpperCase()
+  let startMeridiem = match[3]?.toUpperCase()
+  if (!startMeridiem) startMeridiem = endMeridiem === 'PM' && startHour > endHourRaw ? 'AM' : endMeridiem
+  if (startHour === 12) startHour = 0
+  if (startMeridiem === 'PM') startHour += 12
+  let endHour = endHourRaw === 12 ? 0 : endHourRaw
+  if (endMeridiem === 'PM') endHour += 12
+  const start = startHour + startMinute / 60
+  let end = endHour + endMinute / 60
+  if (end <= start) end += 12
+  return { start, end }
+}
+
+function planTimeLines(time: string) {
+  const parts = time.replace(/[–—]/g, '-').split(/\s*-\s*/, 2)
+  return { start: parts[0], end: parts[1] }
+}
+
+function isFlexiblePlanEvent(event: ExploreEvent) {
+  return event.id === 'bl-progressive-sealed' || event.id === 'bl-mystery-booster-drafts' || /start/i.test(event.time) || /on-demand|league window/i.test(event.window)
+}
+
+function isNonBlockingPlanEvent(event: ExploreEvent) {
+  return isFlexiblePlanEvent(event)
+    || event.tags.some(tag => tag.toLowerCase() === 'league')
+    || /\bleague\b/i.test(`${event.title} ${event.format} ${event.window}`)
+}
+
+function placeAgendaEvents(events: ExploreEvent[]): AgendaPlacement[] {
+  const timed = events.flatMap(event => {
+    const interval = isFlexiblePlanEvent(event) ? null : parseAgendaInterval(event)
+    return interval ? [{ event, ...interval }] : []
+  }).sort((a, b) => a.start - b.start || a.end - b.end)
+  const placed: AgendaPlacement[] = []
+  let index = 0
+  while (index < timed.length) {
+    const group = [timed[index]]
+    let groupEnd = timed[index].end
+    let cursor = index + 1
+    while (cursor < timed.length && timed[cursor].start < groupEnd) {
+      group.push(timed[cursor])
+      groupEnd = Math.max(groupEnd, timed[cursor].end)
+      cursor += 1
+    }
+    const laneEnds: number[] = []
+    const assigned = group.map(item => {
+      let lane = laneEnds.findIndex(end => end <= item.start)
+      if (lane < 0) lane = laneEnds.length
+      laneEnds[lane] = item.end
+      return { ...item, lane }
+    })
+    assigned.forEach(item => placed.push({ ...item, lanes: laneEnds.length }))
+    index = cursor
+  }
+  return placed
+}
+
+function formatAgendaHour(hour: number) {
+  const normalized = ((hour % 24) + 24) % 24
+  if (normalized === 0) return '12 AM'
+  if (normalized === 12) return '12 PM'
+  return `${normalized > 12 ? normalized - 12 : normalized} ${normalized > 12 ? 'PM' : 'AM'}`
+}
+
+function planEventsOverlap(first: ExploreEvent, second: ExploreEvent) {
+  if (isNonBlockingPlanEvent(first) || isNonBlockingPlanEvent(second)) return false
+  const a = parseAgendaInterval(first)
+  const b = parseAgendaInterval(second)
+  return Boolean(a && b && a.start < b.end && b.start < a.end)
+}
+
+function PlanParticipantBadges({ participants, compact = false, currentPerson }: { participants: PlanParticipant[]; compact?: boolean; currentPerson?: PersonName }) {
+  const labels: Record<PersonName, string> = { Kavi: 'Ka', Chris: 'C', Juan: 'J', Kyle: 'Ky' }
+  return <span className={`plan-participants ${compact ? 'compact' : ''}`} aria-label={participants.map(participant => `${participant.person} ${participant.purchased ? 'purchased' : participant.state}`).join(', ')}>
+    {participants.map(participant => <span key={participant.person} className={`plan-participant ${participant.person.toLowerCase()} state-${participant.state} ${participant.purchased ? 'purchased' : ''} ${participant.person === currentPerson ? 'is-current' : ''}`} title={`${participant.person === currentPerson ? 'You' : participant.person} · ${participant.purchased ? 'Purchased' : eventStageLabel(participant.state)}`}>
+      <span className="person-bubble">{labels[participant.person]}</span>
+      <PlanningStateIcon state={participant.state} />
+    </span>)}
+  </span>
+}
+
+function PlanSurface({ events, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenObject, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
   events: ExploreEvent[]
   slice: TrustSlice
+  focusRequest: { eventId: string; nonce: number } | null
   notes: ContextNote[]
   currentOwnerId?: string
+  currentPerson: PersonName
   onAddNote: (input: AddContextNoteInput) => void
   onDeleteNote: (id: string) => void
   onUpdateEvent: (id: string, state: ExploreState) => void
@@ -2506,36 +2671,122 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
   canCommitBlackLotus: boolean
 }) {
   const days: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
-  const planEvents = events
-    .map(event => event.id === 'bl-planechase' ? { ...event, state: slice.decision.planning_state as ExploreState } : event)
-    .filter(event => event.kind === 'Black Lotus' || ['interested', 'tentative', 'committed'].includes(event.state))
   const [activeDay, setActiveDay] = useState<ExploreEvent['day']>('Thu')
-  const dayEvents = planEvents.filter(event => event.day === activeDay)
+  const [selectedPeople, setSelectedPeople] = useState<PersonName[]>([currentPerson])
+  const [planView, setPlanView] = useState<PlanView>(() => window.localStorage.getItem('magiccon-plan-view') === 'agenda' ? 'agenda' : 'list')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [collapsedPlanGroups, setCollapsedPlanGroups] = useState<string[]>([])
+  const workbarRef = useRef<HTMLDivElement | null>(null)
+  const workbarStartRef = useRef(0)
+  const [workbarPinned, setWorkbarPinned] = useState(false)
+  const [workbarHeight, setWorkbarHeight] = useState(0)
+  const candidateEvents = events.map(event => event.id === 'bl-planechase' ? { ...event, state: slice.decision.planning_state as ExploreState } : event)
+  const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson)]))
+  const planEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).length > 0)
+  const visiblePlanEvents = planEvents.filter(event => (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person)))
+  const dayEvents = visiblePlanEvents.filter(event => event.day === activeDay)
   const selected = selectedId ? planEvents.find(event => event.id === selectedId) ?? null : null
+  const strongestState = (event: ExploreEvent): PlanParticipantState => {
+    const states = (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person)).map(participant => participant.state)
+    return states.includes('committed') ? 'committed' : states.includes('tentative') ? 'tentative' : 'interested'
+  }
   const planGroups = [
-    { key: 'committed', label: 'Committed anchors', hint: 'calendar-bound', items: dayEvents.filter(event => event.state === 'committed') },
-    { key: 'tentative', label: 'Tentative contenders', hint: 'compare against the day', items: dayEvents.filter(event => event.state === 'tentative') },
-    { key: 'interested', label: 'Interesting maybes', hint: 'promoted from Explore', items: dayEvents.filter(event => event.state === 'interested') },
+    { key: 'committed', label: 'Committed anchors', hint: 'calendar-bound', items: dayEvents.filter(event => strongestState(event) === 'committed') },
+    { key: 'tentative', label: 'Tentative contenders', hint: 'compare against the day', items: dayEvents.filter(event => strongestState(event) === 'tentative') },
+    { key: 'interested', label: 'Interesting maybes', hint: 'promoted from Explore', items: dayEvents.filter(event => strongestState(event) === 'interested') },
   ].filter(group => group.items.length > 0)
+  const flexibleEvents = dayEvents.filter(isFlexiblePlanEvent)
+  const agendaPlacements = placeAgendaEvents(dayEvents)
+  const agendaStart = agendaPlacements.length ? Math.max(8, Math.floor(Math.min(...agendaPlacements.map(item => item.start)))) : 9
+  const agendaEnd = agendaPlacements.length ? Math.min(25, Math.ceil(Math.max(...agendaPlacements.map(item => item.end)))) : 18
+  const agendaHourHeight = 64
+  const agendaHeight = Math.max(280, (agendaEnd - agendaStart) * agendaHourHeight)
+  const agendaHours = Array.from({ length: agendaEnd - agendaStart + 1 }, (_, index) => agendaStart + index)
+  const conflictPairs = agendaPlacements.flatMap((first, index) => agendaPlacements.slice(index + 1).filter(second => planEventsOverlap(first.event, second.event)).map(second => [first.event.id, second.event.id] as const))
+  const conflictIds = new Set(conflictPairs.flat())
+  const sharedCount = dayEvents.filter(event => (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person)).length > 1).length
   const togglePlanGroup = (key: string) => setCollapsedPlanGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
+
+  const togglePerson = (person: PersonName) => setSelectedPeople(current => current.includes(person)
+    ? current.length === 1 ? current : current.filter(item => item !== person)
+    : [...current, person])
+
+  const changePlanView = (view: PlanView) => {
+    setPlanView(view)
+    window.localStorage.setItem('magiccon-plan-view', view)
+    setSelectedId(null)
+    setDetailOpen(false)
+  }
 
   const setState = (event: ExploreEvent, state: ExploreState) => {
     if (event.id === 'bl-planechase') onChangeSliceState(state as PlanningState)
     else onUpdateEvent(event.id, state)
   }
 
+  const openPlanEvent = (event: ExploreEvent) => {
+    if (selectedId === event.id && detailOpen) {
+      setSelectedId(null)
+      setDetailOpen(false)
+      return
+    }
+    setSelectedId(event.id)
+    setDetailOpen(true)
+  }
+
+  useEffect(() => {
+    if (!focusRequest) return
+    const event = candidateEvents.find(candidate => candidate.id === focusRequest.eventId)
+    if (!event) return
+    setPlanView('list')
+    window.localStorage.setItem('magiccon-plan-view', 'list')
+    setActiveDay(event.day)
+    setSelectedPeople(current => current.includes(currentPerson) ? current : [currentPerson, ...current])
+    setSelectedId(event.id)
+    setDetailOpen(true)
+    window.setTimeout(() => document.querySelector<HTMLElement>(`.plan-row[data-event-id="${CSS.escape(event.id)}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 0)
+  }, [focusRequest])
+
+  useEffect(() => {
+    const updateWorkbarPin = () => {
+      const workbar = workbarRef.current
+      if (!workbar) return
+      setWorkbarHeight(workbar.offsetHeight)
+      if (!workbar.classList.contains('pinned')) workbarStartRef.current = workbar.getBoundingClientRect().top + window.scrollY
+      setWorkbarPinned(window.scrollY > workbarStartRef.current)
+    }
+    updateWorkbarPin()
+    window.addEventListener('scroll', updateWorkbarPin, { passive: true })
+    window.addEventListener('resize', updateWorkbarPin)
+    return () => {
+      window.removeEventListener('scroll', updateWorkbarPin)
+      window.removeEventListener('resize', updateWorkbarPin)
+    }
+  }, [])
+
   return <section className="plan-lite">
-    <nav className="plan-day-tabs" aria-label="Convention planning days">
-      {days.map(day => <button key={day} type="button" className={activeDay === day ? 'active' : ''} onClick={() => { setActiveDay(day); setSelectedId(null); setDetailOpen(false) }}><strong>{day}</strong></button>)}
-    </nav>
+    <div ref={workbarRef} className={`surface-workbar plan-workbar ${workbarPinned ? 'pinned' : ''}`}>
+    <div className="plan-control-row">
+      <div className="plan-view-toggle map-tabs" role="tablist" aria-label="Plan view">
+        <button type="button" role="tab" aria-selected={planView === 'list'} className={planView === 'list' ? 'active' : ''} onClick={() => changePlanView('list')}>List</button>
+        <button type="button" role="tab" aria-selected={planView === 'agenda'} className={planView === 'agenda' ? 'active' : ''} onClick={() => changePlanView('agenda')}>Agenda</button>
+      </div>
+      <nav className="plan-day-tabs" aria-label="Convention planning days">
+        {days.map(day => <button key={day} type="button" className={activeDay === day ? 'active' : ''} onClick={() => { setActiveDay(day); setSelectedId(null); setDetailOpen(false) }}><strong>{day}</strong></button>)}
+      </nav>
+      <div className="plan-control-right">
+        <div className="plan-people-filter" aria-label="People included in Plan">
+          {planPeople.map(person => <button key={person} type="button" className={selectedPeople.includes(person) ? `active ${person.toLowerCase()}` : person.toLowerCase()} aria-pressed={selectedPeople.includes(person)} title={person} onClick={() => togglePerson(person)}><span className="person-bubble">{person === 'Kavi' ? 'Ka' : person === 'Kyle' ? 'Ky' : person[0]}</span><span className="person-filter-name">{person}</span></button>)}
+        </div>
+      </div>
+    </div>
+    </div>
+    {workbarPinned && <div className="workbar-spacer" style={{ height: workbarHeight }} aria-hidden="true" />}
 
     <div className={`plan-lite-layout ${selected ? 'has-detail' : ''}`}>
       <div className="plan-day-board">
-        <div className="plan-day-heading"><div><strong>{activeDay}</strong><span>{planDayContext(activeDay)}</span></div><small>{dayEvents.filter(event => event.state === 'committed').length} hard blocks</small></div>
-        {planGroups.map(group => {
+        <div className="plan-day-heading"><div><strong>{activeDay}</strong><span>{dayEvents.length} possibilities · {sharedCount} together · {conflictIds.size} in contention</span></div><small>{dayEvents.filter(event => !isNonBlockingPlanEvent(event) && (participantMap.get(event.id) ?? []).some(participant => participant.purchased || participant.state === 'committed')).length} firm blocks</small></div>
+        {planView === 'list' && planGroups.map(group => {
           const collapsed = collapsedPlanGroups.includes(group.key)
           return <section className={`plan-row-group group-${group.key}`} key={group.key}>
             <button className="funnel-group-header" type="button" aria-expanded={!collapsed} onClick={() => togglePlanGroup(group.key)}>
@@ -2543,20 +2794,16 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
               <em>{group.items.length}</em>
               <b aria-hidden="true">⌄</b>
             </button>
-            {!collapsed && group.items.map(event => <article key={event.id} className={`plan-row state-${event.state} ${selected?.id === event.id ? 'selected' : ''}`}>
-              <button className="plan-row-main" type="button" onClick={() => {
-                if (selectedId === event.id && detailOpen) {
-                  setSelectedId(null)
-                  setDetailOpen(false)
-                  return
-                }
-                setSelectedId(event.id)
-                setDetailOpen(true)
-              }}>
-                <span className={`plan-kind type-${event.type}`} aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><EventKindIcon name={event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'} /></span>
-                <span className="plan-time-chip">{event.day}<b>{event.time}</b></span>
-                <span className="plan-row-copy"><strong>{displayEventTitle(event)}</strong><small>{event.time} · {event.window}</small></span>
-                {planPressure(event) && <span className="plan-row-signal">{planPressure(event)}</span>}
+            {!collapsed && group.items.map(event => {
+              const participants = (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person))
+              const purchased = participants.some(participant => participant.purchased)
+              const kindIcon: EventKindIconName = event.type === 'play' ? 'play' : event.type === 'info' ? 'info' : event.type === 'social' ? 'social' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'
+              return <article key={event.id} data-event-id={event.id} className={`plan-row type-${event.type} state-${strongestState(event)} ${participants.length > 1 ? 'shared' : ''} ${purchased ? 'purchased' : ''} ${conflictIds.has(event.id) ? 'conflict' : ''} ${selected?.id === event.id ? 'selected' : ''}`}>
+              <button className="plan-row-main" type="button" onClick={() => openPlanEvent(event)}>
+                <span className={`plan-kind type-${event.type}`} aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><span className="plan-kind-icon"><EventKindIcon name={kindIcon} /></span>{event.kind === 'Black Lotus' && <span className="plan-source-mark" title="Black Lotus"><EventKindIcon name="lotus" /></span>}</span>
+                <span className="plan-time-chip">{event.day}<b>{planTimeLines(event.time).start}{planTimeLines(event.time).end && <span>–{planTimeLines(event.time).end}</span>}</b></span>
+                <span className="plan-row-copy"><strong>{displayEventTitle(event)}</strong><small>{event.time} · {event.window}</small><PlanParticipantBadges participants={participants} compact currentPerson={currentPerson} /></span>
+                {participants.length > 1 ? <span className="plan-row-signal together">Together</span> : planPressure(event) && <span className="plan-row-signal">{planPressure(event)}</span>}
               </button>
               <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
                 {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
@@ -2566,12 +2813,37 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
                   const title = state === 'committed' && event.kind === 'Black Lotus' && !canCommitBlackLotus
                     ? 'Only Kavi and Chris can commit Black Lotus events.'
                     : label
-                  return <button key={state} type="button" aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
+                  return <button key={state} type="button" className={`decision-state-${state}`} aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
                 })}
               </div>
-            </article>)}
+            </article>})}
           </section>
         })}
+        {planView === 'agenda' && <div className="plan-agenda">
+          {flexibleEvents.length > 0 && <section className="agenda-flexible-strip"><span>Flexible</span><div>{flexibleEvents.map(event => <button key={event.id} type="button" onClick={() => openPlanEvent(event)} className={selected?.id === event.id ? 'selected' : ''}><strong>{displayEventTitle(event)}</strong><PlanParticipantBadges participants={(participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person))} compact currentPerson={currentPerson} /></button>)}</div></section>}
+          {agendaPlacements.length > 0 && <div className="agenda-timeline" style={{ height: agendaHeight }}>
+            <div className="agenda-time-axis" aria-hidden="true">{agendaHours.map(hour => <span key={hour} style={{ top: (hour - agendaStart) * agendaHourHeight }}>{formatAgendaHour(hour)}</span>)}</div>
+            <div className="agenda-track">{agendaHours.map(hour => <i key={hour} style={{ top: (hour - agendaStart) * agendaHourHeight }} />)}
+              {agendaPlacements.map(placement => {
+                const participants = (participantMap.get(placement.event.id) ?? []).filter(participant => selectedPeople.includes(participant.person))
+                const mine = participants.some(participant => participant.person === currentPerson)
+                const shared = mine && participants.some(participant => participant.person !== currentPerson)
+                const othersOnly = !mine
+                const conflict = conflictIds.has(placement.event.id)
+                const nonBlocking = isNonBlockingPlanEvent(placement.event)
+                const ownerClass = participants.length === 1 ? `owner-${participants[0].person.toLowerCase()}` : 'owner-shared'
+                const participantClasses = participants.map(participant => `has-${participant.person.toLowerCase()}`).join(' ')
+                const short = placement.end - placement.start <= 1.5
+                return <button key={placement.event.id} type="button" className={`agenda-event state-${strongestState(placement.event)} ${ownerClass} ${participantClasses} ${short ? 'short' : ''} ${mine ? 'mine' : ''} ${shared ? 'shared' : ''} ${othersOnly ? 'others-only' : ''} ${nonBlocking ? 'non-blocking' : ''} ${conflict ? 'conflict' : ''} ${selected?.id === placement.event.id ? 'selected' : ''}`} style={{ top: (placement.start - agendaStart) * agendaHourHeight + 4, height: Math.max(48, (placement.end - placement.start) * agendaHourHeight - 8), left: `calc(${placement.lane / placement.lanes * 100}% + ${placement.lane ? 4 : 0}px)`, width: `calc(${100 / placement.lanes}% - ${placement.lane ? 4 : 0}px)` }} onClick={() => openPlanEvent(placement.event)}>
+                  <span className="agenda-event-copy"><strong>{displayEventTitle(placement.event)}</strong><small>{placement.event.time} · {formatEventPrice(placement.event.price)}</small></span>
+                  <PlanParticipantBadges participants={participants} compact currentPerson={currentPerson} />
+                  {shared && <em>Together</em>}
+                  {conflict && <span className="agenda-conflict">Conflict</span>}
+                </button>
+              })}
+            </div>
+          </div>}
+        </div>}
         {dayEvents.length === 0 && <div className="plan-empty"><strong>No active contenders yet.</strong><span>Mark something Interested or Tentative in Explore.</span><button type="button" onClick={onOpenExplore}>Browse Explore</button></div>}
       </div>
 
@@ -2581,6 +2853,7 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
           <h3>{displayEventTitle(selected)}</h3>
           <div className="plan-inspector-facts"><span>{selected.day} · {selected.time}</span><span>{formatEventPrice(selected.price)}</span><span>{selected.format}</span></div>
         </header>
+        <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
         <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit={selected.id !== 'bl-planechase' || canCommitBlackLotus} disabled={!online || saving} />
         <div className="event-context-block"><small>HOW THIS AFFECTS THE PLAN</small><strong>{selected.planEffect}</strong></div>
         <p>{selected.fit}</p>
@@ -2670,6 +2943,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
   const hiddenCount = events.filter(event => event.state === 'hidden' || event.state === 'nope').length
   const hiddenMatches = events.filter(event => (event.state === 'hidden' || event.state === 'nope') && matchesSearchAndDay(event))
   const ticketedVisibleCount = visible.filter(event => event.kind === 'Ticketed play').length
+  const hasOtherEvents = events.some(event => event.type === 'other')
   const exploreDays: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
   const exploreGroups = (day === 'all' ? exploreDays : [day])
     .map(groupDay => ({ key: groupDay, label: `${groupDay} scan`, hint: exploreDayContext(groupDay), items: visible.filter(event => event.day === groupDay) }))
@@ -2755,7 +3029,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
               ['info', 'Info'],
               ['social', 'Social'],
               ['other', 'Other'],
-            ] as const).map(([value, label]) => <button key={value} type="button" className={eventType === value ? 'active' : ''} onClick={() => setEventType(current => current === value && value !== 'all' ? 'all' : value)}>{label}</button>)}
+            ] as const).filter(([value]) => value !== 'other' || hasOtherEvents).map(([value, label]) => <button key={value} type="button" className={eventType === value ? 'active' : ''} onClick={() => setEventType(current => current === value && value !== 'all' ? 'all' : value)}>{label}</button>)}
           </div>
           <button className={`explore-hidden-pill ${showHidden ? 'active' : ''}`} type="button" aria-pressed={showHidden} onClick={() => setShowHidden(value => !value)}><EyeOffMini /> Hidden{hiddenCount > 0 ? ` ${hiddenCount}` : ''}</button>
         </div>
@@ -2815,11 +3089,12 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
 }
 
 function ExploreEventRow({ event, selected, onSelect, onState }: { event: ExploreEvent; selected: boolean; onSelect: () => void; onState: (state: ExploreState) => void }) {
-  const kindIcon: EventKindIconName = event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'
+  const kindIcon: EventKindIconName = event.type === 'play' ? 'play' : event.type === 'info' ? 'info' : event.type === 'social' ? 'social' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'
+  const blackLotus = event.kind === 'Black Lotus'
   const priceTone = getPriceTone(event.price)
   return <article className={`explore-event ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-event-id={event.id} data-availability={event.availability}>
     <button className="explore-event-main" type="button" onClick={onSelect}>
-      <span className="event-type-icon" aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><EventKindIcon name={kindIcon} /></span>
+      <span className="event-type-icon" aria-label={`${event.type} event`} data-kind-label={`${event.type} event`}><EventKindIcon name={kindIcon} /></span>
       <span className="event-title-block">
         <strong>{displayEventTitle(event)}</strong>
         <small>{event.day} · {event.time}</small>
@@ -2828,6 +3103,8 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
         <span className={`event-price price-${priceTone}`}><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>
       </span>
     </button>
+    <div className="explore-hide-action"><IconAction label="Hide from this list" icon="eyeOff" pressed={event.state === 'hidden'} onClick={() => onState('hidden')} /></div>
+    {blackLotus && <span className="event-source-mark" title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
     <div className="explore-event-meta">
       <span>{event.format}</span>
       {event.tags.slice(0, 3).map(tag => <span key={tag}>{tag}</span>)}
@@ -2836,7 +3113,6 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
     <div className="explore-actions" aria-label={`${event.title} actions`}>
       <IconAction label="Interested" icon="bookmark" pressed={event.state === 'interested'} onClick={() => onState('interested')} />
       <IconAction label="Tentative" icon="diamond" pressed={event.state === 'tentative'} onClick={() => onState('tentative')} />
-      <IconAction label="Hide from this list" icon="eyeOff" pressed={event.state === 'hidden'} onClick={() => onState('hidden')} />
     </div>
   </article>
 }
@@ -2910,15 +3186,20 @@ function eventStageLabel(state: ExploreState) {
 }
 
 function EventStateRail({ event, context, onState, disabled = false, canCommit = true }: { event: ExploreEvent; context: 'explore' | 'plan' | 'calendar'; onState: (state: ExploreState) => void; disabled?: boolean; canCommit?: boolean }) {
+  const [showCommitHint, setShowCommitHint] = useState(false)
+  useEffect(() => {
+    if (!showCommitHint) return
+    const timer = window.setTimeout(() => setShowCommitHint(false), 2200)
+    return () => window.clearTimeout(timer)
+  }, [showCommitHint])
   return <div className="event-state-rail" aria-label={`${event.title} funnel state`}>
-    <span className="event-state-caption">Explore</span>
     {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
       const commitElsewhere = context === 'explore' && state === 'committed'
-      const isDisabled = disabled || (state === 'committed' && (!canCommit || commitElsewhere))
+      const isDisabled = disabled || (state === 'committed' && !canCommit)
       const title = commitElsewhere ? 'Commit from Plan after comparing the schedule' : state === 'committed' && !canCommit ? 'Only Kavi and Chris can commit Black Lotus events.' : label
-      return <button key={state} type="button" aria-pressed={event.state === state} disabled={isDisabled} title={title} onClick={() => onState(state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
+      return <button key={state} type="button" className={`decision-state-${state}`} aria-pressed={event.state === state} disabled={isDisabled} title={title} onClick={() => commitElsewhere ? setShowCommitHint(true) : onState(state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
     })}
-    <span className="event-state-caption final">Calendar</span>
+    {showCommitHint && <span className="commit-route-hint" role="status">{event.state === 'interested' || event.state === 'tentative' ? 'This event is in Plan. Commit it there after comparing.' : 'Choose Interested or Tentative first to move this event into Plan.'}</span>}
   </div>
 }
 
@@ -2940,7 +3221,7 @@ function TicketMiniIcon() {
 }
 
 function IconAction({ label, icon, pressed, onClick }: { label: string; icon: ActionIconName; pressed: boolean; onClick: () => void }) {
-  return <button type="button" aria-label={label} aria-pressed={pressed} title={label} onClick={onClick}><ActionIcon name={icon} /></button>
+  return <button type="button" className={`icon-action-${icon}`} aria-label={label} aria-pressed={pressed} title={label} onClick={onClick}><ActionIcon name={icon} /></button>
 }
 
 function ActionIcon({ name }: { name: ActionIconName }) {
@@ -2959,6 +3240,9 @@ function EventKindIcon({ name }: { name: EventKindIconName }) {
     panel: <><path d="M5 19l3.8-1 9.4-9.4a2.1 2.1 0 0 0-3-3L5.8 15 5 19Z" /><path d="M13.7 6.1l4.2 4.2" /></>,
     competitive: <><path d="M12 3l7.5 4v5.2c0 4.1-2.7 7.2-7.5 8.8-4.8-1.6-7.5-4.7-7.5-8.8V7L12 3Z" /><path d="M12 8v5" /><path d="M12 16h.01" /></>,
     ticketed: <><path d="M4 7.5A2.5 2.5 0 0 0 6.5 5h11A2.5 2.5 0 0 0 20 7.5v9A2.5 2.5 0 0 0 17.5 19h-11A2.5 2.5 0 0 0 4 16.5v-9Z" /><path d="M8 9h8" /><path d="M8 12h8" /><path d="M8 15h5" /></>,
+    play: <><rect x="5" y="6" width="11" height="14" rx="2" /><path d="m9 6 1-2h9v13l-3 1" /><path d="M8 10h5M8 14h5" /></>,
+    info: <><circle cx="12" cy="12" r="8" /><path d="M12 11v5M12 8h.01" /></>,
+    social: <><circle cx="9" cy="9" r="3" /><circle cx="16.5" cy="10.5" r="2.5" /><path d="M4 19c.6-3.2 2.3-4.8 5-4.8s4.4 1.6 5 4.8M14 15c2.8 0 4.5 1.3 5 4" /></>,
   }
   return <svg className="event-kind-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>
 }
@@ -3011,10 +3295,16 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
   const [body, setBody] = useState('')
   const [visibility, setVisibility] = useState<NoteVisibility>('shared')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const focusedNoteRef = useRef<HTMLElement | null>(null)
   const mentionPreview = mentionPreviewFromBody(body, companions ?? fallbackCompanionMembers, currentSession ?? null)
   const objectNotes = notes
     .filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor))
     .sort((a, b) => (a.id === focusedNoteId ? -1 : b.id === focusedNoteId ? 1 : 0))
+  useEffect(() => {
+    if (!focusedNoteId) return
+    const timer = window.setTimeout(() => focusedNoteRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60)
+    return () => window.clearTimeout(timer)
+  }, [focusedNoteId, objectId])
   const submit = () => {
     const trimmed = body.trim()
     if (!trimmed) return
@@ -3029,7 +3319,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
       {objectNotes.length > 0 && <span className="note-author-cluster"><PersonBubbles people={[...new Set(objectNotes.map(note => note.author))]} /></span>}
     </header>
     {objectNotes.length > 0 && <div className="note-thread">
-      {objectNotes.slice(0, compact ? 2 : 5).map(note => <article key={note.id} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
+      {objectNotes.slice(0, compact ? 2 : 5).map(note => <article key={note.id} ref={note.id === focusedNoteId ? focusedNoteRef : undefined} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
         <PersonBubbles people={[note.author]} />
         <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</small></div>
         {note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
@@ -3106,7 +3396,7 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris'> }) 
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person[0]}</span>)}</span>
 }
 
-function MapSurface({ onOpenTrip, onOpenWallet }: { onOpenTrip: () => void; onOpenWallet: () => void }) {
+function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   const [tab, setTab] = useState<'map' | 'info'>('map')
   const logistics = logisticsToObjectDetail()
 
@@ -3165,13 +3455,6 @@ function MapSurface({ onOpenTrip, onOpenWallet }: { onOpenTrip: () => void; onOp
         <div className="map-info-grid">
           {logistics.facts?.map(fact => <span key={fact.label}><strong>{fact.label}</strong>{fact.value}</span>)}
         </div>
-      </article>
-      <article className="map-card map-info-card">
-        <span className="eyebrow">SOURCE</span>
-        <h2>Why this lives here now</h2>
-        <p>{logistics.rationale}</p>
-        <div className="map-source-note">{logistics.source?.label}: {logistics.source?.value}</div>
-        <button type="button" onClick={onOpenWallet}>Open Wallet proof</button>
       </article>
     </div>}
   </section>
@@ -3733,16 +4016,20 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenExplore, onOpenPlan, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ slice, events, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [detail, setDetail] = useState<CalendarDetail | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [selectedPeople, setSelectedPeople] = useState<PersonName[]>([currentPerson])
   const toolbarRef = useRef<HTMLDivElement | null>(null)
   const toolbarStartRef = useRef(0)
   const [toolbarPinned, setToolbarPinned] = useState(false)
   const [toolbarHeight, setToolbarHeight] = useState(0)
-  const selectedEvent = events.find(event => event.id === selectedEventId) ?? null
+  const candidateEvents = events.map(event => event.id === 'bl-planechase' ? { ...event, state: slice.decision.planning_state as ExploreState } : event)
+  const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson)]))
+  const committedEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed'))
+  const selectedEvent = candidateEvents.find(event => event.id === selectedEventId) ?? null
   const openEvent = (id: string) => {
     setDetail(null)
     if (selectedEventId === id) {
@@ -3757,16 +4044,29 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDe
   }
   const showTravel = filter === 'all' || filter === 'travel'
   const showConvention = filter === 'all' || filter === 'convention'
-  const selectedCalendarEvents = events.filter(event => ['interested', 'tentative', 'committed'].includes(event.state))
-  const hasSelectedEvent = (id: string) => selectedCalendarEvents.some(event => event.id === id)
-  const thursdaySelected = selectedCalendarEvents.filter(event => event.day === 'Thu')
-  const fridaySelected = selectedCalendarEvents.filter(event => event.day === 'Fri')
-  const saturdaySelected = selectedCalendarEvents.filter(event => event.day === 'Sat')
-  const sundaySelected = selectedCalendarEvents.filter(event => event.day === 'Sun')
+  const thursdaySelected = committedEvents.filter(event => event.day === 'Thu')
+  const fridaySelected = committedEvents.filter(event => event.day === 'Fri')
+  const saturdaySelected = committedEvents.filter(event => event.day === 'Sat')
+  const sundaySelected = committedEvents.filter(event => event.day === 'Sun')
   const showThursday = showConvention && thursdaySelected.length > 0
   const showFriday = showConvention && fridaySelected.length > 0
   const showSaturday = showConvention && saturdaySelected.length > 0
   const showSunday = showConvention && sundaySelected.length > 0
+  const hasCommittedEvent = (id: string) => committedEvents.some(event => event.id === id)
+  const togglePerson = (person: PersonName) => setSelectedPeople(current => current.includes(person) ? current.length === 1 ? current : current.filter(item => item !== person) : [...current, person])
+  const renderCommittedEvent = (event: ExploreEvent) => {
+    const participants = (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person) && participant.state === 'committed')
+    const blackLotus = event.kind === 'Black Lotus'
+    const icon: EventKindIconName = event.type === 'play' ? 'play' : event.type === 'info' ? 'info' : event.type === 'social' ? 'social' : 'ticketed'
+    const dayNumber = event.day === 'Thu' ? '12' : event.day === 'Fri' ? '13' : event.day === 'Sat' ? '14' : '15'
+    return <button key={event.id} className={`agenda-row agenda-action convention-event-row ${blackLotus ? 'lotus-row' : 'convention-row'}`} type="button" onClick={() => onOpenPlanEvent(event.id)}>
+      <div className="agenda-date"><strong>{dayNumber}</strong><span>{event.day.toUpperCase()}</span><em>{event.time}</em></div>
+      <div className={`agenda-icon type-${event.type}`}><EventKindIcon name={icon} /></div>
+      <div className="agenda-copy"><span className="agenda-kind">{blackLotus ? `Black Lotus · ${event.type}` : `${event.type} event`}</span><h2>{displayEventTitle(event)}</h2><p>{event.fit}</p></div>
+      {blackLotus && <span className="calendar-source-badge" title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
+      <span className="agenda-signals"><PlanParticipantBadges participants={participants} currentPerson={currentPerson} compact /></span>
+    </button>
+  }
 
   useEffect(() => {
     const updateToolbarPin = () => {
@@ -3796,6 +4096,9 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDe
       {mode === 'upcoming' && <div className="calendar-filter" aria-label="Calendar type filter">
         {(['all', 'convention', 'travel'] as CalendarFilter[]).map(value => <button key={value} type="button" className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{value === 'all' ? 'All' : value === 'convention' ? 'Convention' : 'Travel'}</button>)}
       </div>}
+      {mode === 'upcoming' && <div className="plan-people-filter calendar-people-filter" aria-label="People included in Calendar">
+        {planPeople.map(person => <button key={person} type="button" className={selectedPeople.includes(person) ? `active ${person.toLowerCase()}` : person.toLowerCase()} aria-pressed={selectedPeople.includes(person)} title={person} onClick={() => togglePerson(person)}><span className="person-bubble">{person === 'Kavi' ? 'Ka' : person === 'Kyle' ? 'Ky' : person[0]}</span><span className="person-filter-name">{person}</span></button>)}
+      </div>}
     </div>
     {toolbarPinned && <div className="workbar-spacer" style={{ height: toolbarHeight }} aria-hidden="true" />}
 
@@ -3811,7 +4114,7 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDe
 
     <div className="calendar-month"><span>AUG</span><strong>Waiting season</strong></div>
     <button className="agenda-row agenda-action milestone-row" type="button" onClick={() => setDetail('ticketed-play')}>
-      <div className="agenda-date"><strong>{milestoneForecasts[0].calendarDate}</strong><span>OFFICIAL</span></div>
+      <div className="agenda-date milestone-date-tile"><span>{milestoneForecasts[0].month}</span><strong>{milestoneForecasts[0].calendarDate}</strong><em>OFFICIAL</em></div>
       <div className="agenda-icon"><NavIcon name="calendar" /></div>
       <div className="agenda-copy"><div><span className="agenda-kind">Next ticketed play milestone</span><span className="soft-chip">{milestoneForecasts[0].confidence}</span></div><h2>Ticketed play purchasing opens</h2><p>{milestoneForecasts[0].window} · schedule page is already published.</p></div>
       <span className="agenda-destination"><NavIcon name="notes" />Details</span>
@@ -3820,7 +4123,7 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDe
     <div className="calendar-gap"><span>quiet monitoring</span></div>
     <div className="calendar-month"><span>OCT</span><strong>Likely information drops</strong></div>
     {milestoneForecasts.slice(1).map(forecast => <button key={forecast.id} className={`agenda-row agenda-action milestone-row forecast-${forecast.id}`} type="button" onClick={() => setDetail(forecast.id)}>
-      <div className="agenda-date"><strong>{forecast.calendarDate}</strong><span>FORECAST</span></div>
+      <div className="agenda-date milestone-date-tile"><span>{forecast.month}</span><strong>{forecast.calendarDate}</strong><em>FORECAST</em></div>
       <div className="agenda-icon forecast-symbol" aria-hidden="true"><MilestoneIcon name={forecast.icon} /></div>
       <div className="agenda-copy"><div><span className="agenda-kind">Milestone forecast</span><span className="soft-chip">{forecast.confidence}</span></div><h2>{forecast.title}</h2><p>{forecast.window} · based on recent MagicCon timing.</p></div>
       <span className="agenda-destination"><NavIcon name="notes" />Details</span>
@@ -3829,71 +4132,40 @@ function CalendarSurface({ slice, events, notes, currentOwnerId, onAddNote, onDe
     <div className="calendar-gap"><span>then travel</span></div>
     <div className="calendar-month"><span>NOV</span><strong>Atlanta trip</strong></div>
 
-    {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={() => setDetail('arrival')}>
+    {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
       <div className="agenda-date"><strong>11</strong><span>WED</span><em>7:34 PM</em></div>
       <div className="agenda-icon"><NavIcon name="trip" /></div>
       <div className="agenda-copy"><span className="agenda-kind">Flight + hotel</span><h2>Arrive ATL · Courtyard night</h2><p>DL 1521 lands 7:34 PM; Courtyard by Marriott Atlanta Downtown, one night.</p></div>
       <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
     </button>}
 
-    {(showTravel || showThursday) && <CalendarDayHeader day="THU" date="November 12" label={showThursday ? 'Chosen Thursday events' : 'Thursday transition'} />}
-    {showConvention && hasSelectedEvent('bl-progressive-sealed') && <AgendaMarker time="12:00 PM" label="Progressive Sealed pickup/play begins" detail="Picked event; league continues through Sunday" onOpen={() => openEvent('bl-progressive-sealed')} />}
-    {showConvention && hasSelectedEvent('bl-first-look-thursday') && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => openEvent('bl-first-look-thursday')}>
-      <div className="agenda-date"><strong>12</strong><span>THU</span><em>1-8 PM</em></div>
-      <div className="agenda-icon lotus-mini"><EventKindIcon name="lotus" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Behind the Card Frame & First Look</h2><p>Early-access Black Lotus block; content slots are still partly TBD.</p></div>
-      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
-    </button>}
+    {(showTravel || showThursday) && <CalendarDayHeader day="THU" date="November 12" label={showThursday ? 'Committed events' : 'Thursday transition'} />}
+    {showConvention && hasCommittedEvent('bl-progressive-sealed') && <AgendaMarker time="12:00 PM" label="Progressive Sealed pickup/play begins" detail="Committed league continues through Sunday" onOpen={() => openEvent('bl-progressive-sealed')} />}
     {showTravel && <AgendaMarker time="4:00 PM" label="Omni check-in begins" detail="Kavi + Juan hotel shift; luggage plan may matter" onOpen={() => setDetail('preview')} />}
-    {showConvention && hasSelectedEvent('bl-design-planechase') && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => openEvent('bl-design-planechase')}>
-      <div className="agenda-date"><strong>12</strong><span>THU</span><em>4:15-5:15 PM</em></div>
-      <div className="agenda-icon lotus-mini"><EventKindIcon name="lotus" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Design the Unknown Planechase Card</h2><p>Attendable design session, not just a timing inflection.</p></div>
-      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
-    </button>}
-    {showConvention && hasSelectedEvent('bl-paint-sip') && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => openEvent('bl-paint-sip')}>
-      <div className="agenda-date"><strong>12</strong><span>THU</span><em>6:30-7:30 PM</em></div>
-      <div className="agenda-icon lotus-mini"><EventKindIcon name="lotus" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Paint &amp; Sip</h2><p>Attendable social event; keep it selectable like the other Black Lotus cards.</p></div>
-      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
-    </button>}
-    {showConvention && hasSelectedEvent('bl-welcome-reception') && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => openEvent('bl-welcome-reception')}>
-      <div className="agenda-date"><strong>12</strong><span>THU</span><em>8-11 PM</em></div>
-      <div className="agenda-icon lotus-mini"><EventKindIcon name="lotus" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>Welcome Reception + First Look</h2><p>Casual mixer with Wizards guests; light food and no-host bar.</p></div>
-      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
-    </button>}
+    {showConvention && thursdaySelected.map(renderCommittedEvent)}
 
     {showConvention && <div className="calendar-month compact"><span>NOV 13–15</span><strong>MagicCon weekend</strong></div>}
 
-    {showConvention && <CalendarDayHeader day="FRI" date="November 13" label={showFriday ? 'Chosen Friday events' : 'Convention day 1'} />}
+    {showConvention && <CalendarDayHeader day="FRI" date="November 13" label={showFriday ? 'Committed events' : 'Convention day 1'} />}
     {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <AgendaMarker time="8:30 AM" label="Online store pre-order pickup begins" detail="Pickup window runs until 5 PM" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} />}
-    {showSaturday && <CalendarDayHeader day="SAT" date="November 14" label="Chosen Saturday events" />}
+    {showConvention && fridaySelected.map(renderCommittedEvent)}
+    {showConvention && <CalendarDayHeader day="SAT" date="November 14" label={showSaturday ? 'Committed events' : 'Convention day 2'} />}
+    {showConvention && <AgendaMarker time="10:00 AM" label="Show floor opens" detail="Saturday show-floor hours run 10 AM-7 PM" />}
+    {showConvention && saturdaySelected.map(renderCommittedEvent)}
+    {showConvention && <AgendaMarker time="7:00 PM" label="Show floor closes" detail="The play area remains open later" />}
+    {showConvention && <AgendaMarker time="11:59 PM" label="Play area closes" detail="End of Saturday play-area hours" />}
 
-    {showConvention && <CalendarDayHeader day="SUN" date="November 15" label={showSunday ? 'Chosen Sunday events' : 'Final day'} />}
+    {showConvention && <CalendarDayHeader day="SUN" date="November 15" label={showSunday ? 'Committed events' : 'Final day'} />}
     {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-sunday')} />}
     {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-sunday')} />}
-    {showConvention && hasSelectedEvent('bl-mystery-booster-drafts') && <button className="agenda-row agenda-action lotus-row" type="button" onClick={() => openEvent('bl-mystery-booster-drafts')}>
-      <div className="agenda-date"><strong>15</strong><span>SUN</span><em>1 PM</em></div>
-      <div className="agenda-icon lotus-mini"><EventKindIcon name="lotus" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Official Black Lotus event</span><h2>BL Mystery Booster 2 Drafts</h2><p>Drafts fire 1-5 PM; up to two per person, with the last draft firing at 4 PM.</p></div>
-      <span className="agenda-destination"><NavIcon name="explore" />BL</span>
-    </button>}
-    {showConvention && hasSelectedEvent('bl-feedback-session') && <AgendaMarker time="3:00 PM" label="Meet & Greet / Feedback Session" detail="One-hour session with the Wizards event team" onOpen={() => openEvent('bl-feedback-session')} />}
+    {showConvention && sundaySelected.map(renderCommittedEvent)}
     {showConvention && <AgendaMarker time="4:00 PM" label="Last Mystery Booster 2 draft fires" onOpen={() => setDetail('bl-sunday')} />}
-    {showConvention && hasSelectedEvent('bl-progressive-sealed') && <AgendaMarker time="5:00 PM" label="Final chance to claim Progressive Sealed booster prizes" onOpen={() => openEvent('bl-progressive-sealed')} />}
+    {showConvention && hasCommittedEvent('bl-progressive-sealed') && <AgendaMarker time="5:00 PM" label="Final chance to claim Progressive Sealed booster prizes" onOpen={() => openEvent('bl-progressive-sealed')} />}
     {showConvention && <AgendaMarker time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} />}
 
-    {showTravel && <button className="agenda-row agenda-action travel-row airport-row" type="button" onClick={() => setDetail('airport')}>
-      <div className="agenda-date"><strong>15</strong><span>SUN</span><em>TBD</em></div>
-      <div className="agenda-icon"><NavIcon name="trip" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Travel reminder</span><h2>Leave for ATL airport</h2><p>Draft reminder before DL 1602; exact time should adjust once Sunday plan is known.</p></div>
-      <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
-    </button>}
-
-    {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={() => setDetail('sunday')}>
+    {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>8:35 PM</em></div>
       <div className="agenda-icon"><NavIcon name="trip" /></div>
       <div className="agenda-copy"><span className="agenda-kind">Checkout + flight</span><h2>Omni check-out · fly home</h2><p>Omni check-out 11 AM; DL 1602 departs ATL 8:35 PM.</p></div>
@@ -3972,6 +4244,7 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
 }
 
 function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; onOpenPlan: () => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+  const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
   const now = Date.now()
   const homeSignals = homeWorthKnowingItems(activityItems, now)
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
@@ -3996,22 +4269,15 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
       </section>
 
       <div className="home-right-rail">
-        <section className="next-milestone home-top-forecast" onClick={event => {
-          const target = event.target as HTMLElement
-          if (target.closest('details')) return
-          onOpenActivity()
-        }}>
+        <button className="next-milestone home-top-forecast" type="button" onClick={() => setShowTicketedPlayMilestone(true)}>
           <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
           <div>
             <span className="eyebrow">NEXT EXPECTED</span>
             <h2>Ticketed play purchasing is next.</h2>
             <p>The schedule page is published. Now the next milestone is buying ticketed play on August 25 at 10 AM PT.</p>
           </div>
-          <details className="timing-clue">
-            <summary><span>Official</span><strong>Aug 25</strong></summary>
-            <p>Publishing the schedule page was the big milestone we just crossed. The next watch is purchasing opening August 25 at 10:00 AM PT, then real event-listing hydration.</p>
-          </details>
-        </section>
+          <span className="milestone-date"><small>Official</small><strong>Aug 25</strong></span>
+        </button>
 
         <section className="runway planning-runway home-runway-only" aria-labelledby="planning-runway-heading">
           <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h3 id="planning-runway-heading">What we are waiting for</h3></div><span>2 known · 3 waiting</span></div>
@@ -4027,6 +4293,15 @@ function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObjec
           </ol>
         </section>
       </div>
+      {showTicketedPlayMilestone && <div className="milestone-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setShowTicketedPlayMilestone(false) }}>
+        <aside className="calendar-detail-sheet milestone-detail-sheet" role="dialog" aria-modal="true" aria-label="Ticketed play purchasing milestone">
+          <div className="calendar-detail-head"><span className="eyebrow">NEXT EXPECTED · AUG 25</span><button className="detail-close" type="button" onClick={() => setShowTicketedPlayMilestone(false)} aria-label="Close milestone details">×</button></div>
+          <h2>Ticketed play purchasing opens next.</h2>
+          <p>The official schedule is already published. Purchasing is expected to open August 25 at 10 AM PT.</p>
+          <div className="milestone-not-now"><strong>NOT OPEN YET</strong><span>No action is needed until purchasing opens.</span></div>
+          <p>When sales open, purchased events will become firm calendar blocks. Until then, Explore and Plan remain the right places to compare the schedule.</p>
+        </aside>
+      </div>}
     </div>
   </div>
 }
@@ -4072,7 +4347,7 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenObject }: { n
   </section>
 }
 
-function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onOpenItem, onOpenObject }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onOpenItem, onOpenNote }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenItem: (item: ActivityItem) => void; onOpenNote: (note: ContextNote) => void }) {
   const [stream, setStream] = useState<ActivityStream>('hot')
   const hotCount = incomingItems.filter(item => item.reviewState === 'needs-review' && item.severity === 'hot').length
   const eventCount = incomingItems.filter(item => item.reviewState !== 'archived' && isEventActivityItem(item)).length
@@ -4121,7 +4396,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
       <div className="activity-feed">
         {visibleNotes.map(note => <article key={note.id} className="activity-card personal">
           <span className="activity-icon"><NavIcon name="notes" /></span>
-          <div><span className="eyebrow">{note.visibility === 'shared' ? 'SHARED NOTE' : 'MY NOTE'}</span><button className="activity-title-link" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>{note.title}</button><p>{renderLinkedText(note.body)}</p><small>{note.author} · {note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenObject(noteToObjectDetail(note))}>Details</button></div>
+          <div><span className="eyebrow">{note.visibility === 'shared' ? 'SHARED NOTE' : 'MY NOTE'}</span><button className="activity-title-link" type="button" onClick={() => onOpenNote(note)}>{note.title}</button><p>{renderLinkedText(note.body)}</p><small>{note.author} · {note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenNote(note)}>Details</button></div>
         </article>)}
         {alerts.map(alert => <AlertCard key={alert.id} alert={alert} onReviewChange={onReviewChange} onOpenItem={onOpenItem} />)}
         {stream === 'personal' && notes.length === 0 && <div className="activity-empty"><strong>No notes yet.</strong><span>Add a note from a receipt, event, trip item, or object detail.</span></div>}
@@ -4153,7 +4428,11 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
 
 function AlertCard({ alert, onReviewChange, onOpenItem }: { alert: ActivityItem; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenItem: (item: ActivityItem) => void }) {
   return <article className={`activity-card alert-${alert.severity} review-${alert.reviewState}`}>
-    <span className="activity-icon"><AlertKindIcon kind={alert.kind} /></span>
+    <span className={`activity-icon ${alert.actor ? 'activity-person-icon' : ''}`}>
+      {alert.actor
+        ? <span className={`person-bubble ${alert.actor.toLowerCase()}`} title={alert.actor}>{alert.actor === 'Kavi' ? 'Ka' : alert.actor === 'Kyle' ? 'Ky' : alert.actor[0]}</span>
+        : <AlertKindIcon kind={alert.kind} />}
+    </span>
     <div>
       <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
       <button className="activity-title-link" type="button" onClick={() => onOpenItem(alert)}>{alert.title}</button>
