@@ -810,6 +810,10 @@ export default function App() {
     openDestination('Plan', 'plan')
   }
   const openActivityItem = (item: ActivityItem) => {
+    if (item.objectDetail.id.startsWith('note-group-')) {
+      openObjectDetail(item.objectDetail)
+      return
+    }
     if (item.objectDetail.id.startsWith('explore-')) {
       const eventId = item.objectDetail.id.replace(/^explore-/, '')
       if (item.sourceKind === 'note') {
@@ -1723,12 +1727,17 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
       nextAction: 'Open the attached object for the full note and context.',
       reviewState,
       objectDetail: multi ? {
-        ...sourceDetail,
-        summary: `${sourceDetail.summary} ${cluster.notes.length} recent notes are grouped in Notes.`,
-        facts: [
-          ...(sourceDetail.facts ?? []),
-          { label: 'Grouped notes', value: `${cluster.notes.length} notes`, detail: noteToObjectDetail(latest) },
-        ],
+        id: `note-group-${cluster.id}`,
+        kind: 'note',
+        eyebrow: 'GROUPED NOTES',
+        title: `${cluster.author} added ${cluster.notes.length} notes`,
+        summary: 'Review the notes together here; open an individual note only when you want its exact source context.',
+        facts: cluster.notes.map(note => ({
+          label: note.objectTitle,
+          value: note.body,
+          detail: noteSourceObjectDetail(note),
+        })),
+        rationale: 'These notes were added in one short burst, so Home keeps them together instead of choosing an arbitrary destination.',
         backlinks: [{ label: 'Notes', destination: 'notes' as const }, ...(sourceDetail.backlinks ?? [])],
       } : sourceDetail,
     }
