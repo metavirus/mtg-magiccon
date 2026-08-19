@@ -234,6 +234,8 @@
 
 @media (max-width: 600px) {
   body:has(.tutorial-mobile) .mobile-nav-drawer-backdrop.menu-main { z-index: 126; }
+  .tutorial-overlay.tutorial-mobile { z-index: 127; }
+  body:has(.mobile-nav-drawer-backdrop.menu-main) .tutorial-overlay.tutorial-mobile { background: transparent; }
   .tutorial-overlay { align-items: end; justify-content: end; padding: 10px; background: rgba(3, 10, 20, .34); }
   .tutorial-card { width: min(230px, calc(100vw - 190px)); min-width: 184px; padding: 17px 14px 13px; border-radius: 15px; }
   .tutorial-icon { display: none; }
