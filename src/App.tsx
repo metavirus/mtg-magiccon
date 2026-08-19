@@ -1925,12 +1925,17 @@ function eventSelectionActivityFromCluster(
   selections: Record<string, string>,
   currentPerson: PersonName,
 ): ActivityItem | null {
-  const latest = cluster.rows[0]
+  const rows = [...cluster.rows].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  const latest = rows[0]
   const reviewSelection = selections[selectionKey(`activity-${cluster.id}`, 'review_state')]
-  const rows = cluster.rows
-  const items = rows.map(row => {
+  const latestRowsByEvent = new Map<string, UserActivityEventRow>()
+  for (const row of rows) {
     const details = activityDetailJson(row.details)
     const eventId = String(details.event_id ?? row.object_id.replace(/^explore-/, ''))
+    if (!latestRowsByEvent.has(eventId)) latestRowsByEvent.set(eventId, row)
+  }
+  const items = [...latestRowsByEvent.entries()].map(([eventId, row]) => {
+    const details = activityDetailJson(row.details)
     const event = events.find(candidate => candidate.id === eventId)
     const state = String(details.state ?? 'none')
     return event && isExploreState(state) ? { event, state } : null
@@ -1941,6 +1946,7 @@ function eventSelectionActivityFromCluster(
   const interestedCount = items.filter(item => item.state === 'interested').length
   const hiddenCount = items.filter(item => item.state === 'hidden').length
   const nopeCount = items.filter(item => item.state === 'nope').length
+  const clearedCount = items.filter(item => item.state === 'none').length
   const severity: AlertSeverity = committedCount > 0 ? 'hot' : 'notice'
   const isAnotherPerson = cluster.actorLabel.trim().toLowerCase() !== currentPerson.toLowerCase()
   const reviewState: AlertReviewState = ['needs-review', 'reviewed', 'archived'].includes(reviewSelection)
@@ -1954,10 +1960,13 @@ function eventSelectionActivityFromCluster(
     committedCount ? `${committedCount} committed` : '',
     hiddenCount ? `${hiddenCount} hidden` : '',
     nopeCount ? `${nopeCount} not-for-me` : '',
+    clearedCount ? `${clearedCount} cleared` : '',
   ].filter(Boolean)
   const focusEvent = items[0].event
   const title = items.length === 1
-    ? `${cluster.actorLabel} marked ${focusEvent.title} ${items[0].state}.`
+    ? items[0].state === 'none'
+      ? `${cluster.actorLabel} cleared their pick for ${focusEvent.title}.`
+      : `${cluster.actorLabel} marked ${focusEvent.title} ${items[0].state}.`
     : `${cluster.actorLabel} updated ${items.length} event picks.`
   return {
     id: cluster.id,
@@ -1976,7 +1985,7 @@ function eventSelectionActivityFromCluster(
     checkedAt: formatContextNoteTime(latest.created_at),
     checkedAtIso: latest.created_at,
     status: items.length === 1 ? items[0].state : 'grouped',
-    rationale: items.length === 1 ? focusEvent.fit : 'Rapid event-pick updates are grouped so Home and Activity stay readable.',
+    rationale: items.length === 1 ? focusEvent.fit : 'Rapid event-pick updates are grouped by person, with only the newest state for each event retained.',
     nextAction: committedCount > 0
       ? 'Keep committed items hot until they are explicitly read or dismissed.'
       : 'Expand in Explore or Plan if the burst changed the contender set in a meaningful way.',
@@ -1994,7 +2003,7 @@ function eventSelectionActivityFromCluster(
             value: item.event.title,
             detail: exploreEventToObjectDetail({ ...item.event, state: item.state }),
           })),
-          rationale: 'Grouped because several event-state changes landed in the same short burst.',
+          rationale: 'Grouped because several event-state changes landed in the same session; repeated changes to one event resolve to its newest state.',
           backlinks: [{ label: 'Explore', destination: 'explore' }, { label: 'Plan', destination: 'plan' }],
         },
   }
