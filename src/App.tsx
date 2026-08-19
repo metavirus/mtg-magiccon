@@ -436,8 +436,9 @@ function applySelectionState(events: ExploreEvent[], selections: Record<string, 
   return events.map(event => {
     const selected = selections[selectionKey(`explore-${event.id}`, 'state')]
     const personalDefault = isKaviCompanion(companion) ? kaviDefaultExploreState(event) : null
-    const state = isExploreState(selected) ? selected : personalDefault ?? event.state
-    if (event.id === 'bl-planechase' && trustSlice && !selected) {
+    const fallbackState = isKaviCompanion(companion) ? personalDefault ?? event.state : 'none'
+    const state = isExploreState(selected) ? selected : fallbackState
+    if (event.id === 'bl-planechase' && trustSlice && !selected && isKaviCompanion(companion)) {
       return { ...event, state: trustSlice.decision.planning_state as ExploreState }
     }
     return { ...event, state }
@@ -524,7 +525,9 @@ export default function App() {
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
   const currentCompanion = currentCompanionFromSession(effectiveSession, companionMembers)
-  const canCommitBlackLotus = Boolean(currentCompanion?.blackLotusEntitled)
+  // Badge tier is useful trip context, not an authorization boundary. Active
+  // companions can plan around every visible event, including Black Lotus.
+  const canCommitBlackLotus = true
   const mentionUnreadCount = mentionInboxState.length
 
   useEffect(() => {
@@ -654,7 +657,7 @@ export default function App() {
       setUserSelections({})
       setSharedSelectionRows([])
       setUserActivityRows([])
-      setExploreEventState(exploreEvents)
+      setExploreEventState(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers)))
       setContinuityReady(true)
       return
     }
@@ -764,11 +767,6 @@ export default function App() {
 
   async function changeState(requested: PlanningState) {
     if (!slice || saving) return
-    if (requested === 'committed' && !canCommitBlackLotus) {
-      setMessageTone('info')
-      setMessage('Black Lotus events stay visible to everyone, but only Kavi and Chris can commit them.')
-      return
-    }
     const previous = slice.decision.planning_state
     const next: PlanningState = previous === requested ? 'none' : requested
     const updatedAt = new Date().toISOString()
@@ -1081,11 +1079,6 @@ export default function App() {
     const currentEvent = exploreEventState.find(event => event.id === id)
     const previousState = currentEvent?.state ?? 'none'
     const nextState: ExploreState = currentEvent?.state === state ? 'none' : state
-    if (currentEvent?.kind === 'Black Lotus' && nextState === 'committed' && !canCommitBlackLotus) {
-      setMessageTone('info')
-      setMessage('Black Lotus events stay visible to everyone, but only Kavi and Chris can commit them.')
-      return
-    }
     setExploreEventState(current => current.map(event => event.id === id ? { ...event, state: nextState } : event))
     void upsertUserSelection(`explore-${id}`, 'event', 'state', nextState)
     if (currentEvent && previousState !== nextState) {
@@ -1101,9 +1094,6 @@ export default function App() {
           state: nextState,
         },
       })
-    }
-    if (id === 'bl-planechase' && ['none', 'interested', 'tentative', 'committed'].includes(nextState)) {
-      void changeState(nextState as PlanningState)
     }
   }
 
@@ -2830,7 +2820,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   const workbarStartRef = useRef(0)
   const [workbarPinned, setWorkbarPinned] = useState(false)
   const [workbarHeight, setWorkbarHeight] = useState(0)
-  const candidateEvents = events.map(event => event.id === 'bl-planechase' ? { ...event, state: slice.decision.planning_state as ExploreState } : event)
+  const candidateEvents = events
   const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
   const planEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).length > 0)
   const visiblePlanEvents = planEvents.filter(event => (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person)))
@@ -2882,8 +2872,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   }
 
   const setState = (event: ExploreEvent, state: ExploreState) => {
-    if (event.id === 'bl-planechase') onChangeSliceState(state as PlanningState)
-    else onUpdateEvent(event.id, state)
+    onUpdateEvent(event.id, state)
   }
 
   const openPlanEvent = (event: ExploreEvent) => {
@@ -2969,12 +2958,8 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
               </button>
               <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
                 {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
-                  const disabled = event.id === 'bl-planechase'
-                    ? !online || saving || (state === 'committed' && !canCommitBlackLotus)
-                    : false
-                  const title = state === 'committed' && event.kind === 'Black Lotus' && !canCommitBlackLotus
-                    ? 'Only Kavi and Chris can commit Black Lotus events.'
-                    : label
+                  const disabled = event.id === 'bl-planechase' ? !online || saving : false
+                  const title = label
                   return <button key={state} type="button" className={`decision-state-${state}`} aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
                 })}
               </div>
@@ -3017,7 +3002,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
           <OfficialEventLink event={selected} />
         </header>
         <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
-        <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit={selected.id !== 'bl-planechase' || canCommitBlackLotus} disabled={!online || saving} />
+        <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit disabled={!online || saving} />
         <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(selected.detail)}</p></div>
         <section className="detail-section decision-section">
           <div className="format-heading"><strong>{selected.format}</strong>{selected.formatHelp && <details className="format-help"><summary aria-label={`Explain ${selected.format}`}>?</summary><p>{selected.formatHelp}</p></details>}</div>
@@ -3026,7 +3011,6 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
         </section>
         <section className="detail-section plan-summary"><strong>Plan effect</strong><p>{selected.planEffect}</p></section>
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
-        {!canCommitBlackLotus && selected.kind === 'Black Lotus' && <div className="plan-watch"><span aria-hidden="true">✦</span><p><strong>Visible to everyone</strong>Only Kavi and Chris can commit Black Lotus events; everyone can still review and mark interest.</p></div>}
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={displayEventTitle(selected)} context={`Event · ${displayEventTitle(selected)}`} backlink="plan" compact />
         {(selected.moreDetails || selected.sourceNote) && <details className="detail-more">
           <summary><span>More details</span><small>Official and operational</small></summary>
@@ -4225,7 +4209,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
   const toolbarStartRef = useRef(0)
   const [toolbarPinned, setToolbarPinned] = useState(false)
   const [toolbarHeight, setToolbarHeight] = useState(0)
-  const candidateEvents = events.map(event => event.id === 'bl-planechase' ? { ...event, state: slice.decision.planning_state as ExploreState } : event)
+  const candidateEvents = events
   const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
   const committedEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed'))
   const selectedEvent = candidateEvents.find(event => event.id === selectedEventId) ?? null
@@ -4238,8 +4222,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     setSelectedEventId(id)
   }
   const updateCalendarEvent = (event: ExploreEvent, state: ExploreState) => {
-    if (event.id === 'bl-planechase') onChangeState(state as PlanningState)
-    else onUpdateEvent(event.id, state)
+    onUpdateEvent(event.id, state)
   }
   const showTravel = filter === 'all' || filter === 'travel'
   const showConvention = filter === 'all' || filter === 'convention'
@@ -4373,7 +4356,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     </>}
 
     {detail && <CalendarDetailSheet detail={detail} slice={slice} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-    {selectedEvent && <CalendarEventDetail event={selectedEvent} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit={selectedEvent.id !== 'bl-planechase' || canCommitBlackLotus} />}
+    {selectedEvent && <CalendarEventDetail event={selectedEvent} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
 }
 
