@@ -423,7 +423,7 @@ function isKaviCompanion(companion?: CompanionMember) {
 
 function kaviDefaultExploreState(event: ExploreEvent): ExploreState | null {
   if (event.kind !== 'Ticketed play') return null
-  if (event.complexity === 'very-hard' || event.tags.includes('competitive')) return 'nope'
+  if (event.complexity === 'very-hard' || event.tags.includes('competitive')) return 'hidden'
   return null
 }
 
@@ -1553,7 +1553,7 @@ type CalendarFilter = 'all' | 'convention' | 'travel'
 type ExploreType = 'all' | 'play' | 'info' | 'social' | 'other'
 type ExploreState = 'none' | 'interested' | 'tentative' | 'committed' | 'hidden' | 'nope'
 type ComplexityLevel = 'easy' | 'focused' | 'demanding' | 'very-hard' | 'unknown' | 'inconclusive'
-type ActionIconName = 'bookmark' | 'diamond' | 'eyeOff' | 'thumbsDown'
+type ActionIconName = 'bookmark' | 'diamond' | 'lock' | 'eyeOff'
 type EventKindIconName = 'lotus' | 'panel' | 'competitive' | 'ticketed'
 type MilestoneIconName = 'badges' | 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
 type WalletTab = 'home' | 'play' | 'store' | 'other'
@@ -2547,17 +2547,17 @@ function PlanSurface({ events, slice, notes, currentOwnerId, onAddNote, onDelete
                 <span className={`plan-kind type-${event.type}`} aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><EventKindIcon name={event.kind === 'Black Lotus' ? 'lotus' : event.kind === 'Panel' ? 'panel' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'} /></span>
                 <span className="plan-time-chip">{event.day}<b>{event.time}</b></span>
                 <span className="plan-row-copy"><strong>{displayEventTitle(event)}</strong><small>{event.time} · {event.window}</small></span>
-                <span className="plan-row-signal">{planPressure(event)}</span>
+                {planPressure(event) && <span className="plan-row-signal">{planPressure(event)}</span>}
               </button>
               <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
-                {([['interested', '♡', 'Interested'], ['tentative', '◇', 'Tentative'], ['committed', '●', 'Committed']] as const).map(([state, symbol, label]) => {
+                {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
                   const disabled = event.id === 'bl-planechase'
                     ? !online || saving || (state === 'committed' && !canCommitBlackLotus)
                     : false
                   const title = state === 'committed' && event.kind === 'Black Lotus' && !canCommitBlackLotus
                     ? 'Only Kavi and Chris can commit Black Lotus events.'
                     : label
-                  return <button key={state} type="button" aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true">{symbol}</b><span>{label}</span></button>
+                  return <button key={state} type="button" aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
                 })}
               </div>
             </article>)}
@@ -2601,7 +2601,7 @@ function exploreDayContext(day: ExploreEvent['day']) {
 
 function planPressure(event: ExploreEvent) {
   if (event.state === 'committed') return 'Hard block'
-  if (event.id === 'bl-progressive-sealed') return 'Flexible thread'
+  if (event.id === 'bl-progressive-sealed') return ''
   if (event.id === 'bl-friday-play-event') return 'Details pending'
   if (event.id === 'bl-mystery-booster-drafts') return 'On demand'
   if (event.id === 'bl-feedback-session') return 'Soft overlap'
@@ -2814,7 +2814,6 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
       <IconAction label="Interested" icon="bookmark" pressed={event.state === 'interested'} onClick={() => onState('interested')} />
       <IconAction label="Tentative" icon="diamond" pressed={event.state === 'tentative'} onClick={() => onState('tentative')} />
       <IconAction label="Hide from this list" icon="eyeOff" pressed={event.state === 'hidden'} onClick={() => onState('hidden')} />
-      <IconAction label="Not for me" icon="thumbsDown" pressed={event.state === 'nope'} danger onClick={() => onState('nope')} />
     </div>
   </article>
 }
@@ -2890,14 +2889,18 @@ function eventStageLabel(state: ExploreState) {
 function EventStateRail({ event, context, onState, disabled = false, canCommit = true }: { event: ExploreEvent; context: 'explore' | 'plan' | 'calendar'; onState: (state: ExploreState) => void; disabled?: boolean; canCommit?: boolean }) {
   return <div className="event-state-rail" aria-label={`${event.title} funnel state`}>
     <span className="event-state-caption">Explore</span>
-    {([['interested', '♡', 'Interested'], ['tentative', '◇', 'Tentative'], ['committed', '◆', 'Committed']] as const).map(([state, symbol, label]) => {
+    {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
       const commitElsewhere = context === 'explore' && state === 'committed'
       const isDisabled = disabled || (state === 'committed' && (!canCommit || commitElsewhere))
       const title = commitElsewhere ? 'Commit from Plan after comparing the schedule' : state === 'committed' && !canCommit ? 'Only Kavi and Chris can commit Black Lotus events.' : label
-      return <button key={state} type="button" aria-pressed={event.state === state} disabled={isDisabled} title={title} onClick={() => onState(state)}><b aria-hidden="true">{symbol}</b><span>{label}</span></button>
+      return <button key={state} type="button" aria-pressed={event.state === state} disabled={isDisabled} title={title} onClick={() => onState(state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
     })}
     <span className="event-state-caption final">Calendar</span>
   </div>
+}
+
+function PlanningStateIcon({ state }: { state: 'interested' | 'tentative' | 'committed' }) {
+  return <ActionIcon name={state === 'interested' ? 'bookmark' : state === 'tentative' ? 'diamond' : 'lock'} />
 }
 
 function DetailFactIcon({ name }: { name: 'time' | 'price' | 'duration' }) {
@@ -2913,16 +2916,16 @@ function TicketMiniIcon() {
   return <svg className="ticket-mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4V8Z" /><path d="M12 7v2M12 11v2M12 15v2" /></svg>
 }
 
-function IconAction({ label, icon, pressed, danger, onClick }: { label: string; icon: ActionIconName; pressed: boolean; danger?: boolean; onClick: () => void }) {
-  return <button className={danger ? 'danger' : ''} type="button" aria-label={label} aria-pressed={pressed} title={label} onClick={onClick}><ActionIcon name={icon} /></button>
+function IconAction({ label, icon, pressed, onClick }: { label: string; icon: ActionIconName; pressed: boolean; onClick: () => void }) {
+  return <button type="button" aria-label={label} aria-pressed={pressed} title={label} onClick={onClick}><ActionIcon name={icon} /></button>
 }
 
 function ActionIcon({ name }: { name: ActionIconName }) {
   const paths: Record<ActionIconName, ReactNode> = {
     bookmark: <path d="M7 4h10a1 1 0 0 1 1 1v16l-6-3.4L6 21V5a1 1 0 0 1 1-1Z" />,
     diamond: <path d="M12 3 21 12 12 21 3 12Z" />,
+    lock: <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>,
     eyeOff: <><path d="M3 3l18 18" /><path d="M9.8 9.8A3 3 0 0 0 14.2 14.2" /><path d="M6.5 6.9C4.7 8 3.2 9.7 2 12c2.2 4.1 5.5 6.1 10 6.1 1.4 0 2.7-.2 3.8-.7" /><path d="M10.8 5.9c.4 0 .8-.1 1.2-.1 4.5 0 7.8 2 10 6.1-.5 1-1.1 1.9-1.8 2.7" /></>,
-    thumbsDown: <><path d="M10 14v5a2 2 0 0 0 2 2l4-7" /><path d="M18 13V4H7.4a2 2 0 0 0-1.9 1.4L3 12a2 2 0 0 0 1.9 2.6H8" /><path d="M18 4h3v9h-3" /></>,
   }
   return <svg className="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
