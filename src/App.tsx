@@ -521,16 +521,45 @@ export default function App() {
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
   const [tutorialOpen, setTutorialOpen] = useState(false)
-  const [tutorialPrompted, setTutorialPrompted] = useState(false)
+  const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
   const currentCompanion = currentCompanionFromSession(effectiveSession, companionMembers)
   const canCommitBlackLotus = Boolean(currentCompanion?.blackLotusEntitled)
   const mentionUnreadCount = mentionInboxState.length
 
   useEffect(() => {
-    if (tutorialPrompted || designPreview || isPreviewOwnerMode || loading || !continuityReady || !effectiveOwnerId) return
-    if (userSelections[selectionKey('onboarding-tour', 'completed')] !== 'true') setTutorialOpen(true)
-    setTutorialPrompted(true)
-  }, [continuityReady, designPreview, effectiveOwnerId, isPreviewOwnerMode, loading, tutorialPrompted, userSelections])
+    if (designPreview || isPreviewOwnerMode || loading || !continuityReady || !effectiveOwnerId || tutorialPromptedOwner === effectiveOwnerId) return
+
+    const storageKey = `magiccon:onboarding-tour-seen:${effectiveOwnerId}`
+    const completedInAccount = userSelections[selectionKey('onboarding-tour', 'completed')] === 'true'
+    let seenOnDevice = false
+    try {
+      seenOnDevice = window.localStorage.getItem(storageKey) === 'true'
+      if (completedInAccount) window.localStorage.setItem(storageKey, 'true')
+    } catch {
+      // Supabase remains the durable source if browser storage is unavailable.
+    }
+
+    if (!completedInAccount && !seenOnDevice) {
+      try { window.localStorage.setItem(storageKey, 'true') } catch { /* non-blocking UI convenience */ }
+      setTutorialOpen(true)
+      setUserSelections(current => ({ ...current, [selectionKey('onboarding-tour', 'completed')]: 'true' }))
+      if (canWrite && supabase) {
+        void supabase.from('user_selections').upsert({
+          owner_id: effectiveOwnerId,
+          object_id: 'onboarding-tour',
+          object_kind: 'general',
+          selection_key: 'completed',
+          selection_value: 'true',
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'owner_id,object_id,selection_key' }).then(({ error }) => {
+          if (!error) return
+          setMessageTone('error')
+          setMessage(`Tour completion could not be saved: ${error.message}`)
+        })
+      }
+    }
+    setTutorialPromptedOwner(effectiveOwnerId)
+  }, [canWrite, continuityReady, designPreview, effectiveOwnerId, isPreviewOwnerMode, loading, tutorialPromptedOwner, userSelections])
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
