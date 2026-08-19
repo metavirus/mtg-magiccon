@@ -195,12 +195,31 @@ type CompanionMember = {
   sortOrder: number
 }
 
+type PreviewOwnerDescriptor = {
+  key: 'chris'
+  displayName: PersonName
+}
+
 const fallbackCompanionMembers: CompanionMember[] = [
   { key: 'kavi', name: 'Kavi', bubbleLabel: 'Ka', bubbleColor: 'blue', badgeTier: 'black_lotus', blackLotusEntitled: true, relationship: 'owner', authEmail: 'kavigrace@gmail.com', sortOrder: 10 },
   { key: 'chris', name: 'Chris', bubbleLabel: 'C', bubbleColor: 'purple', badgeTier: 'black_lotus', blackLotusEntitled: true, relationship: 'Black Lotus companion', sortOrder: 20 },
   { key: 'juan', name: 'Juan', bubbleLabel: 'J', bubbleColor: 'green', badgeTier: 'premium', blackLotusEntitled: false, relationship: 'partner', sortOrder: 30 },
   { key: 'kyle', name: 'Kyle', bubbleLabel: 'Ky', bubbleColor: 'amber', badgeTier: 'premium', blackLotusEntitled: false, relationship: 'Chris friend', sortOrder: 40 },
 ]
+
+const PREVIEW_OWNER_BY_KEY: Record<PreviewOwnerDescriptor['key'], PreviewOwnerDescriptor> = {
+  chris: {
+    key: 'chris',
+    displayName: 'Chris',
+  },
+}
+
+function resolvePreviewOwner(search: string): PreviewOwnerDescriptor | null {
+  const query = new URLSearchParams(search)
+  const requestedKey = query.get('previewOwner')?.toLowerCase() ?? query.get('as')?.toLowerCase()
+  if (!requestedKey || !(requestedKey in PREVIEW_OWNER_BY_KEY)) return null
+  return PREVIEW_OWNER_BY_KEY[requestedKey as PreviewOwnerDescriptor['key']]
+}
 
 function companionRowToMember(row: CompanionMemberRow): CompanionMember {
   return {
@@ -456,9 +475,23 @@ export default function App() {
     previewBuild: import.meta.env.VITE_DESIGN_PREVIEW === '1',
     storage: window.localStorage,
   })
+  const previewOwner = resolvePreviewOwner(window.location.search)
+  const isPreviewOwnerMode = Boolean(previewOwner)
+  const previewSession = previewOwner
+    ? ({
+        user: {
+          id: `preview-${previewOwner.key}`,
+          email: `${previewOwner.key}-preview@local.invalid`,
+          user_metadata: { full_name: previewOwner.displayName },
+        },
+      } as unknown as Session)
+    : null
   const [session, setSession] = useState<Session | null>(null)
-  const [slice, setSlice] = useState<TrustSlice | null>(designPreview ? DESIGN_PREVIEW_SLICE : null)
   const [online, setOnline] = useState(navigator.onLine)
+  const canWrite = !designPreview && !isPreviewOwnerMode && Boolean(session && supabase && online)
+  const effectiveOwnerId = (previewOwner ? `preview-${previewOwner.key}` : session?.user.id ?? undefined) as string | undefined
+  const effectiveSession = isPreviewOwnerMode ? previewSession : session
+  const [slice, setSlice] = useState<TrustSlice | null>(designPreview || isPreviewOwnerMode ? DESIGN_PREVIEW_SLICE : null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -479,7 +512,7 @@ export default function App() {
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
-  const currentCompanion = currentCompanionFromSession(session, companionMembers)
+  const currentCompanion = currentCompanionFromSession(effectiveSession, companionMembers)
   const canCommitBlackLotus = Boolean(currentCompanion?.blackLotusEntitled)
   const mentionUnreadCount = mentionInboxState.length
 
@@ -526,7 +559,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (designPreview) {
+    if (designPreview || isPreviewOwnerMode) {
       setLoading(false)
       return
     }
@@ -545,15 +578,15 @@ export default function App() {
     })
     const { data } = supabase.auth.onAuthStateChange((_event, next) => applySession(next))
     return () => data.subscription.unsubscribe()
-  }, [designPreview])
+  }, [designPreview, isPreviewOwnerMode])
 
   const refresh = useCallback(async () => {
-    if (designPreview || !session || !online) return
+    if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || !online) return
     setLoading(true)
     setMessage('')
     setMessageTone('info')
     try {
-      const next = await loadTrustSlice(session.user.id)
+      const next = await loadTrustSlice(effectiveOwnerId)
       writeTrustSliceCache(next)
       setSlice(next)
     } catch (error) {
@@ -562,17 +595,21 @@ export default function App() {
     } finally {
       setLoading(false)
     }
-  }, [designPreview, online, session])
+  }, [designPreview, isPreviewOwnerMode, online, effectiveOwnerId])
 
   useEffect(() => { void refresh() }, [refresh])
 
   const refreshUserContinuity = useCallback(async () => {
-    if (designPreview) {
-      setContextNotesState(contextNotes)
+    if (designPreview || isPreviewOwnerMode) {
+      setContextNotesState(designPreview ? contextNotes : [])
+      setMentionInboxState([])
+      setAlertReview({})
+      setUserSelections({})
+      setUserActivityRows([])
       setExploreEventState(exploreEvents)
       return
     }
-    if (!session || !online) {
+    if (!effectiveOwnerId || !online) {
       setContextNotesState([])
       setMentionInboxState([])
       setAlertReview({})
@@ -582,10 +619,10 @@ export default function App() {
       return
     }
     const [notesResult, mentionsResult, selectionsResult, activityResult] = await Promise.allSettled([
-        loadContextNotes(session.user.id),
-        loadMentionInbox(session.user.id),
-        loadUserSelections(session.user.id),
-        loadUserActivityEvents(session.user.id),
+        loadContextNotes(effectiveOwnerId),
+        loadMentionInbox(effectiveOwnerId),
+        loadUserSelections(effectiveOwnerId),
+        loadUserActivityEvents(effectiveOwnerId),
       ])
     const failures: string[] = []
     if (notesResult.status === 'fulfilled') setContextNotesState(notesResult.value)
@@ -600,18 +637,18 @@ export default function App() {
       setAlertReview(Object.fromEntries(Object.entries(selections)
         .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
         .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
-      setExploreEventState(applySelectionState(exploreEvents, selections, slice, currentCompanionFromSession(session, companionMembers)))
+      setExploreEventState(applySelectionState(exploreEvents, selections, slice, currentCompanionFromSession(effectiveSession, companionMembers)))
     } else failures.push('selections')
     if (failures.length) {
       setMessageTone('error')
       setMessage(`${failures.join(', ')} could not be refreshed. Other account data is still available.`)
     } else setMessage('')
-  }, [companionMembers, designPreview, online, session, slice])
+  }, [companionMembers, designPreview, isPreviewOwnerMode, online, effectiveOwnerId, slice, effectiveSession])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
 
   useEffect(() => {
-    if (designPreview || !session || !online) {
+    if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || !online) {
       setCompanionMembers(fallbackCompanionMembers)
       return
     }
@@ -620,7 +657,7 @@ export default function App() {
       setMessage(error instanceof Error ? `Companion roster could not be refreshed: ${error.message}` : 'Companion roster could not be refreshed.')
       setCompanionMembers(fallbackCompanionMembers)
     })
-  }, [designPreview, online, session])
+  }, [designPreview, isPreviewOwnerMode, online, effectiveOwnerId])
 
   useEffect(() => {
     let active = true
@@ -730,7 +767,7 @@ export default function App() {
 
   if (!supabase) return <SetupCard />
   if (loading && !session && !slice) return <div className="boot">Opening your field guide…</div>
-  if (!session && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} messageTone={messageTone} />
+  if (!effectiveSession && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} messageTone={messageTone} />
 
   const daysToAtlanta = Math.max(0, Math.ceil((new Date('2026-11-13T00:00:00-08:00').getTime() - Date.now()) / 86_400_000))
   const lastChecked = slice ? new Date(slice.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not yet'
@@ -786,10 +823,11 @@ export default function App() {
   const upsertUserSelection = async (objectId: string, objectKind: SelectionObjectKind, key: string, value: string) => {
     const mapKey = selectionKey(objectId, key)
     setUserSelections(current => ({ ...current, [mapKey]: value }))
-    if (designPreview || !session || !supabase || !online) return
+    if (!canWrite || !supabase || !effectiveOwnerId) return
+    const ownerId = effectiveOwnerId
     const now = new Date().toISOString()
     const { error } = await supabase.from('user_selections').upsert({
-      owner_id: session.user.id,
+      owner_id: ownerId,
       object_id: objectId,
       object_kind: objectKind,
       selection_key: key,
@@ -811,7 +849,8 @@ export default function App() {
     details?: Record<string, unknown>
     actorLabel?: PersonName
   }) => {
-    if (designPreview || !session || !supabase || !online) return
+    if (!canWrite || !supabase || !effectiveOwnerId) return
+    const ownerId = effectiveOwnerId
     const createdAt = new Date().toISOString()
     const optimisticId = `local-activity-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
     const optimistic: UserActivityEventRow = {
@@ -819,7 +858,7 @@ export default function App() {
       object_id: input.objectId,
       object_kind: input.objectKind,
       activity_type: input.activityType,
-      actor_label: input.actorLabel ?? noteAuthorFromSession(session, companionMembers),
+      actor_label: input.actorLabel ?? noteAuthorFromSession(effectiveSession, companionMembers),
       summary: input.summary,
       details: input.details ?? {},
       created_at: createdAt,
@@ -827,7 +866,7 @@ export default function App() {
     setUserActivityRows(current => [optimistic, ...current])
     const result = await supabase.from('user_activity_events')
       .insert({
-        owner_id: session.user.id,
+        owner_id: ownerId,
         object_id: optimistic.object_id,
         object_kind: optimistic.object_kind,
         activity_type: optimistic.activity_type,
@@ -849,9 +888,11 @@ export default function App() {
 
   const addContextNote = (input: AddContextNoteInput) => {
     const now = new Date()
+    const ownerId = effectiveOwnerId
+    if (!ownerId) return
     const note: ContextNote = {
       id: `note-${now.getTime()}-${Math.random().toString(36).slice(2, 7)}`,
-      ownerId: session?.user.id,
+      ownerId,
       objectId: input.objectId,
       objectKind: input.objectKind,
       objectTitle: input.objectTitle,
@@ -859,20 +900,20 @@ export default function App() {
       context: input.context,
       title: input.title || input.objectTitle,
       body: input.body,
-      author: input.author ?? noteAuthorFromSession(session, companionMembers),
+      author: input.author ?? noteAuthorFromSession(effectiveSession, companionMembers),
       visibility: input.visibility,
       updatedAt: now.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
       updatedAtIso: now.toISOString(),
       backlink: input.backlink,
     }
     setContextNotesState(current => [note, ...current])
-    if (designPreview || !session || !supabase || !online) return
+    if (!canWrite || !supabase) return
     const client = supabase
     const saveNote = async () => {
       try {
-        const mentionTargets = extractNoteMentions(note.body, companionMembers, session)
+        const mentionTargets = extractNoteMentions(note.body, companionMembers, effectiveSession)
         const { data, error } = await client.from('personal_notes').insert({
-          owner_id: session.user.id,
+          owner_id: ownerId,
           title: note.title,
           body: note.body,
           object_id: note.objectId,
@@ -891,7 +932,7 @@ export default function App() {
         if (mentionTargets.length) {
           const mentionRows: NoteMentionInsertRow[] = mentionTargets.map(target => ({
             note_id: saved.id,
-            note_owner_id: session.user.id,
+            note_owner_id: ownerId,
             mentioned_person_key: target.personKey,
             mentioned_user_id: target.mentionedUserId,
             mention_token: target.mentionToken,
@@ -902,7 +943,7 @@ export default function App() {
             setMessageTone('error')
             setMessage(`Note saved, but mentions were not recorded: ${mentionError.message}`)
           } else {
-            const mentions = await loadMentionInbox(session.user.id)
+            const mentions = await loadMentionInbox(ownerId)
             setMentionInboxState(mentions)
           }
         }
@@ -918,8 +959,9 @@ export default function App() {
   const deleteContextNote = (id: string) => {
     const previous = contextNotesState
     setContextNotesState(current => current.filter(note => note.id !== id))
-    if (designPreview || !session || !supabase || !online) return
-    void supabase.from('personal_notes').delete().eq('id', id).eq('owner_id', session.user.id).then(({ error }) => {
+    if (!canWrite || !supabase || !effectiveOwnerId) return
+    const ownerId = effectiveOwnerId
+    void supabase.from('personal_notes').delete().eq('id', id).eq('owner_id', ownerId).then(({ error }) => {
       if (!error) return
       setMessageTone('error')
       setMessage(error.message)
@@ -950,7 +992,7 @@ export default function App() {
         objectId: `explore-${id}`,
         objectKind: 'event',
         activityType: 'event_state_changed',
-        summary: `${noteAuthorFromSession(session, companionMembers)} marked ${currentEvent.title} ${nextState}.`,
+        summary: `${noteAuthorFromSession(effectiveSession, companionMembers)} marked ${currentEvent.title} ${nextState}.`,
         details: {
           event_id: id,
           event_title: currentEvent.title,
@@ -1110,7 +1152,11 @@ export default function App() {
               items={mentionInboxState}
               onOpenMention={openMentionNote}
             />
-            <AccountMenu email={session?.user.email ?? 'kavigrace@gmail.com'} online={Boolean(session) && online} preview={designPreview} />
+            <AccountMenu
+              email={effectiveSession?.user.email ?? 'kavigrace@gmail.com'}
+              online={Boolean(effectiveSession) && online}
+              preview={designPreview || isPreviewOwnerMode}
+            />
             <span className="countdown-chip"><strong>{daysToAtlanta}</strong><span>days to Atlanta</span></span>
           </div>
           {surface === 'explore' && <FunnelNav current="explore" onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
@@ -1122,17 +1168,17 @@ export default function App() {
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
+        {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} onOpenWallet={() => openDestination('Wallet', 'wallet')} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
+        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
           if (!delta) return
           void recordUserActivity({
             objectId: 'wallet-prize-tix',
             objectKind: 'wallet',
             activityType: 'prize_tix_adjusted',
-            summary: `${noteAuthorFromSession(session, companionMembers)} ${delta > 0 ? 'added' : 'spent'} ${Math.abs(delta)} Prize Tix.`,
+            summary: `${noteAuthorFromSession(effectiveSession, companionMembers)} ${delta > 0 ? 'added' : 'spent'} ${Math.abs(delta)} Prize Tix.`,
             details: {
               delta,
               next_balance: value,
@@ -1141,14 +1187,14 @@ export default function App() {
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
         {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={session?.user.id} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenObject={openObjectDetail} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} slice={slice} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenObject={openObjectDetail} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={slice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} />}
       </>}
 
     </main>
-    <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} currentOwnerId={session?.user.id} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
+      <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
   </div>
 }
 
@@ -2738,7 +2784,7 @@ function ExploreSurface({ events, routeState, notes, currentOwnerId, onAddNote, 
         </section>}
       </div>
 
-      {selected && <div className="explore-detail-slot" style={{ top: detailTop }}>
+      {selected && <div className="explore-detail-slot" style={{ top: workbarPinned ? workbarHeight + 12 : detailTop }}>
         <ExploreDetail event={selected} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => { setSelectedId(null); setDetailOpen(false) }} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
       </div>}
     </div>
@@ -4182,6 +4228,7 @@ function Login({ onGoogleSignIn, message, messageTone }: { onGoogleSignIn: () =>
     <p className="login-intro">Use Google OAuth for a persistent Supabase session. Magic links stay parked so we do not burn email quota during testing.</p>
     <button type="button" className="oauth-button" onClick={onGoogleSignIn}><span aria-hidden="true">G</span>Continue with Google</button>
     <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Open preview mode</a>
+    <a className="preview-link" href={`${window.location.pathname}?previewOwner=chris#home`}>Open as Chris</a>
     {message && <p role="status" className={`login-message ${messageTone}`}>{message}</p>}
   </section></div>
 }
