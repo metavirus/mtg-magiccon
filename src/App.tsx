@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
@@ -483,7 +483,7 @@ export default function App() {
   })
   const previewOwner = resolvePreviewOwner(window.location.search)
   const isPreviewOwnerMode = Boolean(previewOwner)
-  const previewSession = previewOwner
+  const previewSession = useMemo(() => previewOwner
     ? ({
         user: {
           id: `preview-${previewOwner.key}`,
@@ -491,7 +491,7 @@ export default function App() {
           user_metadata: { full_name: previewOwner.displayName },
         },
       } as unknown as Session)
-    : null
+    : null, [previewOwner?.displayName, previewOwner?.key])
   const [session, setSession] = useState<Session | null>(null)
   const [online, setOnline] = useState(navigator.onLine)
   const canWrite = !designPreview && !isPreviewOwnerMode && Boolean(session && supabase && online)
