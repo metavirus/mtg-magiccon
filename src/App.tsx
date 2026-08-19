@@ -1136,6 +1136,7 @@ export default function App() {
         {destinations.map(destination => <button
           key={destination.name}
           type="button"
+          data-tour-target={`nav-${destination.surface}`}
           className={destination.surface === surface ? 'active' : destination.surface ? '' : 'upcoming'}
           aria-current={destination.surface === surface ? 'page' : undefined}
           onClick={() => openDestination(destination.name, destination.surface)}
@@ -2646,9 +2647,9 @@ const exploreEvents = [
 
 function FunnelNav({ current, onOpenExplore, onOpenPlan, onOpenCalendar }: { current: 'explore' | 'plan' | 'calendar'; onOpenExplore: () => void; onOpenPlan?: () => void; onOpenCalendar: () => void }) {
   return <nav className="funnel-nav" aria-label="Explore, plan, calendar flow">
-    <button type="button" className={current === 'explore' ? 'active' : ''} aria-current={current === 'explore' ? 'page' : undefined} onClick={onOpenExplore}>Explore</button>
-    <button type="button" className={current === 'plan' ? 'active' : ''} aria-current={current === 'plan' ? 'page' : undefined} onClick={onOpenPlan}>Plan</button>
-    <button type="button" className={current === 'calendar' ? 'active' : ''} aria-current={current === 'calendar' ? 'page' : undefined} onClick={onOpenCalendar}>Calendar</button>
+    <button type="button" data-tour-target="nav-explore" className={current === 'explore' ? 'active' : ''} aria-current={current === 'explore' ? 'page' : undefined} onClick={onOpenExplore}>Explore</button>
+    <button type="button" data-tour-target="nav-plan" className={current === 'plan' ? 'active' : ''} aria-current={current === 'plan' ? 'page' : undefined} onClick={onOpenPlan}>Plan</button>
+    <button type="button" data-tour-target="nav-calendar" className={current === 'calendar' ? 'active' : ''} aria-current={current === 'calendar' ? 'page' : undefined} onClick={onOpenCalendar}>Calendar</button>
   </nav>
 }
 
@@ -4665,8 +4666,8 @@ const tutorialSteps = [
     copy: 'Explore is the wide end of the funnel. Filter the real event list, open details, and mark things Interested or Tentative without committing your calendar.',
     icon: 'explore' as NavIconName,
     surface: 'explore' as Surface,
-    target: 'explore-controls',
-    placement: 'bottom-right',
+    target: 'nav-explore',
+    placement: 'right',
   },
   {
     kicker: 'PLAN',
@@ -4674,8 +4675,8 @@ const tutorialSteps = [
     copy: 'Plan layers everyone’s colored bubbles onto List or Agenda. Add people to expose shared interests, overlaps, and time conflicts before anyone locks things in.',
     icon: 'plan' as NavIconName,
     surface: 'plan' as Surface,
-    target: 'plan-controls',
-    placement: 'bottom-left',
+    target: 'nav-plan',
+    placement: 'right',
   },
   {
     kicker: 'CALENDAR',
@@ -4683,8 +4684,8 @@ const tutorialSteps = [
     copy: 'Calendar is the narrow end: committed events, meaningful convention times, and travel anchors. Its people filters let you compare firm schedules.',
     icon: 'calendar' as NavIconName,
     surface: 'calendar' as Surface,
-    target: 'calendar-controls',
-    placement: 'bottom-right',
+    target: 'nav-calendar',
+    placement: 'right',
   },
   {
     kicker: 'THE REST',
@@ -4708,24 +4709,47 @@ const tutorialSteps = [
 
 function OnboardingTutorial({ surface, onNavigate, onClose }: { surface: Surface; onNavigate: (surface: Surface) => void; onClose: () => void }) {
   const [step, setStep] = useState(0)
+  const [connector, setConnector] = useState<{ left: number; top: number; width: number; angle: number } | null>(null)
+  const cardRef = useRef<HTMLElement | null>(null)
   const current = tutorialSteps[step]
   const last = step === tutorialSteps.length - 1
 
   useEffect(() => {
     if (surface !== current.surface) onNavigate(current.surface)
+    setConnector(null)
     const timer = window.setTimeout(() => {
-      const target = document.querySelector<HTMLElement>(`[data-tour-target="${current.target}"]`)
+      const targets = [...document.querySelectorAll<HTMLElement>(`[data-tour-target="${current.target}"]`)]
+      const target = targets.find(node => node.getClientRects().length > 0)
       target?.classList.add('tutorial-highlight')
       target?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      if (target && cardRef.current) {
+        const targetRect = target.getBoundingClientRect()
+        const cardRect = cardRef.current.getBoundingClientRect()
+        const targetCenterX = targetRect.left + targetRect.width / 2
+        const targetCenterY = targetRect.top + targetRect.height / 2
+        const targetIsLeft = targetCenterX < cardRect.left + cardRect.width / 2
+        const startX = targetIsLeft ? cardRect.left : cardRect.right
+        const startY = Math.min(cardRect.bottom - 30, Math.max(cardRect.top + 30, targetCenterY))
+        const endX = targetIsLeft ? targetRect.right : targetRect.left
+        const endY = targetCenterY
+        setConnector({
+          left: startX,
+          top: startY,
+          width: Math.hypot(endX - startX, endY - startY),
+          angle: Math.atan2(endY - startY, endX - startX) * 180 / Math.PI,
+        })
+      }
     }, 180)
     return () => {
       window.clearTimeout(timer)
+      setConnector(null)
       document.querySelectorAll('.tutorial-highlight').forEach(node => node.classList.remove('tutorial-highlight'))
     }
   }, [step])
 
   return <div className={`tutorial-overlay placement-${current.placement}`} role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
-    <section className="tutorial-card" key={step}>
+    {connector && <span className="tutorial-connector" aria-hidden="true" style={{ left: connector.left, top: connector.top, width: connector.width, transform: `rotate(${connector.angle}deg)` }} />}
+    <section className="tutorial-card" key={step} ref={cardRef}>
       <button className="tutorial-close" type="button" onClick={onClose} aria-label="Close quick tour">×</button>
       <div className="tutorial-icon"><NavIcon name={current.icon} /></div>
       <span className="eyebrow">{current.kicker}</span>
