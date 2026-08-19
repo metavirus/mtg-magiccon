@@ -197,7 +197,7 @@ type CompanionMember = {
 }
 
 type PreviewOwnerDescriptor = {
-  key: 'chris'
+  key: 'chris' | 'kyle'
   displayName: PersonName
 }
 
@@ -212,6 +212,10 @@ const PREVIEW_OWNER_BY_KEY: Record<PreviewOwnerDescriptor['key'], PreviewOwnerDe
   chris: {
     key: 'chris',
     displayName: 'Chris',
+  },
+  kyle: {
+    key: 'kyle',
+    displayName: 'Kyle',
   },
 }
 
@@ -263,6 +267,7 @@ function currentCompanionFromSession(currentSession: Session | null, companions:
   const email = currentSession?.user.email?.toLowerCase()
   return companions.find(member => email && member.authEmail?.toLowerCase() === email)
     ?? companions.find(member => currentSession?.user.id && member.userId === currentSession.user.id)
+    ?? companions.find(member => member.name === noteAuthorFromSession(currentSession, companions))
 }
 
 function normalizeMentionToken(value: string) {
@@ -512,6 +517,7 @@ export default function App() {
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
   const [sharedSelectionRows, setSharedSelectionRows] = useState<UserSelectionRow[]>([])
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
+  const [continuityReady, setContinuityReady] = useState(false)
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
   const [tutorialOpen, setTutorialOpen] = useState(false)
@@ -521,10 +527,10 @@ export default function App() {
   const mentionUnreadCount = mentionInboxState.length
 
   useEffect(() => {
-    if (tutorialPrompted || designPreview || isPreviewOwnerMode || loading || !effectiveOwnerId) return
+    if (tutorialPrompted || designPreview || isPreviewOwnerMode || loading || !continuityReady || !effectiveOwnerId) return
     if (userSelections[selectionKey('onboarding-tour', 'completed')] !== 'true') setTutorialOpen(true)
     setTutorialPrompted(true)
-  }, [designPreview, effectiveOwnerId, isPreviewOwnerMode, loading, tutorialPrompted, userSelections])
+  }, [continuityReady, designPreview, effectiveOwnerId, isPreviewOwnerMode, loading, tutorialPrompted, userSelections])
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
@@ -610,6 +616,7 @@ export default function App() {
   useEffect(() => { void refresh() }, [refresh])
 
   const refreshUserContinuity = useCallback(async () => {
+    setContinuityReady(false)
     if (designPreview || isPreviewOwnerMode) {
       setContextNotesState(designPreview ? contextNotes : [])
       setMentionInboxState([])
@@ -618,6 +625,7 @@ export default function App() {
       setSharedSelectionRows([])
       setUserActivityRows([])
       setExploreEventState(exploreEvents)
+      setContinuityReady(true)
       return
     }
     if (!effectiveOwnerId || !online) {
@@ -628,6 +636,7 @@ export default function App() {
       setSharedSelectionRows([])
       setUserActivityRows([])
       setExploreEventState(exploreEvents)
+      setContinuityReady(true)
       return
     }
     const [notesResult, mentionsResult, selectionsResult, activityResult] = await Promise.allSettled([
@@ -656,6 +665,7 @@ export default function App() {
       setMessageTone('error')
       setMessage(`${failures.join(', ')} could not be refreshed. Other account data is still available.`)
     } else setMessage('')
+    setContinuityReady(true)
   }, [companionMembers, designPreview, isPreviewOwnerMode, online, effectiveOwnerId, slice, effectiveSession])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
@@ -1107,7 +1117,7 @@ export default function App() {
   const headerSubtitle = surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
 
   return <div className="app-shell" style={desktopRailLocked ? { display: 'block', minHeight: '100vh' } : undefined}>
-    <aside className="rail" style={desktopRailLocked ? {
+    <aside className="rail" data-tour-target="main-navigation" style={desktopRailLocked ? {
       position: 'fixed',
       zIndex: 40,
       top: 0,
@@ -1225,7 +1235,7 @@ export default function App() {
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
         {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
+        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
@@ -1251,7 +1261,7 @@ export default function App() {
 
     </main>
       <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
-      {tutorialOpen && <OnboardingTutorial onClose={() => {
+      {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onClose={() => {
         setTutorialOpen(false)
         void upsertUserSelection('onboarding-tour', 'general', 'completed', 'true')
       }} />}
@@ -2771,7 +2781,8 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   canCommitBlackLotus: boolean
 }) {
   const days: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
-  const [activeDay, setActiveDay] = useState<ExploreEvent['day']>('Thu')
+  const [activeDay, setActiveDay] = useState<ExploreEvent['day']>(() => currentPerson === 'Kyle' ? 'Fri' : 'Thu')
+  const planIdentityDefaultApplied = useRef(currentPerson === 'Kyle')
   const [selectedPeople, setSelectedPeople] = useState<PersonName[]>([currentPerson])
   const [planView, setPlanView] = useState<PlanView>(() => window.localStorage.getItem('magiccon-plan-view') === 'agenda' ? 'agenda' : 'list')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -2807,6 +2818,12 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   const conflictIds = new Set(conflictPairs.flat())
   const sharedCount = dayEvents.filter(event => (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person)).length > 1).length
   const togglePlanGroup = (key: string) => setCollapsedPlanGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
+
+  useEffect(() => {
+    if (planIdentityDefaultApplied.current || currentPerson !== 'Kyle') return
+    planIdentityDefaultApplied.current = true
+    setActiveDay('Fri')
+  }, [currentPerson])
 
   const togglePerson = (person: PersonName) => setSelectedPeople(current => current.includes(person)
     ? current.length === 1 ? current : current.filter(item => item !== person)
@@ -2865,7 +2882,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   }, [])
 
   return <section className="plan-lite">
-    <div ref={workbarRef} className={`surface-workbar plan-workbar ${workbarPinned ? 'pinned' : ''}`}>
+    <div ref={workbarRef} className={`surface-workbar plan-workbar ${workbarPinned ? 'pinned' : ''}`} data-tour-target="plan-controls">
     <div className="plan-control-row">
       <div className="plan-view-toggle map-tabs" role="tablist" aria-label="Plan view">
         <button type="button" role="tab" aria-selected={planView === 'list'} className={planView === 'list' ? 'active' : ''} onClick={() => changePlanView('list')}>List</button>
@@ -3024,14 +3041,15 @@ function exploreRouteGroupLabel(group?: ExploreRouteState['group']) {
   return ''
 }
 
-function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerId, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan, onOpenCalendar }: { events: ExploreEvent[]; routeState: ExploreRouteState; focusRequest: { eventId: string; noteId?: string; nonce: number } | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
+function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan, onOpenCalendar }: { events: ExploreEvent[]; routeState: ExploreRouteState; focusRequest: { eventId: string; noteId?: string; nonce: number } | null; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [showHidden, setShowHidden] = useState(false)
   const [hiddenExpanded, setHiddenExpanded] = useState(false)
-  const [collapsedExploreGroups, setCollapsedExploreGroups] = useState<string[]>([])
+  const [collapsedExploreGroups, setCollapsedExploreGroups] = useState<string[]>(() => currentPerson === 'Kyle' ? ['Thu'] : [])
+  const exploreIdentityDefaultApplied = useRef(currentPerson === 'Kyle')
   const [query, setQuery] = useState('')
   const eventListRef = useRef<HTMLDivElement | null>(null)
   const workbarRef = useRef<HTMLDivElement | null>(null)
@@ -3060,6 +3078,12 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
     .map(groupDay => ({ key: groupDay, label: `${groupDay} scan`, hint: exploreDayContext(groupDay), items: visible.filter(event => event.day === groupDay) }))
     .filter(group => group.items.length > 0)
   const toggleExploreGroup = (key: string) => setCollapsedExploreGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
+
+  useEffect(() => {
+    if (exploreIdentityDefaultApplied.current || currentPerson !== 'Kyle' || routeState.group || focusRequest) return
+    exploreIdentityDefaultApplied.current = true
+    setCollapsedExploreGroups(groups => groups.includes('Thu') ? groups : ['Thu', ...groups])
+  }, [currentPerson, focusRequest, routeState.group])
 
   const updateEvent = (id: string, state: ExploreState) => {
     onUpdateEvent(id, state)
@@ -3123,7 +3147,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
   }, [])
 
   return <section className="explore-surface">
-    <div ref={workbarRef} className={`surface-workbar explore-workbar ${workbarPinned ? 'pinned' : ''}`}>
+    <div ref={workbarRef} className={`surface-workbar explore-workbar ${workbarPinned ? 'pinned' : ''}`} data-tour-target="explore-controls">
       <div className="explore-toolbar">
         <label className="explore-search"><span aria-hidden="true">⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Find event, format, guest" /></label>
       </div>
@@ -4218,7 +4242,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
   }, [])
 
   return <section className="calendar-surface" aria-label="Meaningful dates">
-    <div ref={toolbarRef} className={`calendar-toolbar surface-workbar calendar-workbar ${toolbarPinned ? 'pinned' : ''}`}>
+    <div ref={toolbarRef} className={`calendar-toolbar surface-workbar calendar-workbar ${toolbarPinned ? 'pinned' : ''}`} data-tour-target="calendar-controls">
       <div className="calendar-modes" aria-label="Calendar period">
         <button type="button" className={mode === 'upcoming' ? 'active' : ''} onClick={() => { setMode('upcoming'); setDetail(null) }}>Upcoming</button>
         <button type="button" className={mode === 'past' ? 'active' : ''} onClick={() => { setMode('past'); setDetail(null) }}>Past</button>
@@ -4381,7 +4405,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
   return <div className="home-surface">
     <div className="home-main-row">
-      <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading">
+      <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading" data-tour-target="home-signals">
         <div className="home-lane-head">
           <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{homeSignals.length ? `${homeSignals.length} recent item${homeSignals.length === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
           <button type="button" onClick={onOpenActivity}>Full Activity</button>
@@ -4597,7 +4621,7 @@ function AlertKindIcon({ kind }: { kind: AlertKind }) {
 function AccountMenu({ email, online, preview, onOpenTutorial }: { email: string; online: boolean; preview: boolean; onOpenTutorial: () => void }) {
   const initial = email.trim().charAt(0).toUpperCase() || 'K'
 
-  return <details className="account-menu">
+  return <details className="account-menu" data-tour-target="account-chip">
     <summary aria-label="Account menu">
       <span className="account-initial">{initial}</span>
       <span className={`account-presence ${online ? 'online' : ''}`} aria-label={online ? 'Online' : 'Offline'} />
@@ -4622,39 +4646,86 @@ const tutorialSteps = [
     title: 'Your shared MagicCon field guide',
     copy: 'This app keeps the useful signals, plans, logistics, and notes for the four of you in one place.',
     icon: 'home' as NavIconName,
+    surface: 'home' as Surface,
+    target: 'home-signals',
+    placement: 'right',
   },
   {
     kicker: 'HOME',
     title: 'Start with what changed',
     copy: 'Worth knowing collects the latest useful signals without flooding the page. The right side keeps the next milestone and the runway in view.',
     icon: 'home' as NavIconName,
+    surface: 'home' as Surface,
+    target: 'home-signals',
+    placement: 'right',
   },
   {
-    kicker: 'EXPLORE → PLAN → CALENDAR',
-    title: 'Discover, compare, then commit',
-    copy: 'Mark possibilities in Explore, compare everyone’s choices and time conflicts in Plan, then use Calendar for firm commitments and trip anchors.',
+    kicker: 'EXPLORE',
+    title: 'Find possibilities first',
+    copy: 'Explore is the wide end of the funnel. Filter the real event list, open details, and mark things Interested or Tentative without committing your calendar.',
+    icon: 'explore' as NavIconName,
+    surface: 'explore' as Surface,
+    target: 'explore-controls',
+    placement: 'bottom-right',
+  },
+  {
+    kicker: 'PLAN',
+    title: 'Compare the group',
+    copy: 'Plan layers everyone’s colored bubbles onto List or Agenda. Add people to expose shared interests, overlaps, and time conflicts before anyone locks things in.',
+    icon: 'plan' as NavIconName,
+    surface: 'plan' as Surface,
+    target: 'plan-controls',
+    placement: 'bottom-left',
+  },
+  {
+    kicker: 'CALENDAR',
+    title: 'See firm commitments',
+    copy: 'Calendar is the narrow end: committed events, meaningful convention times, and travel anchors. Its people filters let you compare firm schedules.',
     icon: 'calendar' as NavIconName,
-  },
-  {
-    kicker: 'WORK TOGETHER',
-    title: 'People colors travel with their choices',
-    copy: 'Use the person bubbles to layer companions into Plan and Calendar. Shared notes and @mentions stay attached to the event or object where they belong.',
-    icon: 'activity' as NavIconName,
+    surface: 'calendar' as Surface,
+    target: 'calendar-controls',
+    placement: 'bottom-right',
   },
   {
     kicker: 'THE REST',
     title: 'Everything else stays close',
-    copy: 'Map & Info holds venue basics, Wallet keeps passes and proof, Trip holds travel, and Artists and Notes collect the remaining useful context. Replay this tour anytime from your user chip.',
+    copy: 'Map & Info holds venue basics, Wallet keeps passes and proof, Trip holds travel, and Artists and Notes collect the remaining useful context.',
     icon: 'map' as NavIconName,
+    surface: 'home' as Surface,
+    target: 'main-navigation',
+    placement: 'left',
+  },
+  {
+    kicker: 'YOU ARE READY',
+    title: 'The tour only starts automatically once',
+    copy: 'If you ever want it again, open your user chip here and choose Replay quick tour.',
+    icon: 'home' as NavIconName,
+    surface: 'home' as Surface,
+    target: 'account-chip',
+    placement: 'bottom-right',
   },
 ]
 
-function OnboardingTutorial({ onClose }: { onClose: () => void }) {
+function OnboardingTutorial({ surface, onNavigate, onClose }: { surface: Surface; onNavigate: (surface: Surface) => void; onClose: () => void }) {
   const [step, setStep] = useState(0)
   const current = tutorialSteps[step]
   const last = step === tutorialSteps.length - 1
-  return <div className="tutorial-overlay" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
-    <section className="tutorial-card">
+
+  useEffect(() => {
+    if (surface !== current.surface) onNavigate(current.surface)
+    const timer = window.setTimeout(() => {
+      const target = document.querySelector<HTMLElement>(`[data-tour-target="${current.target}"]`)
+      target?.classList.add('tutorial-highlight')
+      target?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, 180)
+    return () => {
+      window.clearTimeout(timer)
+      document.querySelectorAll('.tutorial-highlight').forEach(node => node.classList.remove('tutorial-highlight'))
+    }
+  }, [step])
+
+  return <div className={`tutorial-overlay placement-${current.placement}`} role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+    <section className="tutorial-card" key={step}>
       <button className="tutorial-close" type="button" onClick={onClose} aria-label="Close quick tour">×</button>
       <div className="tutorial-icon"><NavIcon name={current.icon} /></div>
       <span className="eyebrow">{current.kicker}</span>
