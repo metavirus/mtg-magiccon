@@ -514,9 +514,17 @@ export default function App() {
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
+  const [tutorialOpen, setTutorialOpen] = useState(false)
+  const [tutorialPrompted, setTutorialPrompted] = useState(false)
   const currentCompanion = currentCompanionFromSession(effectiveSession, companionMembers)
   const canCommitBlackLotus = Boolean(currentCompanion?.blackLotusEntitled)
   const mentionUnreadCount = mentionInboxState.length
+
+  useEffect(() => {
+    if (tutorialPrompted || designPreview || isPreviewOwnerMode || loading || !effectiveOwnerId) return
+    if (userSelections[selectionKey('onboarding-tour', 'completed')] !== 'true') setTutorialOpen(true)
+    setTutorialPrompted(true)
+  }, [designPreview, effectiveOwnerId, isPreviewOwnerMode, loading, tutorialPrompted, userSelections])
 
   useEffect(() => {
     const handleOnline = () => setOnline(true)
@@ -1203,6 +1211,7 @@ export default function App() {
               email={effectiveSession?.user.email ?? 'kavigrace@gmail.com'}
               online={Boolean(effectiveSession) && online}
               preview={designPreview || isPreviewOwnerMode}
+              onOpenTutorial={() => setTutorialOpen(true)}
             />
             <span className="countdown-chip"><strong>{daysToAtlanta}</strong><span>days to Atlanta</span></span>
           </div>
@@ -1242,6 +1251,10 @@ export default function App() {
 
     </main>
       <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
+      {tutorialOpen && <OnboardingTutorial onClose={() => {
+        setTutorialOpen(false)
+        void upsertUserSelection('onboarding-tour', 'general', 'completed', 'true')
+      }} />}
   </div>
 }
 
@@ -4113,7 +4126,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     const blackLotus = event.kind === 'Black Lotus'
     const icon: EventKindIconName = event.type === 'play' ? 'play' : event.type === 'info' ? 'info' : event.type === 'social' ? 'social' : 'ticketed'
     const dayNumber = event.day === 'Thu' ? '12' : event.day === 'Fri' ? '13' : event.day === 'Sat' ? '14' : '15'
-    return <button key={event.id} className={`agenda-row agenda-action convention-event-row ${blackLotus ? 'lotus-row' : 'convention-row'}`} type="button" onClick={() => onOpenPlanEvent(event.id)}>
+    return <button key={event.id} className={`agenda-row agenda-action convention-event-row ${blackLotus ? 'lotus-row' : 'convention-row'}`} type="button" onClick={() => openEvent(event.id)}>
       <div className="agenda-date"><strong>{dayNumber}</strong><span>{event.day.toUpperCase()}</span><em>{event.time}</em></div>
       <div className={`agenda-icon type-${event.type}`}><EventKindIcon name={icon} /></div>
       <div className="agenda-copy"><span className="agenda-kind">{blackLotus ? `Black Lotus · ${event.type}` : `${event.type} event`}</span><h2>{displayEventTitle(event)}</h2><p>{event.fit}</p></div>
@@ -4228,7 +4241,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     </>}
 
     {detail && <CalendarDetailSheet detail={detail} slice={slice} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-    {selectedEvent && <CalendarEventDetail event={selectedEvent} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={onOpenPlan} online={online} saving={saving} canCommit={selectedEvent.id !== 'bl-planechase' || canCommitBlackLotus} />}
+    {selectedEvent && <CalendarEventDetail event={selectedEvent} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit={selectedEvent.id !== 'bl-planechase' || canCommitBlackLotus} />}
   </section>
 }
 
@@ -4246,7 +4259,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
     {event.decisionFacts && <div className="decision-facts" aria-label="Event logistics">{event.decisionFacts.map(fact => <div key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
     <div className="plan-provenance"><span>{event.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{renderLinkedText(event.sourceNote ?? 'Source context captured for this item.')}</small></div>
     <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} context={`Event · ${displayEventTitle(event)}`} backlink="calendar" compact />
-    <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Reconsider in Plan <span aria-hidden="true">›</span></button>
+    <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Open in Plan <span aria-hidden="true">›</span></button>
   </aside>
 }
 
@@ -4518,7 +4531,7 @@ function AlertKindIcon({ kind }: { kind: AlertKind }) {
   return <svg className="alert-kind-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]}</svg>
 }
 
-function AccountMenu({ email, online, preview }: { email: string; online: boolean; preview: boolean }) {
+function AccountMenu({ email, online, preview, onOpenTutorial }: { email: string; online: boolean; preview: boolean; onOpenTutorial: () => void }) {
   const initial = email.trim().charAt(0).toUpperCase() || 'K'
 
   return <details className="account-menu">
@@ -4528,11 +4541,72 @@ function AccountMenu({ email, online, preview }: { email: string; online: boolea
     </summary>
     <div className="account-popover">
       <span>{email}</span>
+      <button type="button" onClick={event => {
+        const menu = event.currentTarget.closest('details')
+        if (menu instanceof HTMLDetailsElement) menu.open = false
+        onOpenTutorial()
+      }}>Replay quick tour</button>
       {preview
         ? <button type="button" disabled>Preview mode</button>
         : <button type="button" onClick={() => void supabase?.auth.signOut({ scope: 'local' })}>Sign out</button>}
     </div>
   </details>
+}
+
+const tutorialSteps = [
+  {
+    kicker: 'WELCOME',
+    title: 'Your shared MagicCon field guide',
+    copy: 'This app keeps the useful signals, plans, logistics, and notes for the four of you in one place.',
+    icon: 'home' as NavIconName,
+  },
+  {
+    kicker: 'HOME',
+    title: 'Start with what changed',
+    copy: 'Worth knowing collects the latest useful signals without flooding the page. The right side keeps the next milestone and the runway in view.',
+    icon: 'home' as NavIconName,
+  },
+  {
+    kicker: 'EXPLORE → PLAN → CALENDAR',
+    title: 'Discover, compare, then commit',
+    copy: 'Mark possibilities in Explore, compare everyone’s choices and time conflicts in Plan, then use Calendar for firm commitments and trip anchors.',
+    icon: 'calendar' as NavIconName,
+  },
+  {
+    kicker: 'WORK TOGETHER',
+    title: 'People colors travel with their choices',
+    copy: 'Use the person bubbles to layer companions into Plan and Calendar. Shared notes and @mentions stay attached to the event or object where they belong.',
+    icon: 'activity' as NavIconName,
+  },
+  {
+    kicker: 'THE REST',
+    title: 'Everything else stays close',
+    copy: 'Map & Info holds venue basics, Wallet keeps passes and proof, Trip holds travel, and Artists and Notes collect the remaining useful context. Replay this tour anytime from your user chip.',
+    icon: 'map' as NavIconName,
+  },
+]
+
+function OnboardingTutorial({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState(0)
+  const current = tutorialSteps[step]
+  const last = step === tutorialSteps.length - 1
+  return <div className="tutorial-overlay" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+    <section className="tutorial-card">
+      <button className="tutorial-close" type="button" onClick={onClose} aria-label="Close quick tour">×</button>
+      <div className="tutorial-icon"><NavIcon name={current.icon} /></div>
+      <span className="eyebrow">{current.kicker}</span>
+      <h2 id="tutorial-title">{current.title}</h2>
+      <p>{current.copy}</p>
+      <div className="tutorial-progress" aria-label={`Step ${step + 1} of ${tutorialSteps.length}`}>
+        {tutorialSteps.map((_, index) => <span key={index} className={index === step ? 'active' : index < step ? 'done' : ''} />)}
+      </div>
+      <footer>
+        <button type="button" className="tutorial-back" disabled={step === 0} onClick={() => setStep(value => Math.max(0, value - 1))}>Back</button>
+        <small>{step + 1} of {tutorialSteps.length}</small>
+        <button type="button" className="tutorial-next" onClick={() => last ? onClose() : setStep(value => value + 1)}>{last ? 'Start exploring' : 'Next'}</button>
+      </footer>
+    </section>
+  </div>
 }
 
 function MentionInbox({ items, onOpenMention }: { items: MentionInboxItem[]; onOpenMention: (note: ContextNote) => void }) {
