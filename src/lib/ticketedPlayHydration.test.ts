@@ -81,6 +81,22 @@ describe('ticketed play hydration', () => {
     expect(blocksCalendar({ purchaseStatus: 'none', timeKind: 'fixed_block' })).toBe(false)
   })
 
+  it('only classifies a league when the event title explicitly says league', () => {
+    const unknown = parseLeapTicketedPlayListing({
+      rawTitle: 'Unknown with Gavin Verhey - $100 (Click here for more info)',
+      rawCategories: ['Ticketed Play'],
+      rawDescription: 'A host-led mystery event. Other page navigation mentions a league elsewhere.',
+    })
+    const league = parseLeapTicketedPlayListing({
+      rawTitle: 'Commander and Cocktails League with Brian David-Marshall - $200',
+      rawCategories: ['Ticketed Play'],
+    })
+
+    expect(unknown.playFormat).not.toBe('league')
+    expect(unknown.timeKind).toBe('fixed_block')
+    expect(league.timeKind).toBe('league_window')
+  })
+
   it('keeps newly sold-out events visible for about a week unless proof already purchased them', () => {
     const now = new Date('2026-08-16T12:00:00Z')
     expect(shouldKeepSoldOutVisible({ availability: 'sold_out', purchaseStatus: 'none', soldOutFirstSeenAt: '2026-08-15T12:00:00Z' }, now)).toBe(true)

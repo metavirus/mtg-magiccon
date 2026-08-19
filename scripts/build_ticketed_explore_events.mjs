@@ -6,8 +6,9 @@ const rawByKey = new Map(raw.events.map(event => [event.sourceEventKey, event]))
 
 const dayFrom = label => label?.startsWith('Fri') ? 'Fri' : label?.startsWith('Sat') ? 'Sat' : label?.startsWith('Sun') ? 'Sun' : 'Fri'
 const timeFrom = label => label ? label.replace(/:00 /g, ' ').replace(' - ', '–') : 'Time TBD'
-const formatFrom = event => event.playFormat === 'two_headed_giant' ? '2HG' : titleCase(event.playFormat ?? 'ticketed play')
-const windowFrom = event => event.timeKind === 'league_window' ? 'League / flexible' : event.timeKind === 'optional_window' ? 'Flexible window' : 'Fixed event'
+const isExplicitLeague = event => /\bleague\b/i.test(event.title)
+const formatFrom = event => event.playFormat === 'two_headed_giant' ? '2HG' : event.playFormat === 'league' && !isExplicitLeague(event) ? 'Ticketed play' : titleCase(event.playFormat ?? 'ticketed play')
+const windowFrom = event => isExplicitLeague(event) ? 'League / flexible' : event.timeKind === 'optional_window' ? 'Flexible window' : 'Fixed event'
 const complexityFrom = event => event.difficulty === 'competitive' ? 'very-hard' : event.difficulty === 'challenging' ? 'demanding' : event.difficulty === 'social' ? 'easy' : 'inconclusive'
 
 function titleCase(value) {
@@ -59,7 +60,7 @@ const events = normalized.events.map(event => {
   const format = formatFrom(event)
   const tags = ['official atlanta', 'ticketed play', format.toLowerCase()]
   if (event.difficulty && event.difficulty !== 'unknown') tags.push(event.difficulty)
-  if (event.timeKind === 'league_window' || event.timeKind === 'optional_window') tags.push('flexible')
+  if (isExplicitLeague(event) || event.timeKind === 'optional_window') tags.push('flexible')
 
   return {
     id: `ticketed-${event.sourceEventKey}`,
@@ -85,9 +86,11 @@ const events = normalized.events.map(event => {
     ],
     moreDetails: moreDetails(rawEvent, event),
     sourceNote: `Official Atlanta Ticketed Play schedule, captured Aug 18, 2026. Source ID ${event.sourceEventKey}.`,
-    planEffect: event.timeKind === 'league_window' || event.timeKind === 'optional_window'
-      ? 'Flexible/league-style listing: keep visible without treating the whole stated window as a hard block until purchased.'
-      : 'Paid ticketed event: only becomes a hard calendar block after purchase/commitment.',
+    planEffect: isExplicitLeague(event)
+      ? 'League / flexible listing: keep visible, but the stated window never becomes a hard time block, even when purchased.'
+      : event.timeKind === 'optional_window'
+        ? 'Flexible listing: keep visible without treating the whole stated window as a hard block until purchased.'
+        : 'Paid ticketed event: only becomes a hard calendar block after purchase/commitment.',
   }
 })
 
