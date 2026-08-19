@@ -2695,9 +2695,9 @@ function planParticipants(event: ExploreEvent, currentPerson: PersonName, select
     .filter(row => row.object_id === `explore-${event.id}` && row.selection_key === 'state' && ['interested', 'tentative', 'committed'].includes(row.selection_value))
     .forEach(row => {
       const person = companions.find(member => member.userId === row.owner_id)?.name
-      if (person && !participants.some(participant => participant.person === person)) participants.push({ person, state: row.selection_value as PlanParticipantState })
+      if (person && person !== currentPerson && !participants.some(participant => participant.person === person)) participants.push({ person, state: row.selection_value as PlanParticipantState })
     })
-  if (!participants.some(participant => participant.person === currentPerson) && ['interested', 'tentative', 'committed'].includes(event.state)) {
+  if (['interested', 'tentative', 'committed'].includes(event.state)) {
     participants.push({ person: currentPerson, state: event.state as PlanParticipantState })
   }
   return participants
