@@ -203,9 +203,9 @@ type PreviewOwnerDescriptor = {
 
 const fallbackCompanionMembers: CompanionMember[] = [
   { key: 'kavi', name: 'Kavi', bubbleLabel: 'Ka', bubbleColor: 'blue', badgeTier: 'black_lotus', blackLotusEntitled: true, relationship: 'owner', authEmail: 'kavigrace@gmail.com', sortOrder: 10 },
-  { key: 'chris', name: 'Chris', bubbleLabel: 'C', bubbleColor: 'purple', badgeTier: 'black_lotus', blackLotusEntitled: true, relationship: 'Black Lotus companion', sortOrder: 20 },
-  { key: 'juan', name: 'Juan', bubbleLabel: 'J', bubbleColor: 'green', badgeTier: 'premium', blackLotusEntitled: false, relationship: 'partner', sortOrder: 30 },
-  { key: 'kyle', name: 'Kyle', bubbleLabel: 'Ky', bubbleColor: 'amber', badgeTier: 'premium', blackLotusEntitled: false, relationship: 'Chris friend', sortOrder: 40 },
+  { key: 'chris', name: 'Chris', bubbleLabel: 'C', bubbleColor: 'purple', badgeTier: 'black_lotus', blackLotusEntitled: true, relationship: 'Black Lotus companion', authEmail: 'christophertom2000@gmail.com', sortOrder: 20 },
+  { key: 'juan', name: 'Juan', bubbleLabel: 'J', bubbleColor: 'green', badgeTier: 'premium', blackLotusEntitled: false, relationship: 'partner', authEmail: 'jayluv189@gmail.com', sortOrder: 30 },
+  { key: 'kyle', name: 'Kyle', bubbleLabel: 'Ky', bubbleColor: 'amber', badgeTier: 'premium', blackLotusEntitled: false, relationship: 'Chris friend', authEmail: 'kylewmandell@gmail.com', sortOrder: 40 },
 ]
 
 const PREVIEW_OWNER_BY_KEY: Record<PreviewOwnerDescriptor['key'], PreviewOwnerDescriptor> = {
@@ -1178,7 +1178,7 @@ export default function App() {
             { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
             { name: 'Activity', note: 'Signals & changes', icon: 'activity' as NavIconName, surface: 'activity' as Surface },
           ]).map(destination => mobileNavMenu === 'main'
-            ? <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
+            ? <button key={destination.surface} type="button" data-tour-target={`mobile-nav-${destination.surface}`} className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
               <span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}
             </button>
             : <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
@@ -1186,7 +1186,7 @@ export default function App() {
             </button>)}
         </div>
         {mobileNavMenu === 'main' && <footer className="mobile-drawer-foot">
-          <button className={`mobile-drawer-activity ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}>
+          <button className={`mobile-drawer-activity ${surface === 'activity' ? 'active' : ''}`} data-tour-target="mobile-nav-activity" type="button" onClick={() => openDestination('Activity', 'activity')}>
             <span aria-hidden="true"><NavIcon name="activity" /></span>Activity
             {mentionUnreadCount > 0 && <b className="nav-count-badge">{mentionUnreadCount > 9 ? '9+' : mentionUnreadCount}</b>}
           </button>
@@ -1206,7 +1206,7 @@ export default function App() {
         <div>
           <div className="hero-context">
             <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!previousSurface} aria-label="Back to previous view"><span aria-hidden="true">‹</span></button>
-            <button className="back-caret mobile-menu-caret" type="button" onClick={() => setMobileNavMenu('main')} aria-label="Open main navigation" aria-expanded={mobileNavMenu === 'main'}><span aria-hidden="true">☰</span></button>
+            <button className="back-caret mobile-menu-caret" data-tour-target="mobile-menu" type="button" onClick={() => setMobileNavMenu('main')} aria-label="Open main navigation" aria-expanded={mobileNavMenu === 'main'}><span aria-hidden="true">☰</span></button>
             <span className="kicker">{headerLabel}</span>
           </div>
           <h1>{headerTitle}</h1>
@@ -1262,7 +1262,7 @@ export default function App() {
 
     </main>
       <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
-      {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onClose={() => {
+      {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onMobileMenuChange={setMobileNavMenu} onClose={() => {
         setTutorialOpen(false)
         void upsertUserSelection('onboarding-tour', 'general', 'completed', 'true')
       }} />}
@@ -2785,6 +2785,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   const [activeDay, setActiveDay] = useState<ExploreEvent['day']>(() => currentPerson === 'Kyle' ? 'Fri' : 'Thu')
   const planIdentityDefaultApplied = useRef(currentPerson === 'Kyle')
   const [selectedPeople, setSelectedPeople] = useState<PersonName[]>([currentPerson])
+  const planPersonDefaultRef = useRef(currentPerson)
   const [planView, setPlanView] = useState<PlanView>(() => window.localStorage.getItem('magiccon-plan-view') === 'agenda' ? 'agenda' : 'list')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -2819,6 +2820,13 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   const conflictIds = new Set(conflictPairs.flat())
   const sharedCount = dayEvents.filter(event => (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person)).length > 1).length
   const togglePlanGroup = (key: string) => setCollapsedPlanGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
+
+  useEffect(() => {
+    const previousPerson = planPersonDefaultRef.current
+    if (previousPerson === currentPerson) return
+    planPersonDefaultRef.current = currentPerson
+    setSelectedPeople(current => current.length === 1 && current[0] === previousPerson ? [currentPerson] : current)
+  }, [currentPerson])
 
   useEffect(() => {
     if (planIdentityDefaultApplied.current || currentPerson !== 'Kyle') return
@@ -4707,15 +4715,40 @@ const tutorialSteps = [
   },
 ]
 
-function OnboardingTutorial({ surface, onNavigate, onClose }: { surface: Surface; onNavigate: (surface: Surface) => void; onClose: () => void }) {
+const mobileTutorialSteps = [
+  { kicker: 'WELCOME', title: 'Start here', copy: 'Open this menu anytime to move around MagicCon.', icon: 'home' as NavIconName, surface: 'home' as Surface, target: 'mobile-menu', placement: 'right' },
+  { kicker: 'HOME', title: 'What changed', copy: 'Home keeps the latest useful signals and milestones together.', icon: 'home' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-home', placement: 'right' },
+  { kicker: 'EXPLORE', title: 'Find possibilities', copy: 'Browse the full event field and mark what catches your eye.', icon: 'explore' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-explore', placement: 'right' },
+  { kicker: 'PLAN', title: 'Compare the group', copy: 'Layer everyone’s picks and spot overlap or conflicts.', icon: 'plan' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-plan', placement: 'right' },
+  { kicker: 'CALENDAR', title: 'Firm commitments', copy: 'See committed events, convention times, and travel anchors.', icon: 'calendar' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-calendar', placement: 'right' },
+  { kicker: 'MAP & INFO', title: 'Venue basics', copy: 'Keep maps, hours, and useful on-site information close.', icon: 'map' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-map', placement: 'right' },
+  { kicker: 'WALLET', title: 'Passes and proof', copy: 'Store the practical purchase and badge details you may need.', icon: 'wallet' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-wallet', placement: 'right' },
+  { kicker: 'TRIP', title: 'Travel together', copy: 'Flights, hotel details, and travel notes live here.', icon: 'trip' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-trip', placement: 'right' },
+  { kicker: 'ARTISTS', title: 'Find the guests', copy: 'Keep the artist list and useful signing context nearby.', icon: 'artists' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-artists', placement: 'right' },
+  { kicker: 'NOTES', title: 'Context stays attached', copy: 'Shared notes remain connected to the thing you were discussing.', icon: 'notes' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-notes', placement: 'right' },
+  { kicker: 'ACTIVITY', title: 'See the full history', copy: 'Review everyone’s shared changes, selections, and notes.', icon: 'activity' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-activity', placement: 'right' },
+  { kicker: 'YOU ARE READY', title: 'Replay it anytime', copy: 'Open your user chip and choose Replay quick tour.', icon: 'home' as NavIconName, surface: 'home' as Surface, target: 'account-chip', placement: 'bottom-right' },
+]
+
+function OnboardingTutorial({ surface, onNavigate, onMobileMenuChange, onClose }: { surface: Surface; onNavigate: (surface: Surface) => void; onMobileMenuChange: (menu: 'main' | 'events' | 'more' | null) => void; onClose: () => void }) {
   const [step, setStep] = useState(0)
+  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 600px)').matches)
   const [connector, setConnector] = useState<{ left: number; top: number; width: number; angle: number } | null>(null)
   const cardRef = useRef<HTMLElement | null>(null)
-  const current = tutorialSteps[step]
-  const last = step === tutorialSteps.length - 1
+  const steps = mobile ? mobileTutorialSteps : tutorialSteps
+  const current = steps[Math.min(step, steps.length - 1)]
+  const last = step === steps.length - 1
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 600px)')
+    const updateMode = () => { setMobile(media.matches); setStep(0) }
+    media.addEventListener('change', updateMode)
+    return () => media.removeEventListener('change', updateMode)
+  }, [])
 
   useEffect(() => {
     if (surface !== current.surface) onNavigate(current.surface)
+    if (mobile) onMobileMenuChange(current.target === 'mobile-menu' || current.target === 'account-chip' ? null : 'main')
     setConnector(null)
     let target: HTMLElement | undefined
     let resizeObserver: ResizeObserver | undefined
@@ -4768,9 +4801,9 @@ function OnboardingTutorial({ surface, onNavigate, onClose }: { surface: Surface
       setConnector(null)
       document.querySelectorAll('.tutorial-highlight').forEach(node => node.classList.remove('tutorial-highlight'))
     }
-  }, [step])
+  }, [step, mobile])
 
-  return <div className={`tutorial-overlay placement-${current.placement}`} role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+  return <div className={`tutorial-overlay ${mobile ? 'tutorial-mobile' : 'tutorial-desktop'} placement-${current.placement}`} role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
     {connector && <span className="tutorial-connector" aria-hidden="true" style={{ left: connector.left, top: connector.top, width: connector.width, transform: `rotate(${connector.angle}deg)` }} />}
     <section className="tutorial-card" key={step} ref={cardRef}>
       <button className="tutorial-close" type="button" onClick={onClose} aria-label="Close quick tour">×</button>
@@ -4778,12 +4811,12 @@ function OnboardingTutorial({ surface, onNavigate, onClose }: { surface: Surface
       <span className="eyebrow">{current.kicker}</span>
       <h2 id="tutorial-title">{current.title}</h2>
       <p>{current.copy}</p>
-      <div className="tutorial-progress" aria-label={`Step ${step + 1} of ${tutorialSteps.length}`}>
-        {tutorialSteps.map((_, index) => <span key={index} className={index === step ? 'active' : index < step ? 'done' : ''} />)}
+      <div className="tutorial-progress" aria-label={`Step ${step + 1} of ${steps.length}`}>
+        {steps.map((_, index) => <span key={index} className={index === step ? 'active' : index < step ? 'done' : ''} />)}
       </div>
       <footer>
         <button type="button" className="tutorial-back" disabled={step === 0} onClick={() => setStep(value => Math.max(0, value - 1))}>Back</button>
-        <small>{step + 1} of {tutorialSteps.length}</small>
+        <small>{step + 1} of {steps.length}</small>
         <button type="button" className="tutorial-next" onClick={() => last ? onClose() : setStep(value => value + 1)}>{last ? 'Start exploring' : 'Next'}</button>
       </footer>
     </section>

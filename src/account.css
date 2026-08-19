@@ -233,13 +233,21 @@
 .tutorial-card footer small { color: #8294aa; white-space: nowrap; }
 
 @media (max-width: 600px) {
-  .tutorial-overlay { align-items: end; justify-content: stretch; padding: 10px; background: rgba(3, 10, 20, .42); }
-  .tutorial-card { padding: 28px 22px 22px; border-radius: 20px; }
-  .tutorial-card > p { min-height: 104px; font-size: 15px; }
+  body:has(.tutorial-mobile) .mobile-nav-drawer-backdrop.menu-main { z-index: 126; }
+  .tutorial-overlay { align-items: end; justify-content: end; padding: 10px; background: rgba(3, 10, 20, .34); }
+  .tutorial-card { width: min(230px, calc(100vw - 190px)); min-width: 184px; padding: 17px 14px 13px; border-radius: 15px; }
+  .tutorial-icon { display: none; }
+  .tutorial-close { top: 8px; right: 8px; width: 28px; height: 28px; font-size: 19px; }
+  .tutorial-card .eyebrow { padding-right: 28px; font-size: 10px; }
+  .tutorial-card h2 { margin: 6px 0 7px; font-size: 23px; line-height: 1.05; }
+  .tutorial-card > p { min-height: 0; margin-right: 2px; font-size: 13px; line-height: 1.4; }
+  .tutorial-progress { gap: 4px; margin: 12px 0 10px; }
+  .tutorial-progress span { width: 13px; height: 3px; }
   .tutorial-card footer { gap: 8px; }
-  .tutorial-card footer button { padding-inline: 12px; }
+  .tutorial-card footer button { min-height: 34px; padding: 6px 9px; font-size: 12px; }
+  .tutorial-card footer small { font-size: 10px; }
   .tutorial-highlight { outline-width: 2px !important; outline-offset: 2px; box-shadow: 0 0 0 5px rgba(241, 201, 104, .16) !important; }
-  .tutorial-connector { display: none; }
+  .tutorial-connector { height: 1px; box-shadow: 0 0 6px rgba(241, 201, 104, .42); }
 }
 
 .account-popover button:disabled {
