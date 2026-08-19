@@ -1146,7 +1146,7 @@ export default function App() {
       <nav className="mobile-primary-nav" aria-label="Mobile primary navigation">
         <button className={surface === 'home' ? 'active' : ''} type="button" onClick={() => openDestination('Home', 'home')}><span aria-hidden="true"><NavIcon name="home" /></span>Home</button>
         <button className={['calendar', 'plan', 'explore'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'events'} onClick={() => setMobileNavMenu(menu => menu === 'events' ? null : 'events')}><span aria-hidden="true"><NavIcon name="calendar" /></span>Events</button>
-        <button className={surface === 'map' ? 'active' : ''} type="button" onClick={() => openDestination('Map', 'map')}><span aria-hidden="true"><NavIcon name="map" /></span>Map</button>
+        <button className={surface === 'map' ? 'active' : ''} type="button" data-tour-target="nav-map" onClick={() => openDestination('Map', 'map')}><span aria-hidden="true"><NavIcon name="map" /></span>Map</button>
         <button className={surface === 'wallet' ? 'active' : ''} type="button" onClick={() => openDestination('Wallet', 'wallet')}><span aria-hidden="true"><NavIcon name="wallet" /></span>Wallet</button>
         <button className={['trip', 'artists', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
       </nav>
@@ -4693,8 +4693,8 @@ const tutorialSteps = [
     copy: 'Map & Info holds venue basics, Wallet keeps passes and proof, Trip holds travel, and Artists and Notes collect the remaining useful context.',
     icon: 'map' as NavIconName,
     surface: 'home' as Surface,
-    target: 'main-navigation',
-    placement: 'left',
+    target: 'nav-map',
+    placement: 'right',
   },
   {
     kicker: 'YOU ARE READY',
