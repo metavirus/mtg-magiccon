@@ -4789,16 +4789,33 @@ function OnboardingTutorial({ surface, onNavigate, onMobileMenuChange, onClose }
       const cardRect = cardRef.current.getBoundingClientRect()
       const targetCenterX = targetRect.left + targetRect.width / 2
       const targetCenterY = targetRect.top + targetRect.height / 2
-      const targetIsLeft = targetCenterX < cardRect.left + cardRect.width / 2
-      const startX = targetIsLeft ? cardRect.left : cardRect.right
-      const startY = Math.min(cardRect.bottom - 30, Math.max(cardRect.top + 30, targetCenterY))
-      const endX = targetIsLeft ? targetRect.right : targetRect.left
-      const endY = targetCenterY
+      const cardCenterX = cardRect.left + cardRect.width / 2
+      const cardCenterY = cardRect.top + cardRect.height / 2
+      const edgePoint = (rect: DOMRect, towardX: number, towardY: number) => {
+        const centerX = rect.left + rect.width / 2
+        const centerY = rect.top + rect.height / 2
+        const deltaX = towardX - centerX
+        const deltaY = towardY - centerY
+        const scaleX = deltaX === 0 ? Number.POSITIVE_INFINITY : (rect.width / 2) / Math.abs(deltaX)
+        const scaleY = deltaY === 0 ? Number.POSITIVE_INFINITY : (rect.height / 2) / Math.abs(deltaY)
+        const scale = Math.min(scaleX, scaleY)
+        return { x: centerX + deltaX * scale, y: centerY + deltaY * scale }
+      }
+      const start = edgePoint(cardRect, targetCenterX, targetCenterY)
+      const targetEdge = edgePoint(targetRect, cardCenterX, cardCenterY)
+      const targetVectorX = cardCenterX - targetCenterX
+      const targetVectorY = cardCenterY - targetCenterY
+      const targetDistance = Math.hypot(targetVectorX, targetVectorY) || 1
+      const outlineReach = mobile ? 4 : 8
+      const end = {
+        x: targetEdge.x + (targetVectorX / targetDistance) * outlineReach,
+        y: targetEdge.y + (targetVectorY / targetDistance) * outlineReach,
+      }
       setConnector({
-        left: startX,
-        top: startY,
-        width: Math.hypot(endX - startX, endY - startY),
-        angle: Math.atan2(endY - startY, endX - startX) * 180 / Math.PI,
+        left: start.x,
+        top: start.y,
+        width: Math.hypot(end.x - start.x, end.y - start.y),
+        angle: Math.atan2(end.y - start.y, end.x - start.x) * 180 / Math.PI,
       })
     }
 
