@@ -4457,6 +4457,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
           {homeSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
             <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
             <div>{item.severity === 'hot' && <small>HOT NOW</small>}<strong>{item.title}</strong><small>{item.summary}</small></div>
+            {item.actor && <PersonBubbles people={[item.actor]} />}
           </button>)}
           {!homeSignals.length && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
             <span><MilestoneIcon name="badges" /></span>
