@@ -874,7 +874,7 @@ export default function App() {
       return
     }
     if (item.objectDetail.id.startsWith('activity-burst-')) {
-      openDestination('Explore', 'explore')
+      openObjectDetail(item.objectDetail)
       return
     }
     if (item.sourceKind === 'note' && item.objectDetail.kind === 'note') {
@@ -2072,7 +2072,7 @@ function eventSelectionActivityFromCluster(
           eyebrow: 'SELECTION BURST',
           title: `${cluster.actorLabel} updated ${items.length} event picks`,
           summary: parts.join(' · '),
-          facts: items.slice(0, 6).map(item => ({
+          facts: items.map(item => ({
             label: item.state,
             value: item.event.title,
             detail: exploreEventToObjectDetail({ ...item.event, state: item.state }),
