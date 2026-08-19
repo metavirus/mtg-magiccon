@@ -102,11 +102,13 @@
 }
 
 .tutorial-overlay.placement-right,
-.tutorial-overlay.placement-bottom-right { justify-content: end; }
+.tutorial-overlay.placement-bottom-right { justify-items: end; }
 .tutorial-overlay.placement-left,
-.tutorial-overlay.placement-bottom-left { justify-content: start; }
+.tutorial-overlay.placement-bottom-left { justify-items: start; }
 .tutorial-overlay.placement-bottom-right,
 .tutorial-overlay.placement-bottom-left { align-items: end; }
+.tutorial-overlay.placement-right .tutorial-card,
+.tutorial-overlay.placement-bottom-right .tutorial-card { margin-right: clamp(0px, 2vw, 36px); }
 
 .tutorial-card {
   position: relative;
@@ -134,6 +136,29 @@
   outline-offset: 5px;
   box-shadow: 0 0 0 10px rgba(241, 201, 104, .18), 0 12px 45px rgba(0, 0, 0, .45) !important;
   transition: outline-color .2s ease, box-shadow .2s ease;
+}
+
+.tutorial-connector {
+  position: fixed;
+  z-index: 129;
+  height: 2px;
+  border-radius: 999px;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, rgba(241, 201, 104, .65), #f1c968);
+  box-shadow: 0 0 10px rgba(241, 201, 104, .5);
+}
+
+.tutorial-connector::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid #f1c968;
+  border-right: 2px solid #f1c968;
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .tutorial-close {
@@ -226,6 +251,7 @@
   .tutorial-card footer { gap: 8px; }
   .tutorial-card footer button { padding-inline: 12px; }
   .tutorial-highlight { outline-width: 2px !important; outline-offset: 2px; box-shadow: 0 0 0 5px rgba(241, 201, 104, .16) !important; }
+  .tutorial-connector { display: none; }
 }
 
 .account-popover button:disabled {
