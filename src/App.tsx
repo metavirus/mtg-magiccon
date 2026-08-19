@@ -1088,7 +1088,7 @@ export default function App() {
     }
     void upsertUserSelection(`activity-${item.id}`, 'activity', 'review_state', state)
   }
-  const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems) : []
+  const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems, Date.now(), currentCompanion?.name ?? 'Kavi') : []
   const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
   const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
@@ -1210,7 +1210,7 @@ export default function App() {
 
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       {!slice ? <section className="panel empty"><h2>No saved Black Lotus view</h2><p>{online ? 'Refresh the canonical source slice.' : 'Reconnect once to save the critical view for offline reading.'}</p><button onClick={() => void refresh()} disabled={!online || loading}>Refresh</button></section> : <>
-        {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
+        {surface === 'home' && <HomeSurface slice={slice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={slice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
@@ -1735,7 +1735,7 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
   })
 }
 
-function homeWorthKnowingItems(items: ActivityItem[], now = Date.now()) {
+function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentPerson: PersonName = 'Kavi') {
   return items
     .filter(item => item.reviewState === 'needs-review')
     .filter(item => {
@@ -1743,17 +1743,18 @@ function homeWorthKnowingItems(items: ActivityItem[], now = Date.now()) {
       if (item.severity !== 'hot' && item.destination !== 'Home' && item.sourceKind !== 'note') return false
       const checkedAt = new Date(item.checkedAtIso).getTime()
       if (!Number.isFinite(checkedAt)) return true
-      const maxAgeDays = item.severity === 'hot' ? 7 : item.sourceKind === 'note' ? 4 : 3
+      const maxAgeDays = item.severity === 'hot' || item.attention === 'Companion picks changed' ? 7 : item.sourceKind === 'note' ? 4 : 3
       return now - checkedAt <= maxAgeDays * 24 * 60 * 60 * 1000
     })
     .sort((a, b) => {
       const severityScore = (b.severity === 'hot' ? 2 : 0) - (a.severity === 'hot' ? 2 : 0)
       if (severityScore) return severityScore
+      const companionScore = (b.actor !== currentPerson ? 1 : 0) - (a.actor !== currentPerson ? 1 : 0)
+      if (companionScore) return companionScore
       const noteScore = (b.sourceKind === 'note' ? 1 : 0) - (a.sourceKind === 'note' ? 1 : 0)
       if (noteScore) return noteScore
       return new Date(b.checkedAtIso).getTime() - new Date(a.checkedAtIso).getTime()
     })
-    .slice(0, 5)
 }
 
 function isBeforeToday(iso: string, now = new Date()) {
@@ -1974,8 +1975,8 @@ function eventSelectionActivityFromCluster(
     sourceKind: 'activity-log',
     kind: 'manual',
     severity,
-    destination: committedCount > 0 ? 'Home' : 'Activity',
-    attention: committedCount > 0 ? 'Committed choice' : 'Event picks changed',
+    destination: committedCount > 0 || isAnotherPerson ? 'Home' : 'Activity',
+    attention: committedCount > 0 ? 'Committed choice' : isAnotherPerson ? 'Companion picks changed' : 'Event picks changed',
     title,
     summary: items.length === 1
       ? selectionStateSummary(items[0].state, focusEvent)
@@ -4277,10 +4278,10 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
   </aside>
 }
 
-function HomeSurface({ slice, activityItems, onOpenPlan, onOpenItem, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; onOpenPlan: () => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenItem, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; currentPerson: PersonName; onOpenPlan: () => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
   const now = Date.now()
-  const homeSignals = homeWorthKnowingItems(activityItems, now)
+  const homeSignals = homeWorthKnowingItems(activityItems, now, currentPerson)
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
   return <div className="home-surface">
     <div className="home-main-row">
