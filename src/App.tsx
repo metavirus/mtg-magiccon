@@ -1419,6 +1419,25 @@ function renderLinkedText(text: string): ReactNode {
   return parts.length ? parts : text
 }
 
+const promotedMoreDetailLabels = new Set(['prize tix', 'rounds'])
+
+function shouldPromoteEventDetail(label: string) {
+  return promotedMoreDetailLabels.has(label.trim().toLowerCase())
+}
+
+function eventDecisionFacts(event: ExploreEvent) {
+  const baseFacts = event.decisionFacts ?? []
+  const baseLabels = new Set(baseFacts.map(fact => fact.label.trim().toLowerCase()))
+  const promotedFacts = (event.moreDetails ?? [])
+    .filter(item => shouldPromoteEventDetail(item.label) && !baseLabels.has(item.label.trim().toLowerCase()))
+    .map(item => ({ label: item.label, value: item.value, icon: item.label.trim().toLowerCase() === 'prize tix' ? 'ticket' as const : undefined }))
+  return [...baseFacts, ...promotedFacts]
+}
+
+function eventMoreDetails(event: ExploreEvent) {
+  return (event.moreDetails ?? []).filter(item => !shouldPromoteEventDetail(item.label))
+}
+
 function noteToObjectDetail(note: ContextNote): ObjectDetail {
   return {
     id: note.objectId,
@@ -3025,16 +3044,16 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
         <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(selected.detail)}</p></div>
         <section className="detail-section decision-section">
           <div className="format-heading"><strong>{selected.format}</strong>{selected.formatHelp && <details className="format-help"><summary aria-label={`Explain ${selected.format}`}>?</summary><p>{selected.formatHelp}</p></details>}</div>
-          {selected.decisionFacts && <div className="decision-facts" aria-label="Event at a glance">{selected.decisionFacts.map(fact => <div key={fact.label}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
+          {eventDecisionFacts(selected).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(selected).map(fact => <div key={fact.label} className={shouldPromoteEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
           <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {selected.complexityWhy}</p>
         </section>
         <section className="detail-section plan-summary"><strong>Plan effect</strong><p>{selected.planEffect}</p></section>
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={displayEventTitle(selected)} context={`Event · ${displayEventTitle(selected)}`} backlink="plan" compact />
-        {(selected.moreDetails || selected.sourceNote) && <details className="detail-more">
+        {(eventMoreDetails(selected).length > 0 || selected.sourceNote) && <details className="detail-more">
           <summary><span>More details</span><small>Official and operational</small></summary>
           <div className="detail-more-body">
-            {selected.moreDetails?.map(item => <div className="more-row" key={item.label}><span>{item.label}</span><p>{renderLinkedText(item.value)}</p></div>)}
+            {eventMoreDetails(selected).map(item => <div className="more-row" key={item.label}><span>{item.label}</span><p>{renderLinkedText(item.value)}</p></div>)}
             {selected.sourceNote && <div className="more-row source-row"><span>Source</span><p>{renderLinkedText(selected.sourceNote)}</p></div>}
           </div>
         </details>}
@@ -3351,7 +3370,7 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(event.detail)}</p></div>
     <section className="detail-section decision-section">
       <div className="format-heading"><strong>{event.format}</strong>{event.formatHelp && <details className="format-help"><summary aria-label={`Explain ${event.format}`}>?</summary><p>{event.formatHelp}</p></details>}</div>
-      {event.decisionFacts && <div className="decision-facts" aria-label="Event at a glance">{event.decisionFacts.map(fact => <div key={fact.label}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
+      {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={shouldPromoteEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
       <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {event.complexityWhy}</p>
     </section>
     <section className="detail-section plan-summary">
@@ -3359,10 +3378,10 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
       <p>{event.planEffect}</p>
     </section>
     <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} focusedNoteId={focusedNoteId} context={`Event · ${displayEventTitle(event)}`} backlink="explore" compact />
-    {(event.moreDetails || event.sourceNote) && <details className="detail-more">
+    {(eventMoreDetails(event).length > 0 || event.sourceNote) && <details className="detail-more">
       <summary><span>More details</span><small>Official and operational</small></summary>
       <div className="detail-more-body">
-        {event.moreDetails?.map(item => <div className="more-row" key={item.label}><span>{item.label}</span><p>{renderLinkedText(item.value)}</p></div>)}
+        {eventMoreDetails(event).map(item => <div className="more-row" key={item.label}><span>{item.label}</span><p>{renderLinkedText(item.value)}</p></div>)}
         {event.sourceNote && <div className="more-row source-row"><span>Source</span><p>{renderLinkedText(event.sourceNote)}</p></div>}
       </div>
     </details>}
