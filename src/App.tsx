@@ -731,7 +731,9 @@ export default function App() {
       .then(payload => {
         if (!active || !payload || !Array.isArray(payload.alerts)) return
         const incoming = payload.alerts.filter(isMonitoringAlert)
-        setMonitorAlerts(incoming)
+        const mergedById = new Map(monitoringAlerts.map(alert => [alert.id, alert]))
+        for (const alert of incoming) mergedById.set(alert.id, alert)
+        setMonitorAlerts([...mergedById.values()])
       })
       .catch(() => {
         // The intake file is optional. If it is missing or malformed, keep the
@@ -1649,6 +1651,9 @@ const artistSeeds: ArtistSeed[] = [
     signal: 'Watch for Atlanta',
     summary: 'Rebecca Guay remains a useful planning seed because she is a high-value signature target if she appears, but she is not currently listed on the official Atlanta guest page.',
     attendance: 'Unconfirmed',
+    thumbnailUrl: `${import.meta.env.BASE_URL}artist-rebecca-guay.png`,
+    thumbnailAlt: 'Rebecca Guay portrait',
+    thumbnailCaption: 'Planning image supplied by Kavi; Atlanta attendance remains unconfirmed.',
     facts: [
       { label: 'Guest type', value: 'Artist watchlist' },
       { label: 'Appearing', value: 'Unconfirmed for Atlanta' },
@@ -2372,17 +2377,17 @@ const monitoringAlerts: MonitoringAlert[] = [
   {
     id: 'artist-list-route',
     kind: 'site',
-    severity: 'notice',
+    severity: 'hot',
     destination: 'Artists',
-    attention: 'Opportunity discovery',
-    title: 'Artist list appears as a signature-planning opportunity',
-    summary: 'The first artist directory should surface as a milestone and then become browsable by artist/card/signature usefulness.',
-    object: 'Artists · Directory',
-    source: 'MagicCon artists page',
-    checkedAt: 'Aug 4, 8:32 AM',
-    status: 'future route',
-    rationale: 'Artist info is useful only if the app translates it into lazy-friendly opportunities rather than a flat directory.',
-    nextAction: 'Show first appearance on Home; later changes stay in Activity unless they match known card/signature interest.',
+    attention: 'Artist roster live',
+    title: '3 Art of Magic artists are confirmed',
+    summary: 'Cynthia Sheppard, Mark Poole, and Serena Malyon are now listed for Atlanta; card-signing planning can start.',
+    object: 'Artists · Art of Magic',
+    source: 'Official MagicCon Atlanta guests page',
+    checkedAt: 'Aug 19, 2026, 7:10 PM',
+    status: 'official roster started',
+    rationale: 'The first confirmed Atlanta Art of Magic names are a real planning signal because they unlock signature/card matching and artist interest tracking.',
+    nextAction: 'Open Artists, keep the confirmed three visible, and add curated card matches when the card list lands.',
   },
   {
     id: 'venue-map-route',
@@ -2399,7 +2404,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     rationale: 'The map is valuable when it helps answer “where do I go next?” rather than simply reproducing a giant image.',
     nextAction: 'Keep first official map as a Home signal; put detailed extraction and OCR candidates in Map/Activity for review.',
   },
-].filter(() => false) as MonitoringAlert[]
+].filter(alert => alert.id === 'artist-list-route') as MonitoringAlert[]
 
 const contextNotes: ContextNote[] = ([
   {
