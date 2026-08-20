@@ -747,7 +747,7 @@ html,body{max-width:100%;overflow-x:hidden}
   .explore-actions{margin-left:52px}
   .explore-hide-action{right:10px}
 }
-.home-activity-lane .signal-chip-card{grid-template-columns:30px minmax(0,1fr) auto}.home-activity-lane .signal-chip-card>.person-bubbles{justify-self:end}
+.home-activity-lane .signal-chip-card{grid-template-columns:30px minmax(0,1fr) auto}.home-activity-lane .signal-chip-card>.person-bubbles{justify-self:end;width:auto;height:auto;padding-left:6px;border-radius:0;background:transparent;color:inherit}.home-activity-lane .signal-chip-card>.person-bubbles .person-bubble{margin-left:-6px}
 .agenda-event.owner-kavi.conflict:not(.shared){border-color:#438bd8}
 .agenda-event.owner-chris.conflict:not(.shared){border-color:#a85fbd}
 .agenda-event.owner-juan.conflict:not(.shared){border-color:#49a985}
