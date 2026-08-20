@@ -64,7 +64,7 @@ function surfaceSubtitle(surface: Surface) {
     map: 'Trip-area orientation now; official event map when Atlanta publishes it.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Every stay, address, and roommate in one shared view.',
-    artists: 'Confirmed artists will show up here once Atlanta publishes them.',
+    artists: 'Official Art of Magic guests are live; card-signing matches come next.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
     activity: 'Signals, changes, and notes in one review lane.',
   }
@@ -1569,27 +1569,94 @@ type ArtistSeed = {
   status: string
   signal: string
   summary: string
+  attendance: string
+  bioUrl?: string
   thumbnailUrl?: string
   thumbnailAlt?: string
   thumbnailCaption?: string
   facts: Array<{ label: string; value: string }>
+  signatureTargets?: Array<{ name: string; note: string }>
 }
 
 const artistSeeds: ArtistSeed[] = [
   {
+    id: 'cynthia-sheppard',
+    title: 'Cynthia Sheppard',
+    status: 'Official Atlanta Art of Magic guest',
+    signal: 'Confirmed artist',
+    summary: 'Cynthia Sheppard is listed on the official MagicCon: Atlanta guest page as an Art of Magic artist appearing all days. This should become a signing-candidate row once your curated card list is available.',
+    attendance: 'All days',
+    bioUrl: 'https://mcatlanta.mtgfestivals.com/en-us/guests/guest-profile.html?gtID=378578&guest-name=Cynthia-Sheppard',
+    thumbnailUrl: 'https://conv-prod-app.s3.amazonaws.com/media/med/94/84/5/fd0525d0-21d8-4a06-9154-ccd9b5219448.jpg',
+    thumbnailAlt: 'Cynthia Sheppard will be at MagicCon: Atlanta',
+    thumbnailCaption: 'Official MagicCon guest photo',
+    facts: [
+      { label: 'Guest type', value: 'Art of Magic' },
+      { label: 'Appearing', value: 'All days' },
+      { label: 'Source', value: 'Official Atlanta guest directory' },
+      { label: 'Next data', value: 'Match against curated card list' },
+    ],
+    signatureTargets: [
+      { name: 'Curated card list pending', note: 'Add owned-card matches here.' },
+    ],
+  },
+  {
+    id: 'mark-poole',
+    title: 'Mark Poole',
+    status: 'Official Atlanta Art of Magic guest',
+    signal: 'Confirmed artist',
+    summary: 'Mark Poole is listed on the official MagicCon: Atlanta guest page as an Art of Magic artist appearing all days. This is likely a high-value signing row once the owned-card shortlist lands.',
+    attendance: 'All days',
+    bioUrl: 'https://mcatlanta.mtgfestivals.com/en-us/guests/guest-profile.html?gtID=378577&guest-name=Mark-Poole',
+    thumbnailUrl: 'https://conv-prod-app.s3.amazonaws.com/media/med/8/74/38/49b8c640-a5c5-4659-9f62-6d5aa6550263.jpg',
+    thumbnailAlt: 'Mark Poole will be at MagicCon: Atlanta',
+    thumbnailCaption: 'Official MagicCon guest photo',
+    facts: [
+      { label: 'Guest type', value: 'Art of Magic' },
+      { label: 'Appearing', value: 'All days' },
+      { label: 'Source', value: 'Official Atlanta guest directory' },
+      { label: 'Next data', value: 'Prioritize cards worth carrying' },
+    ],
+    signatureTargets: [
+      { name: 'Curated card list pending', note: 'Likely needs a short “bring these” rail.' },
+    ],
+  },
+  {
+    id: 'serena-malyon',
+    title: 'Serena Malyon',
+    status: 'Official Atlanta Art of Magic guest',
+    signal: 'Confirmed artist',
+    summary: 'Serena Malyon is listed on the official MagicCon: Atlanta guest page as an Art of Magic artist appearing all days. Keep her row ready for card matching and signature planning.',
+    attendance: 'All days',
+    bioUrl: 'https://mcatlanta.mtgfestivals.com/en-us/guests/guest-profile.html?gtID=378595&guest-name=Serena-Malyon',
+    thumbnailUrl: 'https://conv-prod-app.s3.amazonaws.com/media/med/57/25/17/7091b6be-239a-48b7-b760-8e2c39d2f5f3.jpg',
+    thumbnailAlt: 'Serena Malyon will be at MagicCon: Atlanta',
+    thumbnailCaption: 'Official MagicCon guest photo',
+    facts: [
+      { label: 'Guest type', value: 'Art of Magic' },
+      { label: 'Appearing', value: 'All days' },
+      { label: 'Source', value: 'Official Atlanta guest directory' },
+      { label: 'Next data', value: 'Match against curated card list' },
+    ],
+    signatureTargets: [
+      { name: 'Curated card list pending', note: 'Add owned-card matches here.' },
+    ],
+  },
+  {
     id: 'rebecca-guay',
     title: 'Rebecca Guay',
-    status: 'Historical Vegas feature; not Atlanta-confirmed',
-    signal: 'Prior MagicCon featured artist',
-    summary: 'Rebecca Guay was one of the featured Art of Magic artists for MagicCon: Las Vegas 2026. Her work is described by MagicCon as romantic, ethereal, fluid, delicate, and colorfully muted — exactly the kind of artist where a short card-signing shortlist could be useful once Atlanta artists are confirmed.',
-    thumbnailUrl: 'https://mtg.wtf/cards_hq/por/195.png',
-    thumbnailAlt: 'Wood Elves illustrated by Rebecca Guay',
-    thumbnailCaption: 'Wood Elves · Portal',
+    status: 'Likely artist watchlist seed',
+    signal: 'Watch for Atlanta',
+    summary: 'Rebecca Guay remains a useful planning seed because she is a high-value signature target if she appears, but she is not currently listed on the official Atlanta guest page.',
+    attendance: 'Unconfirmed',
     facts: [
-      { label: 'Atlanta status', value: 'Not confirmed' },
-      { label: 'Prior event', value: 'MagicCon Las Vegas 2026' },
-      { label: 'Known cards', value: 'Angelic Renewal, Regenerate, Stoneforge Mystic, Serra the Benevolent' },
-      { label: 'Use now', value: 'Good test case for artist/card matching' },
+      { label: 'Guest type', value: 'Artist watchlist' },
+      { label: 'Appearing', value: 'Unconfirmed for Atlanta' },
+      { label: 'Source', value: 'Historical / planning seed' },
+      { label: 'Next data', value: 'Keep only if card list makes her worth tracking' },
+    ],
+    signatureTargets: [
+      { name: 'Curated card list pending', note: 'Match owned cards before deciding whether this stays prominent.' },
     ],
   },
 ]
@@ -1603,8 +1670,9 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
     summary: seed.summary,
     image: seed.thumbnailUrl ? { src: seed.thumbnailUrl, alt: seed.thumbnailAlt ?? seed.title, caption: seed.thumbnailCaption } : undefined,
     facts: seed.facts,
-    source: { label: 'Source status', value: seed.status },
-    rationale: 'This keeps artist planning useful without treating old MagicCon appearances as Atlanta 2026 facts.',
+    source: { label: 'Source status', value: seed.bioUrl ? `${seed.status}: ${seed.bioUrl}` : seed.status },
+    rationale: 'This keeps artist planning tied to official Atlanta facts, then leaves room for your curated card database to decide what is worth carrying for signatures.',
+    note: seed.signatureTargets?.map(target => `${target.name}: ${target.note}`).join('\n'),
     actions: [{ label: 'Open Artists', destination: 'artists' }, { label: 'Review source signals', destination: 'activity' }],
     backlinks: [{ label: 'Artists', destination: 'artists' }, { label: 'Activity', destination: 'activity' }],
   }
@@ -4175,37 +4243,44 @@ function FlightsTripTab() {
 }
 
 function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+  const confirmedArtistCount = artistSeeds.filter(seed => seed.signal === 'Confirmed artist').length
   return <section className="artists-surface" aria-label="Artists">
     <section className="artists-status-card">
       <div className="artist-status-icon" aria-hidden="true"><NavIcon name="artists" /></div>
       <div>
         <span className="eyebrow">ATLANTA 2026</span>
-        <h2>No confirmed artist list yet.</h2>
-        <p>The official Atlanta artist directory is still unpublished, so this stays a tightly marked holding spot for likely returners.</p>
+        <h2>{confirmedArtistCount} confirmed Art of Magic artists.</h2>
+        <p>The official guest page now lists Cynthia Sheppard, Mark Poole, and Serena Malyon for all days. Rebecca stays as an unconfirmed watchlist seed until the artist roster fills out.</p>
       </div>
-      <button type="button" onClick={onOpenActivity}>Open Activity</button>
+      <div className="artist-status-actions">
+        <a href="https://mcatlanta.mtgfestivals.com/en-us/guests.html" target="_blank" rel="noreferrer">Official guests ↗</a>
+        <button type="button" onClick={onOpenActivity}>Open Activity</button>
+      </div>
     </section>
     <div className="artists-layout">
-      <section className="artist-seed-list" aria-label="Historical artist seeds">
+      <section className="artist-seed-list" aria-label="Confirmed artists and signature watchlist">
         {artistSeeds.map(seed => <button key={seed.id} type="button" className="artist-seed-card featured" onClick={() => onOpenObject(artistSeedToObjectDetail(seed))}>
           <span className="artist-seed-mark"><NavIcon name="artists" /></span>
           <span>
             <small>{seed.signal}</small>
             <strong>{seed.title}</strong>
-            <em>{seed.status}</em>
+            <em>{seed.status} · {seed.attendance}</em>
+            {seed.signatureTargets && <span className="artist-card-rail" aria-label="Signature planning placeholders">
+              {seed.signatureTargets.map(target => <i key={`${seed.id}-${target.name}`}>{target.name}</i>)}
+            </span>}
           </span>
           {seed.thumbnailUrl && <span className="artist-seed-thumb" aria-hidden="true"><img src={seed.thumbnailUrl} alt="" loading="lazy" /></span>}
           <b aria-hidden="true">›</b>
         </button>)}
       </section>
       <aside className="artists-intel-card">
-        <span className="eyebrow">WHY THIS IS HERE</span>
-        <h2>Start with one meaningful artist seed.</h2>
-        <p>Rebecca Guay is here as a likely returning artist until Atlanta publishes the official list.</p>
+        <span className="eyebrow">NEXT SHAPE</span>
+        <h2>Turn artists into a signing plan.</h2>
+        <p>This should become a short artist list with horizontal card rails on mobile: select artists, then attach owned/card-database matches worth carrying.</p>
         <dl>
-          <div><dt>Status</dt><dd>Historical only</dd></div>
-          <div><dt>Next unlock</dt><dd>Official Atlanta artist directory</dd></div>
-          <div><dt>Later value</dt><dd>Match against owned cards</dd></div>
+          <div><dt>Source</dt><dd>Official guests page + watchlist seeds</dd></div>
+          <div><dt>Filters later</dt><dd>Selected, has cards, all days, priority</dd></div>
+          <div><dt>Mobile</dt><dd>Artists and card candidates can scroll horizontally</dd></div>
         </dl>
       </aside>
     </div>
