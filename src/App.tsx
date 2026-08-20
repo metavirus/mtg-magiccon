@@ -4936,7 +4936,7 @@ function Login({ onGoogleSignIn, message, messageTone }: { onGoogleSignIn: () =>
     <p className="login-intro">Use Google OAuth for a persistent Supabase session. Magic links stay parked so we do not burn email quota during testing.</p>
     <button type="button" className="oauth-button" onClick={onGoogleSignIn}><span aria-hidden="true">G</span>Continue with Google</button>
     <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Open preview mode</a>
-    <a className="preview-link" href={`${window.location.pathname}?previewOwner=chris#home`}>Open as Chris</a>
+    <a className="preview-link" href={`${window.location.pathname}?preview=1&previewOwner=chris#home`}>Open as Chris</a>
     {message && <p role="status" className={`login-message ${messageTone}`}>{message}</p>}
   </section></div>
 }

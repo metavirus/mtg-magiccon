@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite --configLoader runner",
     "ui:capture": "powershell -ExecutionPolicy Bypass -File scripts/ui_capture.ps1",
+    "smoke:companions": "node scripts/companion_access_smoke.mjs",
     "check:ui": "pnpm build",
     "check:ship": "pnpm build && pnpm validate:text && pnpm validate:secrets",
     "build": "powershell -ExecutionPolicy Bypass -File scripts/clean_dist.ps1 && tsc -b && vite build --configLoader runner",
