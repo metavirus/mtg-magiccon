@@ -4265,9 +4265,6 @@ function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detai
             <small>{seed.signal}</small>
             <strong>{seed.title}</strong>
             <em>{seed.status} · {seed.attendance}</em>
-            {seed.signatureTargets && <span className="artist-card-rail" aria-label="Signature planning placeholders">
-              {seed.signatureTargets.map(target => <i key={`${seed.id}-${target.name}`}>{target.name}</i>)}
-            </span>}
           </span>
           {seed.thumbnailUrl && <span className="artist-seed-thumb" aria-hidden="true"><img src={seed.thumbnailUrl} alt="" loading="lazy" /></span>}
           <b aria-hidden="true">›</b>
