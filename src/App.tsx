@@ -10,7 +10,7 @@ import { artistCardCandidates as generatedArtistCardCandidates } from './data/ar
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
-import { loadInfoKnowledge, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoTopic } from './lib/infoKnowledge'
+import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -1503,7 +1503,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} />}
+        {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
             const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
@@ -2222,6 +2222,12 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
 }
 
 function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+  useEffect(() => {
+    if (!detail) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previousOverflow }
+  }, [detail])
   if (!detail) return null
   return <div className="object-detail-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
@@ -2229,7 +2235,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
         <div className="object-detail-topline">
           <span className="eyebrow">{detail.eyebrow}</span>
           <span className="object-detail-top-actions">
-            <span className="object-kind-chip">{detailKindLabel(detail.kind)}</span>
+            <span className="object-kind-chip">{detail.kindLabel ?? detailKindLabel(detail.kind)}</span>
             <button className="detail-close object-detail-close" type="button" onClick={onClose} aria-label="Close detail">×</button>
           </span>
         </div>
@@ -2249,7 +2255,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
           : <div key={`${fact.label}-${fact.value}`} className="object-fact"><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>
       </section>}
       {detail.rationale && <section className="object-detail-section">
-        <h3>Why it matters</h3>
+        <h3>{detail.rationaleLabel ?? 'Why it matters'}</h3>
         <p>{renderLinkedText(detail.rationale)}</p>
       </section>}
       {detail.links && detail.links.length > 0 && <section className="object-detail-section">
@@ -2259,7 +2265,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
         </nav>
       </section>}
       {detail.note && <section className="object-detail-section object-note-section">
-        <h3>Note / next action</h3>
+        <h3>{detail.noteLabel ?? 'Note / next action'}</h3>
         <p>{renderLinkedText(detail.note)}</p>
       </section>}
       {detail.source && <section className="object-detail-section">
@@ -2276,7 +2282,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
         objectTitle={detail.title}
         objectAnchor={detail.objectAnchor}
         focusedNoteId={detail.focusedNoteId}
-        context={`${detailKindLabel(detail.kind)} · ${detail.title}`}
+        context={`${detail.kindLabel ?? detailKindLabel(detail.kind)} · ${detail.title}`}
         backlink={detail.backlinks?.[0]?.destination ?? 'notes'}
         compact
       />
@@ -2319,6 +2325,7 @@ type NoteTypeFilter = 'all' | 'wallet' | 'trip' | 'events' | 'other'
 type ObjectDetail = {
   id: string
   kind: ObjectDetailKind
+  kindLabel?: string
   eyebrow: string
   title: string
   summary: string
@@ -2329,8 +2336,10 @@ type ObjectDetail = {
   source?: { label: string; value: string }
   links?: MonitoringOfficialResource[]
   rationale?: string
+  rationaleLabel?: string
   actions?: Array<{ label: string; destination?: Surface }>
   note?: string
+  noteLabel?: string
   backlinks?: Array<{ label: string; destination: Surface }>
 }
 type NoteVisibility = 'private' | 'shared'
@@ -4292,32 +4301,65 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   </section>
 }
 
-function InfoSurface({ topics, feed }: { topics: InfoTopic[]; feed: InfoFeedEntry[] }) {
-  const [selectedKey, setSelectedKey] = useState<string | null>(() => new URLSearchParams(window.location.search).get('infoTopic'))
-  const selected = topics.find(topic => topic.topic_key === selectedKey)
-  const hours = topics.find(topic => topic.topic_key === 'hours')
-  const quickKeys = ['hours', 'will-call', 'ticketed-play']
-  const quick = quickKeys.map(key => topics.find(topic => topic.topic_key === key)).filter((topic): topic is InfoTopic => Boolean(topic))
+function infoSources(sources: InfoSource[]) {
+  return sources.filter((source): source is InfoSource & { url: string } => Boolean(source.url)).map(source => ({ label: source.label, url: source.url }))
+}
 
-  if (selected) return <section className="info-surface" aria-label={`${selected.title} information`}>
-    <button className="info-back" type="button" onClick={() => setSelectedKey(null)}>‹ All Info</button>
-    <article className="info-topic-detail">
-      <span className="eyebrow">MAINTAINED TOPIC</span><h2>{selected.title}</h2><p className="info-answer">{selected.concise_answer}</p>
-      <div className="info-facts">{selected.facts.map(fact => <span key={fact.label}><strong>{fact.label}</strong>{fact.value}</span>)}</div>
-      <small>Updated {new Date(selected.updated_at).toLocaleDateString()}</small>
-      <div className="info-sources"><strong>Sources & evidence</strong>{selected.sources.map(source => source.url ? <a key={source.label} href={source.url} target="_blank" rel="noreferrer">{source.label} ↗</a> : <span key={source.label}>{source.label}{source.detail ? ` · ${source.detail}` : ''}</span>)}</div>
-      {relatedInfoFeed(selected.topic_key, feed).length > 0 && <div className="info-related"><strong>Related information</strong>{relatedInfoFeed(selected.topic_key, feed).map(entry => <article key={entry.entry_key}><b>{entry.title}</b><p>{entry.summary}</p></article>)}</div>}
-    </article>
-  </section>
+function infoTopicDetail(topic: InfoTopic, feed: InfoFeedEntry[]): ObjectDetail {
+  const related = relatedInfoFeed(topic.topic_key, feed)
+  return {
+    id: `info-topic-${topic.id}`,
+    kind: 'alert',
+    kindLabel: 'Info',
+    eyebrow: 'QUICK ANSWER',
+    title: topic.title,
+    summary: topic.concise_answer,
+    facts: topic.facts,
+    links: infoSources(topic.sources),
+    rationale: related.length ? related.map(entry => `${entry.title}: ${entry.summary}`).join('\n') : undefined,
+    rationaleLabel: 'Recent changes',
+    source: { label: `Updated ${new Date(topic.updated_at).toLocaleDateString()}`, value: topic.sources.map(source => `${source.label}${source.detail ? ` · ${source.detail}` : ''}`).join('\n') || 'Maintained trip reference' },
+    backlinks: [{ label: 'Info', destination: 'info' }],
+  }
+}
 
+function infoFeedDetail(entry: InfoFeedEntry, topic?: InfoTopic): ObjectDetail {
+  const sources = entry.sources.length ? entry.sources : topic?.sources ?? []
+  return {
+    id: `info-feed-${entry.id}`,
+    kind: 'alert',
+    kindLabel: 'Info update',
+    eyebrow: 'RECENT INFORMATION',
+    title: entry.title,
+    summary: entry.summary,
+    facts: topic?.facts,
+    links: infoSources(sources),
+    source: { label: `Published ${new Date(entry.published_at).toLocaleDateString()}`, value: sources.map(source => `${source.label}${source.detail ? ` · ${source.detail}` : ''}`).join('\n') || 'Official information feed' },
+    backlinks: [{ label: 'Info', destination: 'info' }],
+  }
+}
+
+function InfoTile({ eyebrow, title, summary, meta, tone = 'blue', onClick }: { eyebrow: string; title: string; summary: string; meta?: string; tone?: 'blue' | 'green' | 'gold'; onClick: () => void }) {
+  return <button className={`info-tile ${tone}`} type="button" onClick={onClick}>
+    <span className="info-tile-icon"><NavIcon name="info" /></span>
+    <span className="info-tile-copy"><small>{eyebrow}</small><strong>{title}</strong><span>{summary}</span>{meta && <time>{meta}</time>}</span>
+    <b aria-hidden="true">›</b>
+  </button>
+}
+
+function InfoSurface({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed: InfoFeedEntry[]; onOpenObject: (detail: ObjectDetail) => void }) {
+  const { quick, more } = partitionInfoTopics(topics)
   return <section className="info-surface" aria-label="Info">
-    <section className="info-quick"><span className="eyebrow">QUICK ANSWERS</span><h2>What do you need right now?</h2>
-      {hours && <button className="info-hours-answer" type="button" onClick={() => setSelectedKey('hours')}><span>Show hours</span><strong>{hours.concise_answer}</strong><b aria-hidden="true">›</b></button>}
-      <div className="info-quick-grid">{quick.filter(topic => topic.topic_key !== 'hours').map(topic => <button key={topic.topic_key} type="button" onClick={() => setSelectedKey(topic.topic_key)}><span>{topic.title}</span><strong>{topic.concise_answer}</strong></button>)}</div>
+    <section className="info-quick"><div className="info-section-head"><span className="eyebrow">QUICK ANSWERS</span><h2>What do you need right now?</h2><p>Current trip facts, one tap away.</p></div>
+      <div className="info-tile-grid">{quick.map((topic, index) => <InfoTile key={topic.topic_key} eyebrow={topic.title} title={topic.concise_answer} summary={`${topic.facts.length} maintained facts`} tone={index === 0 ? 'green' : index === 2 ? 'gold' : 'blue'} onClick={() => onOpenObject(infoTopicDetail(topic, feed))} />)}</div>
     </section>
     <div className="info-columns">
-      <section className="info-feed"><span className="eyebrow">RECENT INFORMATION</span><h2>Useful updates stay here.</h2>{feed.map(entry => <article key={entry.entry_key}><small>{new Date(entry.published_at).toLocaleDateString()}</small><h3>{entry.title}</h3><p>{entry.summary}</p>{entry.topic_key && topics.some(topic => topic.topic_key === entry.topic_key) && <button type="button" onClick={() => setSelectedKey(entry.topic_key)}>Open topic</button>}</article>)}</section>
-      <section className="info-topics"><span className="eyebrow">BROWSE TOPICS</span><h2>Maintained answers.</h2>{topics.map(topic => <button key={topic.topic_key} type="button" onClick={() => setSelectedKey(topic.topic_key)}><span><strong>{topic.title}</strong><small>Updated {new Date(topic.updated_at).toLocaleDateString()}</small></span><b aria-hidden="true">›</b></button>)}</section>
+      <section className="info-feed"><div className="info-section-head"><span className="eyebrow">RECENT INFORMATION</span><h2>What changed.</h2><p>Official updates in newest-first order.</p></div>
+        <div className="info-tile-list">{feed.map(entry => { const topic = infoTopicForFeed(entry, topics); return <InfoTile key={entry.entry_key} eyebrow="Official update" title={entry.title} summary={entry.summary} meta={new Date(entry.published_at).toLocaleDateString()} tone="gold" onClick={() => onOpenObject(infoFeedDetail(entry, topic))} /> })}</div>
+      </section>
+      <section className="info-topics"><div className="info-section-head"><span className="eyebrow">MORE TOPICS</span><h2>Useful references.</h2><p>Maintained answers beyond the quick set.</p></div>
+        <div className="info-tile-list">{more.map(topic => <InfoTile key={topic.topic_key} eyebrow="Reference" title={topic.title} summary={topic.concise_answer} meta={`Updated ${new Date(topic.updated_at).toLocaleDateString()}`} onClick={() => onOpenObject(infoTopicDetail(topic, feed))} />)}</div>
+      </section>
     </div>
   </section>
 }
