@@ -2,15 +2,6 @@ name: Daily MagicCon surveyor
 
 on:
   workflow_dispatch:
-    inputs:
-      accept_baseline:
-        description: Accept the current watched-source snapshots as the new baseline
-        required: true
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
   schedule:
     - cron: "15 15 * * *"
 
@@ -58,11 +49,13 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path work/monitoring | Out-Null
-          $args = @("scripts/monitoring_watch_check.mjs")
-          if ("${{ inputs.accept_baseline }}" -eq "true") {
-            $args += "--accept"
-          }
-          node @args | Tee-Object -FilePath work/monitoring/monitor-check.json
+          node scripts/monitoring_watch_check.mjs | Tee-Object -FilePath work/monitoring/monitor-check.json
+
+      - name: Stage deduplicated findings for Kavi review
+        env:
+          SUPABASE_URL: https://pavjsexxbueuzhzgemgy.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: pnpm monitor:stage work/monitoring/monitor-check.json
 
       - name: Summarize survey
         shell: pwsh

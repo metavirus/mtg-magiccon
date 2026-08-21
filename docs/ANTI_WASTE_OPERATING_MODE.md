@@ -18,6 +18,8 @@ Capability states are `READY`, `RECOVERED`, `FIXED`, or `USER-HOST-ACTION REQUIR
 
 Do not retry the same failing command in variants, switch to WSL/Docker/admin/global reinstall work, add wrappers, or keep coding through a missing capability unless the failure specifically requires that route.
 
+Before starting a multi-system, multi-surface, or multi-proof-lane request, decompose it into bounded tranches and identify the independently delegable ones. Dispatch every large independent tranche to a narrow subagent; keep the root chat for coordination, integration, whole-task verification, and durable state. This is not extra validation ceremony. Small or tightly coupled work stays local. If delegation or another explicitly requested capability is blocked, disclose the block and substitute immediately; never silently downgrade. Continue a large delegable tranche in the root chat only after explicit user approval.
+
 If a known lane still fails, treat that first as an agent execution failure until evidence says otherwise. Fixing the immediate symptom is not sufficient. Every recurring or preventable failure requires a prevention delta: the code, regression check, preflight, doc, script, command habit, or removed wrong path that prevents the demonstrated failure. A recurrence after a claimed fix triggers that work immediately; the retry thresholds below apply only to first-time diagnosis within one incident. Do not add broad triple-check ceremony as penance; encode the smallest durable correction.
 
 ## Change tiers

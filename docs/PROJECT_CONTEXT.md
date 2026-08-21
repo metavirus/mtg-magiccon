@@ -4,7 +4,7 @@
 
 Build a private, mobile-first companion for one authenticated attendee at MagicCon Atlanta 2026. It should eventually support official convention intelligence, ticketed play, travel, lodging, purchases, tasks, deadlines, people, vendors, plans, evidence, changes, encounters, expenses, packing, and memories.
 
-The first tranche proves the development and trust foundation rather than predicting the final schema.
+The project began with a narrow development/trust tranche and has since grown into the connected v1.5 companion described in `CURRENT_FRONTIER.md`; schema expansion remains evidence-driven rather than speculative.
 
 ## Operating periods
 
@@ -24,8 +24,9 @@ The app remains useful after the convention rather than treating the event date 
 - Evidence preserves source identity, retrieval time, and exact claims. Normalized facts and interpretation do not erase it.
 - Finite-event facts can be published, tentative, changed, canceled, contradicted, personally confirmed, observed onsite, or superseded.
 - Publisher truth, observed reality, and personal interpretation remain separate; none silently overwrites another.
-- Agent proposals and workflow requests are reviewable intake, never automatic canonical truth.
+- Agent proposals and workflow requests are reviewable intake, never automatic canonical truth. Once Kavi explicitly approves a named, bounded consequence, that approval may authorize the system to execute the safe canonical update and production verification end to end; do not require a redundant later chat request.
 - Sensitive receipts, confirmations, screenshots, and travel artifacts belong in private Storage in a later tranche.
+- Shared trip/event context is shared unless a real privacy reason says otherwise; Black Lotus context is not secret. Kavi's card-signing workbench and signing details remain Kavi-only for now.
 
 ## Foundation proof and first trust slice
 
@@ -39,8 +40,8 @@ The roster table `companion_members` is the canonical lightweight identity scaff
 
 The first bounded convention-domain implementation is the Black Lotus trust slice in `docs/BLACK_LOTUS_TRUST_SLICE.md`. Five deliberately narrow owner-scoped tables prove source identity, retained observation, one normalized dated occurrence, a reversible personal decision, and one itinerary placement. This is a proof of the evidence-to-plan path, not authorization for a comprehensive convention schema.
 
-The conceptual growth path is `Source -> Observation -> Normalized entity -> Personal decision -> Itinerary`. The Black Lotus slice now proves the initial real-page path. A reviewed reconciliation fixture and real offline device test remain required before monitoring or broad normalization.
+The conceptual growth path is `Source -> Observation -> Normalized entity -> Personal decision -> Itinerary`. The Black Lotus slice proves the initial real-page path. Monitoring evidence intake and the artist catalog now exist, while live reviewed reconciliation and a real-device offline reopen remain validation debt; their absence must not be misreported as proof that those implemented systems do not exist.
 
 ## Boundaries
 
-This repository is not a fork of `mtg-events-chatgpt`. That repository is read-only methodology reference material. Do not copy its application, schema, migrations, records, secrets, users, exports, regional requirements, or Git history. Bulk MagicCon ingestion does not belong in this tranche. A temporary GitHub Pages preview is acceptable for iPhone review when it remains fixture-backed by default and clearly separate from production data deployment. Docker, WSL, a local Supabase stack, backend services, and enterprise environment promotion are outside the current architecture; see `docs/DEVELOPMENT_ARCHITECTURE.md`.
+This repository is not a fork of `mtg-events-chatgpt`. That repository is read-only methodology reference material. Do not copy its application, schema, migrations, records, secrets, users, exports, regional requirements, or Git history. Broad automated MagicCon ingestion remains out of scope; reviewed evidence intake is not automatic canonical ingestion. The temporary GitHub Pages app is personal preview hosting with auth-first live Supabase state plus explicit fixture fallbacks, clearly separate from production hosting. Docker, WSL, a local Supabase stack, backend services, and enterprise environment promotion are outside the current architecture; see `docs/DEVELOPMENT_ARCHITECTURE.md`.

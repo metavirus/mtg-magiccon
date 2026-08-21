@@ -1,6 +1,6 @@
 # Repo Operating Contract
 
-Updated: 2026-08-11
+Updated: 2026-08-21
 
 This is a small personal MagicCon companion app, not an enterprise deployment program. Optimize for fast useful iteration, honest state, low ceremony, and reliable public behavior.
 
@@ -12,6 +12,14 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 - Direct-to-main public publish is the normal workflow for bounded approved fixes. Do not stop for a fresh push approval unless scope, reversibility, credentials/auth/deploy safety, or confidence changed.
 - Do not preserve obsolete paths “for reference” if they can still mislead execution.
 - Do not overcorrect with broad new ceremony; remove wrong paths and use the right lane first.
+
+## Work decomposition and capability fidelity
+
+- Before implementation begins on work spanning multiple systems, user-facing surfaces, or proof lanes, list the bounded tranches and identify which can run independently.
+- Delegate every large independent tranche to a narrow subagent. The root chat owns coordination, product/integration decisions, whole-task verification, and durable frontier/backlog updates; it must not silently take over a delegable large tranche.
+- Do not force delegation onto small work or tightly coupled work that cannot safely run independently.
+- An explicit request for subagents, parallel audit, browser verification, Supabase proof, or direct publish is part of the requested lane. Use it when available and safe. If a higher-priority instruction, missing capability, or tool limitation blocks it, say so immediately, name the substitute path, and stop before silently downgrading. Continue a large delegable tranche in the root chat only with explicit user approval of that substitute.
+- Delegation changes who executes a tranche; it does not add validation ceremony, broaden scope, or authorize external effects.
 
 ## Recurrence doctrine
 
@@ -46,7 +54,7 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 - Browser storage is only for UI chrome, transient convenience, or read-only offline cache.
 - Notes, event selections, hidden/not-for-me state, Activity review state, Prize Tix balance, and collaborative state must be Supabase-backed.
 - Honest empty state is better than fake placeholder data.
-- If a control looks clickable, it should work or be removed.
+- Never render raw long URLs in user-facing cards or drawers; use a concise labeled link or paperclip/external-link affordance. Anything that visually reads clickable must be clickable; otherwise restyle or remove it.
 - UI should be compact, useful, and low-explainer.
 - Shared preview quality matters: if Chris saw it, it should look real and honest.
 

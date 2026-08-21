@@ -2,6 +2,7 @@ $ErrorActionPreference = 'Stop'
 $expectedRoot = 'C:\Users\kavig\Documents\Codex\mtg-magiccon'
 $expectedRemote = 'https://github.com/metavirus/mtg-magiccon.git'
 $expectedGitHubLogin = 'metavirus'
+$requiredGitHubScope = 'workflow'
 $expectedRef = 'pavjsexxbueuzhzgemgy'
 $forbiddenRef = 'pyvftzsodzwfqncjbmbc'
 $expectedMigrations = @('20260801184744', '20260801184828', '20260803173516')
@@ -75,6 +76,9 @@ if ($ghExe) {
 
   if ($ghStatusExitCode -ne 0) {
     $failures += "GitHub CLI auth is not usable from the repo-local Codex lane; run 'pnpm gh:auth-local' and rerun pnpm readiness"
+  }
+  if ($ghStatusExitCode -eq 0 -and $ghStatusOutput -notmatch "(?i)\b$requiredGitHubScope\b") {
+    $failures += "GitHub CLI token lacks the '$requiredGitHubScope' scope required to update Actions workflows; run 'pnpm gh:auth-local' and rerun pnpm readiness"
   }
   if ($ghLoginExitCode -ne 0 -or $ghLoginOutput -ne $expectedGitHubLogin) {
     $failures += "GitHub CLI identity mismatch or token failure from the repo-local Codex lane: expected $expectedGitHubLogin, got '$ghLoginOutput'; run 'pnpm gh:auth-local'"

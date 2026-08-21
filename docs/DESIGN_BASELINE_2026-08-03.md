@@ -106,7 +106,7 @@ Rows should stay compact enough to browse 100-plus events. AI rationale is one u
 
 ### Plan
 
-Implementation status: bracketed for v1.5. The direction below remains accepted design evidence, but it is not an MVP production contract. No planner-specific schema or complex interaction work proceeds until representative ticketed-play data exists.
+Implementation status: Plan-lite is active; the direction below remains accepted design evidence, not an MVP production contract. No planner-specific schema or complex contention interaction proceeds until purchases/locked commitments create real conflicts that Plan-lite cannot handle.
 
 Plan is the focused November 13-15 contention workspace. Its accepted responsive direction is:
 

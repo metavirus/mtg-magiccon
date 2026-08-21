@@ -8,6 +8,22 @@ Recurrence rule: if any failure returns after it was represented as fixed, the p
 
 Readiness rule: capabilities are task-specific. If a task may require browser inspection, deployment visibility, or database writes, prove that capability with a small observable smoke test before substantive work. A silent tool call is not readiness. After one bounded repair and one retest, stop if the capability still needs host/user action. Use the report shape: failed capability, failed command/check, host-side fix, and proof command.
 
+## Context compaction and frontier drift
+
+**Symptom:** repeated context compactions cause frontier drift, retreading, opaque long-running work, or implementation to accumulate in the root chat.
+
+**Cause:** large work was not decomposed and dispatched before implementation, or completed decisions/results were left only in chat context.
+
+**Do this:**
+
+- Stop implementation as soon as compaction makes the active lane or completed state uncertain; do not code through compaction churn.
+- Rebuild the handoff packet from `CURRENT_FRONTIER.md`, `docs/WORK_BACKLOG.md`, `git status`, `git log`, the dirty diff, and the latest user constraints.
+- Name exactly one active lane, pre-identify its bounded tranches, and dispatch every large independent tranche to a narrow subagent before resuming.
+- Keep the root chat to coordination, integration decisions, verification, and durable state updates.
+- If delegation is blocked or a tranche is not independently separable, disclose that immediately and obtain explicit approval before the root chat absorbs large implementation work.
+
+**Prevention:** update the frontier/backlog after each material tranche. Chat history is not the only record of current state.
+
 ## pnpm and Corepack on native Windows
 
 **Symptom:** `pnpm` behaves oddly, hangs, or appears missing after host setup changes.
@@ -162,6 +178,16 @@ If public verification fails after a correct push, report propagation/cache lag 
 - Do not keep trying `gh run ...` variants when readiness says the token is bad. Fix the CLI auth lane first.
 - If GitHub CLI auth is unavailable but a read-only public check is enough, use the public Pages URL as a fallback and say that Actions visibility is unavailable; do not call the GitHub lane ready.
 
+### Workflow-file push rejected despite healthy GitHub identity
+
+**Symptom:** `git push` is rejected with “refusing to allow an OAuth App to create or update workflow ... without workflow scope” even though readiness identifies `metavirus` correctly.
+
+**Cause:** GitHub identity and repository access do not prove the token has the separate `workflow` scope needed to change `.github/workflows/*`.
+
+**Do this:** run `pnpm gh:auth-local`. The canonical auth script now checks for `workflow` scope and opens one bounded full GitHub authorization when it is missing. Do not use `gh auth refresh` in this repo-local lane; it previously invalidated the saved token without leaving a usable replacement. Then rerun `pnpm readiness` before pushing.
+
+**Prevention:** readiness must fail when the repo-local GitHub token lacks `workflow` scope. Identity-only auth proof is incomplete for this repository because ordinary approved changes can include Actions workflows.
+
 ### GitHub Actions Pages self-signed certificate failure
 
 **Symptom:** `actions/configure-pages` fails with `Get Pages site failed` and `self-signed certificate; ... try running Node.js with --use-system-ca`.
@@ -273,6 +299,22 @@ If public verification fails after a correct push, report propagation/cache lag 
 - Create the migration file directly under `supabase/migrations/` with the timestamped name.
 - Apply hosted database changes through the connected Supabase MCP/tooling after proving project ref `pavjsexxbueuzhzgemgy`.
 - Do not retry the same CLI command first; that just burns time on a known sandbox edge.
+
+### Hosted migration version drift after MCP apply
+
+**Symptom:** a migration applies successfully through the hosted Supabase tool, but the locally guessed timestamp does not match the hosted migration version, so `pnpm readiness` reports migration identity drift.
+
+**Cause:** the hosted apply operation assigns the canonical version; a preselected local timestamp is not authoritative. Renaming only after readiness fails catches the issue too late and has recurred.
+
+**Do this:**
+
+- Author the SQL outside `supabase/migrations/` (use an ignored temp path) while it is under review.
+- Apply it to canonical project `pavjsexxbueuzhzgemgy` with the descriptive migration name.
+- Immediately list hosted migrations, read the assigned version, and only then place the reviewed SQL in `supabase/migrations/<hosted-version>_<name>.sql`.
+- Run `pnpm readiness` before any further feature or publish work.
+- Never invent or preserve a local migration timestamp for an MCP-applied hosted migration.
+
+**Prevention:** canonical migration files enter `supabase/migrations/` only after the hosted version is known. Readiness remains the guard that proves local/hosted identity, not the first signal that triggers the rename.
 
 ## Browser storage versus Supabase state
 

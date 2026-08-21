@@ -1,16 +1,16 @@
 # Monitoring Hydration Contract
 
-Updated: 2026-08-18
+Updated: 2026-08-21
 
 ## Purpose
 
-The POC site is now ready to receive daily-agent observations without pretending the final database or private artifact model exists.
+Two intake lanes exist. `public/monitoring_findings` is the current durable review queue for cloud-surveyor source evidence. `public/monitoring-intake.json` is retained only for deliberate fixture/preview hydration and compatibility testing; it is not the current cloud execution lane or canonical truth.
 
 During design preview, the app reads `public/monitoring-intake.json` when present. If the file is absent, empty, or malformed, the app falls back to built-in representative alerts. This keeps local review stable while giving the daily agent one small, reversible hydration target.
 
-## What the daily agent may do
+## Legacy fixture-preview lane
 
-When a daily monitoring run finds meaningful information, it may:
+When a deliberate preview-fixture refresh is requested, an agent may:
 
 1. run `pnpm monitor:check` against `monitoring/watch-set.json` to identify deterministic public-source changes before doing broader browsing;
 2. search the approved web, site-tree, newsletter, Gmail, and radar sources from `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`, keeping Gmail MagicCon-specific rather than generic Wizards/Magic marketing and using `monitoring/gmail-watch-queries.json` as the query map;
@@ -18,9 +18,9 @@ When a daily monitoring run finds meaningful information, it may:
 4. replace `public/monitoring-intake.json` with reviewed observation cards;
 5. run `pnpm validate:monitoring` plus the normal validation checks;
 6. build the GitHub Pages preview;
-7. publish the fixture-backed preview when there is something useful for Kavi to see.
+7. publish only through the normal reviewed ship lane.
 
-This is the POC hydration path. It is intentionally file-based so it can be replaced later by Supabase-backed reviewed observations without redesigning Home or Activity.
+This is a legacy POC/QA path. The cloud surveyor must use `monitor:check` → `monitor:stage` → Kavi review instead.
 
 ## What the daily agent must not do yet
 
@@ -57,6 +57,8 @@ The app validates only the shape needed to avoid crashing. The monitor remains r
 ## Surveyor artifact shape
 
 `pnpm monitor:check` writes a machine-readable report to stdout and the GitHub Actions artifact. In addition to public watch-source counts, the report now includes a `ticketedPlay` section. Until a LEAP inventory snapshot is configured, it reports `status: waiting-for-inventory` with zero signals. Once a reviewed snapshot source exists, this section may carry grouped ticketed-play signal candidates from the pure inventory-diff layer, such as first-drop, high-signal event, sold-out, time, location, or price changes. These are routing candidates only; they do not write Supabase, mutate selections, or publish app alerts by themselves.
+
+The durable successor to file-backed preview hydration is `public.monitoring_findings`. Cloud checks may stage source evidence there using a server-only GitHub Actions secret. The table is fingerprint-deduplicated, Kavi-readable/decidable only, and preserves first/last seen plus decision audit fields. The current Yes→`staged` behavior is provisional. The next contract must let a clear Kavi approval execute its explicitly named safe action end to end; staging remains only for genuinely ambiguous or blocked work and must carry an actionable continuation rather than waiting for another chat.
 
 ## Publication rule
 

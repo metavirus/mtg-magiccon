@@ -1,12 +1,12 @@
 # POC Finish Glide Path
 
-Updated: 2026-08-08
+Updated: 2026-08-21
 
 ## Goal
 
 Finish the POC as a useful quiet-period companion that is ready to receive rare, meaningful MagicCon signals from manual checks, Gmail review, newsletter review, or later automation.
 
-The conservative daily heartbeat is now active and may hydrate the fixture-backed preview through the file contract below. The fixture-backed 1.5 UI pass has also proved where findings land: Home for rare breakthroughs, Activity for review, and destination objects for context. This is still not the durable monitoring inbox; the Supabase-backed successor remains future trust work.
+The conservative Codex heartbeat remains read/report oriented and may deliberately hydrate the legacy fixture preview. The durable Supabase-backed `monitoring_findings` inbox and Kavi decision UI now exist; cloud activation remains blocked only on the GitHub Actions server secret and a clean workflow/dedupe proof.
 
 The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`. The source-priority and search-radar strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. The POC file-based hydration seam is recorded in `docs/MONITORING_HYDRATION_CONTRACT.md`.
 
@@ -30,14 +30,14 @@ The remaining work is no longer "make the POC feel real." It is trust/data and o
 
 - keep Google OAuth continuity reliable without reopening the magic-link rabbit hole;
 - design private Storage for original receipts, QR/proof screenshots, and travel artifacts;
-- graduate monitoring observations from file-backed preview intake to reviewed app data;
+- activate the implemented Supabase review queue in the cloud workflow after credential and dedupe proof;
 - wait for real Atlanta ticketed-play inventory before building the production Plan engine.
 
 ## What remains after POC
 
 ### 1. Phone preview hardening
 
-Current state: GitHub Pages preview is live, fixture-backed by default, reachable on iPhone, and accepted for the current tranche.
+Current state: GitHub Pages preview is live, auth-first by default, reachable on iPhone, and accepted for the current tranche. `?preview=1` remains the explicit fixture/QA bypass.
 
 Follow-up only if defects appear:
 
@@ -47,7 +47,7 @@ Follow-up only if defects appear:
 
 ### 2. Monitoring landing contract
 
-Current state: Home, Activity, and Notes can already display fixture-backed monitoring-style observations. In design preview, the app now reads `public/monitoring-intake.json` so the daily agent can hydrate the POC without editing React source or writing canonical database facts.
+Current state: Home and Activity display Kavi-only Supabase review findings in authenticated use. Design preview can still read `public/monitoring-intake.json` as a legacy fixture seam. Neither lane makes source evidence canonical automatically.
 
 Finish work:
 
@@ -62,7 +62,7 @@ Finish work:
   - attention level;
   - current review status.
 - Add enough fixtures to demonstrate the main routes below.
-- The daily monitor may now read approved sources and Gmail and update the POC hydration file when there is something meaningful to show.
+- The Codex heartbeat may read approved sources/Gmail and deliberately update preview fixtures; the GitHub Actions surveyor checks public sources and stages only `monitoring_findings` evidence.
 - Do not let an agent mark facts canonical, update plans, hide events, or send notifications without a reviewed workflow.
 
 ## Landing places for information an agent uncovers

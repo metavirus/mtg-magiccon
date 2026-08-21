@@ -11,7 +11,7 @@ The guiding shift is:
 
 > v1 proved we have tabs. v1.5 proves the app understands convention objects and gets Kavi to the right place at the right time.
 
-Do not use the remainder of 1.5 to broaden the app into every future feature. The fixture/UI side is now pinned unless real phone defects appear. The important remaining work is trust, auth/session continuity, private artifacts, reviewed monitoring hydration, and eventually real ticketed-play data.
+Do not use the remainder of 1.5 to broaden the app into every future feature. The fixture/UI side is pinned unless real phone defects appear. The important remaining work is finishing the cloud-surveyor proof, private artifacts, and real conflict-driven planning—not more UI breadth merely because ticketed-play data exists.
 
 ## Accepted fixture-backed 1.5 state
 
@@ -210,7 +210,7 @@ Goal: let the daily monitor safely make the app more useful without pretending i
 
 ### Scope
 
-- Keep the current file-backed POC hydration seam until the owner-reviewed inbox exists.
+- Keep the file-backed POC seam only for fixture QA; the owner-reviewed Supabase inbox now exists.
 - Graduate only meaningful discoveries:
   - MagicCon-related email;
   - official Atlanta site tree change;
@@ -296,13 +296,12 @@ Goal: resume Plan only when there is real scheduling pressure.
 
 ## Recommended execution order from here
 
-1. **Low-friction auth/session continuity and offline proof.**
-2. **Private artifact proof for badge/travel/receipt originals.**
-3. **Reviewed monitoring hydration into real app objects.**
-4. **One real ticketed-play vertical slice when Atlanta data appears.**
-5. **Production Plan only after representative contention exists.**
+1. **Configure the cloud surveyor credential and prove staged-finding dedupe end to end.**
+2. **Low-friction offline proof and private artifact proof for badge/travel/receipt originals.**
+3. **One real ticketed-play vertical slice when Atlanta data appears.**
+4. **Production Plan only after representative contention exists.**
 
-The original first four chunks are accepted. The remaining order is deliberate: restore trust without breaking mobile review, make retrieval private and durable, then let real monitoring and ticketed-play data drive the next product shape.
+The first five chunks are accepted, and Chunk 6 is implemented in the app/live database but not yet activated in the pushed cloud workflow. Finish that operational gate before moving on; keep Plan-lite until purchases/locked commitments create real conflicts.
 
 ## Explicitly deferred
 

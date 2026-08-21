@@ -2,7 +2,7 @@
 
 ## Foundation acceptance
 
-- [ ] Confirm clean CI on the draft pull request.
+- [x] Historical foundation checkpoint: CI was proven through later direct-to-main Pages deployments; a standing draft PR is no longer the project lane.
 - [x] Record live migration, harmless query, RLS proof, and advisor evidence.
 - [x] Confirm one owner account exists without storing its credentials in the repository.
 
@@ -15,7 +15,7 @@
 - [ ] Test installability and cached critical-view behavior on a real mobile device.
 - [x] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects. Auth is now fully parked for POC review; remaining mobile tension is design quality, especially Wallet Home/Prize Tix, not access.
 - [x] Historical POC phase: disable client auth for fixture-backed review so local, GitHub Pages, and installed mobile review could not be blocked by Supabase magic-link quota. Superseded by the Google OAuth live-auth path.
-- [x] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC is no longer fighting mobile review. Google OAuth is now the primary live-auth path behind `?auth=1`; magic-link UI is parked.
+- [x] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC stopped fighting mobile review. Google OAuth is now the normal auth-first path; `?preview=1` is the deliberate fixture bypass and magic-link UI is parked.
 - [x] **v1.5:** Complete Google/Supabase dashboard configuration and prove Google OAuth on desktop Pages with refresh persistence. Use `docs/GOOGLE_OAUTH_SETUP.md` as the checklist.
 - [ ] **v1.5:** Confirm Google OAuth persistence on iPhone Safari/PWA after refresh/reopen.
 - [x] **v1.5/publish:** Retire the local `tmp/gh-pages` publishing path and use GitHub Actions Pages deployment from the source branch.
@@ -98,7 +98,7 @@
 - [ ] **v1.5/artists/tooling:** Replace the current row-by-row artist/card seed SQL with a batched or set-based importer. The model/schema is now right, but full-corpus refresh should be seconds rather than several minutes of individual `INSERT` chatter.
 - [ ] **v1.5/collab:** Decide shared-selection semantics now that the roster exists: whether event interest/hidden states remain per-user only, when group summary bubbles appear, and how @mentions should notify without creating Activity litter.
 - [ ] **v1.5/trust:** Move receipt original/QR artifacts from the public preview bundle into private Supabase Storage once the artifact manifest is implemented. The current public artifact shortcut is acceptable for this personal preview, but the app contract now expects a stable receipt bundle with `Info` and `Original` modes.
-- [ ] **v1.5:** Resume the production contention-engine design only after representative Atlanta ticketed-play data exists. Treat Plan-lite as a useful interaction proof, not a persistence/schema contract.
+- [ ] **v1.5:** Keep Plan-lite until purchases/locked commitments create real planning conflicts. Resume the production contention engine only when bought/locked events make conflict resolution urgent.
 - [ ] Park v2 collaboration concepts separately from MVP owner-managed planning.
 - [ ] Later, design synthetic during-event scenario tests before relying on onsite behavior.
 - [x] Define and implement the fixture-backed monitoring-alert intake contract for MVP/POC so future Gmail, newsletter, and official-page observations can land as reviewable alerts without becoming automatic canonical facts.
@@ -113,7 +113,9 @@
 - [x] Add `pnpm validate:monitoring` as a pre-publish guard for the POC monitoring intake file, including shape checks, enum checks, duplicate-ID checks, Home-noise checks, and obvious private-artifact leakage checks.
 - [x] Enable the first scheduled monitoring heartbeat after user approval. It can read approved public/Gmail sources and update the POC hydration file when useful, but cannot write Supabase data, modify Gmail, send messages, or change canonical app state.
 - [x] Add deterministic daily monitoring scaffolding so the heartbeat checks an explicit public watch set before ad hoc browsing. `pnpm monitor:check` compares approved public URLs against an ignored local accepted baseline; `monitoring/gmail-watch-queries.json` keeps Gmail searches narrow and MagicCon-specific.
-- [x] Add the first cloud surveyor runtime as a skinny GitHub Actions workflow: scheduled first-party diff checks, artifact output, compact summary, no Gmail/Discord/LEAP, and no database writes.
+- [x] Add the initial skinny cloud surveyor runtime: scheduled first-party diff checks, artifact output, compact summary, and no Gmail/Discord/LEAP. That original artifact-only checkpoint has since gained a bounded noncanonical `monitoring_findings` staging successor.
+- [ ] **v1.5/monitoring — ACTIVE:** Consequence-aware Kavi action execution, lifecycle audit, idempotent reviewed-Activity publication, RLS/privacy proof, and the real Magic Play action mapping are implemented locally and in canonical Supabase. Remaining closure: configure GitHub Actions `SUPABASE_SECRET_KEY`; prove the manual surveyor run and repeated-fingerprint occurrence dedupe; run the full acceptance gate; commit/push; wait for clean Pages; verify public and visually inspect the deployed Kavi flow. Never accept baselines or ingest/promote findings without the named approval.
+- [ ] **v1.5/artists/privacy:** Keep the authenticated artist directory and confirmed appearances shareable while the card database, owned printings, signing picks/interests, private card images, and signing workbench remain Kavi-only unless explicitly changed.
 
 ## Parked
 
@@ -124,8 +126,8 @@
 - Booth-level map enrichment, route hints, map OCR/georeferencing, approximate indoor positioning, and indoor-navigation-style features.
 - True multi-user collaboration, shared schedules, voting, chat, and live sharing.
 - Synthetic event-day scenario suite.
-- Daily monitoring-agent “Codex sauce,” constrained resident intelligence, and AI Feedback review inbox.
-- Production Plan contention workspace, including scenario storage, drag/drop, fuzzy-time machinery, conflict solving, and AI schedule recomputation, until representative ticketed-play data exists.
+- Autonomous AI monitoring/resident intelligence, Discord, Gmail, LEAP automation, broad-source search, and unreviewed fully automatic canonical ingestion. This does not park Kavi-approved bounded action execution in the active surveyor queue.
+- Production Plan contention workspace, including scenario storage, drag/drop, fuzzy-time machinery, conflict solving, and AI schedule recomputation, until purchases/locked commitments create real planning conflicts.
 - Offline write queues and conflict resolution.
 - Full production hosting beyond the temporary fixture-backed GitHub Pages preview.
 - Docker/WSL and a local Supabase replica unless a concrete isolation or migration-rehearsal need emerges.
