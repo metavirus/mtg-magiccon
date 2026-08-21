@@ -3,6 +3,51 @@ export type MonitoringFindingDecision = 'yes' | 'no'
 export type MonitoringExecutionStatus = 'not_started' | 'queued' | 'executing' | 'completed' | 'failed' | 'blocked'
 export type MonitoringOfficialResource = { label: string; url: string }
 
+export type MonitoringConceptRow = {
+  concept_key: string
+  title: string
+  current_summary: string
+  attention_state: string
+  review_state: 'unread' | 'read' | 'archived'
+  latest_resolution: string | null
+  current_state: Record<string, unknown>
+  evidence_count: number
+  first_seen_at: string
+  last_seen_at: string
+  created_at?: string
+  updated_at?: string
+}
+
+export function monitoringConceptResources(concept: MonitoringConceptRow): MonitoringOfficialResource[] {
+  const candidates = [concept.current_state.resources, concept.current_state.provenance]
+    .filter(Array.isArray)
+    .flat()
+  const seen = new Set<string>()
+  return candidates.flatMap(candidate => {
+    if (!candidate || typeof candidate !== 'object') return []
+    const value = candidate as Record<string, unknown>
+    const label = typeof value.label === 'string' ? value.label.trim() : ''
+    const url = typeof value.url === 'string' ? value.url : typeof value.source_url === 'string' ? value.source_url : ''
+    if (!label || !url) return []
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol !== 'https:' || seen.has(parsed.toString())) return []
+      seen.add(parsed.toString())
+      return [{ label, url: parsed.toString() }]
+    } catch {
+      return []
+    }
+  })
+}
+
+export function coalesceMonitoringConcepts<T extends { conceptKey?: string | null }>(conceptItems: T[], legacyItems: T[]) {
+  const canonicalKeys = new Set(conceptItems.map(item => item.conceptKey?.trim()).filter((key): key is string => Boolean(key)))
+  return [...conceptItems, ...legacyItems.filter(item => {
+    const key = item.conceptKey?.trim()
+    return !key || !canonicalKeys.has(key)
+  })]
+}
+
 export type MonitoringFindingRow = {
   id: string
   fingerprint: string

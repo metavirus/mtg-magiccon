@@ -1,11 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
+import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
 
 const finding = (overrides: Partial<MonitoringFindingRow> = {}): MonitoringFindingRow => ({
   id: 'finding', fingerprint: 'a'.repeat(64), source_id: 'source', source_label: 'Official source', source_url: 'https://example.com/very/long/source/url', destination: 'Home', title: 'New official links', summary: 'Summary', review_question: 'Add the links?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T20:00:00.000Z', last_seen_at: '2026-08-21T20:00:00.000Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, ...overrides,
 })
 
 describe('monitoring finding decisions', () => {
+  it('renders a canonical concept once and leaves missing keys fail-safe', () => {
+    const canonical = [{ id: 'concept', conceptKey: 'ticketed-play-sale' }]
+    const legacy = [
+      { id: 'duplicate', conceptKey: 'ticketed-play-sale' },
+      { id: 'unrelated', conceptKey: 'map-release' },
+      { id: 'unkeyed' },
+    ]
+    expect(coalesceMonitoringConcepts(canonical, legacy).map(item => item.id)).toEqual(['concept', 'unrelated', 'unkeyed'])
+  })
+
+  it('deduplicates concept provenance by URL', () => {
+    expect(monitoringConceptResources({
+      concept_key: 'ticketed-play-sale', title: 'Ticketed Play', current_summary: 'Sale timing is published.', attention_state: 'informational', review_state: 'unread', latest_resolution: null,
+      current_state: { resources: [{ label: 'Schedule', url: 'https://example.com/schedule' }], provenance: [{ label: 'Same source', source_url: 'https://example.com/schedule' }, { label: 'FAQ', source_url: 'https://example.com/faq' }] },
+      evidence_count: 2, first_seen_at: '2026-08-21T00:00:00Z', last_seen_at: '2026-08-21T01:00:00Z',
+    })).toEqual([{ label: 'Schedule', url: 'https://example.com/schedule' }, { label: 'FAQ', url: 'https://example.com/faq' }])
+  })
   it('authorizes and queues a named bounded action', () => {
     const mapped = finding({ action_type: 'update_event', action_payload: { event_id: 'event-1' }, rollback_payload: { operation: 'restore_event' } })
     expect(monitoringDecisionPatch('yes', 'kavi-id', mapped, '2026-08-21T20:00:00.000Z')).toMatchObject({

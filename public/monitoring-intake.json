@@ -8,6 +8,7 @@
   "alerts": [
     {
       "id": "atlanta-ticketed-play-aug-25-sale",
+      "conceptKey": "atlanta:ticketed-play:sales-opening",
       "kind": "site",
       "severity": "hot",
       "destination": "Home",

@@ -9,7 +9,7 @@ import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
-import { findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingOfficialResources, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
+import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -403,6 +403,16 @@ async function loadMonitoringFindings(): Promise<MonitoringFindingRow[]> {
   return result.data as MonitoringFindingRow[]
 }
 
+async function loadMonitoringConcepts(): Promise<MonitoringConceptRow[]> {
+  if (!supabase) return []
+  const result = await supabase.from('monitoring_concepts')
+    .select('concept_key,title,current_summary,attention_state,review_state,latest_resolution,current_state,evidence_count,first_seen_at,last_seen_at,created_at,updated_at')
+    .order('last_seen_at', { ascending: false })
+    .limit(100)
+  if (result.error) throw result.error
+  return result.data as MonitoringConceptRow[]
+}
+
 type MentionInboxItem = {
   id: string
   mentionToken: string
@@ -459,6 +469,22 @@ function monitoringFindingQaRows(): MonitoringFindingRow[] {
       { label: 'Prize Wall', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html' },
       { label: 'Playing Guide', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html' },
     ] }, status: 'unread', decision: null, first_seen_at: '2026-08-21T18:57:59.364Z', last_seen_at: '2026-08-21T18:57:59.364Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, action_type: null, action_payload: null, execution_status: 'not_started', canonical_target: null, canonical_result: null, blocker: null, error_message: null, executed_at: null, deployment_evidence: null, verification_evidence: null, retry_count: 0, rollback_payload: null,
+  }]
+}
+
+function monitoringConceptQaRows(): MonitoringConceptRow[] {
+  if (!new URLSearchParams(window.location.search).get('qa')?.split(',').includes('monitoring-concepts')) return []
+  return [{
+    concept_key: 'atlanta:ticketed-play:sales-opening',
+    title: 'Ticketed Play sales',
+    current_summary: 'Ticketed Play sales open August 25 at 10 AM PT.',
+    attention_state: 'material_update',
+    review_state: 'unread',
+    latest_resolution: 'material_update',
+    current_state: { phase: 'announced', sale_date: '2026-08-25', sale_time: '10:00', resources: [{ label: 'Ticketed Play Schedule', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html' }] },
+    evidence_count: 2,
+    first_seen_at: '2026-08-18T17:29:32.154Z',
+    last_seen_at: '2026-08-21T18:57:59.364Z',
   }]
 }
 
@@ -556,6 +582,7 @@ export default function App() {
   const [sharedSelectionRows, setSharedSelectionRows] = useState<UserSelectionRow[]>([])
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [monitoringFindings, setMonitoringFindings] = useState<MonitoringFindingRow[]>([])
+  const [monitoringConcepts, setMonitoringConcepts] = useState<MonitoringConceptRow[]>([])
   const [continuityReady, setContinuityReady] = useState(false)
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
@@ -705,6 +732,7 @@ export default function App() {
       setSharedSelectionRows([])
       setUserActivityRows([])
       setMonitoringFindings(isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? monitoringFindingQaRows() : [])
+      setMonitoringConcepts(monitoringConceptQaRows())
       setExploreEventState(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers)))
       setContinuityReady(true)
       return
@@ -717,16 +745,18 @@ export default function App() {
       setSharedSelectionRows([])
       setUserActivityRows([])
       setMonitoringFindings([])
+      setMonitoringConcepts([])
       setExploreEventState(exploreEvents)
       setContinuityReady(true)
       return
     }
-    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult] = await Promise.allSettled([
+    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult] = await Promise.allSettled([
         loadContextNotes(effectiveOwnerId),
         loadMentionInbox(effectiveOwnerId),
         loadUserSelections(effectiveOwnerId),
         loadUserActivityEvents(effectiveOwnerId),
         isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]),
+        isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]),
       ])
     const failures: string[] = []
     if (notesResult.status === 'fulfilled') setContextNotesState(notesResult.value)
@@ -737,6 +767,8 @@ export default function App() {
     else failures.push('activity')
     if (findingsResult.status === 'fulfilled') setMonitoringFindings(findingsResult.value)
     else failures.push('monitoring findings')
+    if (conceptsResult.status === 'fulfilled') setMonitoringConcepts(conceptsResult.value)
+    else failures.push('monitoring concepts')
     if (selectionsResult.status === 'fulfilled') {
       setSharedSelectionRows(selectionsResult.value)
       const selections = userSelectionMap(selectionsResult.value.filter(row => row.owner_id === effectiveOwnerId))
@@ -1176,7 +1208,37 @@ export default function App() {
     nextAction: alert.nextAction,
     reviewState: alertReview[alert.id] ?? defaultAlertReviewState(alert),
     objectDetail: alertToObjectDetail(alert),
+    conceptKey: alert.conceptKey,
   }))
+  const conceptActivity: ActivityItem[] = monitoringConcepts.map(concept => {
+    const resources = monitoringConceptResources(concept)
+    const sourceLabel = typeof concept.current_state.source_label === 'string' ? concept.current_state.source_label : 'Official source'
+    const sourceUrl = typeof concept.current_state.source_url === 'string' ? concept.current_state.source_url : ''
+    const reviewState: AlertReviewState = concept.review_state === 'archived' ? 'archived' : concept.review_state === 'read' ? 'reviewed' : 'needs-review'
+    const needsAttention = ['hot', 'material_update', 'milestone_transition', 'contradiction'].includes(concept.attention_state)
+    return {
+      id: `concept-${concept.concept_key}`,
+      conceptKey: concept.concept_key,
+      sourceKind: 'monitor', kind: 'site', severity: needsAttention ? 'hot' : 'notice', destination: 'Activity',
+      attention: needsAttention ? 'Needs attention' : 'Worth knowing', title: concept.title, summary: concept.current_summary,
+      object: sourceLabel, source: sourceLabel, checkedAt: new Date(concept.last_seen_at).toLocaleString(), checkedAtIso: concept.last_seen_at,
+      status: concept.latest_resolution ?? concept.attention_state, rationale: concept.current_summary,
+      nextAction: 'Open the concept for its current evidence and provenance.', reviewState,
+      objectDetail: {
+        id: `monitoring-concept-${concept.concept_key}`, kind: 'alert', eyebrow: 'Monitoring concept', title: concept.title,
+        summary: concept.current_summary,
+        facts: [
+          { label: 'Status', value: concept.latest_resolution ?? concept.attention_state },
+          { label: 'Evidence', value: `${concept.evidence_count} retained observation${concept.evidence_count === 1 ? '' : 's'}` },
+          { label: 'Last seen', value: new Date(concept.last_seen_at).toLocaleString() },
+        ],
+        links: resources,
+        source: sourceUrl ? { label: sourceLabel, value: sourceUrl } : undefined,
+        backlinks: [{ label: 'Activity', destination: 'activity' }],
+      },
+      monitoringConcept: concept,
+    }
+  })
   const findingActivity: ActivityItem[] = monitoringFindings.map(finding => {
     const resources = findingOfficialResources(finding)
     const informational = findingIsInformational(finding)
@@ -1218,7 +1280,11 @@ export default function App() {
     monitoringFinding: finding,
     officialResources: resources,
   }})
-  const activityItems = [...generatedActivity, ...noteActivity, ...findingActivity, ...monitorActivity].filter(shouldShowActivityItem).sort((a, b) => {
+  // Raw source-diff findings are internal evidence. Only a genuinely mapped
+  // canonical action may bypass the concept read model during rollout.
+  const actionableFindingActivity = findingActivity.filter(item => item.monitoringFinding && findingNeedsKaviAction(item.monitoringFinding))
+  const monitoringActivity = coalesceMonitoringConcepts(conceptActivity, [...actionableFindingActivity, ...monitorActivity])
+  const activityItems = [...generatedActivity, ...noteActivity, ...monitoringActivity].filter(shouldShowActivityItem).sort((a, b) => {
     const severityRank = { hot: 0, notice: 1, quiet: 2 } as const
     const reviewRank = { 'needs-review': 0, reviewed: 1, archived: 2 } as const
     const reviewDelta = reviewRank[a.reviewState] - reviewRank[b.reviewState]
@@ -1228,6 +1294,19 @@ export default function App() {
     return new Date(b.checkedAtIso).getTime() - new Date(a.checkedAtIso).getTime()
   })
   const setActivityReviewState = (item: ActivityItem, state: AlertReviewState) => {
+    if (item.monitoringConcept) {
+      if (!supabase) return
+      const reviewState = state === 'reviewed' ? 'read' : state === 'archived' ? 'archived' : 'unread'
+      setMonitoringConcepts(current => current.map(row => row.concept_key === item.monitoringConcept!.concept_key ? { ...row, review_state: reviewState } : row))
+      void supabase.from('monitoring_concepts').update({ review_state: reviewState, updated_at: new Date().toISOString() }).eq('concept_key', item.monitoringConcept.concept_key).select().single().then(result => {
+        if (result.error) {
+          setMessageTone('error')
+          setMessage(`Concept review state could not be saved: ${result.error.message}`)
+          void refreshUserContinuity()
+        }
+      })
+      return
+    }
     if (item.monitoringFinding) {
       if (!findingIsInformational(item.monitoringFinding) || !supabase) return
       const findingStatus = state === 'reviewed' ? 'read' : state === 'archived' ? 'archived' : 'unread'
@@ -2269,6 +2348,7 @@ type MonitoringAlert = {
   status: string
   rationale: string
   nextAction: string
+  conceptKey?: string
 }
 
 type ActivityItem = {
@@ -2291,7 +2371,9 @@ type ActivityItem = {
   objectDetail: ObjectDetail
   actor?: PersonName
   monitoringFinding?: MonitoringFindingRow
+  monitoringConcept?: MonitoringConceptRow
   officialResources?: MonitoringOfficialResource[]
+  conceptKey?: string
 }
 
 function personNameFromLabel(label: string): PersonName | undefined {
@@ -2759,6 +2841,7 @@ type ExploreEvent = {
 const monitoringAlerts: MonitoringAlert[] = [
   {
     id: 'ticketed-play-watch',
+    conceptKey: 'atlanta:ticketed-play:sales-opening',
     kind: 'newsletter',
     severity: 'hot',
     destination: 'Home',
