@@ -10,6 +10,7 @@ import { artistCardCandidates as generatedArtistCardCandidates } from './data/ar
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
+import { loadInfoKnowledge, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoTopic } from './lib/infoKnowledge'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -40,6 +41,7 @@ function surfaceLabel(surface: Surface) {
     plan: 'PLAN',
     explore: 'EXPLORE',
     map: 'MAP',
+    info: 'INFO',
     wallet: 'WALLET',
     trip: 'TRIP',
     artists: 'ARTISTS',
@@ -56,6 +58,7 @@ function surfaceTitle(surface: Surface) {
     plan: 'Shape the weekend.',
     explore: 'Find the keepers.',
     map: 'Where things are.',
+    info: 'Know before you need it.',
     wallet: 'Show, claim, remember.',
     trip: 'One shared night, then a split.',
     artists: 'Who might be worth finding.',
@@ -72,6 +75,7 @@ function surfaceSubtitle(surface: Surface) {
     plan: 'Compare real anchors and contenders before they become commitments.',
     explore: 'Browse likely contenders without drowning in event text.',
     map: 'Trip-area orientation now; official event map when Atlanta publishes it.',
+    info: 'Quick answers, maintained topics, and every useful official update.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Every stay, address, and roommate in one shared view.',
     artists: 'Official Art of Magic guests are live; card-signing matches come next.',
@@ -511,9 +515,9 @@ function isExploreState(value: unknown): value is ExploreState {
   return ['none', 'interested', 'tentative', 'committed', 'hidden', 'nope'].includes(String(value))
 }
 
-type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity'
+type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'info' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity'
 
-const surfaces: Surface[] = ['home', 'calendar', 'plan', 'explore', 'map', 'wallet', 'trip', 'artists', 'notes', 'activity']
+const surfaces: Surface[] = ['home', 'calendar', 'plan', 'explore', 'map', 'info', 'wallet', 'trip', 'artists', 'notes', 'activity']
 
 export function surfaceFromHash(hash: string): Surface {
   const candidate = hashPath(hash)
@@ -529,7 +533,8 @@ const destinations = [
   { name: 'Explore', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
   { name: 'Plan', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
   { name: 'Calendar', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
-  { name: 'Map & Info', icon: 'map' as NavIconName, surface: 'map' as Surface },
+  { name: 'Map', icon: 'map' as NavIconName, surface: 'map' as Surface },
+  { name: 'Info', icon: 'info' as NavIconName, surface: 'info' as Surface },
   { name: 'Wallet', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
   { name: 'Trip', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
   { name: 'Artists', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
@@ -583,6 +588,8 @@ export default function App() {
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [monitoringFindings, setMonitoringFindings] = useState<MonitoringFindingRow[]>([])
   const [monitoringConcepts, setMonitoringConcepts] = useState<MonitoringConceptRow[]>([])
+  const [infoTopics, setInfoTopics] = useState<InfoTopic[]>(previewInfoTopics)
+  const [infoFeed, setInfoFeed] = useState<InfoFeedEntry[]>(previewInfoFeed)
   const [continuityReady, setContinuityReady] = useState(false)
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
@@ -750,13 +757,14 @@ export default function App() {
       setContinuityReady(true)
       return
     }
-    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult] = await Promise.allSettled([
+    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult] = await Promise.allSettled([
         loadContextNotes(effectiveOwnerId),
         loadMentionInbox(effectiveOwnerId),
         loadUserSelections(effectiveOwnerId),
         loadUserActivityEvents(effectiveOwnerId),
         isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]),
         isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]),
+        loadInfoKnowledge(),
       ])
     const failures: string[] = []
     if (notesResult.status === 'fulfilled') setContextNotesState(notesResult.value)
@@ -769,6 +777,8 @@ export default function App() {
     else failures.push('monitoring findings')
     if (conceptsResult.status === 'fulfilled') setMonitoringConcepts(conceptsResult.value)
     else failures.push('monitoring concepts')
+    if (infoResult.status === 'fulfilled') { setInfoTopics(infoResult.value.topics); setInfoFeed(infoResult.value.feed) }
+    else failures.push('Info knowledge')
     if (selectionsResult.status === 'fulfilled') {
       setSharedSelectionRows(selectionsResult.value)
       const selections = userSelectionMap(selectionsResult.value.filter(row => row.owner_id === effectiveOwnerId))
@@ -1400,8 +1410,8 @@ export default function App() {
         <button className={surface === 'home' ? 'active' : ''} type="button" onClick={() => openDestination('Home', 'home')}><span aria-hidden="true"><NavIcon name="home" /></span>Home</button>
         <button className={['calendar', 'plan', 'explore'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'events'} onClick={() => setMobileNavMenu(menu => menu === 'events' ? null : 'events')}><span aria-hidden="true"><NavIcon name="calendar" /></span>Events</button>
         <button className={surface === 'map' ? 'active' : ''} type="button" data-tour-target="nav-map" onClick={() => openDestination('Map', 'map')}><span aria-hidden="true"><NavIcon name="map" /></span>Map</button>
-        <button className={surface === 'wallet' ? 'active' : ''} type="button" onClick={() => openDestination('Wallet', 'wallet')}><span aria-hidden="true"><NavIcon name="wallet" /></span>Wallet</button>
-        <button className={['trip', 'artists', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
+        <button className={surface === 'info' ? 'active' : ''} type="button" onClick={() => openDestination('Info', 'info')}><span aria-hidden="true"><NavIcon name="info" /></span>Info</button>
+        <button className={['wallet', 'trip', 'artists', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
       </nav>
       <div className="rail-bottom">
         <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity{mentionUnreadCount > 0 && <b className="nav-count-badge">{mentionUnreadCount > 9 ? '9+' : mentionUnreadCount}</b>}</button>
@@ -1426,6 +1436,7 @@ export default function App() {
               ...destination,
               note: destination.surface === 'explore' ? 'Discover' : destination.surface === 'plan' ? 'Compare' : 'Agenda',
             })) : [
+            { name: 'Wallet', note: 'Passes & Prize Tix', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
             { name: 'Trip', note: 'Hotels & flights', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
             { name: 'Artists', note: 'Historical seeds', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
             { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
@@ -1492,6 +1503,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
             const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
@@ -4234,18 +4246,8 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
 }
 
 function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
-  const [tab, setTab] = useState<'map' | 'info'>('map')
-  const logistics = logisticsToObjectDetail()
-  const viewTabs = (mobile = false) => <div className={`map-tabs${mobile ? ' mobile-surface-view-tabs' : ''}`} role="tablist" aria-label="Map and info view">
-    <button type="button" role="tab" aria-selected={tab === 'map'} className={tab === 'map' ? 'active' : ''} onClick={() => setTab('map')}>Map</button>
-    <button type="button" role="tab" aria-selected={tab === 'info'} className={tab === 'info' ? 'active' : ''} onClick={() => setTab('info')}>Info</button>
-  </div>
-
-  return <section className="map-shell" aria-label="Map and info">
-    <div className="surface-view-tabs-desktop">{viewTabs()}</div>
-    <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>
-
-    {tab === 'map' ? <div className="map-surface">
+  return <section className="map-shell" aria-label="Map">
+    <div className="map-surface">
       <article className="map-card trip-area-card">
         <span className="eyebrow">ORIENTATION NOW</span>
         <h2>Omni to Building C, visually.</h2>
@@ -4286,16 +4288,37 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
         </ul>
         <div className="map-source-note">Source cues: Atlanta FAQ identifies GWCC Building C; GWCC navigation identifies Building C access/rideshare context.</div>
       </article>
-    </div> : <div className="map-surface map-info-surface">
-      <article className="map-card map-info-card">
-        <span className="eyebrow">ONSITE INFO</span>
-        <h2>{logistics.title}</h2>
-        <p>{logistics.summary}</p>
-        <div className="map-info-grid">
-          {logistics.facts?.map(fact => <span key={fact.label}><strong>{fact.label}</strong>{fact.value}</span>)}
-        </div>
-      </article>
-    </div>}
+    </div>
+  </section>
+}
+
+function InfoSurface({ topics, feed }: { topics: InfoTopic[]; feed: InfoFeedEntry[] }) {
+  const [selectedKey, setSelectedKey] = useState<string | null>(() => new URLSearchParams(window.location.search).get('infoTopic'))
+  const selected = topics.find(topic => topic.topic_key === selectedKey)
+  const hours = topics.find(topic => topic.topic_key === 'hours')
+  const quickKeys = ['hours', 'will-call', 'ticketed-play']
+  const quick = quickKeys.map(key => topics.find(topic => topic.topic_key === key)).filter((topic): topic is InfoTopic => Boolean(topic))
+
+  if (selected) return <section className="info-surface" aria-label={`${selected.title} information`}>
+    <button className="info-back" type="button" onClick={() => setSelectedKey(null)}>‹ All Info</button>
+    <article className="info-topic-detail">
+      <span className="eyebrow">MAINTAINED TOPIC</span><h2>{selected.title}</h2><p className="info-answer">{selected.concise_answer}</p>
+      <div className="info-facts">{selected.facts.map(fact => <span key={fact.label}><strong>{fact.label}</strong>{fact.value}</span>)}</div>
+      <small>Updated {new Date(selected.updated_at).toLocaleDateString()}</small>
+      <div className="info-sources"><strong>Sources & evidence</strong>{selected.sources.map(source => source.url ? <a key={source.label} href={source.url} target="_blank" rel="noreferrer">{source.label} ↗</a> : <span key={source.label}>{source.label}{source.detail ? ` · ${source.detail}` : ''}</span>)}</div>
+      {relatedInfoFeed(selected.topic_key, feed).length > 0 && <div className="info-related"><strong>Related information</strong>{relatedInfoFeed(selected.topic_key, feed).map(entry => <article key={entry.entry_key}><b>{entry.title}</b><p>{entry.summary}</p></article>)}</div>}
+    </article>
+  </section>
+
+  return <section className="info-surface" aria-label="Info">
+    <section className="info-quick"><span className="eyebrow">QUICK ANSWERS</span><h2>What do you need right now?</h2>
+      {hours && <button className="info-hours-answer" type="button" onClick={() => setSelectedKey('hours')}><span>Show hours</span><strong>{hours.concise_answer}</strong><b aria-hidden="true">›</b></button>}
+      <div className="info-quick-grid">{quick.filter(topic => topic.topic_key !== 'hours').map(topic => <button key={topic.topic_key} type="button" onClick={() => setSelectedKey(topic.topic_key)}><span>{topic.title}</span><strong>{topic.concise_answer}</strong></button>)}</div>
+    </section>
+    <div className="info-columns">
+      <section className="info-feed"><span className="eyebrow">RECENT INFORMATION</span><h2>Useful updates stay here.</h2>{feed.map(entry => <article key={entry.entry_key}><small>{new Date(entry.published_at).toLocaleDateString()}</small><h3>{entry.title}</h3><p>{entry.summary}</p>{entry.topic_key && topics.some(topic => topic.topic_key === entry.topic_key) && <button type="button" onClick={() => setSelectedKey(entry.topic_key)}>Open topic</button>}</article>)}</section>
+      <section className="info-topics"><span className="eyebrow">BROWSE TOPICS</span><h2>Maintained answers.</h2>{topics.map(topic => <button key={topic.topic_key} type="button" onClick={() => setSelectedKey(topic.topic_key)}><span><strong>{topic.title}</strong><small>Updated {new Date(topic.updated_at).toLocaleDateString()}</small></span><b aria-hidden="true">›</b></button>)}</section>
+    </div>
   </section>
 }
 
