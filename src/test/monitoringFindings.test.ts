@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
+import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingNeedsKaviAction, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
 
 const finding = (overrides: Partial<MonitoringFindingRow> = {}): MonitoringFindingRow => ({
   id: 'finding', fingerprint: 'a'.repeat(64), source_id: 'source', source_label: 'Official source', source_url: 'https://example.com/very/long/source/url', destination: 'Home', title: 'New official links', summary: 'Summary', review_question: 'Add the links?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T20:00:00.000Z', last_seen_at: '2026-08-21T20:00:00.000Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, ...overrides,
@@ -25,6 +25,24 @@ describe('monitoring finding decisions', () => {
   it('does not authorize an unmapped action', () => {
     expect(findingCanAuthorize(finding())).toBe(false)
     expect(() => monitoringDecisionPatch('yes', 'kavi-id', finding())).toThrow(/bounded action mapping/)
+  })
+
+  it('promotes an unresolved executable Activity finding to Home attention', () => {
+    const executableActivityFinding = finding({
+      destination: 'Activity',
+      action_type: 'publish_official_links_alert',
+      action_payload: { links: [] },
+      rollback_payload: { operation: 'remove' },
+      execution_status: 'not_started',
+    })
+    expect(findingNeedsKaviAction(executableActivityFinding)).toBe(true)
+  })
+
+  it('does not promote unmapped or resolved Activity findings to Home attention', () => {
+    expect(findingNeedsKaviAction(finding({ destination: 'Activity' }))).toBe(false)
+    expect(findingNeedsKaviAction(finding({
+      destination: 'Activity', status: 'completed', decision: 'yes', action_type: 'publish_official_links_alert', action_payload: { links: [] }, rollback_payload: { operation: 'remove' }, execution_status: 'completed',
+    }))).toBe(false)
   })
 
   it('makes active and terminal execution states explicit', () => {

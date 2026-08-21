@@ -9,7 +9,7 @@ import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
-import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingDecision, type MonitoringFindingRow } from './lib/monitoringFindings'
+import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingNeedsKaviAction, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingDecision, type MonitoringFindingRow } from './lib/monitoringFindings'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -453,7 +453,7 @@ function isKaviCompanion(companion?: CompanionMember) {
 function monitoringFindingQaRows(): MonitoringFindingRow[] {
   if (!new URLSearchParams(window.location.search).get('qa')?.split(',').includes('monitoring-findings')) return []
   return [{
-    id: 'qa-monitoring-finding', fingerprint: 'a'.repeat(64), source_id: 'atlanta-magic-play', source_label: 'MagicCon Atlanta official pages', source_url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html', destination: 'Home', title: 'Atlanta pages now expose Magic Play links', summary: 'Ticketed Play Schedule, On-Demand Events, Prize Tix and Prize Wall, and the playing guide appeared across official Atlanta navigation.', review_question: 'Publish the reviewed official Magic Play links to Activity?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T18:57:59.364Z', last_seen_at: '2026-08-21T18:57:59.364Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, action_type: 'publish_official_links_alert', action_payload: { approval_label: 'Publish these reviewed links', links: [] }, execution_status: 'not_started', canonical_target: { kind: 'activity', key: 'reviewed-source-alerts' }, canonical_result: null, blocker: null, error_message: null, executed_at: null, deployment_evidence: null, verification_evidence: null, retry_count: 0, rollback_payload: { operation: 'remove_by_action_fingerprint' },
+    id: 'qa-monitoring-finding', fingerprint: 'a'.repeat(64), source_id: 'atlanta-magic-play', source_label: 'MagicCon Atlanta official pages', source_url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html', destination: 'Activity', title: 'Atlanta pages now expose Magic Play links', summary: 'Ticketed Play Schedule, On-Demand Events, Prize Tix and Prize Wall, and the playing guide appeared across official Atlanta navigation.', review_question: 'Publish the reviewed official Magic Play links to Activity?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T18:57:59.364Z', last_seen_at: '2026-08-21T18:57:59.364Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, action_type: 'publish_official_links_alert', action_payload: { approval_label: 'Publish these reviewed links', links: [] }, execution_status: 'not_started', canonical_target: { kind: 'activity', key: 'reviewed-source-alerts' }, canonical_result: null, blocker: null, error_message: null, executed_at: null, deployment_evidence: null, verification_evidence: null, retry_count: 0, rollback_payload: { operation: 'remove_by_action_fingerprint' },
   }]
 }
 
@@ -1176,7 +1176,7 @@ export default function App() {
     id: `finding-${finding.id}`,
     sourceKind: 'monitor',
     kind: 'site',
-    severity: finding.destination === 'Home' ? 'hot' : 'notice',
+    severity: findingNeedsKaviAction(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
     destination: finding.destination,
     attention: 'Kavi decision needed',
     title: finding.title,

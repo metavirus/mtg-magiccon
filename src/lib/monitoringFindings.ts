@@ -70,6 +70,12 @@ export function findingCanAuthorize(finding: MonitoringFindingRow) {
   return Boolean(finding.action_type && finding.action_payload && finding.rollback_payload)
 }
 
+export function findingNeedsKaviAction(finding: MonitoringFindingRow) {
+  if (!findingCanAuthorize(finding)) return false
+  if (finding.status === 'needs_review') return (finding.execution_status ?? 'not_started') === 'not_started'
+  return finding.status === 'authorized' && ['failed', 'blocked'].includes(finding.execution_status ?? '')
+}
+
 export function findingExecutionDetail(finding: MonitoringFindingRow) {
   if (finding.execution_status === 'queued') return 'Approved and queued for bounded execution.'
   if (finding.execution_status === 'executing') return 'Applying the approved change and running its checks.'
