@@ -15,11 +15,11 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 
 ## Work decomposition and capability fidelity
 
-- Before implementation begins on work spanning multiple systems, user-facing surfaces, or proof lanes, list the bounded tranches and identify which can run independently.
-- Delegate every large independent tranche to a narrow subagent. The root chat owns coordination, product/integration decisions, whole-task verification, and durable frontier/backlog updates; it must not silently take over a delegable large tranche.
-- Do not force delegation onto small work or tightly coupled work that cannot safely run independently.
-- An explicit request for subagents, parallel audit, browser verification, Supabase proof, or direct publish is part of the requested lane. Use it when available and safe. If a higher-priority instruction, missing capability, or tool limitation blocks it, say so immediately, name the substitute path, and stop before silently downgrading. Continue a large delegable tranche in the root chat only with explicit user approval of that substitute.
-- Delegation changes who executes a tranche; it does not add validation ceremony, broaden scope, or authorize external effects.
+- A multi-system, multi-surface, or multi-proof-lane request is multi-tranche. An explicit user requirement for delegation also makes the delegated lane mandatory. The root chat's first substantive action must be dispatch.
+- After classification, root may only read required instructions/preflight, dispatch, make cross-tranche decisions, resolve bounded integration conflicts, run the aggregate final gate, coordinate durable state, and give concise updates. Root must not implement a tranche, activate operations, perform browser proof, publish, or run extended tranche diagnostics.
+- If slots are full, wait for or reuse a completed agent. Never absorb the tranche into root. A prohibited root action or two consecutive substantive root tool batches in a delegated lane is a coordination breach: stop, record it, and delegate the remainder. There is no near-completion exception.
+- If Kavi says context is being blown, root stops immediately before further substantive tool use, reconstructs from durable state, and restores delegation.
+- Small, genuinely single-tranche work may stay local. Delegation changes who executes work; it does not add ceremony, broaden scope, or authorize external effects.
 
 ## Recurrence doctrine
 

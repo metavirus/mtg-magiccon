@@ -4,6 +4,12 @@ This is a small hobby companion app, not an enterprise program. Use the narrowes
 
 Known environment constraints are part of the operating model. Do not rediscover them, narrate them as surprises, or prove documented failures still fail. Check `docs/KNOWN_GREMLINS.md`, choose the correct lane first, and only add new process when it removes a wrong path.
 
+## Root coordinator lane
+
+For any multi-tranche request or explicit delegation requirement, dispatch is root's first substantive action. Root is limited to required reads/preflight, dispatch, cross-tranche decisions, bounded integration conflict resolution, the aggregate final gate, durable-state coordination, and concise updates. Tranche implementation, operational activation, browser proof, publishing, and extended diagnostics belong to dispatched agents.
+
+When slots are full, root waits for or reuses a completed agent; it never absorbs the work. A prohibited action or two consecutive substantive root tool batches in a delegated lane triggers an immediate stop, breach record, and delegation of the remainder. Near-completion does not waive the rule. “Context is being blown” from Kavi is an immediate hard stop before further substantive tools.
+
 ## Anticipation standard
 
 For known project lanes, choose the expected working path before running commands. This applies to Git writes, package scripts, public deploy/verification, Supabase-backed state, browser/viewport inspection, and Windows/PowerShell quoting.
@@ -18,7 +24,7 @@ Capability states are `READY`, `RECOVERED`, `FIXED`, or `USER-HOST-ACTION REQUIR
 
 Do not retry the same failing command in variants, switch to WSL/Docker/admin/global reinstall work, add wrappers, or keep coding through a missing capability unless the failure specifically requires that route.
 
-Before starting a multi-system, multi-surface, or multi-proof-lane request, decompose it into bounded tranches and identify the independently delegable ones. Dispatch every large independent tranche to a narrow subagent; keep the root chat for coordination, integration, whole-task verification, and durable state. This is not extra validation ceremony. Small or tightly coupled work stays local. If delegation or another explicitly requested capability is blocked, disclose the block and substitute immediately; never silently downgrade. Continue a large delegable tranche in the root chat only after explicit user approval.
+Before starting a multi-system, multi-surface, or multi-proof-lane request, decompose it into bounded tranches and follow the root coordinator lane above. Small, genuinely single-tranche work stays local.
 
 If a known lane still fails, treat that first as an agent execution failure until evidence says otherwise. Fixing the immediate symptom is not sufficient. Every recurring or preventable failure requires a prevention delta: the code, regression check, preflight, doc, script, command habit, or removed wrong path that prevents the demonstrated failure. A recurrence after a claimed fix triggers that work immediately; the retry thresholds below apply only to first-time diagnosis within one incident. Do not add broad triple-check ceremony as penance; encode the smallest durable correction.
 

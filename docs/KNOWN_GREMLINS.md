@@ -8,6 +8,21 @@ Recurrence rule: if any failure returns after it was represented as fixed, the p
 
 Readiness rule: capabilities are task-specific. If a task may require browser inspection, deployment visibility, or database writes, prove that capability with a small observable smoke test before substantive work. A silent tool call is not readiness. After one bounded repair and one retest, stop if the capability still needs host/user action. Use the report shape: failed capability, failed command/check, host-side fix, and proof command.
 
+## Root absorbs delegated work
+
+**Symptom:** a multi-tranche request accumulates implementation, activation, browser proof, publishing, or extended diagnostics in root; Kavi reports that context is being blown; or root runs two consecutive substantive tool batches in a delegated lane.
+
+**Cause:** dispatch was treated as optional coordination advice instead of a hard execution boundary.
+
+**Do this:**
+
+- Stop root tool use immediately and record the coordination breach.
+- Dispatch the remaining tranche. If slots are full, wait for or reuse a completed agent; do not absorb the work.
+- Root resumes only instruction/preflight reads, dispatch, cross-tranche decisions, bounded integration conflict resolution, aggregate final gate, durable-state coordination, and concise updates.
+- Do not invoke near-completion, prior progress, or context already spent as an exception.
+
+**Prevention:** for multi-tranche or explicitly delegated work, dispatch is root's first substantive action. Any prohibited root action or two consecutive substantive root tool batches in a delegated lane re-triggers this stop immediately.
+
 ## Context compaction and frontier drift
 
 **Symptom:** repeated context compactions cause frontier drift, retreading, opaque long-running work, or implementation to accumulate in the root chat.
