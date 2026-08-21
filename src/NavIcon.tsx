@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export type NavIconName = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity'
+export type NavIconName = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'info' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity'
 
 const paths: Record<NavIconName, ReactNode> = {
   home: <><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9.5 20v-6h5v6"/></>,
@@ -8,6 +8,7 @@ const paths: Record<NavIconName, ReactNode> = {
   plan: <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 3v18M8 9h13M8 15h13"/></>,
   explore: <><path d="m12 3-1.2 3.8a5.7 5.7 0 0 1-4 4L3 12l3.8 1.2a5.7 5.7 0 0 1 4 4L12 21l1.2-3.8a5.7 5.7 0 0 1 4-4L21 12l-3.8-1.2a5.7 5.7 0 0 1-4-4Z"/><path d="m19 3-.35 1.15a2.2 2.2 0 0 1-1.5 1.5L16 6l1.15.35a2.2 2.2 0 0 1 1.5 1.5L19 9l.35-1.15a2.2 2.2 0 0 1 1.5-1.5L22 6l-1.15-.35a2.2 2.2 0 0 1-1.5-1.5Z"/></>,
   map: <><path d="m3 6 5-3 8 3 5-3v15l-5 3-8-3-5 3Z"/><path d="M8 3v15M16 6v15"/></>,
+  info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></>,
   wallet: <><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H19a2 2 0 0 1 2 2v13H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3"/><path d="M15 11h6v5h-6a2.5 2.5 0 0 1 0-5Z"/><path d="M16 13.5h.01"/></>,
   trip: <><path d="M22 2 9.5 14.5"/><path d="m22 2-7 20-4-8-8-4Z"/></>,
   artists: <><path d="M12 22a9 9 0 1 0-7.4-3.9c.7 1 1.9 1 2.8.4l.6-.4a2 2 0 0 1 3.1 1.7V20a2 2 0 0 0 2 2Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="7" r=".8"/><circle cx="14" cy="7.5" r=".8"/><circle cx="16.5" cy="11" r=".8"/></>,

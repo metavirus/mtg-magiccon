@@ -26,6 +26,8 @@ Concept identity comes from versioned extraction rules over normalized facts, ne
 
 Repeated mentions of the August 25, 10 AM PT Ticketed Play sale resolve to one concept. Corroboration adds evidence/provenance without producing another Home or Hot card and without downgrading an existing material attention state.
 
+Meaningful `new`, `material_update`, `contradiction`, and `milestone_transition` resolutions also project to one deterministic persistent Info feed entry. `noise` and `corroboration` do not. Only explicitly mapped concepts update a maintained Info topic; Home remains a separate consequence gate. See `docs/INFO_KNOWLEDGE_MODEL.md`.
+
 ## Visibility and safety
 
 Noise and raw findings do not render as user-facing Activity items. A concept renders once; a keyed legacy alert is suppressed when its database concept exists. Missing concept keys are never guessed or heuristically merged. Material updates, contradictions, and milestone transitions receive attention; ordinary corroboration does not.

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import { createClient } from '@supabase/supabase-js'
 import { buildMonitoringCandidateRows } from './lib/build_monitoring_candidates.mjs'
 import { extractMonitoringConcept, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
+import { projectResolutionToInfo } from './lib/monitoring_info_projection.mjs'
 
 const reportPath = process.argv[2]
 if (!reportPath) throw new Error('Usage: pnpm monitor:stage <monitor-report.json>')
@@ -65,6 +66,7 @@ const conceptResult = conceptKeys.length
 if (conceptResult.error) throw conceptResult.error
 const concepts = new Map((conceptResult.data ?? []).map(concept => [concept.concept_key, concept]))
 let conceptEvidenceAdded = 0
+let infoFeedAdded = 0
 
 for (const observation of observations) {
   if (!observation.findingId) throw new Error(`Missing staged finding readback for ${observation.fingerprint}.`)
@@ -121,6 +123,16 @@ for (const observation of observations) {
     }
   }
   concepts.set(concept.concept_key, concept)
+  const infoProjection = projectResolutionToInfo(resolution, observation)
+  if (infoProjection) {
+    const feedWrite = await client.from('info_feed_entries').upsert(infoProjection.feed, { onConflict: 'entry_key', ignoreDuplicates: true }).select('id')
+    if (feedWrite.error) throw feedWrite.error
+    infoFeedAdded += feedWrite.data?.length ?? 0
+    if (infoProjection.topic) {
+      const topicWrite = await client.from('info_topics').update({ concise_answer: infoProjection.topic.concise_answer, sources: infoProjection.topic.sources, updated_at: infoProjection.topic.updated_at }).eq('topic_key', infoProjection.topic.topic_key)
+      if (topicWrite.error) throw topicWrite.error
+    }
+  }
 }
 
-console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${conceptEvidenceAdded} new concept evidence link(s); fingerprints and concept keys deduplicated)`)
+console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${conceptEvidenceAdded} new concept evidence link(s); ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)

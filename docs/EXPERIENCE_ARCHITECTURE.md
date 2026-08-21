@@ -1,5 +1,9 @@
 # Experience Architecture
 
+## Map and Info boundary
+
+Map owns spatial orientation, venue navigation, and the future event-floor map. Info is a separate top-level destination for durable official knowledge: quick answers, a persistent Recent information feed, and browsable maintained topics with sources. Activity records app/user activity and review state; it is not the archive for official event knowledge.
+
 Updated: 2026-08-03
 Status: Core direction and first-pass surface baseline accepted; mobile navigation remains under implementation review
 
