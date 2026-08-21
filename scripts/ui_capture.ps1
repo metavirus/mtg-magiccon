@@ -4,6 +4,7 @@ $Route = 'home'
 $Port = 5173
 $Width = 1600
 $Height = 1000
+$Query = ''
 
 $forwardedArgs = @($args | Where-Object { $_ -ne '--' })
 for ($index = 0; $index -lt $forwardedArgs.Count; $index++) {
@@ -12,6 +13,7 @@ for ($index = 0; $index -lt $forwardedArgs.Count; $index++) {
     '^-Port$' { $index++; $Port = [int]$forwardedArgs[$index]; continue }
     '^-Width$' { $index++; $Width = [int]$forwardedArgs[$index]; continue }
     '^-Height$' { $index++; $Height = [int]$forwardedArgs[$index]; continue }
+    '^-Query$' { $index++; $Query = $forwardedArgs[$index]; continue }
     default {
       if ($forwardedArgs[$index] -and -not $forwardedArgs[$index].StartsWith('-')) {
         $Route = $forwardedArgs[$index]
@@ -104,7 +106,16 @@ $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $shotPath = Join-Path $tempRoot "$stamp-$safeFileRoute-$Width`x$Height.png"
 $domPath = Join-Path $tempRoot "$stamp-$safeFileRoute-dom.html"
 $textPath = Join-Path $tempRoot "$stamp-$safeFileRoute-text.txt"
-$targetUrl = "$baseUrl`?preview=1&ui-capture=$stamp#$safeRoute"
+$queryString = "preview=1&ui-capture=$stamp"
+if ($Query) {
+  $cleanQuery = $Query.Trim()
+  if ($cleanQuery.StartsWith('?')) { $cleanQuery = $cleanQuery.Substring(1) }
+  if ($cleanQuery.StartsWith('&')) { $cleanQuery = $cleanQuery.Substring(1) }
+  if ($cleanQuery.Length -gt 0) {
+    $queryString = "$queryString&$cleanQuery"
+  }
+}
+$targetUrl = "$baseUrl`?$queryString#$safeRoute"
 
 $node = Get-Command node.exe -ErrorAction SilentlyContinue
 if (-not $node) { $node = Get-Command node -ErrorAction SilentlyContinue }

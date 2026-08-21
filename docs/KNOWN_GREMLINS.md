@@ -31,6 +31,7 @@ Readiness rule: capabilities are task-specific. If a task may require browser in
 - Run `pnpm build` first.
 - Run `pnpm ui:capture -- -Route <route>`.
 - Treat `UI_CAPTURE: PASS` plus URL/title, visible text, DOM, and screenshot paths as the local browser-readiness proof.
+- For authenticated or user-state UI, do not accept empty preview as proof. Use a deterministic local QA query through the same capture lane, for example `pnpm ui:capture -- -Route artists -Query "previewOwner=kavi&qa=artist-signing"`. This exercises preview auth plus seeded state without depending on Supabase OAuth/browser session freshness.
 - If interactive browser control is needed and appears broken, apply the stale-tab recovery below before asking Kavi to refresh/restart the Codex task. Do not continue visual work blind.
 
 ## In-app browser stale error tab after local server restart

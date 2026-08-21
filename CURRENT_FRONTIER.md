@@ -1,9 +1,10 @@
 # Current Frontier
 
-Updated: 2026-08-12
+Updated: 2026-08-20
 
 ## Where we are
 
+- Artist/card signing data has moved out of CSV-first staging into a canonical normalized Supabase catalog. Migration `20260820173320_artist_card_canonical_catalog.sql` owns artists, Atlanta appearances, card identities, owned printings, style/taste assessments, import provenance, and per-user signing interests. Live Supabase readback on August 20, 2026 shows the full local corpus imported: 1,122 artists, 5,068 cards, 5,451 printings, 5,451 assessments, and 4 Atlanta appearance rows: Cynthia Sheppard, Mark Poole, Serena Malyon confirmed; Rebecca Guay unconfirmed. The Artists UI now reads this catalog first; enriched CSVs and generated local modules are source/import evidence or offline fallback only, not app truth.
 - The public preview has completed a share-readiness cleanup for Chris: representative Vegas events, fake Wallet proofs/receipts, routing-demo Activity alerts, speculative artist cards, and design-note fixtures are no longer exposed. Empty surfaces now state the real waiting condition; confirmed Atlanta Black Lotus, trip, badge, and forecast facts remain.
 - Greenfield mobile PWA and operating documentation are established.
 - Supabase identity is fixed to `pavjsexxbueuzhzgemgy`.
