@@ -2,6 +2,7 @@ import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { createPortal } from 'react-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import { retryOnceAfterUnauthorized } from './lib/sessionRefreshRetry'
 import { NavIcon, type NavIconName } from './NavIcon'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
 import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
@@ -370,9 +371,11 @@ function userSelectionMap(rows: UserSelectionRow[]) {
 
 async function loadUserSelections(_ownerId: string): Promise<UserSelectionRow[]> {
   if (!supabase) return []
-  const result = await supabase.from('user_selections')
-    .select('owner_id,object_id,object_kind,selection_key,selection_value,updated_at')
-    .order('updated_at', { ascending: false })
+  const client = supabase
+  const fetchSelections = () => client.from('user_selections')
+      .select('owner_id,object_id,object_kind,selection_key,selection_value,updated_at')
+      .order('updated_at', { ascending: false })
+  const result = await retryOnceAfterUnauthorized(fetchSelections, () => client.auth.refreshSession())
   if (result.error) throw result.error
   return result.data as UserSelectionRow[]
 }
@@ -384,11 +387,7 @@ async function loadUserActivityEvents(_ownerId: string): Promise<UserActivityEve
       .select('id,object_id,object_kind,activity_type,actor_label,summary,details,created_at')
       .order('created_at', { ascending: false })
       .limit(200)
-  let result = await fetchActivity()
-  if (result.error && result.status === 401) {
-    const refreshed = await client.auth.refreshSession()
-    if (!refreshed.error) result = await fetchActivity()
-  }
+  const result = await retryOnceAfterUnauthorized(fetchActivity, () => client.auth.refreshSession())
   if (result.error) throw result.error
   return result.data as UserActivityEventRow[]
 }
@@ -719,8 +718,11 @@ export default function App() {
       setExploreEventState(applySelectionState(exploreEvents, selections, slice, currentCompanionFromSession(effectiveSession, companionMembers)))
     } else failures.push('selections')
     if (failures.length) {
-      setMessageTone('error')
-      setMessage(`${failures.join(', ')} could not be refreshed. Other account data is still available.`)
+      console.warn('Continuity refresh partially failed', failures)
+      setMessageTone(failures.length === 1 && failures[0] === 'selections' ? 'info' : 'error')
+      setMessage(failures.length === 1 && failures[0] === 'selections'
+        ? 'Selections are taking a moment to sync. Notes, signals, and other account data are still available.'
+        : `${failures.join(', ')} could not be refreshed. Other account data is still available.`)
     } else setMessage('')
     setContinuityReady(true)
   }, [companionMembers, designPreview, isPreviewOwnerMode, online, effectiveOwnerId, slice, effectiveSession])
