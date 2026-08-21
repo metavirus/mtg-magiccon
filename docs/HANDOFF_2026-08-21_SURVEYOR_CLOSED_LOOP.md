@@ -2,6 +2,10 @@
 
 Updated: 2026-08-21
 
+## Product correction — informational findings are not actions
+
+This section supersedes the older official-links approval language below. The Magic Play link appearance is useful source evidence already visible in Activity; it must not ask Kavi to approve publishing a duplicate Activity alert. Official-link findings use `unread`, `read`, and `archived` review state, preserve labeled links in evidence, carry no action mapping or decision audit, and never mutate canonical facts. The specific official-links executor/RPC is retired. Consequence-aware authorization remains available only for future findings with a separate, real canonical effect. No baseline was accepted.
+
 ## Final closeout — live and verified
 
 - Commit `f0fe3f1` (`Close the reviewed surveyor action loop`) was pushed to `main`.

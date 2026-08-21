@@ -24,11 +24,12 @@ The mechanical web watch set is now recorded in `monitoring/watch-set.json`. Run
 
 The cloud surveyor now stages changed-source candidates in `public.monitoring_findings` after the mechanical check. `pnpm monitor` is the canonical alias for the check, and `pnpm monitor:stage <report.json>` performs the server-side staging step. GitHub Actions must have a server-only `SUPABASE_SECRET_KEY` repository secret for canonical project `pavjsexxbueuzhzgemgy`; the staging command fails closed when it is absent. The secret must never use a publishable/browser key and must never be committed. Identical fingerprints update one finding rather than creating new inbox cards, and identical shared-navigation link deltas are collapsed across watched pages.
 
-Only Kavi can read or decide these rows through the app. The current implementation provisionally maps **Yes** to `staged` and **No** to `dismissed`; that proves authorization and audit mechanics but is not the final closed loop.
+Only Kavi can read and manage these rows through the app. Informational source evidence uses `unread`, `read`, and `archived`; those transitions are review state, not approval, and carry no decision audit.
 
-### Decision-to-action contract to implement next
+### Decision-to-action boundary
 
-- Every decision prompt must name its consequence, such as `Add these official links`, `Update this event`, or `Publish this reviewed change`; avoid a generic Yes whose effect is hidden.
+- Do not create a decision prompt when the finding is already the useful object. New official links are informational evidence, not permission to publish a duplicate alert.
+- Every genuine decision prompt must name a distinct canonical consequence, such as `Update this event`; avoid a generic Yes whose effect is hidden.
 - **Yes** authorizes the stated action. When the source, target mapping, transformation, and rollback are deterministic and bounded, the system should perform the canonical update, run the proportional validation lane, publish when public behavior changed, verify the deployed result, and record the outcome without waiting for Kavi to remember to ask in chat later.
 - **No** dismisses the candidate with who/when audit.
 - Use `staged` only when the mapping is genuinely ambiguous, required capability/credential is blocked, or the consequence cannot yet be safely automated. A staged row must record a concrete blocker, next action, and execution owner/wakeup mechanism; it must not become passive “ask Kavi again someday” purgatory.

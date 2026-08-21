@@ -9,7 +9,7 @@ import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
-import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingNeedsKaviAction, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingDecision, type MonitoringFindingRow } from './lib/monitoringFindings'
+import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingOfficialResources, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -453,7 +453,12 @@ function isKaviCompanion(companion?: CompanionMember) {
 function monitoringFindingQaRows(): MonitoringFindingRow[] {
   if (!new URLSearchParams(window.location.search).get('qa')?.split(',').includes('monitoring-findings')) return []
   return [{
-    id: 'qa-monitoring-finding', fingerprint: 'a'.repeat(64), source_id: 'atlanta-magic-play', source_label: 'MagicCon Atlanta official pages', source_url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html', destination: 'Activity', title: 'Atlanta pages now expose Magic Play links', summary: 'Ticketed Play Schedule, On-Demand Events, Prize Tix and Prize Wall, and the playing guide appeared across official Atlanta navigation.', review_question: 'Publish the reviewed official Magic Play links to Activity?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T18:57:59.364Z', last_seen_at: '2026-08-21T18:57:59.364Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, action_type: 'publish_official_links_alert', action_payload: { approval_label: 'Publish these reviewed links', links: [] }, execution_status: 'not_started', canonical_target: { kind: 'activity', key: 'reviewed-source-alerts' }, canonical_result: null, blocker: null, error_message: null, executed_at: null, deployment_evidence: null, verification_evidence: null, retry_count: 0, rollback_payload: { operation: 'remove_by_action_fingerprint' },
+    id: 'qa-monitoring-finding', fingerprint: 'a'.repeat(64), source_id: 'atlanta-magic-play', source_label: 'MagicCon Atlanta official pages', source_url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html', destination: 'Activity', title: 'Official Magic Play resources are now available', summary: 'Official Atlanta navigation now links directly to ticketed play, on-demand events, Prize Wall details, and the playing guide.', review_question: 'Open the official resources that matter to your planning.', evidence: { presentation_links: [
+      { label: 'Ticketed Play Schedule', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play.html' },
+      { label: 'On-Demand Events', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html' },
+      { label: 'Prize Wall', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html' },
+      { label: 'Playing Guide', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html' },
+    ] }, status: 'unread', decision: null, first_seen_at: '2026-08-21T18:57:59.364Z', last_seen_at: '2026-08-21T18:57:59.364Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, action_type: null, action_payload: null, execution_status: 'not_started', canonical_target: null, canonical_result: null, blocker: null, error_message: null, executed_at: null, deployment_evidence: null, verification_evidence: null, retry_count: 0, rollback_payload: null,
   }]
 }
 
@@ -1172,13 +1177,16 @@ export default function App() {
     reviewState: alertReview[alert.id] ?? defaultAlertReviewState(alert),
     objectDetail: alertToObjectDetail(alert),
   }))
-  const findingActivity: ActivityItem[] = monitoringFindings.map(finding => ({
+  const findingActivity: ActivityItem[] = monitoringFindings.map(finding => {
+    const resources = findingOfficialResources(finding)
+    const informational = findingIsInformational(finding)
+    return {
     id: `finding-${finding.id}`,
     sourceKind: 'monitor',
     kind: 'site',
-    severity: findingNeedsKaviAction(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
+    severity: findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
     destination: finding.destination,
-    attention: 'Kavi decision needed',
+    attention: informational ? 'New official resources' : 'Kavi decision needed',
     title: finding.title,
     summary: finding.summary,
     object: finding.source_label,
@@ -1186,9 +1194,9 @@ export default function App() {
     checkedAt: new Date(finding.last_seen_at).toLocaleString(),
     checkedAtIso: finding.last_seen_at,
     status: findingReviewLabel(finding),
-    rationale: 'The surveyor retained the source evidence. Approval authorizes only the named, bounded consequence shown below.',
-    nextAction: findingExecutionDetail(finding),
-    reviewState: finding.status === 'dismissed' ? 'archived' : finding.execution_status === 'completed' ? 'reviewed' : 'needs-review',
+    rationale: informational ? 'These first-party links make the new play information directly useful without changing any canonical event or plan.' : 'The surveyor retained source evidence for a bounded canonical decision.',
+    nextAction: informational ? 'Open the relevant official resource, then mark this read or archive it.' : findingExecutionDetail(finding),
+    reviewState: ['archived', 'dismissed'].includes(finding.status) ? 'archived' : ['read', 'completed'].includes(finding.status) ? 'reviewed' : 'needs-review',
     objectDetail: {
       id: `monitoring-finding-${finding.id}`,
       kind: 'alert',
@@ -1196,19 +1204,20 @@ export default function App() {
       title: finding.title,
       summary: finding.summary,
       facts: [
-        { label: 'Decision', value: findingReviewLabel(finding) },
+        { label: informational ? 'Status' : 'Decision', value: findingReviewLabel(finding) },
         { label: 'First seen', value: new Date(finding.first_seen_at).toLocaleString() },
         { label: 'Last seen', value: new Date(finding.last_seen_at).toLocaleString() },
         { label: 'Repeated', value: `${finding.occurrence_count} observation${finding.occurrence_count === 1 ? '' : 's'}` },
-        ...(finding.canonical_target ? [{ label: 'Target', value: String(finding.canonical_target.label ?? finding.canonical_target.key ?? finding.canonical_target.kind ?? 'Canonical app state') }] : []),
         ...(finding.executed_at ? [{ label: 'Executed', value: new Date(finding.executed_at).toLocaleString() }] : []),
       ],
       source: { label: finding.source_label, value: finding.source_url },
-      rationale: findingExecutionDetail(finding),
+      links: resources,
+      rationale: informational ? 'Use the labeled official resources below; no app data changes are waiting for approval.' : findingExecutionDetail(finding),
       backlinks: [{ label: 'Activity', destination: 'activity' }],
     },
     monitoringFinding: finding,
-  }))
+    officialResources: resources,
+  }})
   const activityItems = [...generatedActivity, ...noteActivity, ...findingActivity, ...monitorActivity].filter(shouldShowActivityItem).sort((a, b) => {
     const severityRank = { hot: 0, notice: 1, quiet: 2 } as const
     const reviewRank = { 'needs-review': 0, reviewed: 1, archived: 2 } as const
@@ -1219,7 +1228,19 @@ export default function App() {
     return new Date(b.checkedAtIso).getTime() - new Date(a.checkedAtIso).getTime()
   })
   const setActivityReviewState = (item: ActivityItem, state: AlertReviewState) => {
-    if (item.monitoringFinding) return
+    if (item.monitoringFinding) {
+      if (!findingIsInformational(item.monitoringFinding) || !supabase) return
+      const findingStatus = state === 'reviewed' ? 'read' : state === 'archived' ? 'archived' : 'unread'
+      setMonitoringFindings(current => current.map(row => row.id === item.monitoringFinding!.id ? { ...row, status: findingStatus } : row))
+      void supabase.from('monitoring_findings').update({ status: findingStatus, updated_at: new Date().toISOString() }).eq('id', item.monitoringFinding.id).select().single().then(result => {
+        if (result.error) {
+          setMessageTone('error')
+          setMessage(`Review state could not be saved: ${result.error.message}`)
+          void refreshUserContinuity()
+        }
+      })
+      return
+    }
     if (item.sourceKind === 'monitor') {
       setAlertReviewState(item.id, state)
       return
@@ -2140,6 +2161,12 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
         <h3>Why it matters</h3>
         <p>{renderLinkedText(detail.rationale)}</p>
       </section>}
+      {detail.links && detail.links.length > 0 && <section className="object-detail-section">
+        <h3>Official resources</h3>
+        <nav className="object-resource-links" aria-label="Official resources">
+          {detail.links.map(link => <a key={`${link.label}-${link.url}`} href={link.url} target="_blank" rel="noreferrer">{link.label}<span aria-hidden="true"> ↗</span></a>)}
+        </nav>
+      </section>}
       {detail.note && <section className="object-detail-section object-note-section">
         <h3>Note / next action</h3>
         <p>{renderLinkedText(detail.note)}</p>
@@ -2209,6 +2236,7 @@ type ObjectDetail = {
   objectAnchor?: string
   facts?: Array<{ label: string; value: string; detail?: ObjectDetail }>
   source?: { label: string; value: string }
+  links?: MonitoringOfficialResource[]
   rationale?: string
   actions?: Array<{ label: string; destination?: Surface }>
   note?: string
@@ -2263,6 +2291,7 @@ type ActivityItem = {
   objectDetail: ObjectDetail
   actor?: PersonName
   monitoringFinding?: MonitoringFindingRow
+  officialResources?: MonitoringOfficialResource[]
 }
 
 function personNameFromLabel(label: string): PersonName | undefined {
@@ -5643,14 +5672,20 @@ function AlertCard({ alert, onReviewChange, onFindingDecision, onOpenItem }: { a
         <span>{alert.destination}</span><span>{alert.object}</span>
         {!/^https?:\/\//i.test(alert.source) && alert.source !== alert.object && <span>{alert.source}</span>}
       </div>
-      {alert.monitoringFinding && <p className={`finding-execution-state execution-${alert.monitoringFinding.execution_status ?? alert.monitoringFinding.status}`}>{findingExecutionDetail(alert.monitoringFinding)}</p>}
+      {alert.officialResources && alert.officialResources.length > 0 && <nav className="finding-resource-links" aria-label="Official resources">
+        {alert.officialResources.map(resource => <a key={`${resource.label}-${resource.url}`} href={resource.url} target="_blank" rel="noreferrer">{resource.label}<span aria-hidden="true"> ↗</span></a>)}
+      </nav>}
+      {alert.monitoringFinding && !findingIsInformational(alert.monitoringFinding) && <p className={`finding-execution-state execution-${alert.monitoringFinding.execution_status ?? alert.monitoringFinding.status}`}>{findingExecutionDetail(alert.monitoringFinding)}</p>}
       <details>
         <summary>Why this matters</summary>
         <p>{renderLinkedText(alert.rationale)}</p>
         <p>{renderLinkedText(alert.nextAction)}</p>
       </details>
       <div className="activity-review-actions">
-        <button type="button" onClick={() => onOpenItem(alert)}>Open object</button>
+        <button type="button" onClick={() => onOpenItem(alert)}>{alert.officialResources?.length ? 'Details' : 'Open object'}</button>
+        {alert.monitoringFinding && findingIsInformational(alert.monitoringFinding) && alert.reviewState !== 'reviewed' && <button type="button" onClick={() => onReviewChange(alert, 'reviewed')}>Mark read</button>}
+        {alert.monitoringFinding && findingIsInformational(alert.monitoringFinding) && alert.reviewState !== 'archived' && <button type="button" onClick={() => onReviewChange(alert, 'archived')}>Archive</button>}
+        {alert.monitoringFinding && findingIsInformational(alert.monitoringFinding) && alert.reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert, 'needs-review')}>Reopen</button>}
         {alert.monitoringFinding && ['needs_review', 'authorized'].includes(alert.monitoringFinding.status) && ['not_started', 'failed', 'blocked'].includes(alert.monitoringFinding.execution_status ?? 'not_started') && findingCanAuthorize(alert.monitoringFinding) && <>
           <button type="button" className="finding-yes" onClick={() => onFindingDecision(alert.monitoringFinding!, 'yes')}>{['failed', 'blocked'].includes(alert.monitoringFinding.execution_status ?? '') ? `Retry · ${findingApprovalLabel(alert.monitoringFinding)}` : findingApprovalLabel(alert.monitoringFinding)}</button>
           {alert.monitoringFinding.status === 'needs_review' && <button type="button" className="finding-no" onClick={() => onFindingDecision(alert.monitoringFinding!, 'no')}>Dismiss</button>}
