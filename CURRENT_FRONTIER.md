@@ -2,25 +2,15 @@
 
 Updated: 2026-08-21
 
-## Active lane — surveyor closed-loop review
+## Latest completed lane — surveyor closed loop
 
-Before any push or publish, use the repo-local GitHub auth/readiness path (`pnpm readiness`, and `pnpm gh:auth-local` only when readiness directs it). Never use ad hoc `gh auth login` as proof. If repository, GitHub identity, Supabase identity, or auth is ambiguous, repair and prove the canonical readiness lane before continuing. The missing GitHub Actions `SUPABASE_SECRET_KEY` is a separate cloud credential gate.
+Commit `f0fe3f1` (`Close the reviewed surveyor action loop`) is on `main`. CI run `32520980614` and Pages run `32520980683` succeeded with zero annotations; `pnpm verify:public` passed, and the deployed Activity flow passed desktop and mobile visual inspection. Manual surveyor runs `32521125551` and `32521224614` both succeeded. The workflow-owned fingerprint beginning `bc7e5a` remained one row and its `occurrence_count` advanced to `2`, proving idempotent deduplication. The obsolete undecided prototype row beginning `fdb94` was deleted.
 
-This tranche is **not done** until:
-
-- `pnpm readiness` passes against `pavjsexxbueuzhzgemgy` and the repo-local `metavirus` GitHub lane;
-- the GitHub Actions secret/config is proven without exposing a server key to chat, tracked files, Vite, or browser code;
-- the workflow stages a candidate in Supabase and a repeated identical report proves fingerprint/`occurrence_count` dedupe instead of creating inbox spam;
-- authenticated Home/Activity show Kavi-only decision controls whose labels state the actual consequence, while a non-Kavi companion cannot read or decide them;
-- **Yes** authorizes that stated consequence. When the action is deterministic, bounded, reversible, source-backed, and safe under the normal validation/publish lane, the system carries it through to canonical state and production without waiting for another chat. **No** dismisses it. Staging is reserved for genuinely ambiguous mappings or blocked actions and must include an explicit next action/owner rather than passive purgatory;
-- decision and execution audit fields prove who decided, when, what action was authorized, whether it executed, and the resulting canonical object/deploy;
-- tests, build, validation, advisor review, desktop/mobile visual inspection, push/Pages deployment, `pnpm verify:public`, and deployed-flow inspection all pass.
-
-Do not accept monitor baselines, ingest/promote findings, or publish changes silently.
+One owner action remains: the real workflow-created finding is still `needs_review`. Kavi should decide it through the deployed consequence-aware control when ready; agents must not click or decide it. No monitoring baseline was accepted.
 
 ## Where we are
 
-- The surveyor review queue and consequence-aware action lifecycle are now live in canonical Supabase through hosted migrations `20260821193729` and `20260821194017`. The real shared Magic Play navigation finding remains `needs_review`, now with fresh first-party link evidence and the named consequence `Publish these reviewed links`; approval atomically publishes one idempotent reviewed Activity alert and records target/result/readback, while dismissal is audited and ambiguous actions remain blocked. Kavi-only forced RLS, Chris denial, RPC denial for non-Kavi, and clean advisors for this tranche are proven. Local UI/router/workflow changes remain uncommitted and unpublished. Cloud staging is still fail-closed because repository Actions secret `SUPABASE_SECRET_KEY` is absent; no workflow has been pushed or dispatched and no monitoring baseline was accepted.
+- The surveyor review queue and consequence-aware action lifecycle are live in canonical Supabase through hosted migrations `20260821193729` and `20260821194017`. The real workflow-created Magic Play navigation finding remains `needs_review` with fresh first-party link evidence and the named consequence `Publish these reviewed links`; approval atomically publishes one idempotent reviewed Activity alert and records target/result/readback, while dismissal is audited and ambiguous actions remain blocked. Kavi-only forced RLS, Chris denial, RPC denial for non-Kavi, clean advisors, cloud staging, repeated-fingerprint dedupe, CI, Pages, public verification, and deployed desktop/mobile inspection are proven. The repository Actions secret is configured without exposing it, and the workflow-scope recurrence was durably fixed in readiness/auth scripts and canonical instructions. No monitoring baseline was accepted.
 
 - Artist/card signing data has moved out of CSV-first staging into a canonical normalized Supabase catalog. Migration `20260820173320_artist_card_canonical_catalog.sql` owns artists, Atlanta appearances, card identities, owned printings, style/taste assessments, import provenance, and per-user signing interests. Live Supabase readback on August 20, 2026 shows the full local corpus imported: 1,122 artists, 5,068 cards, 5,451 printings, 5,451 assessments, and 4 Atlanta appearance rows: Cynthia Sheppard, Mark Poole, Serena Malyon confirmed; Rebecca Guay unconfirmed. The Artists UI now reads this catalog first; enriched CSVs and generated local modules are source/import evidence or offline fallback only, not app truth.
 - The public preview has completed a share-readiness cleanup for Chris: representative Vegas events, fake Wallet proofs/receipts, routing-demo Activity alerts, speculative artist cards, and design-note fixtures are no longer exposed. Empty surfaces now state the real waiting condition; confirmed Atlanta Black Lotus, trip, badge, and forecast facts remain.

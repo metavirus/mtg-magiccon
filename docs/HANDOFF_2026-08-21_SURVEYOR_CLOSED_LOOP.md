@@ -2,6 +2,19 @@
 
 Updated: 2026-08-21
 
+## Final closeout — live and verified
+
+- Commit `f0fe3f1` (`Close the reviewed surveyor action loop`) was pushed to `main`.
+- CI run `32520980614` succeeded.
+- Pages run `32520980683` succeeded with zero annotations; `pnpm verify:public` passed.
+- The deployed Activity flow passed desktop and mobile visual inspection.
+- Manual `Daily MagicCon surveyor` runs `32521125551` and `32521224614` succeeded.
+- Workflow-owned fingerprint `bc7e5a…` remained one Supabase row and its `occurrence_count` advanced to `2`, proving repeated-fingerprint deduplication.
+- The obsolete undecided prototype row `fdb94…` was deleted.
+- The GitHub workflow-scope recurrence was fixed durably in the readiness/auth scripts and canonical instructions included in `f0fe3f1`.
+- The real workflow-created finding remains `needs_review`. This is now Kavi's explicit product decision; agents must not click or decide it.
+- No monitoring baseline was accepted.
+
 ## Continuation update — consequence-aware execution implemented
 
 - Hosted migrations `20260821193729 monitoring_finding_action_lifecycle` and `20260821194017 monitoring_action_rpc_invoker` are applied and match local filenames; `pnpm readiness` passes.
