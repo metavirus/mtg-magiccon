@@ -33,3 +33,15 @@ export async function loadInfoKnowledge() {
 export function relatedInfoFeed(topicKey: string, feed: InfoFeedEntry[]) {
   return feed.filter(entry => entry.topic_key === topicKey)
 }
+
+export function partitionInfoTopics(topics: InfoTopic[], quickKeys = ['hours', 'will-call', 'ticketed-play']) {
+  const quickKeySet = new Set(quickKeys)
+  return {
+    quick: quickKeys.map(key => topics.find(topic => topic.topic_key === key)).filter((topic): topic is InfoTopic => Boolean(topic)),
+    more: topics.filter(topic => !quickKeySet.has(topic.topic_key)),
+  }
+}
+
+export function infoTopicForFeed(entry: InfoFeedEntry, topics: InfoTopic[]) {
+  return entry.topic_key ? topics.find(topic => topic.topic_key === entry.topic_key) : undefined
+}
