@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $expectedRoot = 'C:\Users\kavig\Documents\Codex\mtg-magiccon'
 $expectedRemote = 'https://github.com/metavirus/mtg-magiccon.git'
+$expectedGitHubLogin = 'metavirus'
 $expectedRef = 'pavjsexxbueuzhzgemgy'
 $forbiddenRef = 'pyvftzsodzwfqncjbmbc'
 $expectedMigrations = @('20260801184744', '20260801184828', '20260803173516')
@@ -40,13 +41,37 @@ $bundledNodeCandidates = @(
 )
 $nodeExe = Resolve-Executable 'node' $bundledNodeCandidates
 $pnpmExe = Resolve-Executable 'pnpm' @((Join-Path $env:USERPROFILE 'scoop\shims\pnpm.cmd'))
+$ghExe = Resolve-Executable 'gh' @((Join-Path $env:USERPROFILE 'scoop\shims\gh.exe'), (Join-Path $env:USERPROFILE 'scoop\shims\gh.cmd'))
 $supabaseExe = Resolve-Executable 'supabase' @((Join-Path $env:USERPROFILE 'scoop\shims\supabase.exe'))
 $psqlExe = Resolve-Executable 'psql' @('C:\Program Files\PostgreSQL\18\bin\psql.exe', 'C:\Program Files\PostgreSQL\17\bin\psql.exe')
 
 if (-not $nodeExe) { $failures += 'Node is unavailable' }
 if (-not $pnpmExe) { $failures += 'pnpm is unavailable' }
+if (-not $ghExe) { $failures += 'GitHub CLI gh is unavailable' }
 if (-not $supabaseExe) { $failures += 'Supabase CLI is unavailable' }
 if (-not $psqlExe) { $failures += 'PostgreSQL psql is unavailable' }
+
+if ($ghExe) {
+  $savedErrorActionPreference = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  $ghStatusOutput = (& $ghExe auth status -h github.com 2>&1 | Out-String).Trim()
+  $ghStatusExitCode = $LASTEXITCODE
+  $ghLoginOutput = (& $ghExe api user --jq .login 2>&1 | Out-String).Trim()
+  $ghLoginExitCode = $LASTEXITCODE
+  $ghProtocolOutput = (& $ghExe config get -h github.com git_protocol 2>$null | Out-String).Trim()
+  $ghProtocolExitCode = $LASTEXITCODE
+  $ErrorActionPreference = $savedErrorActionPreference
+
+  if ($ghStatusExitCode -ne 0) {
+    $failures += "GitHub CLI auth is not usable for github.com; run 'gh auth login -h github.com -p https -w' and rerun pnpm readiness"
+  }
+  if ($ghLoginExitCode -ne 0 -or $ghLoginOutput -ne $expectedGitHubLogin) {
+    $failures += "GitHub CLI identity mismatch or token failure: expected $expectedGitHubLogin, got '$ghLoginOutput'"
+  }
+  if ($ghProtocolExitCode -eq 0 -and $ghProtocolOutput -and $ghProtocolOutput -ne 'https') {
+    $failures += "GitHub CLI git protocol should be https, got '$ghProtocolOutput'"
+  }
+}
 
 $linkedRefFile = 'supabase/.temp/project-ref'
 if (-not (Test-Path -LiteralPath $linkedRefFile)) { $failures += 'Supabase CLI project link is missing' }
@@ -113,4 +138,4 @@ select
 }
 
 if ($failures.Count) { $failures | ForEach-Object { Write-Error $_ }; exit 1 }
-Write-Output "Environment readiness: PASS ($expectedRef on $branch; hosted migrations; Session Pooler; RLS/grants)"
+Write-Output "Environment readiness: PASS ($expectedRef on $branch; GitHub CLI $expectedGitHubLogin; hosted migrations; Session Pooler; RLS/grants)"
