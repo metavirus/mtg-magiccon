@@ -9,7 +9,7 @@ import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
-import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingOfficialResources, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
+import { findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingOfficialResources, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -1188,7 +1188,7 @@ export default function App() {
     destination: finding.destination,
     attention: informational ? 'New official resources' : 'Kavi decision needed',
     title: finding.title,
-    summary: finding.summary,
+    summary: findingDisplaySummary(finding),
     object: finding.source_label,
     source: finding.source_label,
     checkedAt: new Date(finding.last_seen_at).toLocaleString(),
@@ -1202,7 +1202,7 @@ export default function App() {
       kind: 'alert',
       eyebrow: 'Surveyor finding',
       title: finding.title,
-      summary: finding.summary,
+      summary: findingDisplaySummary(finding),
       facts: [
         { label: informational ? 'Status' : 'Decision', value: findingReviewLabel(finding) },
         { label: 'First seen', value: new Date(finding.first_seen_at).toLocaleString() },

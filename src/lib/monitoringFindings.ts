@@ -108,6 +108,13 @@ export function findingOfficialResources(finding: MonitoringFindingRow): Monitor
   })
 }
 
+export function findingDisplaySummary(finding: MonitoringFindingRow) {
+  if (findingIsInformational(finding) && findingOfficialResources(finding).length > 0) {
+    return 'Official Atlanta navigation now links to useful Magic Play resources.'
+  }
+  return finding.summary
+}
+
 export function findingNeedsKaviAction(finding: MonitoringFindingRow) {
   if (!findingCanAuthorize(finding)) return false
   if (finding.status === 'needs_review') return (finding.execution_status ?? 'not_started') === 'not_started'
