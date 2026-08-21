@@ -1,9 +1,11 @@
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { NavIcon, type NavIconName } from './NavIcon'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
 import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
+import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
 import {
@@ -16,6 +18,12 @@ import {
 
 const assetUrl = (path: string) => new URL(path, window.location.href).toString()
 const dismissablePopupSelector = 'details.account-menu, details.mention-inbox, details.inline-assignment'
+
+function MobileHeaderViewSlot({ children }: { children: ReactNode }) {
+  const [target, setTarget] = useState<HTMLElement | null>(null)
+  useEffect(() => { setTarget(document.getElementById('mobile-header-view-slot')) }, [])
+  return target ? createPortal(children, target) : null
+}
 
 const states: { value: PlanningState; label: string; symbol: string }[] = [
   { value: 'interested', label: 'Interested', symbol: '♡' },
@@ -371,10 +379,16 @@ async function loadUserSelections(_ownerId: string): Promise<UserSelectionRow[]>
 
 async function loadUserActivityEvents(_ownerId: string): Promise<UserActivityEventRow[]> {
   if (!supabase) return []
-  const result = await supabase.from('user_activity_events')
-    .select('id,object_id,object_kind,activity_type,actor_label,summary,details,created_at')
-    .order('created_at', { ascending: false })
-    .limit(200)
+  const client = supabase
+  const fetchActivity = () => client.from('user_activity_events')
+      .select('id,object_id,object_kind,activity_type,actor_label,summary,details,created_at')
+      .order('created_at', { ascending: false })
+      .limit(200)
+  let result = await fetchActivity()
+  if (result.error && result.status === 401) {
+    const refreshed = await client.auth.refreshSession()
+    if (!refreshed.error) result = await fetchActivity()
+  }
   if (result.error) throw result.error
   return result.data as UserActivityEventRow[]
 }
@@ -660,6 +674,7 @@ export default function App() {
   const refreshUserContinuity = useCallback(async () => {
     setContinuityReady(false)
     if (designPreview || isPreviewOwnerMode) {
+      setMessage('')
       setContextNotesState(designPreview ? contextNotes : [])
       setMentionInboxState([])
       setAlertReview({})
@@ -1239,7 +1254,7 @@ export default function App() {
       margin: '0 0 0 164px',
       padding: '24px clamp(22px, 2.4vw, 46px) 30px',
     } : undefined}>
-      <header className={`hero ${['explore', 'plan', 'calendar'].includes(surface) ? 'hero-has-funnel' : ''}`}>
+      <header className={`hero ${['explore', 'plan', 'calendar'].includes(surface) ? 'hero-has-funnel' : ''} ${['map', 'trip', 'artists'].includes(surface) ? 'hero-has-view-switch' : ''}`}>
         <div>
           <div className="hero-context">
             <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!previousSurface} aria-label="Back to previous view"><span aria-hidden="true">‹</span></button>
@@ -1263,6 +1278,7 @@ export default function App() {
             />
             <span className="countdown-chip"><strong>{daysToAtlanta}</strong><span>days to Atlanta</span></span>
           </div>
+          <div id="mobile-header-view-slot" className="mobile-header-view-slot" />
           {surface === 'explore' && <FunnelNav current="explore" onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
           {surface === 'plan' && <FunnelNav current="plan" onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
           {surface === 'calendar' && <FunnelNav current="calendar" onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
@@ -1297,7 +1313,7 @@ export default function App() {
           })
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
-        {surface === 'artists' && <ArtistsSurface onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
+        {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
@@ -1413,7 +1429,7 @@ function renderLinkedText(text: string): ReactNode {
       displayUrl = displayUrl.slice(0, -1)
     }
     if (start > cursor) parts.push(text.slice(cursor, start))
-    parts.push(<a key={`${displayUrl}-${start}`} className="inline-text-link" href={displayUrl} target="_blank" rel="noreferrer">{displayUrl}</a>)
+    parts.push(<a key={`${displayUrl}-${start}`} className="inline-text-link" href={displayUrl} target="_blank" rel="noreferrer" aria-label={`Open link: ${displayUrl}`} title={displayUrl}>🔗</a>)
     if (trailing) parts.push(trailing)
     cursor = start + rawUrl.length
   }
@@ -1580,6 +1596,38 @@ type ArtistSeed = {
   signatureTargets?: Array<{ name: string; note: string }>
 }
 
+type ArtistCardCandidate = {
+  id: string
+  artistId?: string
+  cardId?: string
+  printingId?: string
+  cardName: string
+  artistName: string
+  setCode: string
+  setName: string
+  collectorNumber: string
+  foil: string
+  rarity: string
+  quantity: number
+  marketPrice: string
+  priceAsOf: string
+  printingType: string
+  specialTreatment?: string
+  visualStyle: string
+  abstractSurrealFocus: string
+  tasteMatch: string
+  taxonomyConfidence: string
+  reviewForTaste: string
+  styleNotes: string
+  styleTags?: readonly string[]
+  artCropUrl: string
+  cardImageUrl: string
+  scryfallUrl: string
+}
+
+const scryfallArtistSearchUrl = (artistName: string) =>
+  `https://scryfall.com/search?as=grid&order=name&q=${encodeURIComponent(`(game:paper) artist:"${artistName}" prefer:best`)}`
+
 const artistSeeds: ArtistSeed[] = [
   {
     id: 'cynthia-sheppard',
@@ -1666,7 +1714,284 @@ const artistSeeds: ArtistSeed[] = [
   },
 ]
 
+const artistCardCandidates: ArtistCardCandidate[] = [...generatedArtistCardCandidates]
+
+const normalizeArtistName = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+
+const fallbackArtistSeedByName = new Map(artistSeeds.map(seed => [normalizeArtistName(seed.title), seed]))
+
+type ArtistCatalogRow = {
+  id: string
+  canonical_name: string
+  display_name: string
+  profile_image_url: string | null
+  scryfall_search_url: string | null
+  predominant_style: string | null
+  abstract_surreal_tendency: string | null
+  style_description: string | null
+  sample_mtg_cards: string | null
+}
+
+type ArtistAppearanceCatalogRow = {
+  artist_id: string
+  attending_status: 'confirmed' | 'unconfirmed' | 'unknown' | 'not_attending'
+  appearance_days: string | null
+  official_profile_url: string | null
+  source_note: string | null
+  priority_reason: string | null
+}
+
+type ArtistCardCatalogRow = {
+  id: string
+  artist_id: string
+  card_name: string
+  scryfall_url: string | null
+  card_image_url: string | null
+  art_crop_url: string | null
+}
+
+type ArtistPrintingCatalogRow = {
+  id: string
+  card_id: string
+  set_code: string | null
+  set_name: string | null
+  collector_number: string | null
+  foil: string | null
+  rarity: string | null
+  quantity: number | null
+  market_price_usd: number | string | null
+  price_as_of: string | null
+  printing_type: string | null
+  special_treatments: string[] | null
+}
+
+type ArtistAssessmentCatalogRow = {
+  printing_id: string
+  card_art_category: string | null
+  surreal_abstract_focus: string | null
+  card_art_confidence: string | null
+  card_art_description: string | null
+  visual_art_category: string | null
+  visual_match_for_taste: string | null
+  visual_confidence: string | null
+  visual_assessment_notes: string | null
+  card_art_tags: string[] | null
+  review_rank: number | null
+}
+
+type ArtistSigningInterestStatus = 'maybe' | 'want_signed'
+
+type ArtistSigningInterestRow = {
+  artist_id: string
+  card_id: string | null
+  printing_id: string | null
+  interest_status: 'not_reviewed' | ArtistSigningInterestStatus | 'skip'
+}
+
+const artistSigningQaPicks: Array<{ artistName: string; cardNames: string[]; status: ArtistSigningInterestStatus }> = [
+  { artistName: 'Serena Malyon', cardNames: ['Soul Immolation', 'Beyond the Quiet'], status: 'want_signed' },
+  { artistName: 'Rebecca Guay', cardNames: ['Abundance', 'Seedtime'], status: 'maybe' },
+  { artistName: 'Cynthia Sheppard', cardNames: ['Akroma, Angel of Wrath'], status: 'maybe' },
+  { artistName: 'Mark Poole', cardNames: ['Counterspell'], status: 'maybe' },
+]
+
+function buildPreviewSigningInterest(cards: ArtistCardCandidate[]): Record<string, ArtistSigningInterestStatus> {
+  const next: Record<string, ArtistSigningInterestStatus> = {}
+  for (const pick of artistSigningQaPicks) {
+    const artistCards = cards.filter(card => normalizeArtistName(card.artistName) === normalizeArtistName(pick.artistName))
+    if (!artistCards.length) continue
+    const exactCards = pick.cardNames
+      .map(name => artistCards.find(card => card.cardName.toLowerCase() === name.toLowerCase()))
+      .filter((card): card is ArtistCardCandidate => Boolean(card))
+    const seededCards = exactCards.length ? exactCards : artistCards.slice(0, 2)
+    for (const card of seededCards.slice(0, 2)) {
+      next[card.printingId ?? card.id] = pick.status
+    }
+  }
+  return next
+}
+
+async function loadAllSupabaseRows<T>(table: string, select = '*', pageSize = 1000): Promise<T[]> {
+  if (!supabase) throw new Error('Supabase is not configured.')
+  const rows: T[] = []
+  for (let from = 0; ; from += pageSize) {
+    const to = from + pageSize - 1
+    const result = await supabase.from(table).select(select).range(from, to)
+    if (result.error) throw result.error
+    rows.push(...((result.data ?? []) as T[]))
+    if (!result.data || result.data.length < pageSize) break
+  }
+  return rows
+}
+
+function catalogArtistToSeed(artist: ArtistCatalogRow, appearance?: ArtistAppearanceCatalogRow): ArtistSeed {
+  const confirmed = appearance?.attending_status === 'confirmed'
+  const unconfirmed = appearance?.attending_status === 'unconfirmed'
+  const title = artist.display_name || artist.canonical_name
+  const fallbackSeed = fallbackArtistSeedByName.get(normalizeArtistName(title))
+  const attendance = appearance?.appearance_days || (confirmed ? 'All days' : 'Unconfirmed')
+  const status = confirmed
+    ? 'Official Atlanta Art of Magic guest'
+    : unconfirmed
+      ? 'Likely artist watchlist seed'
+      : 'Artist catalog entry'
+  const signal = confirmed ? 'Confirmed artist' : 'Watch for Atlanta'
+  const summary = appearance?.priority_reason
+    || artist.style_description
+    || `${title} is in the canonical signing catalog${confirmed ? ' and is currently listed for MagicCon: Atlanta.' : '.'}`
+  const thumbnailUrl = artist.profile_image_url || fallbackSeed?.thumbnailUrl
+  const thumbnailCaption = artist.profile_image_url
+    ? confirmed ? 'Official MagicCon guest photo' : 'Planning image; Atlanta attendance remains unconfirmed.'
+    : fallbackSeed?.thumbnailCaption || (confirmed ? 'Official MagicCon guest photo' : 'Planning image; Atlanta attendance remains unconfirmed.')
+
+  return {
+    id: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+    title,
+    status,
+    signal,
+    summary,
+    attendance,
+    bioUrl: appearance?.official_profile_url ?? fallbackSeed?.bioUrl ?? undefined,
+    thumbnailUrl,
+    thumbnailAlt: fallbackSeed?.thumbnailAlt ?? `${title} artist portrait`,
+    thumbnailCaption,
+    facts: [
+      { label: 'Guest type', value: confirmed ? 'Art of Magic' : 'Artist watchlist' },
+      { label: 'Appearing', value: attendance },
+      { label: 'Source', value: appearance?.source_note ?? 'Canonical artist catalog' },
+      { label: 'Style', value: artist.predominant_style ?? 'Style pending' },
+    ],
+    signatureTargets: [
+      { name: 'Card matches', note: artist.sample_mtg_cards || 'Use the Cards view to review owned candidates.' },
+    ],
+  }
+}
+
+function mapCatalogCardsToCandidates(
+  printings: ArtistPrintingCatalogRow[],
+  cards: ArtistCardCatalogRow[],
+  artists: ArtistCatalogRow[],
+  assessments: ArtistAssessmentCatalogRow[],
+): ArtistCardCandidate[] {
+  const cardsById = new Map(cards.map(card => [card.id, card]))
+  const artistsById = new Map(artists.map(artist => [artist.id, artist]))
+  const assessmentsByPrinting = new Map(assessments.map(assessment => [assessment.printing_id, assessment]))
+  const assessmentScore = (assessment: ArtistAssessmentCatalogRow | undefined) => {
+    if (!assessment) return 0
+    return (assessment.card_art_description ? 6 : 0)
+      + (assessment.visual_assessment_notes ? 4 : 0)
+      + (assessment.card_art_category ? 3 : 0)
+      + (assessment.visual_art_category ? 2 : 0)
+      + (assessment.review_rank ? Math.max(0, 6 - assessment.review_rank) : 0)
+  }
+  const assessmentsByCard = new Map<string, ArtistAssessmentCatalogRow>()
+  assessments.forEach(assessment => {
+    const printing = printings.find(candidate => candidate.id === assessment.printing_id)
+    if (!printing) return
+    const existing = assessmentsByCard.get(printing.card_id)
+    if (!existing || assessmentScore(assessment) > assessmentScore(existing)) {
+      assessmentsByCard.set(printing.card_id, assessment)
+    }
+  })
+  const seenCardIds = new Set<string>()
+  const priceValue = (printing: ArtistPrintingCatalogRow) => {
+    const market = typeof printing.market_price_usd === 'number'
+      ? printing.market_price_usd
+      : Number.parseFloat(String(printing.market_price_usd ?? ''))
+    return Number.isFinite(market) ? market : -1
+  }
+  const orderedPrintings = [...printings].sort((a, b) => priceValue(b) - priceValue(a))
+
+  return orderedPrintings.flatMap(printing => {
+    const card = cardsById.get(printing.card_id)
+    if (!card || seenCardIds.has(card.id)) return []
+    seenCardIds.add(card.id)
+    const artist = artistsById.get(card.artist_id)
+    const assessment = assessmentsByPrinting.get(printing.id) ?? assessmentsByCard.get(card.id)
+    const artistName = artist?.display_name || artist?.canonical_name || 'Unknown artist'
+    const market = typeof printing.market_price_usd === 'number'
+      ? printing.market_price_usd
+      : Number.parseFloat(String(printing.market_price_usd ?? ''))
+    const specialTreatment = (printing.special_treatments ?? []).filter(Boolean).join('; ')
+    const visualStyle = assessment?.card_art_category
+      || assessment?.visual_art_category
+      || artist?.predominant_style
+      || 'Style pending'
+    const abstractSurrealFocus = assessment?.surreal_abstract_focus
+      || artist?.abstract_surreal_tendency
+      || 'Unknown'
+    const styleNotes = assessment?.card_art_description
+      || assessment?.visual_assessment_notes
+      || artist?.style_description
+      || 'Assessment pending.'
+    const tasteMatch = assessment?.visual_match_for_taste
+      || (assessment?.review_rank && assessment.review_rank <= 2 ? 'Strong candidate' : 'Review')
+
+    return [{
+      id: printing.id,
+      artistId: card.artist_id,
+      cardId: card.id,
+      printingId: printing.id,
+      cardName: card.card_name,
+      artistName,
+      setCode: printing.set_code ?? '',
+      setName: printing.set_name ?? '',
+      collectorNumber: printing.collector_number ?? '',
+      foil: printing.foil ?? 'normal',
+      rarity: printing.rarity ?? '',
+      quantity: printing.quantity ?? 1,
+      marketPrice: Number.isFinite(market) ? `$${market.toFixed(2)}` : 'Price unknown',
+      priceAsOf: printing.price_as_of ?? 'Canonical catalog',
+      printingType: printing.printing_type ?? 'Unknown',
+      specialTreatment: specialTreatment || undefined,
+      visualStyle,
+      abstractSurrealFocus,
+      tasteMatch,
+      taxonomyConfidence: assessment?.card_art_confidence || assessment?.visual_confidence || 'Unknown',
+      reviewForTaste: assessment?.review_rank && assessment.review_rank <= 3 ? 'Yes' : 'No',
+      styleNotes,
+      styleTags: assessment?.card_art_tags?.filter(Boolean) ?? [],
+      artCropUrl: card.art_crop_url || card.card_image_url || '',
+      cardImageUrl: card.card_image_url || card.art_crop_url || '',
+      scryfallUrl: card.scryfall_url || scryfallArtistSearchUrl(artistName),
+    }]
+  })
+}
+
+async function loadArtistCatalogFromSupabase() {
+  const [artists, appearances, cards, printings, assessments] = await Promise.all([
+    loadAllSupabaseRows<ArtistCatalogRow>('artists'),
+    loadAllSupabaseRows<ArtistAppearanceCatalogRow>('artist_appearances'),
+    loadAllSupabaseRows<ArtistCardCatalogRow>('artist_cards'),
+    loadAllSupabaseRows<ArtistPrintingCatalogRow>('artist_card_printings'),
+    loadAllSupabaseRows<ArtistAssessmentCatalogRow>('artist_card_assessments'),
+  ])
+  const appearancesByArtist = new Map(appearances.map(appearance => [appearance.artist_id, appearance]))
+  const appearanceArtistIds = new Set(appearances.map(appearance => appearance.artist_id))
+  const appearanceSeeds = artists
+    .filter(artist => appearanceArtistIds.has(artist.id))
+    .sort((a, b) => {
+      const aStatus = appearancesByArtist.get(a.id)?.attending_status === 'confirmed' ? 0 : 1
+      const bStatus = appearancesByArtist.get(b.id)?.attending_status === 'confirmed' ? 0 : 1
+      return aStatus - bStatus || a.display_name.localeCompare(b.display_name)
+    })
+    .map(artist => catalogArtistToSeed(artist, appearancesByArtist.get(artist.id)))
+  const scopedCards = cards.filter(card => appearanceArtistIds.has(card.artist_id))
+  const scopedCardIds = new Set(scopedCards.map(card => card.id))
+  const scopedPrintings = printings.filter(printing => scopedCardIds.has(printing.card_id))
+  const scopedPrintingIds = new Set(scopedPrintings.map(printing => printing.id))
+  const scopedAssessments = assessments.filter(assessment => scopedPrintingIds.has(assessment.printing_id))
+
+  return {
+    artists: appearanceSeeds.length ? appearanceSeeds : artistSeeds,
+    cards: appearanceArtistIds.size
+      ? mapCatalogCardsToCandidates(scopedPrintings, scopedCards, artists, scopedAssessments)
+      : mapCatalogCardsToCandidates(printings, cards, artists, assessments),
+  }
+}
+
 function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
+  const scryfallUrl = scryfallArtistSearchUrl(seed.title)
   return {
     id: `artist-${seed.id}`,
     kind: 'artist',
@@ -1675,7 +2000,7 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
     summary: seed.summary,
     image: seed.thumbnailUrl ? { src: seed.thumbnailUrl, alt: seed.thumbnailAlt ?? seed.title, caption: seed.thumbnailCaption } : undefined,
     facts: seed.facts,
-    source: { label: 'Source status', value: seed.bioUrl ? `${seed.status}: ${seed.bioUrl}` : seed.status },
+    source: { label: 'Source status', value: seed.bioUrl ? `${seed.status}: ${seed.bioUrl}\nScryfall: ${scryfallUrl}` : `${seed.status}\nScryfall: ${scryfallUrl}` },
     rationale: 'This keeps artist planning tied to official Atlanta facts, then leaves room for your curated card database to decide what is worth carrying for signatures.',
     note: seed.signatureTargets?.map(target => `${target.name}: ${target.note}`).join('\n'),
     actions: [{ label: 'Open Artists', destination: 'artists' }, { label: 'Review source signals', destination: 'activity' }],
@@ -1687,11 +2012,13 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
   if (!detail) return null
   return <div className="object-detail-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
-      <button className="detail-close object-detail-close" type="button" onClick={onClose} aria-label="Close detail">×</button>
       <header className="object-detail-head">
         <div className="object-detail-topline">
           <span className="eyebrow">{detail.eyebrow}</span>
-          <span className="object-kind-chip">{detailKindLabel(detail.kind)}</span>
+          <span className="object-detail-top-actions">
+            <span className="object-kind-chip">{detailKindLabel(detail.kind)}</span>
+            <button className="detail-close object-detail-close" type="button" onClick={onClose} aria-label="Close detail">×</button>
+          </span>
         </div>
         <h2 id="object-detail-title">{detail.title}</h2>
         <p>{detail.summary}</p>
@@ -1734,7 +2061,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
         backlink={detail.backlinks?.[0]?.destination ?? 'notes'}
         compact
       />
-      {(detail.actions || detail.backlinks) && <footer className="object-detail-actions">
+      {detail.kind !== 'artist' && (detail.actions || detail.backlinks) && <footer className="object-detail-actions">
         {detail.actions?.map(action => <button key={action.label} type="button" onClick={() => action.destination ? onNavigate(action.destination) : undefined}>{action.label}</button>)}
         {detail.backlinks?.map(link => <button key={link.label} type="button" className="secondary" onClick={() => onNavigate(link.destination)}>{link.label}</button>)}
       </footer>}
@@ -1758,7 +2085,7 @@ type CalendarFilter = 'all' | 'convention' | 'travel'
 type ExploreType = 'all' | 'play' | 'info' | 'social' | 'other'
 type ExploreState = 'none' | 'interested' | 'tentative' | 'committed' | 'hidden' | 'nope'
 type ComplexityLevel = 'easy' | 'focused' | 'demanding' | 'very-hard' | 'unknown' | 'inconclusive'
-type ActionIconName = 'bookmark' | 'diamond' | 'lock' | 'eyeOff'
+type ActionIconName = 'bookmark' | 'diamond' | 'lock' | 'eyeOff' | 'sign' | 'heart'
 type EventKindIconName = 'lotus' | 'panel' | 'competitive' | 'ticketed' | 'play' | 'info' | 'social'
 type MilestoneIconName = 'badges' | 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
 type WalletTab = 'home' | 'play' | 'store' | 'other'
@@ -2381,7 +2708,7 @@ const monitoringAlerts: MonitoringAlert[] = [
     destination: 'Artists',
     attention: 'Artist roster live',
     title: '3 Art of Magic artists are confirmed',
-    summary: 'Cynthia Sheppard, Mark Poole, and Serena Malyon are now listed for Atlanta; card-signing planning can start.',
+    summary: 'Cynthia Sheppard, Mark Poole, and Serena Malyon are listed for Atlanta; Rebecca Guay is tracked separately as an unconfirmed watchlist seed.',
     object: 'Artists · Art of Magic',
     source: 'Official MagicCon Atlanta guests page',
     checkedAt: 'Aug 19, 2026, 7:10 PM',
@@ -3524,6 +3851,8 @@ function ActionIcon({ name }: { name: ActionIconName }) {
     diamond: <path d="M12 3 21 12 12 21 3 12Z" />,
     lock: <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>,
     eyeOff: <><path d="M3 3l18 18" /><path d="M9.8 9.8A3 3 0 0 0 14.2 14.2" /><path d="M6.5 6.9C4.7 8 3.2 9.7 2 12c2.2 4.1 5.5 6.1 10 6.1 1.4 0 2.7-.2 3.8-.7" /><path d="M10.8 5.9c.4 0 .8-.1 1.2-.1 4.5 0 7.8 2 10 6.1-.5 1-1.1 1.9-1.8 2.7" /></>,
+    sign: <><path d="M14.5 3.5 20.5 9.5 11.5 18.5 5.5 20.5 7.5 14.5 14.5 3.5Z" /><path d="M13 5 19 11" /><path d="M7.5 14.5 11.5 18.5" /><path d="M9.5 16.5 8.2 17.8" /></>,
+    heart: <path d="M20.8 8.6c0 5.1-8.8 10.4-8.8 10.4S3.2 13.7 3.2 8.6A4.6 4.6 0 0 1 12 6.7a4.6 4.6 0 0 1 8.8 1.9Z" />,
   }
   return <svg className="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
@@ -3693,12 +4022,14 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
 function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   const [tab, setTab] = useState<'map' | 'info'>('map')
   const logistics = logisticsToObjectDetail()
+  const viewTabs = (mobile = false) => <div className={`map-tabs${mobile ? ' mobile-surface-view-tabs' : ''}`} role="tablist" aria-label="Map and info view">
+    <button type="button" role="tab" aria-selected={tab === 'map'} className={tab === 'map' ? 'active' : ''} onClick={() => setTab('map')}>Map</button>
+    <button type="button" role="tab" aria-selected={tab === 'info'} className={tab === 'info' ? 'active' : ''} onClick={() => setTab('info')}>Info</button>
+  </div>
 
   return <section className="map-shell" aria-label="Map and info">
-    <div className="map-tabs" role="tablist" aria-label="Map and info view">
-      <button type="button" role="tab" aria-selected={tab === 'map'} className={tab === 'map' ? 'active' : ''} onClick={() => setTab('map')}>Map</button>
-      <button type="button" role="tab" aria-selected={tab === 'info'} className={tab === 'info' ? 'active' : ''} onClick={() => setTab('info')}>Info</button>
-    </div>
+    <div className="surface-view-tabs-desktop">{viewTabs()}</div>
+    <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>
 
     {tab === 'map' ? <div className="map-surface">
       <article className="map-card trip-area-card">
@@ -4082,12 +4413,14 @@ function WalletOtherTab({ openModal, onOpenTrip }: { openModal: (eyebrow: string
 
 function TripSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
   const [tab, setTab] = useState<'hotels' | 'flights'>('hotels')
+  const viewTabs = (mobile = false) => <div className={`trip-tabs${mobile ? ' mobile-surface-view-tabs' : ''}`} role="tablist" aria-label="Trip section">
+    <button type="button" role="tab" aria-selected={tab === 'hotels'} className={tab === 'hotels' ? 'active' : ''} onClick={() => setTab('hotels')}>Hotels</button>
+    <button type="button" role="tab" aria-selected={tab === 'flights'} className={tab === 'flights' ? 'active' : ''} onClick={() => setTab('flights')}>Flights</button>
+  </div>
 
   return <section className="trip-surface" aria-label="Atlanta trip overview">
-    <div className="trip-tabs" role="tablist" aria-label="Trip section">
-      <button type="button" role="tab" aria-selected={tab === 'hotels'} className={tab === 'hotels' ? 'active' : ''} onClick={() => setTab('hotels')}>Hotels</button>
-      <button type="button" role="tab" aria-selected={tab === 'flights'} className={tab === 'flights' ? 'active' : ''} onClick={() => setTab('flights')}>Flights</button>
-    </div>
+    <div className="surface-view-tabs-desktop">{viewTabs()}</div>
+    <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>
 
     {tab === 'hotels' ? <HotelsTripTab onOpenObject={onOpenObject} /> : <FlightsTripTab />}
   </section>
@@ -4247,45 +4580,508 @@ function FlightsTripTab() {
   </div>
 }
 
-function ArtistsSurface({ onOpenObject, onOpenActivity }: { onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
-  const confirmedArtistCount = artistSeeds.filter(seed => seed.signal === 'Confirmed artist').length
+function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity }: { currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+  const [view, setView] = useState<'artists' | 'cards'>('artists')
+  const [artistFilter, setArtistFilter] = useState<'all' | string>('all')
+  const [styleFilter, setStyleFilter] = useState<string>('all')
+  const [signingFilter, setSigningFilter] = useState<'all' | 'selected' | 'maybe' | 'want_signed'>('all')
+  const [cardGroupBy, setCardGroupBy] = useState<'artist' | 'style' | 'price'>('artist')
+  const [cardSearch, setCardSearch] = useState('')
+  const [selectedArtist, setSelectedArtist] = useState<ArtistSeed | null>(null)
+  const [previewCard, setPreviewCard] = useState<ArtistCardCandidate | null>(null)
+  const [signingInterest, setSigningInterest] = useState<Record<string, ArtistSigningInterestStatus>>({})
+  const [signingInterestError, setSigningInterestError] = useState<string | null>(null)
+  const [collapsedCardGroups, setCollapsedCardGroups] = useState<Record<string, boolean>>({})
+  const [catalogState, setCatalogState] = useState<{
+    source: 'fallback' | 'supabase'
+    artists: ArtistSeed[]
+    cards: ArtistCardCandidate[]
+    error?: string
+  }>({ source: 'fallback', artists: artistSeeds, cards: artistCardCandidates })
+  const localQaModes = useMemo(() => {
+    const params = new URLSearchParams(window.location.search)
+    return new Set(
+      (params.get('qa') ?? params.get('uiQa') ?? '')
+        .split(',')
+        .map(mode => mode.trim().toLowerCase())
+        .filter(Boolean),
+    )
+  }, [])
+  const shouldSeedSigningQa = localQaModes.has('artist-signing') || localQaModes.has('signed-artists')
+  const previewSigningInterest = useMemo(
+    () => shouldSeedSigningQa ? buildPreviewSigningInterest(catalogState.cards) : {},
+    [catalogState.cards, shouldSeedSigningQa],
+  )
+  useEffect(() => {
+    let cancelled = false
+    loadArtistCatalogFromSupabase()
+      .then(catalog => {
+        if (!cancelled && catalog.cards.length) {
+          setCatalogState({ source: 'supabase', artists: catalog.artists, cards: catalog.cards })
+        }
+      })
+      .catch(error => {
+        if (!cancelled) {
+          setCatalogState({
+            source: 'fallback',
+            artists: artistSeeds,
+            cards: artistCardCandidates,
+            error: error instanceof Error ? error.message : 'Artist catalog could not be refreshed.',
+          })
+        }
+      })
+    return () => { cancelled = true }
+  }, [])
+  useEffect(() => {
+    let cancelled = false
+    if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) {
+      setSigningInterest(previewSigningInterest)
+      setSigningInterestError(null)
+      return () => { cancelled = true }
+    }
+    supabase.from('artist_signing_interests')
+      .select('artist_id,card_id,printing_id,interest_status')
+      .eq('owner_id', currentOwnerId)
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          setSigningInterestError(error.message)
+          return
+        }
+        const next: Record<string, ArtistSigningInterestStatus> = {}
+        for (const row of (data ?? []) as ArtistSigningInterestRow[]) {
+          if (!row.printing_id) continue
+          if (row.interest_status === 'maybe' || row.interest_status === 'want_signed') {
+            next[row.printing_id] = row.interest_status
+          }
+        }
+        setSigningInterest(next)
+        setSigningInterestError(null)
+      })
+    return () => { cancelled = true }
+  }, [currentOwnerId, previewSigningInterest])
+  const pocArtistSeeds = catalogState.artists
+  const pocArtistNameSet = new Set(pocArtistSeeds.map(seed => normalizeArtistName(seed.title)))
+  const activeArtistCardCandidates = catalogState.cards.filter(card => pocArtistNameSet.has(normalizeArtistName(card.artistName)))
+  const officialArtistSeeds = pocArtistSeeds.filter(seed => seed.signal === 'Confirmed artist')
+  const confirmedArtistCount = officialArtistSeeds.length
+  const watchlistArtistCount = pocArtistSeeds.length - confirmedArtistCount
+  const canUseCards = currentPerson === 'Kavi'
+  const canonicalCardStyle = (style: string) => {
+    const normalized = style.trim().replace(/\s+/g, ' ')
+    if (!normalized) return 'Other / unclear'
+    const lower = normalized.toLowerCase()
+    if (lower.includes('abstract') || lower.includes('surreal') || lower.includes('symbolic') || lower.includes('geometric')) return 'Abstract / surreal'
+    if (lower.includes('stylized') || lower.includes('atmospheric') || lower.includes('landscape') || lower.includes('environment') || lower.includes('impressionistic') || lower.includes('painterly')) return 'Stylized / atmospheric'
+    if (lower.includes('representational') || lower.includes('realist') || lower.includes('naturalistic') || lower.includes('fantasy') || lower.includes('illustration')) return 'Representational'
+    return 'Other / unclear'
+  }
+  const cardHasAbstractFit = (card: ArtistCardCandidate) => {
+    const style = canonicalCardStyle(card.visualStyle).toLowerCase()
+    const fit = card.abstractSurrealFocus.toLowerCase()
+    return fit === 'strong'
+      || fit === 'possible'
+      || style.includes('abstract')
+      || style.includes('surreal')
+  }
+  const styleGroupForCard = (card: ArtistCardCandidate) => {
+    return canonicalCardStyle(card.visualStyle)
+  }
+  const cardStyleFilterOptions = Array.from(new Set(activeArtistCardCandidates.map(styleGroupForCard))).sort((a, b) => a.localeCompare(b))
+  const normalizedCardSearch = cardSearch.trim().toLowerCase()
+  const signingKeyForCard = (card: ArtistCardCandidate) => card.printingId ?? card.id
+  const visibleArtistSeeds = pocArtistSeeds.filter(seed => {
+    if (!normalizedCardSearch) return true
+    const searchable = [
+      seed.title,
+      seed.signal,
+      seed.status,
+      seed.attendance,
+      seed.summary,
+      ...(seed.facts ?? []).map(fact => `${fact.label} ${fact.value}`),
+    ].join(' ').toLowerCase()
+    return searchable.includes(normalizedCardSearch)
+  })
+  const visibleCards = activeArtistCardCandidates.filter(card => {
+    if (artistFilter !== 'all' && normalizeArtistName(card.artistName) !== normalizeArtistName(artistFilter)) return false
+    const signingStatus = signingInterest[signingKeyForCard(card)]
+    if (signingFilter === 'selected' && !signingStatus) return false
+    if (signingFilter === 'maybe' && signingStatus !== 'maybe') return false
+    if (signingFilter === 'want_signed' && signingStatus !== 'want_signed') return false
+    if (styleFilter.startsWith('group:') && styleGroupForCard(card) !== styleFilter.slice(6)) return false
+    if (normalizedCardSearch) {
+      const searchable = [
+        card.cardName,
+        card.artistName,
+        card.setCode,
+        card.setName,
+        card.collectorNumber,
+        styleGroupForCard(card),
+        card.specialTreatment,
+        card.styleNotes,
+        card.printingType,
+        card.rarity,
+      ].join(' ').toLowerCase()
+      if (!searchable.includes(normalizedCardSearch)) return false
+    }
+    return true
+  })
+  const priceTierForCard = (card: ArtistCardCandidate) => {
+    const price = Number.parseFloat(card.marketPrice.replace(/[^0-9.]/g, ''))
+    if (!Number.isFinite(price)) return 'Price unknown'
+    if (price < 10) return 'Below $10'
+    if (price <= 20) return '$10–20'
+    return '$20+'
+  }
+  const cardGroupLabel = (card: ArtistCardCandidate) => {
+    if (cardGroupBy === 'artist') return card.artistName
+    if (cardGroupBy === 'style') return styleGroupForCard(card)
+    return priceTierForCard(card)
+  }
+  const cardGroupKey = (label: string) => `${cardGroupBy}:${label}`
+  const toggleCardGroup = (label: string) => setCollapsedCardGroups(current => {
+    const key = cardGroupKey(label)
+    return { ...current, [key]: !current[key] }
+  })
+  const selectedSigningCardsByArtist = useMemo(() => {
+    const summary: Record<string, ArtistCardCandidate[]> = {}
+    for (const card of activeArtistCardCandidates) {
+      const status = signingInterest[signingKeyForCard(card)]
+      if (!status) continue
+      const artistKey = normalizeArtistName(card.artistName)
+      summary[artistKey] = [...(summary[artistKey] ?? []), card]
+    }
+    return summary
+  }, [activeArtistCardCandidates, signingInterest])
+  const selectedSigningCount = Object.keys(signingInterest).length
+  const openCardsForArtist = (artistName: string) => {
+    if (!canUseCards) return
+    setSelectedArtist(null)
+    setPreviewCard(null)
+    setView('cards')
+    setArtistFilter(artistName)
+    setSigningFilter('all')
+    setCardGroupBy('artist')
+    setCardSearch('')
+    setCollapsedCardGroups({})
+  }
+  const openSelectedCardsForArtist = (artistName: string, card?: ArtistCardCandidate) => {
+    if (!canUseCards) return
+    setSelectedArtist(null)
+    setView('cards')
+    setArtistFilter(artistName)
+    setSigningFilter('selected')
+    setCardGroupBy('artist')
+    setCardSearch('')
+    setCollapsedCardGroups({})
+    if (card) setPreviewCard(card)
+  }
+  const toggleSigningInterest = async (card: ArtistCardCandidate, status: ArtistSigningInterestStatus) => {
+    if (!canUseCards) return
+    const key = signingKeyForCard(card)
+    const priorStatus = signingInterest[key]
+    const nextStatus = priorStatus === status ? undefined : status
+    setSigningInterest(current => {
+      const next = { ...current }
+      if (nextStatus) next[key] = nextStatus
+      else delete next[key]
+      return next
+    })
+
+    if (!canWrite || !supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) return
+    if (!card.artistId || !card.cardId || !card.printingId) {
+      setSigningInterestError('This card is missing canonical catalog ids, so the signing pick was not saved.')
+      return
+    }
+
+    const restorePrior = () => setSigningInterest(current => {
+      const next = { ...current }
+      if (priorStatus) next[key] = priorStatus
+      else delete next[key]
+      return next
+    })
+
+    if (!nextStatus) {
+      const { error } = await supabase
+        .from('artist_signing_interests')
+        .delete()
+        .eq('owner_id', currentOwnerId)
+        .eq('printing_id', card.printingId)
+      if (error) {
+        restorePrior()
+        setSigningInterestError(error.message)
+      } else {
+        setSigningInterestError(null)
+      }
+      return
+    }
+
+    const now = new Date().toISOString()
+    const updateResult = await supabase
+      .from('artist_signing_interests')
+      .update({ interest_status: nextStatus, updated_at: now })
+      .eq('owner_id', currentOwnerId)
+      .eq('printing_id', card.printingId)
+      .select('id')
+    if (updateResult.error) {
+      restorePrior()
+      setSigningInterestError(updateResult.error.message)
+      return
+    }
+    if (!updateResult.data?.length) {
+      const insertResult = await supabase.from('artist_signing_interests').insert({
+        owner_id: currentOwnerId,
+        artist_id: card.artistId,
+        card_id: card.cardId,
+        printing_id: card.printingId,
+        interest_status: nextStatus,
+        updated_at: now,
+      })
+      if (insertResult.error) {
+        restorePrior()
+        setSigningInterestError(insertResult.error.message)
+        return
+      }
+    }
+    setSigningInterestError(null)
+  }
+  const groupedVisibleCards = visibleCards.reduce<Array<{ label: string; cards: ArtistCardCandidate[] }>>((groups, card) => {
+    const label = cardGroupLabel(card)
+    const existing = groups.find(group => group.label === label)
+    if (existing) existing.cards.push(card)
+    else groups.push({ label, cards: [card] })
+    return groups
+  }, [])
+  const viewTabs = (mobile = false) => <div className={`artist-view-tabs plan-view-toggle map-tabs${mobile ? ' mobile-surface-view-tabs' : ''}`} role="tablist" aria-label="Artist planning views">
+    <button type="button" className={view === 'artists' ? 'active' : ''} onClick={() => setView('artists')}>Artists</button>
+    <button type="button" className={view === 'cards' ? 'active' : ''} onClick={() => setView('cards')}>Cards</button>
+  </div>
   return <section className="artists-surface" aria-label="Artists">
-    <section className="artists-status-card">
+    {canUseCards && <div className="artist-top-tools">
+      <div className="surface-view-tabs-desktop">{viewTabs()}</div>
+      <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>
+      <label className="artist-card-search">
+        <span aria-hidden="true">⌕</span>
+        <input value={cardSearch} onChange={event => setCardSearch(event.target.value)} placeholder={view === 'cards' ? 'Find card, artist, style' : 'Find artist'} />
+        {cardSearch && <button type="button" className="artist-card-search-clear" aria-label="Clear card search" onClick={() => setCardSearch('')}>×</button>}
+      </label>
+    </div>}
+    {(view === 'artists' || !canUseCards) && <section className="artists-status-card">
       <div className="artist-status-icon" aria-hidden="true"><NavIcon name="artists" /></div>
       <div>
         <span className="eyebrow">ATLANTA 2026</span>
-        <h2>{confirmedArtistCount} confirmed Art of Magic artists.</h2>
-        <p>The official guest page now lists Cynthia Sheppard, Mark Poole, and Serena Malyon for all days. Rebecca stays as an unconfirmed watchlist seed until the artist roster fills out.</p>
+        <h2>{confirmedArtistCount} confirmed Art of Magic artists{watchlistArtistCount ? ` + ${watchlistArtistCount} watchlist seed` : ''}.</h2>
+        <p>The official guest page now lists Cynthia Sheppard, Mark Poole, and Serena Malyon for all days. Rebecca Guay is included as an unconfirmed planning seed, not as an Atlanta-confirmed guest.</p>
       </div>
       <div className="artist-status-actions">
         <a href="https://mcatlanta.mtgfestivals.com/en-us/guests.html" target="_blank" rel="noreferrer">Official guests ↗</a>
         <button type="button" onClick={onOpenActivity}>Open Activity</button>
       </div>
-    </section>
-    <div className="artists-layout">
-      <section className="artist-seed-list" aria-label="Confirmed artists and signature watchlist">
-        {artistSeeds.map(seed => <button key={seed.id} type="button" className="artist-seed-card featured" onClick={() => onOpenObject(artistSeedToObjectDetail(seed))}>
-          <span className="artist-seed-mark"><NavIcon name="artists" /></span>
-          <span>
-            <small>{seed.signal}</small>
-            <strong>{seed.title}</strong>
-            <em>{seed.status} · {seed.attendance}</em>
+    </section>}
+    {view === 'artists' || !canUseCards ? <div className="artists-layout">
+        <section className="artist-seed-list" aria-label="MagicCon artists and watchlist seeds">
+          {visibleArtistSeeds.map(seed => {
+            const artistSigningKey = normalizeArtistName(seed.title)
+            const selectedSigningCards = canUseCards ? selectedSigningCardsByArtist[artistSigningKey] ?? [] : []
+            const selectedSigningCardsScrollable = selectedSigningCards.length > 3
+            return <article key={seed.id} className={`artist-seed-card featured ${selectedSigningCards.length ? 'has-selected-cards' : ''} ${seed.signal !== 'Confirmed artist' ? 'watchlist' : ''}`}>
+              <div
+                role="button"
+                tabIndex={0}
+                className="artist-seed-main"
+                onClick={() => setSelectedArtist(seed)}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    setSelectedArtist(seed)
+                  }
+                }}
+              >
+                <span className="artist-seed-mark"><NavIcon name="artists" /></span>
+                <span>
+                  <small>{seed.signal}</small>
+                  <strong>{seed.title}</strong>
+                  <em>
+                    {seed.status} · {seed.attendance}
+                    <a className="artist-scryfall-link" href={scryfallArtistSearchUrl(seed.title)} target="_blank" rel="noreferrer" aria-label={`Open ${seed.title} cards on Scryfall`} title={`Scryfall cards by ${seed.title}`} onClick={event => event.stopPropagation()}>
+                      <span aria-hidden="true">🔗</span>
+                      <span>Scryfall</span>
+                    </a>
+                  </em>
+                </span>
+              </div>
+              {selectedSigningCards.length > 0 && <div className={`artist-selected-card-strip-shell ${selectedSigningCardsScrollable ? 'can-scroll' : ''}`} aria-label={`${seed.title} selected signing cards`}>
+                {selectedSigningCardsScrollable && <button type="button" className="artist-selected-card-scroll prev" aria-label={`Scroll ${seed.title} selected cards left`} onClick={event => {
+                  event.stopPropagation()
+                  event.currentTarget.parentElement?.querySelector<HTMLElement>('.artist-selected-card-strip')?.scrollBy({ left: -116, behavior: 'smooth' })
+                }}>‹</button>}
+                <div className="artist-selected-card-strip">
+                  {selectedSigningCards.map(card => {
+                    const status = signingInterest[signingKeyForCard(card)]
+                    return <button key={signingKeyForCard(card)} type="button" className={`artist-selected-card-thumb ${status === 'want_signed' ? 'sure' : 'maybe'}`} title={`${card.cardName} · ${status === 'want_signed' ? 'for sure' : 'hearted'}`} onClick={event => {
+                      event.stopPropagation()
+                      openSelectedCardsForArtist(seed.title, card)
+                    }}>
+                      <img src={card.cardImageUrl || card.artCropUrl} alt={card.cardName} loading="lazy" />
+                      <span><ActionIcon name={status === 'want_signed' ? 'sign' : 'heart'} /></span>
+                    </button>
+                  })}
+                </div>
+                {selectedSigningCardsScrollable && <button type="button" className="artist-selected-card-scroll next" aria-label={`Scroll ${seed.title} selected cards right`} onClick={event => {
+                  event.stopPropagation()
+                  event.currentTarget.parentElement?.querySelector<HTMLElement>('.artist-selected-card-strip')?.scrollBy({ left: 116, behavior: 'smooth' })
+                }}>›</button>}
+              </div>}
+              {seed.thumbnailUrl && <button type="button" className="artist-seed-thumb artist-seed-thumb-button" onClick={() => setSelectedArtist(seed)} aria-label={`Open ${seed.title} details`}><img src={seed.thumbnailUrl} alt="" loading="lazy" /></button>}
+            </article>
+          })}
+        </section>
+      </div>
+      : <section className="artist-cards-workbench" aria-label="Kavi card signing workbench">
+        <div className="artist-cards-head">
+          <div>
+            <span className="eyebrow">KAVI CARD WORKBENCH</span>
+            <h2>{visibleCards.length} {signingFilter === 'all' ? 'candidate' : 'selected'} cards for POC artists.</h2>
+          </div>
+          <div className="artist-card-filters" aria-label="Card filters">
+            <label className="artist-group-select">
+              <span>Group by</span>
+              <select value={cardGroupBy} onChange={event => setCardGroupBy(event.target.value as 'artist' | 'style' | 'price')}>
+                <option value="artist">Artist</option>
+                <option value="style">Style</option>
+                <option value="price">Price tier</option>
+              </select>
+            </label>
+            <select value={artistFilter} onChange={event => setArtistFilter(event.target.value)}>
+              <option value="all">All artists</option>
+              {pocArtistSeeds.map(seed => <option key={seed.id} value={seed.title}>{seed.title}</option>)}
+            </select>
+            <select value={styleFilter} onChange={event => setStyleFilter(event.target.value)}>
+              <option value="all">All styles</option>
+              {cardStyleFilterOptions.map(style => <option key={style} value={`group:${style}`}>{style}</option>)}
+            </select>
+            <button
+              type="button"
+              className="artist-card-selected-toggle"
+              aria-label={signingFilter === 'all' ? 'Show only hearted or signed cards' : 'Show all cards'}
+              title={signingFilter === 'all' ? `Show ${selectedSigningCount} hearted or signed cards` : 'Show all cards'}
+              aria-pressed={signingFilter !== 'all'}
+              onClick={() => setSigningFilter(signingFilter === 'all' ? 'selected' : 'all')}
+            >
+              <ActionIcon name="heart" />
+              {selectedSigningCount > 0 && <span>{selectedSigningCount}</span>}
+            </button>
+          </div>
+        </div>
+        <div className="artist-card-groups">
+          {groupedVisibleCards.map(group => {
+            const collapsed = Boolean(collapsedCardGroups[cardGroupKey(group.label)])
+            return <section key={group.label} className={`artist-card-group ${collapsed ? 'collapsed' : ''}`} aria-label={`${group.label} cards`}>
+            <button type="button" className="artist-card-group-head" aria-expanded={!collapsed} onClick={() => toggleCardGroup(group.label)}>
+              <h3>{group.label}</h3>
+              <em>
+                <span>{group.cards.length}</span>
+                <b aria-hidden="true">{collapsed ? '⌄' : '⌃'}</b>
+              </em>
+            </button>
+            {!collapsed && <div className="artist-card-visual-grid">
+              {group.cards.map(card => <button key={card.id} type="button" className={`artist-card-candidate ${card.tasteMatch.toLowerCase().includes('strong') ? 'taste-strong' : ''}`} onClick={() => setPreviewCard(card)}>
+                <span className="artist-card-art"><img src={card.artCropUrl} alt={`${card.cardName} art by ${card.artistName}`} loading="lazy" /></span>
+                <span className="artist-card-copy">
+                  <small>{card.artistName}</small>
+                  <strong>{card.cardName}</strong>
+                  <em>{card.setCode} #{card.collectorNumber} · {card.foil} · qty {card.quantity}</em>
+                  <span className="artist-card-tags">
+                    <i>{styleGroupForCard(card)}</i>
+                    {card.abstractSurrealFocus !== 'Low' && <i>{card.abstractSurrealFocus} fit</i>}
+                    <i>{card.marketPrice}</i>
+                    {card.specialTreatment && <i>{card.specialTreatment}</i>}
+                    {card.tasteMatch.toLowerCase().includes('strong') && <i>taste match</i>}
+                    {card.reviewForTaste === 'Yes' && !card.tasteMatch.toLowerCase().includes('strong') && <i>review</i>}
+                    {signingInterest[signingKeyForCard(card)] === 'maybe' && <i>hearted</i>}
+                    {signingInterest[signingKeyForCard(card)] === 'want_signed' && <i>for sure</i>}
+                  </span>
+                  <span className="artist-card-note">{card.styleNotes}</span>
+                </span>
+              </button>)}
+            </div>}
+          </section>})}
+        </div>
+      </section>}
+    {canUseCards && previewCard && <div className="artist-card-popover-backdrop" role="dialog" aria-modal="true" aria-label={`${previewCard.cardName} card art preview`} onMouseDown={event => {
+      if (event.target === event.currentTarget) setPreviewCard(null)
+    }}>
+      <div className="artist-card-popover">
+        <button type="button" className="detail-close artist-card-popover-close" aria-label="Close card preview" onClick={() => setPreviewCard(null)}>×</button>
+        <div className="artist-card-popover-art">
+          <img src={previewCard.cardImageUrl} alt={`${previewCard.cardName} card art by ${previewCard.artistName}`} />
+        </div>
+        <div className="artist-card-popover-copy">
+          <div className="artist-card-popover-topline">
+            <span className="eyebrow">Card details</span>
+            <span className="artist-card-popover-topline-actions">
+              <a href={previewCard.scryfallUrl} target="_blank" rel="noreferrer" aria-label={`Open ${previewCard.cardName} on Scryfall`}>🔗 Scryfall</a>
+            </span>
+          </div>
+          <h3>{previewCard.cardName}</h3>
+          <p>{previewCard.artistName} · {previewCard.setName} · {previewCard.setCode} #{previewCard.collectorNumber}</p>
+          <dl className="artist-card-detail-grid">
+            <div><dt>Market</dt><dd>{previewCard.marketPrice}</dd></div>
+            <div><dt>Owned</dt><dd>{previewCard.quantity}</dd></div>
+            <div><dt>Foil</dt><dd>{previewCard.foil}</dd></div>
+            <div><dt>Rarity</dt><dd>{previewCard.rarity}</dd></div>
+            <div><dt>Art fit</dt><dd>{previewCard.abstractSurrealFocus}</dd></div>
+            <div><dt>Confidence</dt><dd>{previewCard.taxonomyConfidence}</dd></div>
+          </dl>
+          <div className="artist-card-tags">
+            <i>{styleGroupForCard(previewCard)}</i>
+            {previewCard.specialTreatment && <i>{previewCard.specialTreatment}</i>}
+            {previewCard.reviewForTaste === 'Yes' && <i>review for taste</i>}
+          </div>
+          <p>{previewCard.styleNotes}</p>
+          <small>{previewCard.priceAsOf}</small>
+          {signingInterestError && <small className="artist-card-sync-error">Signing pick could not be saved: {signingInterestError}</small>}
+          <span className="artist-signing-actions" aria-label="Signing interest">
+            <button type="button" className="maybe" aria-label="Heart for possible signing" title="Heart" aria-pressed={signingInterest[signingKeyForCard(previewCard)] === 'maybe'} onClick={() => void toggleSigningInterest(previewCard, 'maybe')}>
+              <ActionIcon name="heart" />
+            </button>
+            <button type="button" className="sure" aria-label="For sure for signing" title="For sure" aria-pressed={signingInterest[signingKeyForCard(previewCard)] === 'want_signed'} onClick={() => void toggleSigningInterest(previewCard, 'want_signed')}>
+              <ActionIcon name="sign" />
+            </button>
           </span>
-          {seed.thumbnailUrl && <span className="artist-seed-thumb" aria-hidden="true"><img src={seed.thumbnailUrl} alt="" loading="lazy" /></span>}
-          <b aria-hidden="true">›</b>
-        </button>)}
-      </section>
-      <aside className="artists-intel-card">
-        <span className="eyebrow">NEXT SHAPE</span>
-        <h2>Turn artists into a signing plan.</h2>
-        <p>This should become a short artist list with horizontal card rails on mobile: select artists, then attach owned/card-database matches worth carrying.</p>
-        <dl>
-          <div><dt>Source</dt><dd>Official guests page + watchlist seeds</dd></div>
-          <div><dt>Filters later</dt><dd>Selected, has cards, all days, priority</dd></div>
-          <div><dt>Mobile</dt><dd>Artists and card candidates can scroll horizontally</dd></div>
-        </dl>
-      </aside>
-    </div>
+        </div>
+      </div>
+    </div>}
+    {selectedArtist && <div className="artist-detail-popover-backdrop" role="dialog" aria-modal="true" aria-label={`${selectedArtist.title} artist details`} onMouseDown={event => {
+      if (event.target === event.currentTarget) setSelectedArtist(null)
+    }}>
+      <div className="artist-detail-popover">
+        <div className="artist-detail-popover-head">
+          <span className="eyebrow">{selectedArtist.signal}</span>
+          <button type="button" className="detail-close" aria-label="Close artist details" onClick={() => setSelectedArtist(null)}>×</button>
+        </div>
+        <div className="artist-detail-popover-body">
+          {selectedArtist.thumbnailUrl && <img className="artist-detail-popover-image" src={selectedArtist.thumbnailUrl} alt="" />}
+          <div className="artist-detail-popover-copy">
+            <h3>{selectedArtist.title}</h3>
+            <p>{selectedArtist.summary}</p>
+            <dl>
+              <div><dt>Status</dt><dd>{selectedArtist.status}</dd></div>
+              <div><dt>Attendance</dt><dd>{selectedArtist.attendance}</dd></div>
+              {selectedArtist.facts?.slice(0, 3).map(fact => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
+            </dl>
+            <div className="artist-detail-popover-links">
+              <a href={scryfallArtistSearchUrl(selectedArtist.title)} target="_blank" rel="noreferrer" aria-label={`Open ${selectedArtist.title} cards on Scryfall`}>🔗 Scryfall</a>
+            {selectedArtist.bioUrl && <a href={selectedArtist.bioUrl} target="_blank" rel="noreferrer" aria-label={`Open official ${selectedArtist.title} source`}>🔗 Official source</a>}
+            </div>
+            {canUseCards && <button type="button" className="artist-go-cards-button" onClick={() => openCardsForArtist(selectedArtist.title)}>
+              Go to Cards
+              <span>show only {selectedArtist.title}</span>
+            </button>}
+          </div>
+        </div>
+      </div>
+    </div>}
   </section>
 }
 

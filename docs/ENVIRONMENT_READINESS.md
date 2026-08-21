@@ -35,7 +35,7 @@ Current local note, August 12, 2026: the native Windows host is the default lane
 
 pnpm is Corepack-managed. Use normal `pnpm` or `corepack pnpm`; if pnpm acts strange, first run `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version`. A non-admin `corepack enable` failure while writing shims under Program Files is not a product blocker.
 
-`pnpm dev`, `pnpm preview`, `pnpm build`, and `pnpm test` use Vite/Vitest's runner config loader path. For Codex visual verification, prefer `pnpm ui:capture -- -Route <route>` after `pnpm build`; it serves the built preview and uses Playwright to capture screenshot, DOM, and visible text.
+`pnpm dev`, `pnpm preview`, `pnpm build`, and `pnpm test` use Vite/Vitest's runner config loader path. For Codex visual verification, prefer `pnpm ui:capture -- -Route <route>` after `pnpm build`; it serves the built preview and uses Playwright to capture screenshot, DOM, and visible text. When the surface depends on logged-in/user-specific state, pass a deterministic local QA query instead of relying on OAuth, for example `pnpm ui:capture -- -Route artists -Query "previewOwner=kavi&qa=artist-signing"`.
 
 For interactive in-app Browser inspection against local Vite, avoid stale selected tabs. First prove `http://127.0.0.1:5173/` returns HTTP 200, then claim or open a real app tab and read URL/title/visible text. If a prior failed load left Chrome on a generated `data:` error page, do not retry that selected tab; follow the stale-tab recovery in `docs/KNOWN_GREMLINS.md`.
 
@@ -50,6 +50,8 @@ SUPABASE_DB_URL=<project Session Pooler URL on port 5432 with sslmode=require>
 ```
 
 Obtain the URL from the expected project's Connect dialog and enter it locally. Never paste it into chat or tracked files.
+
+Treat `.secrets/database.env` as the only authoritative direct-database URL for this repo. Do not use an inherited shell-level `$env:SUPABASE_DB_URL` for project work; that variable can belong to another repo or Supabase project and may silently point at the wrong database. Project scripts that touch hosted data should read `.secrets/database.env` directly or go through `pnpm readiness` / the relevant validation script.
 
 ## Deliberately excluded
 
