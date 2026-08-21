@@ -52,7 +52,7 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
   - broader UI change or anything touching multiple surfaces: `pnpm check:ship`
 - Push `main` after a bounded approved fix. GitHub Actions deploys the `dist/` artifact to Pages.
 - Only `main` is allowed to publish the shared public Pages site. Feature branches may be reviewed locally or merged first; they should not overwrite the public preview.
-- After the Pages workflow completes, run `pnpm verify:public`. That script prepares the local Pages-stamped comparison artifact itself.
+- After the Pages workflow completes, confirm the workflow completed cleanly. For workflow/deploy-lane changes, “clean” means no visible warning annotations as well as success. Then run `pnpm verify:public`. That script prepares the local Pages-stamped comparison artifact itself.
 - If public verification needs network access, run that exact script with the elevated/network-capable path; do not first invent a different verification method.
 - For visual changes, inspect the affected public or local viewport in the browser. `verify:public` proves bundle freshness, not layout correctness, and must not be treated as a substitute for browser inspection.
 - Treat “published” as true only after a cache-busted public URL serves the expected current asset or visible behavior.

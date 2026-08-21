@@ -121,11 +121,14 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 **Do this:**
 
-- Keep `actions/checkout` and `actions/setup-node` on their Node-24 majors (`@v6` at time of writing), with project Node set to `24`.
+- Keep `actions/checkout` and `actions/setup-node` on current Node-24 majors, with project Node set to `24`.
 - Prefer Corepack (`corepack enable` + `corepack prepare pnpm@... --activate`) over `pnpm/action-setup` so package-manager setup does not add another action runtime warning.
 - With Corepack, do not set `actions/setup-node` `cache: pnpm` unless the workflow has already installed pnpm before `setup-node` runs. `setup-node` cache lookup can fail when pnpm is not yet on `PATH`.
-- Keep GitHub Pages actions on the newest supported major in GitHub's Pages docs. As of the cleanup commit, the only remaining warning is GitHub's internal `upload-artifact` dependency used by the Pages artifact action; do not churn the app to suppress that GitHub-owned non-blocking warning.
+- Keep GitHub Pages actions on the newest warning-free supported major in GitHub's Pages docs. For artifact upload, use `actions/upload-pages-artifact@v5` or newer because that path delegates to the Node-24 `actions/upload-artifact@v7` runtime.
+- A successful Pages deploy with a visible Node runtime/deprecation annotation is not clean. Treat it as a workflow defect until the action pin or deploy path is updated.
 - Do not present this as an app build failure when ship checks and deploy pass.
+- After any workflow fix, inspect the latest run for both success and warning annotations before calling the deploy lane clean.
+- If the latest official Pages artifact action still emits an upstream-owned warning, prove no supported warning-free Pages upload path exists before documenting it as unavoidable.
 - Do not batch workflow action-major upgrades, package-manager setup changes, and cache changes in one “cleanup” commit. Make the smallest operational change, let Actions prove it, then stop.
 
 ## GitHub Actions workflow edits
