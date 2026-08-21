@@ -145,6 +145,20 @@ If public verification fails after a correct push, report propagation/cache lag 
 - If a workflow change is pushed and produces a red run or user-visible email, treat it as an agent-owned mistake until evidence proves otherwise. Fix the run before returning to feature work.
 - After a workflow fix, check the latest GitHub Actions run rather than relying on local `pnpm` success.
 
+## GitHub CLI auth is not the same as Git push auth
+
+**Symptom:** `git push` works, but GitHub CLI commands such as `gh run list`, `gh run watch`, or deploy verification fail, or `gh auth status -h github.com` reports a bad or expired token.
+
+**Cause:** Git credential manager and GitHub CLI store credentials separately. A healthy Git remote push does not prove the `gh` token used for Actions/deployment inspection is valid.
+
+**Do this:**
+
+- Before relying on GitHub Actions visibility, run `pnpm readiness`; it now proves `gh` is authenticated to `github.com` as `metavirus`.
+- In Codex, run this proof in the host/escalated lane when GitHub CLI auth is involved. The sandbox can see `gh.exe` but fail to read the Windows keyring token, producing a false `HTTP 401` / invalid-token result.
+- If the GitHub CLI check fails, run `gh auth login -h github.com -p https -w`, choose browser login, then rerun `pnpm readiness`.
+- Do not keep trying `gh run ...` variants when readiness says the token is bad. Fix the CLI auth lane first.
+- If GitHub CLI auth is unavailable but a read-only public check is enough, use the public Pages URL as a fallback and say that Actions visibility is unavailable; do not call the GitHub lane ready.
+
 ### GitHub Actions Pages self-signed certificate failure
 
 **Symptom:** `actions/configure-pages` fails with `Get Pages site failed` and `self-signed certificate; ... try running Node.js with --use-system-ca`.

@@ -5,6 +5,7 @@ This is a personal hobby application for one to three trusted users. Development
 Run `pnpm readiness` before Tier 2 data/auth/database/research/monitoring work and before any change where repository, branch, remote, or Supabase identity matters. Do not make it a tax on every small CSS or copy adjustment. A pass proves:
 
 - the exact repository path, GitHub `origin`, and an allowed branch;
+- GitHub CLI is authenticated to `github.com` as `metavirus` and uses HTTPS for Git operations;
 - Node, pnpm, Supabase CLI, and PostgreSQL `psql` are available;
 - tracked configuration names only Supabase project `pavjsexxbueuzhzgemgy`;
 - the local Supabase CLI link resolves to that exact project;
@@ -32,6 +33,8 @@ pnpm validate:secrets
 ```
 
 Current local note, August 12, 2026: the native Windows host is the default lane. Node 24, Corepack-managed pnpm, Git, GitHub CLI, PostgreSQL tools, Python/uv, and Playwright are available. Do not use WSL, Docker, admin installs, or global pnpm reinstalls unless a concrete dependency requires them.
+
+Git push auth and GitHub CLI auth are separate lanes. `pnpm readiness` must pass before relying on GitHub Actions or deployment inspection through `gh`; if it fails, refresh the CLI token with `gh auth login -h github.com -p https -w` and rerun readiness. In Codex, GitHub CLI auth checks must run in the host/escalated lane because the sandbox can see `gh.exe` while failing to read the Windows keyring token.
 
 pnpm is Corepack-managed. Use normal `pnpm` or `corepack pnpm`; if pnpm acts strange, first run `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version`. A non-admin `corepack enable` failure while writing shims under Program Files is not a product blocker.
 
