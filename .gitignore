@@ -10,6 +10,7 @@ coverage/
 tmp/
 .temp/
 .monitoring-state/
+.codex-local/
 local-assets/
 *.local
 *.log

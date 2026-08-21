@@ -34,7 +34,7 @@ pnpm validate:secrets
 
 Current local note, August 12, 2026: the native Windows host is the default lane. Node 24, Corepack-managed pnpm, Git, GitHub CLI, PostgreSQL tools, Python/uv, and Playwright are available. Do not use WSL, Docker, admin installs, or global pnpm reinstalls unless a concrete dependency requires them.
 
-Git push auth and GitHub CLI auth are separate lanes. `pnpm readiness` must pass before relying on GitHub Actions or deployment inspection through `gh`; if it fails, refresh the CLI token with `gh auth login -h github.com -p https -w` and rerun readiness. In Codex, GitHub CLI auth checks must run in the host/escalated lane because the sandbox can see `gh.exe` while failing to read the Windows keyring token.
+Git push auth, host-shell GitHub CLI auth, and Codex repo-lane GitHub CLI auth are separate lanes. `pnpm readiness` must pass before relying on GitHub Actions or deployment inspection through `gh`; if it fails, run `pnpm gh:auth-local`, complete the browser login, and rerun readiness. Do not use raw host/elevated `gh auth login` as proof for Codex readiness; the repo-local lane stores its token under ignored `.codex-local\gh`.
 
 pnpm is Corepack-managed. Use normal `pnpm` or `corepack pnpm`; if pnpm acts strange, first run `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version`. A non-admin `corepack enable` failure while writing shims under Program Files is not a product blocker.
 
@@ -74,3 +74,5 @@ Docker and WSL may exist on a developer machine for unrelated work, but this rep
 ## Failure behavior
 
 Never continue through repository, remote, Supabase project, migration, URL, browser-control, Node, pnpm, Playwright, Git, or GitHub ambiguity. Run one bounded repair cycle, retest the exact capability once, then stop with `USER-HOST-ACTION REQUIRED` if host action is still needed. Report the exact failed capability, failed command/check, host-side fix, and proof command. Do not substitute a different project, unguarded URL, elevated browser key, WSL/Docker path, admin reinstall, or blind product coding.
+
+The bounded repair cycle applies to a newly observed readiness failure. If the same capability fails after it was previously represented as fixed, do not repeat the ordinary recovery and call it fixed again. Apply the recurrence doctrine in `docs/REPO_OPERATING_CONTRACT.md`: identify why the prior prevention failed, add a targeted durable guardrail, and prove both the capability and guardrail before returning to feature work.

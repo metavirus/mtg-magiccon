@@ -13,6 +13,16 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 - Do not preserve obsolete paths “for reference” if they can still mislead execution.
 - Do not overcorrect with broad new ceremony; remove wrong paths and use the right lane first.
 
+## Recurrence doctrine
+
+- A failure that recurs after being represented as fixed invalidates the prior fix. Treat the first recurrence as an incomplete prevention design, not as another isolated incident.
+- Default ownership is agent execution or repository process until evidence proves that an external dependency changed after the prior verification.
+- Stop feature work on recurrence. Establish the root cause, explain why the earlier correction did not prevent it, and encode the smallest durable prevention delta in code, a canonical script, a regression check, preflight, or the controlling instructions.
+- A cleared symptom is `RECOVERED`, not `FIXED`. `FIXED` requires the original failing lane to pass and separate proof that the new guardrail detects or prevents the failure mode.
+- Do not weaken this rule because the failure was hidden, recovered quickly, or did not reach the public app. Those facts change impact, not completeness.
+- Only an explicit user statement that tokens are low may defer durable prevention. Record the debt, give the safe temporary state, and do not claim the issue is fixed.
+- This is not permission for generic ceremony. The guardrail must target the demonstrated failure mode and should remove a fragile path rather than add duplicated checking.
+
 ## Execution standard
 
 - Readiness is task-specific, not generic. Before substantive work, identify the critical capabilities the task depends on:
@@ -20,14 +30,14 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
   - deployment visibility for public publish or public-state debugging;
   - authenticated Supabase/database execution for user-state or schema work.
 - Check those critical capabilities up front with the smallest observable smoke test. Observable means the tool returns usable state, not silence or a vague success.
-- Classify capability state decisively: `READY`, `FIXED`, or `USER-HOST-ACTION REQUIRED`. Do not operate in a lingering "maybe usable" state.
+- Classify capability state decisively: `READY`, `RECOVERED`, `FIXED`, or `USER-HOST-ACTION REQUIRED`. `RECOVERED` is explicitly incomplete and cannot support a completion claim for a recurring failure. Do not operate in a lingering "maybe usable" state.
 - If a platform/environment capability fails, run one bounded agent-accessible repair, retest that same capability once, then stop if it still requires host action. Report the exact failed capability, failed command/check, host-side fix, and proof command to run afterward.
 - Do not retry the same failing command in variants, switch to WSL/Docker/admin/global reinstall paths, add wrappers, or continue coding through a missing capability unless the failure specifically requires that route.
 - Expected project capabilities are assumed available once documented: Git writes through the approved lane, package scripts, Supabase-backed state, GitHub Pages deploy/verify, and browser/viewport inspection for visual work.
 - If one of those known lanes errors, first assume agent execution failure: wrong lane, missing setup, fragile command construction, stale docs, or insufficient preflight.
 - Browser inspection is a required capability for visual/UI work. Do not phrase it as "if available"; use it. If it cannot be used after recovery, say the visual verification failed and do not claim completion.
 - Separate capability failures from product failures. A broken browser lane does not prove the app is broken, and a verified deploy does not prove the UI is correct.
-- Recovery is not enough. For a user-visible preventable error, record the prevention delta: the specific doc/script/command habit/removed wrong path that should prevent recurrence.
+- Recovery is not enough. For every recurring or preventable error, record and implement the prevention delta: the specific code, test, preflight, doc, script, command habit, or removed wrong path that should prevent recurrence.
 - Hardening should simplify the path. Prefer one canonical command or standing rule over extra layers of duplicate checks.
 
 ## Product rules
@@ -97,6 +107,6 @@ When something fails:
 2. Use the canonical repo command, not a substitute.
 3. If the failure is a known sandbox, network, Git, or cache constraint, use the documented path immediately.
 4. If public behavior is involved, verify public deployment before changing code again.
-5. If the same symptom happens twice, stop patching symptoms and inspect the root cause: DOM, duplicated component, stale bundle, workflow order, or storage target.
+5. For a new failure, one bounded diagnosis/repair cycle is allowed. If a symptom recurs after any claimed fix, apply the recurrence doctrine immediately; there is no additional retry allowance.
 
 Environment friction that has already been discovered is operating procedure. Repeating it without using the known lane first is an agent execution failure.

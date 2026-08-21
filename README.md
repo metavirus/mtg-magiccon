@@ -21,7 +21,7 @@ Use native Windows. pnpm is Corepack-managed; do not reinstall pnpm globally wit
 
 Run `pnpm readiness` before database or release work. See [development architecture](docs/DEVELOPMENT_ARCHITECTURE.md), [environment readiness](docs/ENVIRONMENT_READINESS.md), [project context](docs/PROJECT_CONTEXT.md), and [current frontier](CURRENT_FRONTIER.md).
 
-Before spending time on a recurring setup, Git, auth, cache, publish, or responsive issue, check [Known Gremlins](docs/KNOWN_GREMLINS.md). The project should not repeatedly rediscover the same environment failures.
+Before spending time on a recurring setup, Git, auth, cache, publish, data, browser, or responsive issue, check [Known Gremlins](docs/KNOWN_GREMLINS.md). A failure returning after it was called fixed disproves that fix: stop feature work, find why the prevention failed, add a targeted durable guardrail, and prove both the original lane and the guardrail. A successful retry alone is only recovery. Only an explicit user statement that tokens are low may defer that work.
 
 For the short operating contract that keeps this hobby app from accumulating avoidable process overhead, see [Repo Operating Contract](docs/REPO_OPERATING_CONTRACT.md).
 

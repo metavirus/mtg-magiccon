@@ -4,7 +4,9 @@ Before substantive application, research, documentation, or database work, read 
 
 When a known gremlin applies, use its documented path directly. Do not run the expected failing command first, do not present known environment friction as a new blocker, and do not add replacement ceremony unless the documented path itself fails.
 
-If a known lane still errors, presume agent execution failure until proven otherwise: wrong command, wrong setup, wrong environment lane, stale assumption, or insufficient preflight. Recovery is not enough. For a user-visible preventable error, state the prevention delta and update the relevant doc/script/standing rule if one is missing.
+If a known lane still errors, presume agent execution failure until proven otherwise: wrong command, wrong setup, wrong environment lane, stale assumption, or insufficient preflight.
+
+Any recurrence of a failure after it was represented as fixed conclusively means the prior fix was incomplete. Stop feature work on the first recurrence, identify why the earlier prevention failed, and add the smallest durable guardrail in code, scripts, tests, preflight, or the canonical instructions. Clearing the current symptom is recovery, not a fix. Do not report `FIXED`, readiness, or completion until the original failing lane and the new guardrail both pass. This applies whether or not the failure is user-visible. Only an explicit user statement that tokens are low may defer the durable prevention work; record the debt and do not call it fixed.
 
 For visual UI work, browser or viewport inspection is expected capability, not an optional luxury. Public asset verification proves freshness, not visual correctness. If browser control or viewport inspection is unavailable, recover that lane or explicitly stop before claiming the visual fix is done.
 
