@@ -6,7 +6,7 @@ Updated: 2026-08-21
 
 Commit `f0fe3f1` (`Close the reviewed surveyor action loop`) is on `main`. CI run `32520980614` and Pages run `32520980683` succeeded with zero annotations; `pnpm verify:public` passed, and the deployed Activity flow passed desktop and mobile visual inspection. Manual surveyor runs `32521125551` and `32521224614` both succeeded. The workflow-owned fingerprint beginning `bc7e5a` remained one row and its `occurrence_count` advanced to `2`, proving idempotent deduplication. The obsolete undecided prototype row beginning `fdb94` was deleted.
 
-Product correction in progress: the workflow-created Magic Play link appearance is informational evidence, not an executable approval request or canonical mutation. Its correct lifecycle is `unread` → `read`/`archived`, with no decision audit. No monitoring baseline was accepted.
+The informational-finding correction is live. Migration `20260821202823` reclassified the workflow-created Magic Play link appearance as `unread` with preserved evidence/dedupe history and no action or decision audit. Commits `0af0be5` and `0a8d0a7` shipped the data/router/UI correction and removed the remaining raw link-delta presentation. CI `32524396031`, Pages `32524396062`, `pnpm verify:public`, and deployed desktop/mobile Home, Activity, and drawer inspection passed. The UI shows labeled official resources, `Status`, and read/archive controls; it shows no raw URL dump, `Decision`, `Target`, or `Publish` action. No monitoring baseline was accepted.
 
 ## Where we are
 

@@ -6,6 +6,8 @@ Updated: 2026-08-21
 
 This section supersedes the older official-links approval language below. The Magic Play link appearance is useful source evidence already visible in Activity; it must not ask Kavi to approve publishing a duplicate Activity alert. Official-link findings use `unread`, `read`, and `archived` review state, preserve labeled links in evidence, carry no action mapping or decision audit, and never mutate canonical facts. The specific official-links executor/RPC is retired. Consequence-aware authorization remains available only for future findings with a separate, real canonical effect. No baseline was accepted.
 
+Live proof: hosted migration `20260821202823` preserved the workflow row's fingerprint, five labeled links, first/last seen timestamps, and `occurrence_count = 2` while clearing the obsolete action mapping and leaving all decision audit fields null. Commits `0af0be5` and `0a8d0a7` shipped the integrated correction. CI run `32524396031`, Pages run `32524396062`, and `pnpm verify:public` passed. Deployed desktop/mobile Home, Activity, and drawer inspection confirmed labeled resources, `Status`, and read/archive controls, with no raw link dump, `Decision`, `Target`, or `Publish` action.
+
 ## Final closeout — live and verified
 
 - Commit `f0fe3f1` (`Close the reviewed surveyor action loop`) was pushed to `main`.
