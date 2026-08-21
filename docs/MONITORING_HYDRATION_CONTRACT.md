@@ -60,6 +60,8 @@ The app validates only the shape needed to avoid crashing. The monitor remains r
 
 The durable successor to file-backed preview hydration is `public.monitoring_findings`. Cloud checks may stage source evidence there using a server-only GitHub Actions secret. The table is fingerprint-deduplicated and Kavi-readable. Informational changes such as new official navigation links use `unread`, `read`, and `archived` review state with no approval or canonical mutation; their presentation links remain inside evidence. Only a finding with a distinct, explicitly named canonical consequence may enter the authorization lifecycle. Ambiguous findings remain unmapped and fail closed.
 
+User-visible monitoring now passes through the concept reconciliation contract in `docs/MONITORING_CONCEPT_RECONCILIATION.md`. Raw findings and noise remain internal evidence. `monitoring_concepts` provides stable semantic identity, while `monitoring_concept_evidence` preserves cross-source provenance; keyed legacy alerts are transition-only fallbacks and must not create a second card when a live concept exists.
+
 ## Publication rule
 
 Publish the GitHub Pages preview only when at least one of these is true:

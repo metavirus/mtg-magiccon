@@ -51,6 +51,7 @@ export function buildMonitoringCandidateRows(report) {
         homeWorthyWhen: change.homeWorthyWhen,
         monitorCheckedAt: report.checkedAt,
         sourceIds,
+        semanticSummary: change.semanticSummary,
       },
       last_seen_at: report.checkedAt,
       updated_at: report.checkedAt,
