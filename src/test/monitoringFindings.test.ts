@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
+import { findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
 
 const finding = (overrides: Partial<MonitoringFindingRow> = {}): MonitoringFindingRow => ({
   id: 'finding', fingerprint: 'a'.repeat(64), source_id: 'source', source_label: 'Official source', source_url: 'https://example.com/very/long/source/url', destination: 'Home', title: 'New official links', summary: 'Summary', review_question: 'Add the links?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T20:00:00.000Z', last_seen_at: '2026-08-21T20:00:00.000Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, ...overrides,
@@ -53,6 +53,16 @@ describe('monitoring finding decisions', () => {
       { label: 'Unsafe', url: 'javascript:alert(1)' },
     ] } }))
     expect(resources).toEqual([{ label: 'Ticketed Play Schedule', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play.html' }])
+  })
+
+  it('replaces a machine-generated link delta with useful informational copy', () => {
+    const informational = finding({
+      status: 'unread',
+      summary: '7 links added: Magic Play -> https://mcatlanta.mtgfestivals.com/en-us/magic-play.html',
+      evidence: { presentation_links: [{ label: 'Magic Play', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html' }] },
+    })
+    expect(findingDisplaySummary(informational)).toBe('Official Atlanta navigation now links to useful Magic Play resources.')
+    expect(findingDisplaySummary(informational)).not.toContain('https://')
   })
 
   it('makes active and terminal execution states explicit', () => {
