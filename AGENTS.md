@@ -2,6 +2,12 @@
 
 Before substantive application, research, documentation, or database work, read `docs/REPO_OPERATING_CONTRACT.md`, check `docs/KNOWN_GREMLINS.md` for any already-known failure mode, then choose the smallest safe lane from `docs/ANTI_WASTE_OPERATING_MODE.md`.
 
+## Root-coordinator hard stop
+
+Once a request is classified as multi-tranche, or the user explicitly requires delegation, the root chat coordinates only. Its first substantive action must be dispatch. Root may perform required instruction/preflight reads, dispatch work, resolve cross-tranche product decisions and bounded integration conflicts, run the aggregate final gate, coordinate durable-state updates, and give concise user updates. Root must not implement a tranche, activate operations, perform browser proof, publish, or run extended diagnostics assigned to a tranche.
+
+If all agent slots are occupied, wait for or reuse a completed agent; never absorb its tranche into root. Any prohibited root action, or two consecutive substantive root tool batches inside a delegated lane, is a coordination breach: stop immediately, record the breach, and delegate the remainder. Near-completion is not an exception. If Kavi says context is being blown, stop immediately before any more substantive tool use and restore delegation/state from the durable handoff.
+
 When a known gremlin applies, use its documented path directly. Do not run the expected failing command first, do not present known environment friction as a new blocker, and do not add replacement ceremony unless the documented path itself fails.
 
 If a known lane still errors, presume agent execution failure until proven otherwise: wrong command, wrong setup, wrong environment lane, stale assumption, or insufficient preflight.
@@ -31,7 +37,7 @@ Run build, tests, text-integrity, and secret validation before handoff. Database
 
 - Optimize for real speed: assess, execute, file it away. Eliminate recurring failure causes and encode the smallest prevention rule; do not normalize recurrence as ambient friction.
 - Use decisive bounded chunks with little ceremony. Take the obvious approved next step; ask only when risk, product direction, privacy, credentials, or reversibility materially changes.
-- Before implementing work that spans multiple systems, surfaces, or proof lanes, identify the bounded tranches and mark which are independently delegable. Every large independent tranche must be dispatched to a narrow subagent; the root chat coordinates scope, resolves cross-tranche decisions, integrates results, verifies the whole, and updates durable state. The root chat must not silently absorb a delegable large tranche. Small work and tightly coupled work that cannot run independently stay in the root chat. If subagents are unavailable, a higher-priority instruction blocks delegation, or a tranche is not safely separable, disclose that immediately before implementation, explain the substitute lane, and do not downgrade silently. Continue a large delegable tranche in the root chat only after explicit user approval. Persist `CURRENT_FRONTIER.md` and `docs/WORK_BACKLOG.md` after each material tranche so compaction cannot erase state.
+- Before implementing work that spans multiple systems, surfaces, or proof lanes, identify and dispatch the bounded tranches under the root-coordinator hard stop above. Persist `CURRENT_FRONTIER.md` and `docs/WORK_BACKLOG.md` after each material tranche so compaction cannot erase state.
 - Visual work requires actual viewport inspection and visual judgment: spacing, hierarchy, controls, alignment, mobile wrapping, drawer size, and false affordances all count.
 - Supabase is truth. Shared trip/event context is shared unless there is a real privacy reason; Black Lotus context is not secret; Kavi's card-signing workbench/details remain private for now.
 - Purchased/locked state gets the strongest visual language. Interested, tentative, and ordinary committed states must not steal that signal.
