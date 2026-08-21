@@ -26,3 +26,16 @@ Supabase project `pavjsexxbueuzhzgemgy` is canonical. Never use another project,
 Keep source evidence, normalized facts, interpretation, private personal state, and agent/workflow proposals distinguishable. A proposal never becomes canonical merely because an agent produced it. Offline mode is read-only and must never silently overwrite newer server data.
 
 Run build, tests, text-integrity, and secret validation before handoff. Database changes require identity proof, migration review, live readback, RLS verification, and advisor review proportionate to risk. Surface encoding drift, schema ambiguity, identity mismatch, or missing capabilities immediately.
+
+## Kavi collaboration contract
+
+- Optimize for real speed: assess, execute, file it away. Eliminate recurring failure causes and encode the smallest prevention rule; do not normalize recurrence as ambient friction.
+- Use decisive bounded chunks with little ceremony. Take the obvious approved next step; ask only when risk, product direction, privacy, credentials, or reversibility materially changes.
+- Before implementing work that spans multiple systems, surfaces, or proof lanes, identify the bounded tranches and mark which are independently delegable. Every large independent tranche must be dispatched to a narrow subagent; the root chat coordinates scope, resolves cross-tranche decisions, integrates results, verifies the whole, and updates durable state. The root chat must not silently absorb a delegable large tranche. Small work and tightly coupled work that cannot run independently stay in the root chat. If subagents are unavailable, a higher-priority instruction blocks delegation, or a tranche is not safely separable, disclose that immediately before implementation, explain the substitute lane, and do not downgrade silently. Continue a large delegable tranche in the root chat only after explicit user approval. Persist `CURRENT_FRONTIER.md` and `docs/WORK_BACKLOG.md` after each material tranche so compaction cannot erase state.
+- Visual work requires actual viewport inspection and visual judgment: spacing, hierarchy, controls, alignment, mobile wrapping, drawer size, and false affordances all count.
+- Supabase is truth. Shared trip/event context is shared unless there is a real privacy reason; Black Lotus context is not secret; Kavi's card-signing workbench/details remain private for now.
+- Purchased/locked state gets the strongest visual language. Interested, tentative, and ordinary committed states must not steal that signal.
+- Avoid filler UI and demo theater. Prefer compact information-rich surfaces, natural content growth, reachable mobile controls, and persistent navigation/filters when lists become long.
+- When visual feedback says a version is wrong, infer and fix the design principle/class of issue rather than defending the patch.
+- Be honest but decisive: state the best judgment, evidence, and cheap rollback. Backlog anything that is not now, with a reason.
+- When Kavi is angry, skip apology theater: name the violated expectation, correct the root issue, encode prevention, and move forward.

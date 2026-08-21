@@ -1,8 +1,8 @@
 # MVP Monitoring Agent Design
 
-Updated: 2026-08-11
+Updated: 2026-08-21
 
-Automation status: daily heartbeat `magiccon-atlanta-quiet-period-monitor` is active. It may read approved public sources and Gmail search results, report into the Codex task, and update the fixture-backed POC hydration file when a finding is ready for review. It is not authorized to write Supabase data, modify Gmail, send mail, create push notifications, or change canonical app state.
+Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` may read approved public/Gmail sources, report into its task, and deliberately update the legacy fixture-preview file; it cannot write Supabase. The GitHub Actions surveyor checks the public watch set and may stage noncanonical source evidence in `monitoring_findings`; it cannot write normalized facts, modify Gmail, send mail, create push notifications, or change canonical app state.
 
 ## Purpose
 
@@ -21,6 +21,19 @@ During the quiet period, days or weeks may pass with no visible app change. The 
 The detailed watch-set strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. That research note is the authority for source priority and search-radar shape; this file defines the agent behavior and safety contract.
 
 The mechanical web watch set is now recorded in `monitoring/watch-set.json`. Run `pnpm monitor:check` at the start of each daily run before ad hoc browsing. The command compares approved public watch URLs against the accepted local baseline in `.monitoring-state/watch-state.local.json`, which is intentionally ignored by Git so routine quiet checks do not dirty the repository. Use `pnpm monitor:accept` only after a baseline or reviewed change has been accepted; do not silently accept a changed source before routing it.
+
+The cloud surveyor now stages changed-source candidates in `public.monitoring_findings` after the mechanical check. `pnpm monitor` is the canonical alias for the check, and `pnpm monitor:stage <report.json>` performs the server-side staging step. GitHub Actions must have a server-only `SUPABASE_SECRET_KEY` repository secret for canonical project `pavjsexxbueuzhzgemgy`; the staging command fails closed when it is absent. The secret must never use a publishable/browser key and must never be committed. Identical fingerprints update one finding rather than creating new inbox cards, and identical shared-navigation link deltas are collapsed across watched pages.
+
+Only Kavi can read or decide these rows through the app. The current implementation provisionally maps **Yes** to `staged` and **No** to `dismissed`; that proves authorization and audit mechanics but is not the final closed loop.
+
+### Decision-to-action contract to implement next
+
+- Every decision prompt must name its consequence, such as `Add these official links`, `Update this event`, or `Publish this reviewed change`; avoid a generic Yes whose effect is hidden.
+- **Yes** authorizes the stated action. When the source, target mapping, transformation, and rollback are deterministic and bounded, the system should perform the canonical update, run the proportional validation lane, publish when public behavior changed, verify the deployed result, and record the outcome without waiting for Kavi to remember to ask in chat later.
+- **No** dismisses the candidate with who/when audit.
+- Use `staged` only when the mapping is genuinely ambiguous, required capability/credential is blocked, or the consequence cannot yet be safely automated. A staged row must record a concrete blocker, next action, and execution owner/wakeup mechanism; it must not become passive “ask Kavi again someday” purgatory.
+- User-approved bounded execution is not the same as unreviewed autonomous canonical ingestion. Broad unreviewed ingestion remains parked.
+- Extend the audit model so it can prove the authorized action, execution status, canonical target/result, failure/blocker, validation, deployment, and verification—not only the decision timestamp.
 
 The mechanical Gmail query map is recorded in `monitoring/gmail-watch-queries.json`. It does not access Gmail by itself; it prevents the daily run from drifting back into broad, noisy searches.
 
@@ -145,9 +158,9 @@ Attach to the object when:
 - an event detail affects Explore or Plan;
 - a source fact explains why an object is trustworthy.
 
-## Recommended MVP deployment shape
+## Deployed runtime split
 
-Use a deliberately simple scheduled Codex/automation workflow first:
+The Codex heartbeat remains a deliberately simple read/report workflow:
 
 1. Run once daily during quiet period.
 2. Search/check the approved watch set.
@@ -155,7 +168,7 @@ Use a deliberately simple scheduled Codex/automation workflow first:
 4. If any Home-worthy item exists, wake the thread or create an app alert payload.
 5. If nothing meaningful changed, record only a quiet Activity observation or no visible app update.
 
-The deployed heartbeat follows this shape and may also refresh the fixture-backed preview hydration file when there is a meaningful finding. Routine quiet checks remain thread-only.
+The GitHub Actions surveyor is separate: it runs the deterministic public check, uploads the artifact, and—once its server credential is configured—stages deduplicated review candidates in Supabase. It does not run Gmail, Discord, or LEAP browsing. Routine quiet checks create no visible app noise.
 
 Do not start with:
 
@@ -198,9 +211,9 @@ The monitoring agent is POC-ready when:
 - a human can run the daily prompt manually and know where every finding belongs;
 - live automation can be enabled later without redesigning Home, Activity, Notes, Wallet, Trip, Explore, Calendar, or Map.
 
-## Open before live automation
+## Remaining activation gate
 
-- Decide whether the first real run writes only to the Codex thread or also to Supabase observation tables.
-- Fix auth/session persistence before expecting owner-reviewed writes to survive reliably from the app.
-- Design private Storage before saving real receipt screenshots/PDFs.
-- Define the watch-set file format if the URL list grows beyond a handful of official pages.
+- In GitHub repository Settings → Secrets and variables → Actions, configure the secret named exactly `SUPABASE_SECRET_KEY` with a modern `sb_secret_...` server key for `pavjsexxbueuzhzgemgy`. Never paste it into chat, commit it, or expose it through Vite/browser configuration.
+- Run `Daily MagicCon surveyor` manually and prove a changed report stages a row, then rerun the same report and prove fingerprint dedupe updates `occurrence_count` instead of creating another card.
+- Confirm Kavi can review the candidate and a non-Kavi companion cannot read or decide it.
+- Run the normal ship/public verification gate only after that workflow is clean. Private Storage for receipt originals remains a separate tranche.

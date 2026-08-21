@@ -1,6 +1,6 @@
 # MagicCon Atlanta 2026 Companion
 
-Private, mobile-first planning and personal-intelligence app for one attendee at MagicCon Atlanta 2026. This repository is greenfield: the nearby `mtg-events-chatgpt` project is a methodology reference only.
+Private, mobile-first planning and personal-intelligence app for MagicCon Atlanta 2026. The project began greenfield; the nearby `mtg-events-chatgpt` project remains a methodology reference only.
 
 ## Foundation
 
@@ -38,14 +38,15 @@ For the short operating contract that keeps this hobby app from accumulating avo
 | `pnpm publish:pages` | Local Pages artifact check only: run ship checks and prepare `dist/` for the GitHub Actions deploy |
 | `pnpm verify:public` | Compare the public GitHub Pages asset references with the local `dist/` artifact after a cache-busted fetch |
 | `pnpm test` | Unit tests |
+| `pnpm monitor` | Run the canonical watched-source change check (`monitor:check` alias) |
 | `pnpm validate:text` | UTF-8/LF and text checks |
 | `pnpm validate:secrets` | Tracked-file secret scan |
 | `pnpm readiness` | Identity and environment gate |
 
 The first live product slice is documented in [Black Lotus Trust Slice](docs/BLACK_LOTUS_TRUST_SLICE.md). It retains one official Atlanta claim, a reversible owner decision, a Plan placement, and a versioned owner-bound offline read model.
 
-A temporary GitHub Pages preview is available for iPhone review at https://metavirus.github.io/mtg-magiccon/. It is fixture-backed by default and not a production data deployment.
+A temporary GitHub Pages preview is available for iPhone review at https://metavirus.github.io/mtg-magiccon/. Normal entry is auth-first and uses live Supabase-backed state where implemented; `?preview=1` is the explicit fixture bypass. This remains personal preview hosting, not a production deployment.
 
 For this project, "published" should mean the public GitHub Pages URL has been verified after the GitHub Actions Pages deploy, not merely that `dist` was built locally.
 
-As of the August 8 fixture-backed 1.5 pass, the preview is accepted as a coherent quiet-period review surface. Google OAuth is now the deliberate live-auth path at `?auth=1`; the default Pages URL remains fixture-backed for unblocked review. See [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md).
+As of the August 8 fixture-backed 1.5 pass, the preview is accepted as a coherent quiet-period review surface. Google OAuth is the normal live-auth path; use `?preview=1` only for deliberate fixture/QA review. See [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md).

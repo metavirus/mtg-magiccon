@@ -9,6 +9,7 @@ import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
+import { findingApprovalLabel, findingCanAuthorize, findingExecutionDetail, findingReviewLabel, monitoringDecisionPatch, type MonitoringFindingDecision, type MonitoringFindingRow } from './lib/monitoringFindings'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -392,6 +393,16 @@ async function loadUserActivityEvents(_ownerId: string): Promise<UserActivityEve
   return result.data as UserActivityEventRow[]
 }
 
+async function loadMonitoringFindings(): Promise<MonitoringFindingRow[]> {
+  if (!supabase) return []
+  const result = await supabase.from('monitoring_findings')
+    .select('id,fingerprint,source_id,source_label,source_url,destination,title,summary,review_question,evidence,status,decision,first_seen_at,last_seen_at,occurrence_count,decided_by,decided_at,staged_at,action_type,action_payload,execution_status,canonical_target,canonical_result,blocker,error_message,executed_at,deployment_evidence,verification_evidence,retry_count,rollback_payload')
+    .order('last_seen_at', { ascending: false })
+    .limit(100)
+  if (result.error) throw result.error
+  return result.data as MonitoringFindingRow[]
+}
+
 type MentionInboxItem = {
   id: string
   mentionToken: string
@@ -437,6 +448,13 @@ function selectionKey(objectId: string, key: string) {
 
 function isKaviCompanion(companion?: CompanionMember) {
   return companion?.key === 'kavi'
+}
+
+function monitoringFindingQaRows(): MonitoringFindingRow[] {
+  if (!new URLSearchParams(window.location.search).get('qa')?.split(',').includes('monitoring-findings')) return []
+  return [{
+    id: 'qa-monitoring-finding', fingerprint: 'a'.repeat(64), source_id: 'atlanta-magic-play', source_label: 'MagicCon Atlanta official pages', source_url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html', destination: 'Home', title: 'Atlanta pages now expose Magic Play links', summary: 'Ticketed Play Schedule, On-Demand Events, Prize Tix and Prize Wall, and the playing guide appeared across official Atlanta navigation.', review_question: 'Publish the reviewed official Magic Play links to Activity?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T18:57:59.364Z', last_seen_at: '2026-08-21T18:57:59.364Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, action_type: 'publish_official_links_alert', action_payload: { approval_label: 'Publish these reviewed links', links: [] }, execution_status: 'not_started', canonical_target: { kind: 'activity', key: 'reviewed-source-alerts' }, canonical_result: null, blocker: null, error_message: null, executed_at: null, deployment_evidence: null, verification_evidence: null, retry_count: 0, rollback_payload: { operation: 'remove_by_action_fingerprint' },
+  }]
 }
 
 function kaviDefaultExploreState(event: ExploreEvent): ExploreState | null {
@@ -532,6 +550,7 @@ export default function App() {
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
   const [sharedSelectionRows, setSharedSelectionRows] = useState<UserSelectionRow[]>([])
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
+  const [monitoringFindings, setMonitoringFindings] = useState<MonitoringFindingRow[]>([])
   const [continuityReady, setContinuityReady] = useState(false)
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
@@ -680,6 +699,7 @@ export default function App() {
       setUserSelections({})
       setSharedSelectionRows([])
       setUserActivityRows([])
+      setMonitoringFindings(isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? monitoringFindingQaRows() : [])
       setExploreEventState(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers)))
       setContinuityReady(true)
       return
@@ -691,15 +711,17 @@ export default function App() {
       setUserSelections({})
       setSharedSelectionRows([])
       setUserActivityRows([])
+      setMonitoringFindings([])
       setExploreEventState(exploreEvents)
       setContinuityReady(true)
       return
     }
-    const [notesResult, mentionsResult, selectionsResult, activityResult] = await Promise.allSettled([
+    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult] = await Promise.allSettled([
         loadContextNotes(effectiveOwnerId),
         loadMentionInbox(effectiveOwnerId),
         loadUserSelections(effectiveOwnerId),
         loadUserActivityEvents(effectiveOwnerId),
+        isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]),
       ])
     const failures: string[] = []
     if (notesResult.status === 'fulfilled') setContextNotesState(notesResult.value)
@@ -708,6 +730,8 @@ export default function App() {
     else failures.push('mentions')
     if (activityResult.status === 'fulfilled') setUserActivityRows(activityResult.value)
     else failures.push('activity')
+    if (findingsResult.status === 'fulfilled') setMonitoringFindings(findingsResult.value)
+    else failures.push('monitoring findings')
     if (selectionsResult.status === 'fulfilled') {
       setSharedSelectionRows(selectionsResult.value)
       const selections = userSelectionMap(selectionsResult.value.filter(row => row.owner_id === effectiveOwnerId))
@@ -1148,7 +1172,44 @@ export default function App() {
     reviewState: alertReview[alert.id] ?? defaultAlertReviewState(alert),
     objectDetail: alertToObjectDetail(alert),
   }))
-  const activityItems = [...generatedActivity, ...noteActivity, ...monitorActivity].filter(shouldShowActivityItem).sort((a, b) => {
+  const findingActivity: ActivityItem[] = monitoringFindings.map(finding => ({
+    id: `finding-${finding.id}`,
+    sourceKind: 'monitor',
+    kind: 'site',
+    severity: finding.destination === 'Home' ? 'hot' : 'notice',
+    destination: finding.destination,
+    attention: 'Kavi decision needed',
+    title: finding.title,
+    summary: finding.summary,
+    object: finding.source_label,
+    source: finding.source_label,
+    checkedAt: new Date(finding.last_seen_at).toLocaleString(),
+    checkedAtIso: finding.last_seen_at,
+    status: findingReviewLabel(finding),
+    rationale: 'The surveyor retained the source evidence. Approval authorizes only the named, bounded consequence shown below.',
+    nextAction: findingExecutionDetail(finding),
+    reviewState: finding.status === 'dismissed' ? 'archived' : finding.execution_status === 'completed' ? 'reviewed' : 'needs-review',
+    objectDetail: {
+      id: `monitoring-finding-${finding.id}`,
+      kind: 'alert',
+      eyebrow: 'Surveyor finding',
+      title: finding.title,
+      summary: finding.summary,
+      facts: [
+        { label: 'Decision', value: findingReviewLabel(finding) },
+        { label: 'First seen', value: new Date(finding.first_seen_at).toLocaleString() },
+        { label: 'Last seen', value: new Date(finding.last_seen_at).toLocaleString() },
+        { label: 'Repeated', value: `${finding.occurrence_count} observation${finding.occurrence_count === 1 ? '' : 's'}` },
+        ...(finding.canonical_target ? [{ label: 'Target', value: String(finding.canonical_target.label ?? finding.canonical_target.key ?? finding.canonical_target.kind ?? 'Canonical app state') }] : []),
+        ...(finding.executed_at ? [{ label: 'Executed', value: new Date(finding.executed_at).toLocaleString() }] : []),
+      ],
+      source: { label: finding.source_label, value: finding.source_url },
+      rationale: findingExecutionDetail(finding),
+      backlinks: [{ label: 'Activity', destination: 'activity' }],
+    },
+    monitoringFinding: finding,
+  }))
+  const activityItems = [...generatedActivity, ...noteActivity, ...findingActivity, ...monitorActivity].filter(shouldShowActivityItem).sort((a, b) => {
     const severityRank = { hot: 0, notice: 1, quiet: 2 } as const
     const reviewRank = { 'needs-review': 0, reviewed: 1, archived: 2 } as const
     const reviewDelta = reviewRank[a.reviewState] - reviewRank[b.reviewState]
@@ -1158,11 +1219,49 @@ export default function App() {
     return new Date(b.checkedAtIso).getTime() - new Date(a.checkedAtIso).getTime()
   })
   const setActivityReviewState = (item: ActivityItem, state: AlertReviewState) => {
+    if (item.monitoringFinding) return
     if (item.sourceKind === 'monitor') {
       setAlertReviewState(item.id, state)
       return
     }
     void upsertUserSelection(`activity-${item.id}`, 'activity', 'review_state', state)
+  }
+  const decideMonitoringFinding = async (finding: MonitoringFindingRow, decision: MonitoringFindingDecision) => {
+    if (!canWrite || !supabase || !effectiveOwnerId || !isKaviCompanion(currentCompanion)) return
+    if (decision === 'yes') {
+      if (!findingCanAuthorize(finding)) {
+        setMessageTone('error')
+        setMessage('This finding needs a bounded action mapping before it can be approved.')
+        return
+      }
+      setMonitoringFindings(current => current.map(row => row.id === finding.id ? { ...row, execution_status: 'executing', error_message: null } : row))
+      const execution = await supabase.rpc('execute_official_links_monitoring_action', { p_finding_id: finding.id })
+      if (execution.error) {
+        setMonitoringFindings(current => current.map(row => row.id === finding.id ? { ...row, execution_status: 'failed', error_message: execution.error.message } : row))
+        setMessageTone('error')
+        setMessage(`Approved action could not be completed: ${execution.error.message}`)
+        return
+      }
+      const [findingsResult, activityResult] = await Promise.allSettled([loadMonitoringFindings(), loadUserActivityEvents(effectiveOwnerId)])
+      if (findingsResult.status === 'fulfilled') setMonitoringFindings(findingsResult.value)
+      if (activityResult.status === 'fulfilled') setUserActivityRows(activityResult.value)
+      if (findingsResult.status === 'rejected' || activityResult.status === 'rejected') {
+        setMessageTone('error')
+        setMessage('The action completed, but its readback could not be refreshed. Refresh Activity before retrying.')
+        return
+      }
+      setMessageTone('info')
+      setMessage('Reviewed official links published and verified.')
+      return
+    }
+    const patch = monitoringDecisionPatch(decision, effectiveOwnerId, finding)
+    const result = await supabase.from('monitoring_findings').update(patch).eq('id', finding.id).eq('status', 'needs_review').select().single()
+    if (result.error) {
+      setMessageTone('error')
+      setMessage(`Monitoring decision could not be saved: ${result.error.message}`)
+      return
+    }
+    setMonitoringFindings(current => current.map(row => row.id === finding.id ? result.data as MonitoringFindingRow : row))
   }
   const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems, Date.now(), currentCompanion?.name ?? 'Kavi') : []
   const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
@@ -1319,7 +1418,7 @@ export default function App() {
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
-        {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
+        {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onFindingDecision={decideMonitoringFinding} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </>
 
     </main>
@@ -2163,6 +2262,7 @@ type ActivityItem = {
   reviewState: AlertReviewState
   objectDetail: ObjectDetail
   actor?: PersonName
+  monitoringFinding?: MonitoringFindingRow
 }
 
 function personNameFromLabel(label: string): PersonName | undefined {
@@ -5448,7 +5548,7 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote }: { not
   </section>
 }
 
-function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onOpenItem, onOpenNote }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenItem: (item: ActivityItem) => void; onOpenNote: (note: ContextNote) => void }) {
+function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onFindingDecision, onOpenItem, onOpenNote }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onFindingDecision: (finding: MonitoringFindingRow, decision: MonitoringFindingDecision) => void; onOpenItem: (item: ActivityItem) => void; onOpenNote: (note: ContextNote) => void }) {
   const [stream, setStream] = useState<ActivityStream>('hot')
   const hotCount = incomingItems.filter(item => item.reviewState === 'needs-review' && item.severity === 'hot').length
   const eventCount = incomingItems.filter(item => item.reviewState !== 'archived' && isEventActivityItem(item)).length
@@ -5499,7 +5599,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
           <span className="activity-icon"><NavIcon name="notes" /></span>
           <div><span className="eyebrow">{note.visibility === 'shared' ? 'SHARED NOTE' : 'MY NOTE'}</span><button className="activity-title-link" type="button" onClick={() => onOpenNote(note)}>{note.title}</button><p>{renderLinkedText(note.body)}</p><small>{note.author} · {note.updatedAt} · {note.context}</small><button className="activity-open-object" type="button" onClick={() => onOpenNote(note)}>Details</button></div>
         </article>)}
-        {alerts.map(alert => <AlertCard key={alert.id} alert={alert} onReviewChange={onReviewChange} onOpenItem={onOpenItem} />)}
+        {alerts.map(alert => <AlertCard key={alert.id} alert={alert} onReviewChange={onReviewChange} onFindingDecision={onFindingDecision} onOpenItem={onOpenItem} />)}
         {stream === 'personal' && notes.length === 0 && <div className="activity-empty"><strong>No notes yet.</strong><span>Add a note from a receipt, event, trip item, or object detail.</span></div>}
         {stream === 'all' && visibleNotes.length === 0 && alerts.length === 0 && <div className="activity-empty"><strong>Nothing active right now.</strong><span>When something changes, it will show up here.</span></div>}
         {alerts.length === 0 && stream !== 'personal' && stream !== 'all' && <div className="activity-empty"><strong>{stream === 'hot' ? 'Nothing hot right now.' : 'No items here.'}</strong><span>{stream === 'archived' ? 'Archived findings stay available here.' : stream === 'hot' ? 'Useful calm: routine checks and quieter context stay out of this lane.' : 'Nothing needs attention in this view.'}</span></div>}
@@ -5527,7 +5627,7 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
   </section>
 }
 
-function AlertCard({ alert, onReviewChange, onOpenItem }: { alert: ActivityItem; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onOpenItem: (item: ActivityItem) => void }) {
+function AlertCard({ alert, onReviewChange, onFindingDecision, onOpenItem }: { alert: ActivityItem; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onFindingDecision: (finding: MonitoringFindingRow, decision: MonitoringFindingDecision) => void; onOpenItem: (item: ActivityItem) => void }) {
   return <article className={`activity-card alert-${alert.severity} review-${alert.reviewState}`}>
     <span className={`activity-icon ${alert.actor ? 'activity-person-icon' : ''}`}>
       {alert.actor
@@ -5538,7 +5638,12 @@ function AlertCard({ alert, onReviewChange, onOpenItem }: { alert: ActivityItem;
       <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
       <button className="activity-title-link" type="button" onClick={() => onOpenItem(alert)}>{alert.title}</button>
       <p>{renderLinkedText(alert.summary)}</p>
-      <div className="activity-meta"><span className={`review-badge ${alert.reviewState}`}>{alert.reviewState.replace('-', ' ')}</span><span>{alert.destination}</span><span>{alert.object}</span><span>{alert.source}</span></div>
+      <div className="activity-meta">
+        <span className={`review-badge ${alert.reviewState}`}>{alert.monitoringFinding ? alert.status : alert.reviewState.replace('-', ' ')}</span>
+        <span>{alert.destination}</span><span>{alert.object}</span>
+        {!/^https?:\/\//i.test(alert.source) && alert.source !== alert.object && <span>{alert.source}</span>}
+      </div>
+      {alert.monitoringFinding && <p className={`finding-execution-state execution-${alert.monitoringFinding.execution_status ?? alert.monitoringFinding.status}`}>{findingExecutionDetail(alert.monitoringFinding)}</p>}
       <details>
         <summary>Why this matters</summary>
         <p>{renderLinkedText(alert.rationale)}</p>
@@ -5546,9 +5651,14 @@ function AlertCard({ alert, onReviewChange, onOpenItem }: { alert: ActivityItem;
       </details>
       <div className="activity-review-actions">
         <button type="button" onClick={() => onOpenItem(alert)}>Open object</button>
-        {alert.reviewState !== 'reviewed' && <button type="button" onClick={() => onReviewChange(alert, 'reviewed')}>Mark read</button>}
-        {alert.reviewState !== 'archived' && <button type="button" onClick={() => onReviewChange(alert, 'archived')}>Ignore</button>}
-        {alert.reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert, 'needs-review')}>Reopen</button>}
+        {alert.monitoringFinding && ['needs_review', 'authorized'].includes(alert.monitoringFinding.status) && ['not_started', 'failed', 'blocked'].includes(alert.monitoringFinding.execution_status ?? 'not_started') && findingCanAuthorize(alert.monitoringFinding) && <>
+          <button type="button" className="finding-yes" onClick={() => onFindingDecision(alert.monitoringFinding!, 'yes')}>{['failed', 'blocked'].includes(alert.monitoringFinding.execution_status ?? '') ? `Retry · ${findingApprovalLabel(alert.monitoringFinding)}` : findingApprovalLabel(alert.monitoringFinding)}</button>
+          {alert.monitoringFinding.status === 'needs_review' && <button type="button" className="finding-no" onClick={() => onFindingDecision(alert.monitoringFinding!, 'no')}>Dismiss</button>}
+        </>}
+        {alert.monitoringFinding?.status === 'needs_review' && !findingCanAuthorize(alert.monitoringFinding) && <span className="finding-action-blocked">Action mapping required</span>}
+        {!alert.monitoringFinding && alert.reviewState !== 'reviewed' && <button type="button" onClick={() => onReviewChange(alert, 'reviewed')}>Mark read</button>}
+        {!alert.monitoringFinding && alert.reviewState !== 'archived' && <button type="button" onClick={() => onReviewChange(alert, 'archived')}>Ignore</button>}
+        {!alert.monitoringFinding && alert.reviewState !== 'needs-review' && <button type="button" onClick={() => onReviewChange(alert, 'needs-review')}>Reopen</button>}
       </div>
     </div>
   </article>

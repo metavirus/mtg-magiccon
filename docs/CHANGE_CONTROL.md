@@ -1,16 +1,16 @@
 # Change Control
 
 1. State scope, assumptions, architecture effect, and acceptance checks before substantial edits.
-2. Work on `codex/*` from an up-to-date `main`; preserve unrelated user changes.
+2. Preserve unrelated user changes and follow the active lane: bounded owner-approved hobby-app fixes may go directly to an up-to-date `main`; use `codex/*` plus a draft PR for project-level, risky, or independently reviewable work.
 3. Keep changes small and reversible. Schema changes are forward migrations; never rewrite applied history.
 4. For Supabase, verify current official docs, assert project identity, review SQL, apply once, read back, test RLS, and run advisors.
 5. Update context/frontier/backlog when durable state changes.
 6. Run the acceptance checks for the active risk tier in `docs/ANTI_WASTE_OPERATING_MODE.md`. Do not run the full database/release gate for a tiny CSS or copy fix unless the change is being publicly shipped or touches data/auth/research/monitoring.
    - Tier 0 visual/copy fix: `pnpm build` plus visual verification of the affected viewport.
-   - Tier 1 public preview UI change: `pnpm check:ship`, commit/push the source branch, wait for the GitHub Actions Pages deploy, then `pnpm verify:public`.
+   - Tier 1 public preview UI change: use `pnpm build` for one tightly bounded UI/routing fix or `pnpm check:ship` for broader changes, then visually verify, commit/push the source branch, wait for the GitHub Actions Pages deploy, and run `pnpm verify:public`.
    - Tier 2 data/auth/database/research/monitoring: full readiness, tests, validation, and proportional live verification.
 7. Review the diff for copied baggage, secrets, unsafe policies, identity ambiguity, encoding drift, and unnecessary scope.
-8. Commit intentionally. Push only when requested or required by the current lane. Open a draft PR when this is project-level work rather than a small owner-reviewed hobby-app change.
+8. Commit intentionally. For a bounded owner-approved fix on the normal direct-to-main lane, complete the push/deploy/public-verification path without asking again. Pause or use a draft PR when scope, reversibility, credentials, deployment safety, or confidence changed.
 
 If the change addresses a recurring failure, acceptance must include two distinct proofs: the original failing lane now succeeds, and a targeted guardrail catches or prevents the demonstrated cause. A successful retry without that second proof is recovery, not an accepted fix.
 
