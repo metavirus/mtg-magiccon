@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { routeMonitoringFinding } from './monitoring_action_router.mjs'
+import { classifyMonitoringFinding } from './monitoring_action_router.mjs'
 
 function summarize(change) {
   const added = change.linkDelta?.added ?? []
@@ -55,20 +55,23 @@ export function buildMonitoringCandidateRows(report) {
       last_seen_at: report.checkedAt,
       updated_at: report.checkedAt,
     }
-    const plan = routeMonitoringFinding({ ...row, status: 'authorized', decision: 'yes' })
-    return plan.execution_status === 'queued'
+    const classification = classifyMonitoringFinding(row)
+    return classification.classification === 'informational_official_links'
       ? {
           ...row,
-          action_type: plan.action_type,
-          action_payload: {
-            ...plan.action_payload,
-            action_fingerprint: plan.action_fingerprint,
-            approval_label: 'Publish reviewed Activity alert',
+          status: 'unread',
+          title: classification.presentation.title,
+          summary: classification.presentation.summary,
+          review_question: 'Mark as read or archive when this source update is no longer useful.',
+          evidence: {
+            ...row.evidence,
+            presentation_links: classification.presentation.links,
+            presentation: {
+              source: classification.presentation.source,
+              truth_class: classification.presentation.truth_class,
+              canonical_fact_mutation: false,
+            },
           },
-          review_question: 'Publish these reviewed official links to Activity?',
-          execution_status: 'not_started',
-          canonical_target: plan.canonical_target,
-          rollback_payload: plan.rollback_payload,
         }
       : row
   })

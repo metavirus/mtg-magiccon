@@ -1,6 +1,7 @@
-export type MonitoringFindingStatus = 'needs_review' | 'authorized' | 'staged' | 'completed' | 'dismissed'
+export type MonitoringFindingStatus = 'unread' | 'read' | 'archived' | 'needs_review' | 'authorized' | 'staged' | 'completed' | 'dismissed'
 export type MonitoringFindingDecision = 'yes' | 'no'
 export type MonitoringExecutionStatus = 'not_started' | 'queued' | 'executing' | 'completed' | 'failed' | 'blocked'
+export type MonitoringOfficialResource = { label: string; url: string }
 
 export type MonitoringFindingRow = {
   id: string
@@ -37,13 +38,16 @@ export type MonitoringFindingRow = {
 
 export function monitoringDecisionPatch(decision: MonitoringFindingDecision, userId: string, finding?: MonitoringFindingRow, now = new Date().toISOString()) {
   if (decision === 'yes') {
-    if (!finding?.action_type || !finding.action_payload || !finding.rollback_payload) throw new Error('This finding needs a bounded action mapping before it can be approved.')
+    if (!finding || !findingCanAuthorize(finding)) throw new Error('This finding needs a bounded canonical action mapping before it can be approved.')
     return { status: 'authorized' as const, decision, decided_by: userId, decided_at: now, staged_at: null, action_type: finding.action_type, action_payload: finding.action_payload, rollback_payload: finding.rollback_payload, execution_status: 'queued' as const, blocker: null, error_message: null, updated_at: now }
   }
   return { status: 'dismissed' as const, decision, decided_by: userId, decided_at: now, staged_at: null, execution_status: 'not_started' as const, updated_at: now }
 }
 
 export function findingReviewLabel(finding: MonitoringFindingRow) {
+  if (finding.status === 'unread') return 'new'
+  if (finding.status === 'read') return 'read'
+  if (finding.status === 'archived') return 'archived'
   if (finding.execution_status === 'queued') return 'approved · queued'
   if (finding.execution_status === 'executing') return 'executing'
   if (finding.execution_status === 'completed') return 'completed'
@@ -67,13 +71,52 @@ export function findingApprovalLabel(finding: MonitoringFindingRow) {
 }
 
 export function findingCanAuthorize(finding: MonitoringFindingRow) {
-  return Boolean(finding.action_type && finding.action_payload && finding.rollback_payload)
+  return !findingIsInformational(finding) && Boolean(finding.action_type && finding.action_payload && finding.rollback_payload)
+}
+
+export function findingIsInformational(finding: MonitoringFindingRow) {
+  return ['unread', 'read', 'archived'].includes(finding.status)
+    || findingOfficialResources(finding).length > 0
+    || finding.action_payload?.canonical_fact_mutation === false
+    || finding.action_type === 'publish_official_links_alert'
+}
+
+export function findingOfficialResources(finding: MonitoringFindingRow): MonitoringOfficialResource[] {
+  const evidenceLinks = finding.evidence.presentation_links
+  const linkDelta = finding.evidence.link_delta ?? finding.evidence.linkDelta
+  const deltaAdded = linkDelta && typeof linkDelta === 'object' && 'added' in linkDelta ? (linkDelta as { added?: unknown }).added : []
+  const candidates = Array.isArray(evidenceLinks)
+    ? evidenceLinks
+    : Array.isArray(deltaAdded) && deltaAdded.length > 0
+      ? deltaAdded
+      : Array.isArray(finding.action_payload?.links) ? finding.action_payload.links : []
+  return candidates.flatMap(link => {
+    if (typeof link === 'string') {
+      const separator = link.lastIndexOf(' -> ')
+      if (separator < 1) return []
+      link = { label: link.slice(0, separator), url: link.slice(separator + 4) }
+    }
+    if (!link || typeof link !== 'object') return []
+    const { label, url } = link as { label?: unknown; url?: unknown }
+    if (typeof label !== 'string' || !label.trim() || typeof url !== 'string') return []
+    try {
+      const parsed = new URL(url)
+      return parsed.protocol === 'https:' ? [{ label: label.trim(), url: parsed.toString() }] : []
+    } catch {
+      return []
+    }
+  })
 }
 
 export function findingNeedsKaviAction(finding: MonitoringFindingRow) {
   if (!findingCanAuthorize(finding)) return false
   if (finding.status === 'needs_review') return (finding.execution_status ?? 'not_started') === 'not_started'
   return finding.status === 'authorized' && ['failed', 'blocked'].includes(finding.execution_status ?? '')
+}
+
+export function findingIsHomeWorthy(finding: MonitoringFindingRow) {
+  if (findingNeedsKaviAction(finding)) return true
+  return ['unread', 'needs_review'].includes(finding.status) && findingIsInformational(finding) && findingOfficialResources(finding).length > 0
 }
 
 export function findingExecutionDetail(finding: MonitoringFindingRow) {
