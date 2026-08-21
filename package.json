@@ -29,6 +29,7 @@
     "validate:monitoring": "powershell -ExecutionPolicy Bypass -File scripts/validate_monitoring_intake.ps1",
     "validate:text": "powershell -ExecutionPolicy Bypass -File scripts/validate_text_integrity.ps1",
     "validate:secrets": "powershell -ExecutionPolicy Bypass -File scripts/check_secrets.ps1",
+    "gh:auth-local": "powershell -ExecutionPolicy Bypass -File scripts/github_auth_local.ps1",
     "readiness": "powershell -ExecutionPolicy Bypass -File scripts/environment_readiness.ps1"
   },
   "dependencies": {

@@ -12,6 +12,8 @@
 7. Review the diff for copied baggage, secrets, unsafe policies, identity ambiguity, encoding drift, and unnecessary scope.
 8. Commit intentionally. Push only when requested or required by the current lane. Open a draft PR when this is project-level work rather than a small owner-reviewed hobby-app change.
 
+If the change addresses a recurring failure, acceptance must include two distinct proofs: the original failing lane now succeeds, and a targeted guardrail catches or prevents the demonstrated cause. A successful retry without that second proof is recovery, not an accepted fix.
+
 Never use destructive Git or database commands for routine change control.
 
 ## Operational-change guardrail

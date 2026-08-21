@@ -14,11 +14,11 @@ Readiness is task-specific. Do not begin substantive work while a critical task 
 - Publish/debug-public task: confirm deployment visibility and expected branch/commit path first.
 - Database/user-state task: confirm the Supabase project and authenticated execution path first.
 
-Capability states are only `READY`, `FIXED`, or `USER-HOST-ACTION REQUIRED`. If a capability fails, do one bounded agent-accessible repair and retest that same capability once. If it still fails and requires host permissions or user action, stop immediately with the exact failed capability, failed command/check, host-side fix, and proof command to run afterward.
+Capability states are `READY`, `RECOVERED`, `FIXED`, or `USER-HOST-ACTION REQUIRED`. `RECOVERED` means the immediate symptom cleared but durable prevention has not been proved; it does not authorize a completion claim for a recurring failure. For a newly observed capability failure, do one bounded agent-accessible repair and retest that same capability once. If it still fails and requires host permissions or user action, stop immediately with the exact failed capability, failed command/check, host-side fix, and proof command to run afterward.
 
 Do not retry the same failing command in variants, switch to WSL/Docker/admin/global reinstall work, add wrappers, or keep coding through a missing capability unless the failure specifically requires that route.
 
-If a known lane still fails, treat that first as an agent execution failure until evidence says otherwise. Fixing the immediate symptom is not sufficient. When the failure is user-visible, the handoff must include the prevention delta: the doc, script, command habit, or removed wrong path that makes recurrence less likely. Do not add broad triple-check ceremony as penance; encode the smallest durable correction.
+If a known lane still fails, treat that first as an agent execution failure until evidence says otherwise. Fixing the immediate symptom is not sufficient. Every recurring or preventable failure requires a prevention delta: the code, regression check, preflight, doc, script, command habit, or removed wrong path that prevents the demonstrated failure. A recurrence after a claimed fix triggers that work immediately; the retry thresholds below apply only to first-time diagnosis within one incident. Do not add broad triple-check ceremony as penance; encode the smallest durable correction.
 
 ## Change tiers
 
@@ -41,7 +41,7 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 - Do not run database/readiness gates unless publishing or auth/data behavior is involved.
 - Verify with `pnpm build` unless a narrower existing package script is clearly the canonical check for that exact surface.
 - If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is mandatory, not optional; prove the lane first with `pnpm ui:capture -- -Route <route>` when using local preview. If the interactive in-app browser is needed and appears broken, first apply the stale-tab recovery in `docs/KNOWN_GREMLINS.md`: prove the local HTTP response, avoid the selected generated error tab, and claim/open a real app tab. If browser readback still fails after one reset and one retry, stop and request the exact host action rather than continuing blind.
-- If the same visual target fails twice, stop patching symptoms and find the duplicated component, CSS cascade, cache, or publish root cause.
+- For a first-time visual defect, stop patching symptoms after two failed attempts and find the duplicated component, CSS cascade, cache, or publish root cause. If a previously fixed visual defect recurs, do that root-cause work immediately on the first recurrence.
 
 ### Tier 1 — public preview UI change
 
@@ -123,9 +123,9 @@ Use the full project gate:
 
 ## Assistant stop rules
 
-- After two failed attempts on the same UI defect, stop and inspect the actual DOM/CSS/published asset path before making another patch.
+- For a newly observed UI defect, after two failed attempts stop and inspect the actual DOM/CSS/published asset path before another patch. A recurrence after a claimed fix skips those attempts and requires immediate root-cause and prevention work.
 - After any mobile-navigation or responsive claim, verify a phone-sized viewport.
-- For browser-dependent work, if browser control/readback fails twice on the same path after the documented stale-tab recovery, classify it as failed for the session and switch to a concrete alternate lane or exact host-action request rather than narrating uncertainty.
+- For a newly observed browser-control failure, if readback fails twice on the same path after the documented stale-tab recovery, classify it as failed for the session and switch to a concrete alternate lane or exact host-action request. If that browser failure was previously represented as fixed, the first recurrence instead triggers the recurrence doctrine and requires a durable readiness correction before visual work resumes.
 - After any GitHub Pages publish claim, verify the public page with a cache-busting query or explicitly report that propagation is still pending.
 - When public Pages looks stale, inspect the exact deploy workflow run and compare the live `magiccon-build-sha` to the expected artifact SHA before using the word “propagation.”
 - If a fix starts requiring broad architecture work, pause and name the root cause instead of burning tokens on edge adjustments.

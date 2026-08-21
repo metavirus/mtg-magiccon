@@ -5,7 +5,7 @@ Lead with verified outcomes and name uncertainty precisely. Raise structural ris
 When a capability fails:
 
 1. Capture the exact failure and determine whether it is sandbox, path, authentication, identity, network, or external-state related.
-2. Run one bounded repair using documented permissions or bundled runtimes.
+2. For a newly observed capability failure, run one bounded repair using documented permissions or bundled runtimes. If the failure recurs after a claimed fix, skip ordinary recovery and apply the recurrence doctrine in `docs/REPO_OPERATING_CONTRACT.md` immediately.
 3. Retest the exact capability.
 4. If still blocked, ask for the minimum secure external action. Never request credentials in chat.
 

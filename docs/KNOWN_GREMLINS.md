@@ -4,6 +4,8 @@ This file exists because repeated avoidable errors are expensive. If one of thes
 
 Core rule: a known environment-specific failure is no longer debugging. It is operating procedure. If the same sandbox, Git, PowerShell, Vite, network, cache, or publish failure happens again after the correct lane is documented here, that is an agent execution failure unless the documented lane itself changed.
 
+Recurrence rule: if any failure returns after it was represented as fixed, the prior fix is disproven. Stop feature work on that first recurrence. Do not merely rerun the recovery. Determine why the previous guardrail failed or was absent, add a targeted durable prevention delta, then prove both the original lane and the guardrail. Until both pass, the state is recovered at best, never `FIXED`. This rule overrides the “after two attempts” troubleshooting thresholds elsewhere; those thresholds apply only to first-time diagnosis within one incident. Only an explicit user statement that tokens are low may defer the prevention work, and deferred work must not be called fixed.
+
 Readiness rule: capabilities are task-specific. If a task may require browser inspection, deployment visibility, or database writes, prove that capability with a small observable smoke test before substantive work. A silent tool call is not readiness. After one bounded repair and one retest, stop if the capability still needs host/user action. Use the report shape: failed capability, failed command/check, host-side fix, and proof command.
 
 ## pnpm and Corepack on native Windows
@@ -145,17 +147,18 @@ If public verification fails after a correct push, report propagation/cache lag 
 - If a workflow change is pushed and produces a red run or user-visible email, treat it as an agent-owned mistake until evidence proves otherwise. Fix the run before returning to feature work.
 - After a workflow fix, check the latest GitHub Actions run rather than relying on local `pnpm` success.
 
-## GitHub CLI auth is not the same as Git push auth
+## GitHub CLI auth is not the same as Git push auth or host-shell auth
 
-**Symptom:** `git push` works, but GitHub CLI commands such as `gh run list`, `gh run watch`, or deploy verification fail, or `gh auth status -h github.com` reports a bad or expired token.
+**Symptom:** `git push` works, or a Windows/host PowerShell says `gh auth login` succeeded, but Codex still gets `HTTP 401`, `invalid token`, `SEC_E_NO_CREDENTIALS`, or `gh auth status -h github.com` reports a bad or expired token.
 
-**Cause:** Git credential manager and GitHub CLI store credentials separately. A healthy Git remote push does not prove the `gh` token used for Actions/deployment inspection is valid.
+**Cause:** Git credential manager, GitHub CLI, the Windows keyring, and the normal Codex command lane can be separate auth surfaces. A healthy Git remote push or host/elevated GitHub CLI login does not prove the `gh` token used by repo commands is valid.
 
 **Do this:**
 
-- Before relying on GitHub Actions visibility, run `pnpm readiness`; it now proves `gh` is authenticated to `github.com` as `metavirus`.
-- In Codex, run this proof in the host/escalated lane when GitHub CLI auth is involved. The sandbox can see `gh.exe` but fail to read the Windows keyring token, producing a false `HTTP 401` / invalid-token result.
-- If the GitHub CLI check fails, run `gh auth login -h github.com -p https -w`, choose browser login, then rerun `pnpm readiness`.
+- Before relying on GitHub Actions visibility, run `pnpm readiness`; it proves the repo command lane can use `gh` as `metavirus`.
+- If the GitHub CLI check fails, run `pnpm gh:auth-local`, choose browser login, then rerun `pnpm readiness`.
+- `pnpm gh:auth-local` stores the GitHub CLI token under ignored `.codex-local\gh` and sets `GH_CONFIG_DIR` for the repo-local Codex lane. Do not print, inspect, or commit `.codex-local\gh\hosts.yml`.
+- Do not use raw host/elevated `gh auth login` as proof for Codex readiness. It can succeed while the repo lane still fails.
 - Do not keep trying `gh run ...` variants when readiness says the token is bad. Fix the CLI auth lane first.
 - If GitHub CLI auth is unavailable but a read-only public check is enough, use the public Pages URL as a fallback and say that Actions visibility is unavailable; do not call the GitHub lane ready.
 
@@ -287,9 +290,9 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 **Symptom:** a red `User selections could not be refreshed` warning remains even though notes, selections, and activity reads are succeeding, or one optional history read makes unrelated user state disappear.
 
-**Prevention:** load notes, selections, and activity history independently; commit each successful result; name only the failed resource; clear stale continuity errors after a fully successful refresh. Never wrap independent owner-state resources in one all-or-nothing `Promise.all`.
+**Prevention:** load notes, selections, and activity history independently; commit each successful result; name only the failed resource; clear stale continuity errors after a fully successful refresh. Never wrap independent owner-state resources in one all-or-nothing `Promise.all`. `user_selections` reads must retry once after a stale Supabase auth-session refresh before surfacing failure. If selections alone fail, show a low-drama sync notice, not a red global failure banner.
 
-## Visual/reponsive misses
+## Visual/responsive misses
 
 **Symptom:** Kavi has to send repeated screenshots of the same broken element.
 

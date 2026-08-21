@@ -33,6 +33,17 @@ foreach ($localSecret in @('.env.local', $secretFile)) {
   }
 }
 
+git check-ignore -q -- '.codex-local/'
+if ($LASTEXITCODE -ne 0) { $failures += '.codex-local/ is not ignored' }
+
+$repoLocalGhConfigDir = Join-Path $expectedRoot '.codex-local\gh'
+$repoLocalGhHosts = Join-Path $repoLocalGhConfigDir 'hosts.yml'
+$usingRepoLocalGhAuth = $false
+if (Test-Path -LiteralPath $repoLocalGhHosts) {
+  $env:GH_CONFIG_DIR = $repoLocalGhConfigDir
+  $usingRepoLocalGhAuth = $true
+}
+
 $bundledNodeCandidates = @(
   Get-ChildItem -LiteralPath (Join-Path $env:USERPROFILE '.cache\codex-runtimes') -Filter 'node.exe' -File -Recurse -ErrorAction SilentlyContinue |
     Where-Object { $_.FullName -like '*\dependencies\node\bin\node.exe' } |
@@ -63,10 +74,10 @@ if ($ghExe) {
   $ErrorActionPreference = $savedErrorActionPreference
 
   if ($ghStatusExitCode -ne 0) {
-    $failures += "GitHub CLI auth is not usable for github.com; run 'gh auth login -h github.com -p https -w' and rerun pnpm readiness"
+    $failures += "GitHub CLI auth is not usable from the repo-local Codex lane; run 'pnpm gh:auth-local' and rerun pnpm readiness"
   }
   if ($ghLoginExitCode -ne 0 -or $ghLoginOutput -ne $expectedGitHubLogin) {
-    $failures += "GitHub CLI identity mismatch or token failure: expected $expectedGitHubLogin, got '$ghLoginOutput'"
+    $failures += "GitHub CLI identity mismatch or token failure from the repo-local Codex lane: expected $expectedGitHubLogin, got '$ghLoginOutput'; run 'pnpm gh:auth-local'"
   }
   if ($ghProtocolExitCode -eq 0 -and $ghProtocolOutput -and $ghProtocolOutput -ne 'https') {
     $failures += "GitHub CLI git protocol should be https, got '$ghProtocolOutput'"
@@ -138,4 +149,5 @@ select
 }
 
 if ($failures.Count) { $failures | ForEach-Object { Write-Error $_ }; exit 1 }
-Write-Output "Environment readiness: PASS ($expectedRef on $branch; GitHub CLI $expectedGitHubLogin; hosted migrations; Session Pooler; RLS/grants)"
+$ghAuthLane = if ($usingRepoLocalGhAuth) { 'repo-local GH_CONFIG_DIR' } else { 'default GH_CONFIG_DIR' }
+Write-Output "Environment readiness: PASS ($expectedRef on $branch; GitHub CLI $expectedGitHubLogin via $ghAuthLane; hosted migrations; Session Pooler; RLS/grants)"
