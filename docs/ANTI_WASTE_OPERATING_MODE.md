@@ -10,6 +10,8 @@ For any multi-tranche request or explicit delegation requirement, dispatch is ro
 
 When slots are full, root waits for or reuses a completed agent; it never absorbs the work. A prohibited action or two consecutive substantive root tool batches in a delegated lane triggers an immediate stop, breach record, and delegation of the remainder. Near-completion does not waive the rule. “Context is being blown” from Kavi is an immediate hard stop before further substantive tools.
 
+Follow the authorization-preserving handoff rule in `docs/REPO_OPERATING_CONTRACT.md`. In particular, the agent assigned to commit or push must inherit the authorizing user request and own that bounded lane from its initial dispatch; do not use a later follow-up to an ungrounded agent and then ask Kavi to restate approval.
+
 ## Anticipation standard
 
 For known project lanes, choose the expected working path before running commands. This applies to Git writes, package scripts, public deploy/verification, Supabase-backed state, browser/viewport inspection, and Windows/PowerShell quoting.

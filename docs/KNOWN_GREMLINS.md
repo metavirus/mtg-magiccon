@@ -23,6 +23,22 @@ Readiness rule: capabilities are task-specific. If a task may require browser in
 
 **Prevention:** for multi-tranche or explicitly delegated work, dispatch is root's first substantive action. Any prohibited root action or two consecutive substantive root tool batches in a delegated lane re-triggers this stop immediately.
 
+## Delegated publisher asks for a magic push phrase
+
+**Symptom:** bounded work is already authorized, but the agent assigned to commit or push says it lacks direct user authorization and asks Kavi to type an exact phrase such as `PUSH <sha>`.
+
+**Cause:** the publish step was handed to a long-lived, reused, `fork_turns="none"`, or follow-up agent whose inherited transcript did not contain Kavi's authorizing request. The existing direct-to-main rule described what to do after authorization, but the delegation path failed to preserve that authorization. Root cannot safely compensate because the coordinator boundary forbids root publishing.
+
+**Do this:**
+
+- Do not ask Kavi for a proxy command.
+- Stop the ungrounded publish handoff. Wait for an agent slot if necessary, then freshly dispatch the bounded lane from the authorizing user turn with full history or a recent-turn window that includes it.
+- Put edit/integration ownership, validation, commit, push, deploy wait, and public verification in the initial task when that agent is expected to own the whole publish lane.
+- Treat ordinary natural-language requests to change, build, fix, proceed, or resume an unambiguous bounded public-preview outcome as authorization under `docs/REPO_OPERATING_CONTRACT.md`; re-confirm only when its listed risk or scope conditions change.
+- If the platform itself requires a scoped permission approval, use that approval UI. Repository rules cannot disable platform permission prompts.
+
+**Prevention:** never assign commit or push through a later follow-up to an agent whose trusted transcript lacks the authorizing user request. The initial dispatch packet must carry both the bounded outcome and the full publish responsibility.
+
 ## Context compaction and frontier drift
 
 **Symptom:** repeated context compactions cause frontier drift, retreading, opaque long-running work, or implementation to accumulate in the root chat.
