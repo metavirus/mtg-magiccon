@@ -3662,6 +3662,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
                 return <button key={placement.event.id} type="button" className={`agenda-event state-${strongestState(placement.event)} ${ownerClass} ${participantClasses} ${short ? 'short' : ''} ${mine ? 'mine' : ''} ${shared ? 'shared' : ''} ${othersOnly ? 'others-only' : ''} ${nonBlocking ? 'non-blocking' : ''} ${conflict ? 'conflict' : ''} ${selected?.id === placement.event.id ? 'selected' : ''}`} style={{ top: (placement.start - agendaStart) * agendaHourHeight + 4, height: Math.max(48, (placement.end - placement.start) * agendaHourHeight - 8), left: `calc(${placement.lane / placement.lanes * 100}% + ${placement.lane ? 4 : 0}px)`, width: `calc(${100 / placement.lanes}% - ${placement.lane ? 4 : 0}px)` }} onClick={() => openPlanEvent(placement.event)}>
                   <span className="agenda-event-copy"><strong>{displayEventTitle(placement.event)}</strong><small>{placement.event.time} · {formatEventPrice(placement.event.price)}</small></span>
                   <PlanParticipantBadges participants={participants} compact currentPerson={currentPerson} />
+                  {placement.event.kind === 'Black Lotus' && <span className={`agenda-source-mark ${shared || conflict ? 'above-label' : ''}`} title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
                   {shared && <em>Together</em>}
                   {conflict && <span className="agenda-conflict">Conflict</span>}
                 </button>
