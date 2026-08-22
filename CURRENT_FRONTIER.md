@@ -1,6 +1,10 @@
 # Current Frontier
 
-Updated: 2026-08-21
+Updated: 2026-08-22
+
+## Info Recent recurrence correction
+
+Hosted migration `20260822161827_info_feed_concept_current` replaces append-only Recent cards with stable `concept_key` identity, a `current|superseded|internal` lifecycle, and one current row per concept. Live evidence is preserved without fake decisions: the comprehensive Prize/ODE/Ticketed rows are current, the link-only resource row is internal, and prior/bookkeeping summaries are superseded. Ingestion and surveyor projection now upsert current concept state, while the reader independently collapses by concept as a recurrence guard.
 
 ## Latest completed lane — surveyor closed loop
 

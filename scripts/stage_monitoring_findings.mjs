@@ -125,7 +125,7 @@ for (const observation of observations) {
   concepts.set(concept.concept_key, concept)
   const infoProjection = projectResolutionToInfo(resolution, observation)
   if (infoProjection) {
-    const feedWrite = await client.from('info_feed_entries').upsert(infoProjection.feed, { onConflict: 'entry_key', ignoreDuplicates: true }).select('id')
+    const feedWrite = await client.from('info_feed_entries').upsert(infoProjection.feed, { onConflict: 'entry_key' }).select('id')
     if (feedWrite.error) throw feedWrite.error
     infoFeedAdded += feedWrite.data?.length ?? 0
     if (infoProjection.topic) {

@@ -14,7 +14,13 @@ export function publishedInfoTopics(topics: InfoTopic[]) {
 
 export function publishedInfoFeed(feed: InfoFeedEntry[], topics: InfoTopic[]) {
   const visibleKeys = new Set(publishedInfoTopics(topics).map(topic => topic.topic_key))
-  return feed.filter(entry => !entry.topic_key || visibleKeys.has(entry.topic_key))
+  const current = feed.filter(entry => (entry.feed_status ?? 'current') === 'current' && (!entry.topic_key || visibleKeys.has(entry.topic_key)))
+  const byConcept = new Map<string, InfoFeedEntry>()
+  for (const entry of [...current].sort((a, b) => b.published_at.localeCompare(a.published_at) || a.entry_key.localeCompare(b.entry_key))) {
+    const conceptKey = entry.concept_key ?? entry.topic_key ?? entry.entry_key
+    if (!byConcept.has(conceptKey)) byConcept.set(conceptKey, entry)
+  }
+  return [...byConcept.values()]
 }
 
 export function durableInfoFeedTitle(entry: InfoFeedEntry, topics: InfoTopic[]) {
