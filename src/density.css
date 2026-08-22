@@ -696,6 +696,9 @@ html,body{max-width:100%;overflow-x:hidden}
 .agenda-event.short .agenda-event-copy{padding-right:58px}
 .agenda-event.short>.plan-participants{position:absolute;top:8px;right:8px;padding:0}
 .agenda-event.short>em{right:7px;bottom:3px}
+.agenda-source-mark{position:absolute;right:7px;bottom:5px;display:grid;place-items:center;width:15px;height:15px;border:1px solid #8f62ae;border-radius:5px;background:#2b1c3c;color:#d7afea}
+.agenda-source-mark.above-label{bottom:17px}
+.agenda-source-mark .event-kind-svg{width:9px;height:9px}
 .agenda-conflict{position:absolute;right:6px;bottom:4px;padding:2px 5px;border-radius:999px;background:#49351e;color:#efc879;font-size:6px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
 .agenda-event.shared .agenda-conflict{right:auto;left:6px}
 
