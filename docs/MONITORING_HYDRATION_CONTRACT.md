@@ -22,9 +22,9 @@ When a deliberate preview-fixture refresh is requested, an agent may:
 
 This is a legacy POC/QA path. The cloud surveyor must use `monitor:check` → `monitor:stage` → Kavi review instead.
 
-## What the daily agent must not do yet
+## What the daily agent must not do
 
-- It must not write canonical Supabase facts.
+- It must not write canonical Supabase facts except through an explicitly allowlisted, deterministic service-only executor such as the HOGFBX flight schedule lane in `docs/FLIGHT_CHANGE_AUTO_APPLY.md`.
 - It must not modify, label, archive, delete, send, or forward Gmail messages.
 - It must not store full private receipts, QR codes, reservation numbers, or message bodies in tracked files.
 - It must not treat community chatter or search results as canonical facts.

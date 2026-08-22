@@ -2,7 +2,15 @@
 
 Updated: 2026-08-21
 
-Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` may read approved public/Gmail sources, report into its task, and deliberately update the legacy fixture-preview file; it cannot write Supabase. The GitHub Actions surveyor checks the public watch set and may stage noncanonical source evidence in `monitoring_findings`; it cannot write normalized facts, modify Gmail, send mail, create push notifications, or change canonical app state.
+Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` may read approved public/Gmail sources and complete explicitly allowlisted, deterministic canonical actions; its first such action is the service-only HOGFBX flight schedule executor. It cannot make generic canonical writes. The GitHub Actions surveyor checks the public watch set and may stage noncanonical source evidence in `monitoring_findings`; it cannot write normalized facts, modify Gmail, send mail, create push notifications, or change canonical app state.
+
+## Closed-loop default
+
+Routine, high-confidence, reversible findings are completed by the surveyor: detect, extract, reconcile to the existing object, apply the bounded canonical update, emit one concise signal when useful, and stop. A finding is not normally a work order for Kavi or Codex.
+
+The first implemented private-source lane is the Atlanta Delta itinerary. Its service-only executor and ambiguity boundary are defined in `docs/FLIGHT_CHANGE_AUTO_APPLY.md`. Generic `review this email` output is prohibited when confirmation, carrier, travelers, and complete changed-leg facts match confidently. Cancellation, rebooking ambiguity, identity mismatch, or incomplete material facts still fail closed with one specific question.
+
+`docs/ROUTINE_FINDING_AUTO_APPLY_POLICY.md` generalizes that same narrow consequence rule to already-bound hotel details, event availability/status, and maintained official hours/details. It does not authorize object creation, deletion, inferred identity, or arbitrary writes.
 
 ## Purpose
 
@@ -161,12 +169,12 @@ Attach to the object when:
 
 ## Deployed runtime split
 
-The Codex heartbeat remains a deliberately simple read/report workflow:
+The Codex heartbeat remains a deliberately simple closed-loop workflow:
 
 1. Run once daily during quiet period.
 2. Search/check the approved watch set.
-3. Emit a compact observation report.
-4. If any Home-worthy item exists, wake the thread or create an app alert payload.
+3. Reconcile findings into known concepts and apply an explicitly allowlisted deterministic consequence when its confidence guard passes.
+4. Emit a compact result; a Home-worthy item is normally the notice that the update already completed.
 5. If nothing meaningful changed, record only a quiet Activity observation or no visible app update.
 
 The GitHub Actions surveyor is separate: it runs the deterministic public check, uploads the artifact, and—once its server credential is configured—stages deduplicated review candidates in Supabase. It does not run Gmail, Discord, or LEAP browsing. Routine quiet checks create no visible app noise.
@@ -177,7 +185,7 @@ Do not start with:
 - multi-writer sync;
 - browser session scraping of logged-in sites;
 - push notifications;
-- automatic database writes beyond reviewed observation intake;
+- generic or unmapped automatic database writes;
 - broad web search across the entire internet every day.
 
 ## Suggested daily run outline
@@ -190,18 +198,18 @@ Do not start with:
 6. Check narrowly filtered official Wizards news only when it intersects MagicCon-relevant product/context terms.
 7. Review any manually supplied or connector-available Black Lotus Discord observations as radar. Follow official links before promoting claims; keep unsupported community chatter in Activity unless it indicates an urgent Black Lotus, ticketed-play, store, sellout, map, or vendor/exclusive lead.
 8. Classify each finding into the routing map.
-9. Produce a short report:
+9. Complete safe allowlisted consequences, then produce a short report:
    - Home-worthy findings;
    - object annotations;
    - Activity-only observations;
    - unclear items needing a rare yes/no prompt.
-10. Do not ask the owner anything unless the answer changes future classification, recommendation, or alerting.
+10. Do not ask the owner anything unless material ambiguity prevents the safe consequence.
 
 ## First deployable automation prompt
 
 When automation is enabled, the scheduled task should say:
 
-> Check the MagicCon Atlanta 2026 watch set for meaningful changes. Use the repository docs as routing authority. Return only Home-worthy findings, object annotations, and Activity-worthy observations. Preserve exact URLs, source wording where useful, retrieval time, and why each finding matters. Do not normalize facts, change app state, send email, or create noisy engagement prompts.
+> Check the MagicCon Atlanta 2026 watch set for meaningful changes. Use the repository docs as routing authority. Detect, extract, reconcile, apply any explicitly allowlisted high-confidence reversible consequence, emit one concise signal when useful, and stop. Preserve source evidence. Never modify Gmail. Do not turn a safe deterministic update into a Codex review request; ask one specific question only for material unresolved ambiguity.
 
 ## POC acceptance
 

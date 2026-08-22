@@ -12,6 +12,7 @@ import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
+import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -591,6 +592,7 @@ export default function App() {
   const [monitoringConcepts, setMonitoringConcepts] = useState<MonitoringConceptRow[]>([])
   const [infoTopics, setInfoTopics] = useState<InfoTopic[]>(previewInfoTopics)
   const [infoFeed, setInfoFeed] = useState<InfoFeedEntry[]>(previewInfoFeed)
+  const [tripFlights, setTripFlights] = useState<TripFlight[]>(previewTripFlights)
   const [continuityReady, setContinuityReady] = useState(false)
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
@@ -741,6 +743,7 @@ export default function App() {
       setUserActivityRows([])
       setMonitoringFindings(isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? monitoringFindingQaRows() : [])
       setMonitoringConcepts(monitoringConceptQaRows())
+      setTripFlights(previewTripFlights)
       setExploreEventState(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers)))
       setContinuityReady(true)
       return
@@ -754,11 +757,12 @@ export default function App() {
       setUserActivityRows([])
       setMonitoringFindings([])
       setMonitoringConcepts([])
+      setTripFlights(previewTripFlights)
       setExploreEventState(exploreEvents)
       setContinuityReady(true)
       return
     }
-    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult] = await Promise.allSettled([
+    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult, flightsResult] = await Promise.allSettled([
         loadContextNotes(effectiveOwnerId),
         loadMentionInbox(effectiveOwnerId),
         loadUserSelections(effectiveOwnerId),
@@ -766,6 +770,7 @@ export default function App() {
         isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]),
         isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]),
         loadInfoKnowledge(),
+        supabase ? loadTripFlights(supabase) : Promise.resolve(previewTripFlights),
       ])
     const failures: string[] = []
     if (notesResult.status === 'fulfilled') setContextNotesState(notesResult.value)
@@ -780,6 +785,8 @@ export default function App() {
     else failures.push('monitoring concepts')
     if (infoResult.status === 'fulfilled') { setInfoTopics(infoResult.value.topics); setInfoFeed(infoResult.value.feed) }
     else failures.push('Info knowledge')
+    if (flightsResult.status === 'fulfilled') setTripFlights(flightsResult.value.length ? flightsResult.value : previewTripFlights)
+    else failures.push('Trip flights')
     if (selectionsResult.status === 'fulfilled') {
       setSharedSelectionRows(selectionsResult.value)
       const selections = userSelectionMap(selectionsResult.value.filter(row => row.owner_id === effectiveOwnerId))
@@ -1526,7 +1533,7 @@ export default function App() {
             },
           })
         }} />}
-        {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} />}
+        {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
         {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
@@ -4746,8 +4753,8 @@ function WalletOtherTab({ openModal, onOpenTrip }: { openModal: (eyebrow: string
   </div>
 }
 
-function TripSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
-  const [tab, setTab] = useState<'hotels' | 'flights'>('hotels')
+function TripSurface({ onOpenObject, flights }: { onOpenObject: (detail: ObjectDetail) => void; flights: TripFlight[] }) {
+  const [tab, setTab] = useState<'hotels' | 'flights'>(() => new URLSearchParams(window.location.search).get('tripView') === 'flights' ? 'flights' : 'hotels')
   const viewTabs = (mobile = false) => <div className={`trip-tabs${mobile ? ' mobile-surface-view-tabs' : ''}`} role="tablist" aria-label="Trip section">
     <button type="button" role="tab" aria-selected={tab === 'hotels'} className={tab === 'hotels' ? 'active' : ''} onClick={() => setTab('hotels')}>Hotels</button>
     <button type="button" role="tab" aria-selected={tab === 'flights'} className={tab === 'flights' ? 'active' : ''} onClick={() => setTab('flights')}>Flights</button>
@@ -4757,7 +4764,7 @@ function TripSurface({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) =>
     <div className="surface-view-tabs-desktop">{viewTabs()}</div>
     <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>
 
-    {tab === 'hotels' ? <HotelsTripTab onOpenObject={onOpenObject} /> : <FlightsTripTab />}
+    {tab === 'hotels' ? <HotelsTripTab onOpenObject={onOpenObject} /> : <FlightsTripTab flights={flights} />}
   </section>
 }
 
@@ -4886,24 +4893,33 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
   </>
 }
 
-function FlightsTripTab() {
+function flightAirportTime(value: string, airport: string) {
+  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: airport === 'ATL' ? 'America/New_York' : 'America/Los_Angeles' }).format(new Date(value))
+}
+
+function flightDateParts(leg: TripFlightLeg) {
+  const values = new Intl.DateTimeFormat('en-US', { day: 'numeric', weekday: 'short', timeZone: leg.departure_airport === 'ATL' ? 'America/New_York' : 'America/Los_Angeles' }).formatToParts(new Date(leg.departure_at))
+  return { day: values.find(part => part.type === 'day')?.value ?? '', weekday: (values.find(part => part.type === 'weekday')?.value ?? '').toUpperCase() }
+}
+
+function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
+  const flight = flights[0] ?? previewTripFlights[0]
   return <div className="flight-grid" aria-label="Flight details">
     <section className="flight-card">
       <div className="flight-card-head">
         <span className="flight-icon"><NavIcon name="trip" /></span>
-        <div><span className="eyebrow">DELTA AIR LINES</span><h2>Orange County / Atlanta</h2></div>
+        <div><span className="eyebrow">{flight.carrier.toUpperCase()}</span><h2>Orange County / Atlanta</h2></div>
         <TravelerDots people={['Kavi', 'Juan']} />
       </div>
-      <div className="flight-confirmation"><span>Confirmation</span><strong>HOGFBX</strong></div>
+      <div className="flight-confirmation"><span>Confirmation</span><strong>{flight.confirmation_code}</strong></div>
       <div className="flight-legs" aria-label="Delta itinerary legs">
-        <article>
-          <time><strong>11</strong><span>WED</span></time>
-          <div><small>DL 1521</small><h3>SNA to ATL</h3><p>12:20 PM - 7:34 PM</p></div>
-        </article>
-        <article>
-          <time><strong>15</strong><span>SUN</span></time>
-          <div><small>DL 1602</small><h3>ATL to SNA</h3><p>8:35 PM - 10:29 PM</p></div>
-        </article>
+        {flight.legs.map(leg => {
+          const date = flightDateParts(leg)
+          return <article key={leg.leg_key}>
+            <time><strong>{date.day}</strong><span>{date.weekday}</span></time>
+            <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightAirportTime(leg.departure_at, leg.departure_airport)} - {flightAirportTime(leg.arrival_at, leg.arrival_airport)}</p></div>
+          </article>
+        })}
       </div>
       <div className="flight-facts"><span>Kavi and Juan</span><span>Main Classic</span><span>Receipt in Gmail</span></div>
     </section>
