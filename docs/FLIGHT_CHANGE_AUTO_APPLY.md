@@ -16,9 +16,11 @@ The canonical itinerary is `atlanta-2026-delta-hogfbx`. `trip_flights` owns itin
 - travelers match Kavi and Juan;
 - every changed leg includes identity, route, flight number, departure, and arrival;
 - match evidence explicitly records `changed_legs_complete = true`;
-- match evidence explicitly records `cancellation_or_rebooking = false`.
+- match evidence explicitly classifies cancellation/rebooking and airline-assigned replacement state.
 
 Missing or malformed guard flags fail closed in the database function itself; prompt compliance is not treated as enforcement.
+
+An airline-assigned replacement may apply when the email presents a complete replacement itinerary with no user action or unresolved choice, and match evidence explicitly confirms the same itinerary, travelers, carrier, dates, and routes. A cancellation, user-choice rebooking, date/route change, or uncertain replacement remains review.
 
 The function updates canonical legs, retains immutable evidence, and creates one unread Home concept: `Your Atlanta flight changed.` Reprocessing the same Gmail reference is idempotent. A repeated state with a new source is retained as corroboration without another signal.
 

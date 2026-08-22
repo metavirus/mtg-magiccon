@@ -32,8 +32,8 @@ export const previewTripFlights: TripFlight[] = [{
   source_state: { source_kind: 'gmail', status: 'confirmed' },
   updated_at: '2026-08-22T00:00:00Z',
   legs: [
-    { itinerary_key: 'atlanta-2026-delta-hogfbx', leg_key: 'outbound', sequence_number: 1, flight_number: 'DL 1521', departure_airport: 'SNA', arrival_airport: 'ATL', departure_at: '2026-11-11T12:20:00-08:00', arrival_at: '2026-11-11T19:34:00-05:00', updated_at: '2026-08-22T00:00:00Z' },
-    { itinerary_key: 'atlanta-2026-delta-hogfbx', leg_key: 'return', sequence_number: 2, flight_number: 'DL 1602', departure_airport: 'ATL', arrival_airport: 'SNA', departure_at: '2026-11-15T20:35:00-05:00', arrival_at: '2026-11-15T22:29:00-08:00', updated_at: '2026-08-22T00:00:00Z' },
+    { itinerary_key: 'atlanta-2026-delta-hogfbx', leg_key: 'outbound', sequence_number: 1, flight_number: 'DL 329', departure_airport: 'SNA', arrival_airport: 'ATL', departure_at: '2026-11-11T14:00:00-08:00', arrival_at: '2026-11-11T21:16:00-05:00', updated_at: '2026-08-22T19:59:51Z' },
+    { itinerary_key: 'atlanta-2026-delta-hogfbx', leg_key: 'return', sequence_number: 2, flight_number: 'DL 1602', departure_airport: 'ATL', arrival_airport: 'SNA', departure_at: '2026-11-15T20:25:00-05:00', arrival_at: '2026-11-15T22:14:00-08:00', updated_at: '2026-08-22T19:59:51Z' },
   ],
 }]
 
@@ -44,6 +44,10 @@ export type FlightUpdateMatch = {
   confidence: number
   changedLegsComplete: boolean
   cancellationOrRebooking: boolean
+  airlineAssignedReplacement?: boolean
+  userActionRequired?: boolean
+  unresolvedChoice?: boolean
+  stableReplacementMapping?: boolean
 }
 
 export function flightScheduleChangeIsAutoApplicable(match: FlightUpdateMatch) {
@@ -52,7 +56,12 @@ export function flightScheduleChangeIsAutoApplicable(match: FlightUpdateMatch) {
     && match.carrier?.toLowerCase().includes('delta') === true
     && match.travelersMatch === true
     && match.changedLegsComplete
-    && !match.cancellationOrRebooking
+    && (!match.cancellationOrRebooking || (
+      match.airlineAssignedReplacement === true
+      && match.userActionRequired === false
+      && match.unresolvedChoice === false
+      && match.stableReplacementMapping === true
+    ))
 }
 
 export async function loadTripFlights(client: SupabaseClient): Promise<TripFlight[]> {

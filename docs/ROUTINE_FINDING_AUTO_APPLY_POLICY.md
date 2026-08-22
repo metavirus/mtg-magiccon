@@ -23,4 +23,4 @@ Initial applicable domains are:
 - matched event availability/status such as sold out or reopened when the event identity is stable and official;
 - maintained official hours or details when the source is first-party and an existing Info topic owns those fields.
 
-Ambiguous identity, missing canonical binding, incomplete field extraction, contradictory high-consequence evidence, cancellation/rebooking, deletion, or another destructive consequence remains review. The review item must name the exact unresolved decision; `review this email in Codex` is not an acceptable fallback.
+Ambiguous identity, missing canonical binding, incomplete field extraction, contradictory high-consequence evidence, cancellation, choice-required rebooking, deletion, or another destructive consequence remains review. An airline-assigned replacement is safe only when complete evidence explicitly proves no required user action, no unresolved choice, and the same itinerary, travelers, carrier, dates, and routes. The review item must name the exact unresolved decision; `review this email in Codex` is not an acceptable fallback.
