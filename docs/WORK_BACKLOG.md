@@ -2,6 +2,58 @@
 
 - [x] Prevent the seven-card Info Recent recurrence: one current meaningful card per stable concept, retained superseded history, and internal-only link discovery.
 
+## Semantic Map miniproject
+
+Canonical plan: `docs/SEMANTIC_MAP_MINIPROJECT_PLAN.md`. Arrival procedure: `docs/MAP_INGESTION_RUNBOOK.md`. “Safe now” permits only contracts, quarantined historical/synthetic fixtures, tooling, and rehearsal. “Must wait” forbids every Atlanta 2026 spatial assertion until a first-party original passes the arrival runbook. Historical Atlanta 2025 is structural reference only; its user-confirmed west-up orientation is never inherited by 2026.
+
+### `now` — safe before the official Atlanta 2026 map
+
+| Done | ID | Executable task | Depends on | Owner lane | Acceptance |
+|---|---|---|---|---|---|
+| [x] | `MAP-NOW-00` | Record the two-mode semantic-twin plan and arrival runbook. | — | product/planning | NOW/ARRIVAL, MVP/Next/Experiments/Parked, privacy, uncertainty, accessibility, provenance, offline, revision, routing, and sensor boundaries are explicit. |
+| [ ] | `MAP-NOW-01` | Freeze versioned JSON contracts for set, immutable revision, artifact, floor/transform, spatial object, graph, binding, anchor, and bundle. | `MAP-NOW-00` | spatial model | Fixtures validate; activation rejects unknown orientation, mixed versions, incomplete review, and historical namespaces. |
+| [ ] | `MAP-NOW-02` | Establish `historical/atlanta-2025` quarantine and a synthetic fallback fixture; capture a 2025 original only through the evidence lane. | `MAP-NOW-01` | evidence/tooling | User-confirmed 2025 west-up is scoped to the historical fixture; no historical coordinate, name, graph, or orientation can enter a 2026 bundle. |
+| [ ] | `MAP-NOW-03` | Add a deterministic historical-leakage validator and negative fixtures. | `MAP-NOW-02` | validation | The gate fails on every 2025 artifact/namespace/transform/object/edge/binding injected into an Atlanta 2026 candidate and passes the clean fixture. |
+| [ ] | `MAP-NOW-04` | Prototype original-resolution overlay authoring and review export. | `MAP-NOW-01`, `MAP-NOW-02` | map tooling | Reviewer can place/edit/reject normalized POIs and approach points, retain candidates separately, and produce diffable output with control-point residuals. |
+| [ ] | `MAP-NOW-05` | Prototype clickable fixture POIs, alias/typo search, and routing into the existing object drawer. | `MAP-NOW-04` | Map UI | Exact code, alias, category, and misspelling resolve reviewed fixture IDs; unknown/TBA returns no fabricated pin. |
+| [ ] | `MAP-NOW-06` | Author fixture corridors, barriers, portals, approach points, and path rendering. | `MAP-NOW-04` | routing | A rough reviewed line from a confirmed landmark to a destination approach crosses no barrier; graph revision and uncertainty are shown. |
+| [ ] | `MAP-NOW-07` | Add route and accessibility goldens for the fixture graph. | `MAP-NOW-06` | routing/accessibility | Standard routes match reviewed goldens; accessible mode uses only explicitly verified accessible edges and treats unknown as unavailable. |
+| [ ] | `MAP-NOW-08` | Define binding adapters for Calendar, Plan, Info, Artists, Exhibitors, and Store. | `MAP-NOW-01` | domain integration | Stable fixture IDs resolve through one versioned binding layer; next commitment routes once; unbound/TBA never pins; no parallel domain truth is created. |
+| [ ] | `MAP-NOW-09` | Build a compatible read-only offline fixture bundle and cache verifier. | `MAP-NOW-05`, `MAP-NOW-07`, `MAP-NOW-08` | offline/PWA | Verified airplane-mode cold launch supports raster, overlay, search, next move, route, and source revision; partial/mixed/evicted bundles fail closed. |
+| [ ] | `MAP-NOW-10` | Freeze camera/sign/booth/room anchor, confirmation, covariance, expiry, permission, and privacy contracts. | `MAP-NOW-01` | sensor/privacy | Synthetic candidate flow never silently sets origin, manual origin is complete, denial/revocation works, no raw frame/history persists, and heading cannot improve position confidence. |
+| [ ] | `MAP-NOW-11` | Build deterministic desktop, 390px, installed-iPhone, offline, permission, route, accessibility, and timed next-move simulation scripts. | `MAP-NOW-09`, `MAP-NOW-10` | device QA | Harness records route completion, fallback, uncertainty, wrong turn, and severity; it contains no claim of onsite or 2026 proof. |
+
+### `map-arrival` — must wait for a first-party Atlanta 2026 original
+
+| Done | ID | Executable task | Depends on | Owner lane | Acceptance |
+|---|---|---|---|---|---|
+| [ ] | `MAP-ARR-01` | Capture original artifact evidence and create an immutable candidate revision. | `MAP-NOW-01`; official original | evidence/revision | First-party URL, event/city/year/floor, retrieval time, bytes/MIME/dimensions, SHA-256, and duplicate/supersession check are recorded; active revision is untouched. |
+| [ ] | `MAP-ARR-02` | Independently establish 2026 orientation and coordinate calibration. | `MAP-ARR-01` | spatial review | Distributed control points, `top_bearing_deg`, evidence, reviewer, transform version, residuals, and golden test pass; 2025 west-up is not used as evidence. |
+| [ ] | `MAP-ARR-03` | Generate OCR/CV candidates at original resolution. | `MAP-ARR-01` | extraction | Candidates retain boxes/crops, extractor version, confidence, and unknowns; zero candidate is canonical merely because extraction found it. |
+| [ ] | `MAP-ARR-04` | Complete human floorplan deconstruction and overlay QA. | `MAP-ARR-02`, `MAP-ARR-03`, `MAP-NOW-04` | spatial review | Every public label/traversable connection is accepted, rejected with reason, or unresolved; POIs, approaches, corridors, barriers, doors, portals, queues, and accessible alternatives are reviewed. |
+| [ ] | `MAP-ARR-05` | Join current Calendar/Plan/Info/Artists/Exhibitors/Store objects to reviewed POIs. | `MAP-ARR-04`, `MAP-NOW-08` | domain integration | Stable reviewed joins and effective revisions read back; ambiguous/TBA objects remain unbound; shared/private boundaries pass. |
+| [ ] | `MAP-ARR-06` | Author the production graph and pass route/accessibility goldens. | `MAP-ARR-04`, `MAP-NOW-07` | routing/accessibility | Seven named routes render without barrier/queue crossing; destination approaches are used; accessible goldens use only verified edges. |
+| [ ] | `MAP-ARR-07` | Build and atomically activate the reviewed Atlanta 2026 offline bundle. | `MAP-ARR-05`, `MAP-ARR-06`, `MAP-NOW-09` | offline/release | One compatible manifest passes size/decode, quota, eviction, partial/mixed update, and airplane-mode checks; prior complete bundle remains available until activation. |
+| [ ] | `MAP-ARR-08` | Ship and prove the active revision on desktop, 390px, and physical iPhone. | `MAP-ARR-07` | release/device QA | Exact CI/Pages is clean, public cache is current, deployed flows pass, active hash/version/counts read back, and the frontier records unresolveds. |
+
+### `onsite` — must wait for physical venue access
+
+| Done | ID | Executable task | Depends on | Owner lane | Acceptance |
+|---|---|---|---|---|---|
+| [ ] | `MAP-ON-01` | Run 12 landmark and seven route field checks on the installed iPhone PWA. | `MAP-ARR-08` | onsite QA | Origin method/confidence, completion time, wrong turns, fallback use, and severity are recorded; no severity-one destination, accessibility, privacy, or offline failure remains. |
+| [ ] | `MAP-ON-02` | Validate recognizable sign/booth/room anchors with user confirmation. | `MAP-ON-01`, `MAP-NOW-10` | onsite sensor QA | Confusion matrix and false-anchor threshold pass; rejected/stale/denied paths return to manual origin without retaining frames or history. |
+| [ ] | `MAP-ON-03` | Evaluate the optional compass aid under interference and permission changes. | `MAP-ON-01` | onsite sensor QA | Heading error is bounded and labeled, denial/revocation/fixed-map fallback works, and compass never changes location certainty. |
+| [ ] | `MAP-ON-04` | Exercise an onsite revision/closure contingency without corrupting the active bundle. | `MAP-ARR-08` | revision/onsite ops | Meaningful move/closure is evidenced, affected routes are reviewed, old complete bundle remains safe, and activation/supersession is atomic. |
+
+### `later` — experiments, not dependencies for MVP
+
+| Done | ID | Executable task | Depends on | Owner lane | Acceptance |
+|---|---|---|---|---|---|
+| [ ] | `MAP-LATER-01` | Compare camera landmark recognition with manual anchor selection. | `MAP-ON-02` | experiment | Ship only if physical tests improve time/errors without exceeding false-anchor/privacy thresholds. |
+| [ ] | `MAP-LATER-02` | Test step-based dead reckoning with growing uncertainty and re-anchoring. | `MAP-ON-01` | experiment | Position is suppressed beyond the useful uncertainty threshold; manual route remains superior fallback. |
+| [ ] | `MAP-LATER-03` | Evaluate native ARKit/UWB/BLE only if the PWA MVP proves value and hardware access is approved. | `MAP-ON-01` | native experiment | A bounded prototype demonstrates material benefit, explicit consent, deletion/retention rules, and no dependency for web/manual navigation. |
+| [ ] | `MAP-LATER-04` | Explore privacy-preserving rendezvous check-ins without continuous location sharing. | explicit product/privacy approval | collaboration experiment | No passive tracking/history; disclosure is deliberate, bounded, expiring, and independently revocable. |
+
 ## Foundation acceptance
 
 - [x] Historical foundation checkpoint: CI was proven through later direct-to-main Pages deployments; a standing draft PR is no longer the project lane.
@@ -52,8 +104,8 @@
 - [x] Scope Map as an MVP scaffold rather than a v1 interactive atlas: direct destination, place directory, official Atlanta map artifacts, object backlinks, and offline-readable confirmed place reference.
 - [x] Reframe Map's quiet-period landing as Trip-area orientation first, with Event map as a separate top context until 2026 floor evidence exists.
 - [x] Capture confirmed lodging facts for design context: Omni Atlanta Hotel at Centennial Park for Nov 12-15 and Courtyard by Marriott Atlanta Downtown for Nov 11-12. Treat sensitive booking values as hidden.
-- [ ] Later, design the v2 interactive convention atlas only after Atlanta map evidence exists and the simpler place-reference workflow proves useful.
-- [ ] Later, evaluate approximate indoor-position support only as a v2 capability with visible uncertainty, manual correction, and no promise of reliable turn-by-turn navigation.
+- [x] Supersede the former umbrella “later interactive atlas” item with the executable Semantic Map miniproject above. Safe-now contracts/tooling may proceed; every Atlanta 2026 spatial fact and production activation still waits for official evidence.
+- [x] Supersede the former umbrella approximate-position item with `MAP-NOW-10`, `MAP-ON-02`, `MAP-ON-03`, and later experiments. Manual origin, visible uncertainty, user confirmation, and no reliable-turn-by-turn promise remain mandatory.
 - [ ] Expand `research/FORMAT_COMPLEXITY_EXPLORATION.md` into a reviewed all-format registry when Atlanta event ingest begins; refresh derived assessments only from captured source changes.
 - [x] Derive and implement the minimal Black Lotus trust-slice contract from the accepted baseline.
 - [ ] Complete trust proof on device. Pure reconciliation now requires a new explicitly superseding observation, retains the prior observation, and preserves personal decision/itinerary state; live reviewed write/readback and real-iPhone offline reopening remain.
@@ -127,10 +179,10 @@
 - Decorative Prize Tix ticket art/drawer; reconsider only after the simple onsite counter proves useful.
 - Exhaustive event/travel/vendor/expense/people schema.
 - Automated large-scale MagicCon ingestion.
-- Full interactive convention atlas with clickable booths/rooms/zones.
-- Booth-level map enrichment, route hints, map OCR/georeferencing, approximate indoor positioning, and indoor-navigation-style features.
+- Autonomous or unreviewed interactive-atlas ingestion. Reviewed clickable booths/rooms/zones, rough routes, and offline wayfinding are governed by the Semantic Map miniproject above.
+- Exact indoor-position or organizer-grade turn-by-turn claims. OCR/georeferencing and approximate anchoring remain candidate/reviewed workflows with manual fallback and visible uncertainty.
 - True multi-user collaboration, shared schedules, voting, chat, and live sharing.
-- Synthetic event-day scenario suite.
+- Broad synthetic event-day scenario suite beyond the bounded Map device/route harness in `MAP-NOW-11`.
 - Autonomous AI monitoring/resident intelligence, Discord, Gmail, LEAP automation, broad-source search, and unreviewed fully automatic canonical ingestion. This does not park Kavi-approved bounded action execution in the active surveyor queue.
 - Production Plan contention workspace, including scenario storage, drag/drop, fuzzy-time machinery, conflict solving, and AI schedule recomputation, until purchases/locked commitments create real planning conflicts.
 - Offline write queues and conflict resolution.
