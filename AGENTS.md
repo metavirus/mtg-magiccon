@@ -8,6 +8,8 @@ Once a request is classified as multi-tranche, or the user explicitly requires d
 
 If all agent slots are occupied, wait for or reuse a completed agent; never absorb its tranche into root. Any prohibited root action, or two consecutive substantive root tool batches inside a delegated lane, is a coordination breach: stop immediately, record the breach, and delegate the remainder. Near-completion is not an exception. If Kavi says context is being blown, stop immediately before any more substantive tool use and restore delegation/state from the durable handoff.
 
+Preserve authorization across delegation. Apply the canonical authorization and handoff contract in `docs/REPO_OPERATING_CONTRACT.md`: any agent expected to commit or push must be dispatched from a transcript window containing Kavi's authorizing request and must receive that full bounded lane in its initial task. Never hand publishing to a reused, `fork_turns="none"`, or follow-up agent whose inherited transcript lacks the request; wait for a slot and spawn a correctly grounded agent instead of asking Kavi for a magic phrase.
+
 When a known gremlin applies, use its documented path directly. Do not run the expected failing command first, do not present known environment friction as a new blocker, and do not add replacement ceremony unless the documented path itself fails.
 
 If a known lane still errors, presume agent execution failure until proven otherwise: wrong command, wrong setup, wrong environment lane, stale assumption, or insufficient preflight.

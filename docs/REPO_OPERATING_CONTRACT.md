@@ -13,6 +13,16 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 - Do not preserve obsolete paths “for reference” if they can still mislead execution.
 - Do not overcorrect with broad new ceremony; remove wrong paths and use the right lane first.
 
+## Authorization and handoff
+
+Use this as the one canonical approval policy for repository work:
+
+- A request to answer, explain, review, diagnose, or plan authorizes relevant read-only inspection and reporting. Do not implement unless Kavi also asks for a change.
+- A request to change, build, fix, proceed, or resume authorizes the already-described, in-scope local edits and non-destructive validation when the bounded outcome is clear. When that outcome is on this repo's normal direct-to-main public-preview lane, the same request authorizes the expected commit, push, deploy wait, and public verification. Natural language is sufficient; never require an exact command such as `PUSH X`.
+- Ask again only when the action becomes destructive, costly, materially scope-expanding, hard to reverse, or when credentials, auth, deploy safety, intended branch, or the exact contents to ship become ambiguous. An unrelated external write remains outside the direct-to-main exception.
+- For delegated work that may commit or push, the publishing agent must be freshly dispatched from the authorizing user turn with full history or a recent-turn window that contains that request. Assign the complete bounded publish lane in the initial dispatch. Do not transfer publishing later to a reused agent, an agent created with `fork_turns="none"`, or a follow-up task when that agent's inherited transcript lacks Kavi's request. If no correctly grounded agent slot is available, wait for one; do not route publishing through root and do not manufacture a second user approval.
+- Repository policy cannot suppress a platform permission dialog. If the platform requires approval for a specific tool action, use its scoped approval UI; do not ask Kavi to type a proxy phrase in chat.
+
 ## Work decomposition and capability fidelity
 
 - A multi-system, multi-surface, or multi-proof-lane request is multi-tranche. An explicit user requirement for delegation also makes the delegated lane mandatory. The root chat's first substantive action must be dispatch.
