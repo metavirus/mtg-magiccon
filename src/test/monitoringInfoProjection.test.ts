@@ -10,6 +10,8 @@ describe('monitoring Info projection', () => {
     expect(projectResolutionToInfo({ resolution: 'corroboration', concept }, observation)).toBeNull()
   })
   it('persists a deterministic meaningful update once', () => {
-    expect(projectResolutionToInfo({ resolution: 'material_update', concept }, observation)).toMatchObject({ feed: { entry_key: 'atlanta:ticketed-play:sales-opening:material_update:abc', topic_key: 'ticketed-play' } })
+    const enriched = { ...observation, sourceId: 'official-faq', contentHash: 'hash', infoArticle: { lede: 'Useful.', sections: [{ key: 'sale', title: 'Sale timing' }], unknowns: [], contradictions: [], recent_changes: [] } }
+    expect(projectResolutionToInfo({ resolution: 'material_update', concept }, enriched)).toMatchObject({ feed: { entry_key: 'atlanta:ticketed-play:sales-opening:material_update:abc', topic_key: 'ticketed-play' }, topic: { article_status: 'maintained' } })
   })
+  it('does not publish link-only discovery as finished Info', () => expect(projectResolutionToInfo({ resolution: 'new', concept }, observation)).toBeNull())
 })

@@ -6,8 +6,9 @@ const TOPIC_BY_CONCEPT = {
 
 export function projectResolutionToInfo(resolution, observation) {
   if (!resolution.concept || ['noise', 'corroboration'].includes(resolution.resolution)) return null
+  if (!observation.infoArticle?.sections?.length || !observation.contentHash) return null
   const topicKey = TOPIC_BY_CONCEPT[resolution.concept.concept_key] ?? null
-  const sources = observation.sourceUrl ? [{ label: observation.sourceLabel || 'Official source', url: observation.sourceUrl }] : []
+  const sources = observation.sourceUrl ? [{ key: observation.sourceId, label: observation.sourceLabel || 'Official source', url: observation.sourceUrl, publisher: 'Official publisher', retrievedAt: observation.observedAt, evidenceKind: 'official_page' }] : []
   return {
     feed: {
       entry_key: `${resolution.concept.concept_key}:${resolution.resolution}:${observation.fingerprint}`,
@@ -17,6 +18,6 @@ export function projectResolutionToInfo(resolution, observation) {
       published_at: observation.observedAt,
       sources,
     },
-    topic: topicKey ? { topic_key: topicKey, concise_answer: resolution.concept.current_summary, sources, updated_at: observation.observedAt } : null,
+    topic: topicKey ? { topic_key: topicKey, concise_answer: resolution.concept.current_summary, article_status: 'maintained', article: observation.infoArticle, sources, updated_at: observation.observedAt } : null,
   }
 }

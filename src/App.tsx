@@ -11,6 +11,7 @@ import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
+import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -2221,6 +2222,29 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
   }
 }
 
+function InfoReaderContent({ detail }: { detail: NonNullable<ObjectDetail['reader']> }) {
+  return <div className="info-reader-content">
+    {detail.sections.map(section => <section key={section.key} className="info-reader-section">
+      <h3>{section.title}</h3>
+      {section.summary && <p>{section.summary}</p>}
+      {section.facts?.length ? <dl className="info-reader-facts">{section.facts.map(fact => <div key={`${section.key}-${fact.label}-${fact.value}`}><dt>{fact.label}</dt><dd><strong>{fact.value}</strong>{fact.qualifier && <small>{fact.qualifier}</small>}</dd></div>)}</dl> : null}
+      {section.bullets?.length ? <ul>{section.bullets.map(bullet => <li key={bullet}>{bullet}</li>)}</ul> : null}
+    </section>)}
+    {detail.unknowns.length > 0 && <section className="info-reader-section info-reader-unknowns"><h3>What is still unknown</h3><ul>{detail.unknowns.map(item => <li key={item}>{item}</li>)}</ul></section>}
+    {detail.contradictions.length > 0 && <section className="info-reader-section info-reader-unknowns"><h3>What does not line up yet</h3><ul>{detail.contradictions.map(item => <li key={item.summary}>{item.summary}</li>)}</ul></section>}
+    {detail.recentChanges.length > 0 && <section className="info-reader-section info-reader-changes"><h3>Latest meaningful change</h3>{detail.recentChanges.map(change => <article key={`${change.title}-${change.publishedAt}`}><div><strong>{change.title}</strong><time>{new Date(change.publishedAt).toLocaleDateString()}</time></div><p>{change.summary}</p></article>)}</section>}
+  </div>
+}
+
+function InfoReaderEvidence({ sources }: { sources: InfoSource[] }) {
+  if (!sources.length) return null
+  return <section className="info-reader-evidence"><h3>Official evidence</h3>{sources.map(source => <article key={source.key ?? source.label}>
+    <div><strong>{source.label}</strong>{source.publisher && <span>{source.publisher}</span>}</div>
+    {(source.publishedAt || source.retrievedAt || source.detail) && <small>{source.publishedAt ? `Published ${new Date(source.publishedAt).toLocaleDateString()}` : source.retrievedAt ? `Retrieved ${new Date(source.retrievedAt).toLocaleDateString()}` : source.detail}</small>}
+    {source.url && <a href={source.url} target="_blank" rel="noreferrer">View original source <span aria-hidden="true">↗</span></a>}
+  </article>)}</section>
+}
+
 function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   useEffect(() => {
     if (!detail) return
@@ -2234,20 +2258,21 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
     }
   }, [detail])
   if (!detail) return null
-  return <div className="object-detail-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
-    <aside className={`object-detail object-detail-${detail.kind}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
+  return <div className={`object-detail-backdrop ${detail.reader ? 'info-reader-backdrop' : ''}`} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
+    <aside className={`object-detail object-detail-${detail.kind} ${detail.reader ? 'object-detail-reader' : ''}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
+      {detail.reader && <button className="detail-close reader-close-sticky" type="button" onClick={onClose} aria-label="Close article">×</button>}
       <header className="object-detail-head">
         <div className="object-detail-topline">
           <span className="eyebrow">{detail.eyebrow}</span>
           <span className="object-detail-top-actions">
             <span className="object-kind-chip">{detail.kindLabel ?? detailKindLabel(detail.kind)}</span>
-            <button className="detail-close object-detail-close" type="button" onClick={onClose} aria-label="Close detail">×</button>
+            {!detail.reader && <button className="detail-close object-detail-close" type="button" onClick={onClose} aria-label="Close detail">×</button>}
           </span>
         </div>
         <h2 id="object-detail-title">{detail.title}</h2>
         <p>{detail.summary}</p>
       </header>
-      {detail.image && <section className="object-detail-section object-detail-image-section">
+      {detail.reader ? <InfoReaderContent detail={detail.reader} /> : <>{detail.image && <section className="object-detail-section object-detail-image-section">
         <div className="object-detail-image-card">
           <img src={detail.image.src} alt={detail.image.alt} loading="lazy" />
           {detail.image.caption && <span>{detail.image.caption}</span>}
@@ -2276,7 +2301,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
       {detail.source && <section className="object-detail-section">
         <h3>Source / provenance</h3>
         <p><strong>{detail.source.label}</strong><br />{renderLinkedText(detail.source.value)}</p>
-      </section>}
+      </section>}</>}
       <ObjectNotes
         notes={notes}
         currentOwnerId={currentOwnerId}
@@ -2291,6 +2316,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
         backlink={detail.backlinks?.[0]?.destination ?? 'notes'}
         compact
       />
+      {detail.reader && <InfoReaderEvidence sources={detail.reader.sources} />}
       {detail.kind !== 'artist' && (detail.actions || detail.backlinks) && <footer className="object-detail-actions">
         {detail.actions?.map(action => <button key={action.label} type="button" onClick={() => action.destination ? onNavigate(action.destination) : undefined}>{action.label}</button>)}
         {detail.backlinks?.map(link => <button key={link.label} type="button" className="secondary" onClick={() => onNavigate(link.destination)}>{link.label}</button>)}
@@ -2334,6 +2360,13 @@ type ObjectDetail = {
   eyebrow: string
   title: string
   summary: string
+  reader?: {
+    sections: Array<{ key: string; title: string; summary?: string; facts?: Array<{ label: string; value: string; qualifier?: string }>; bullets?: string[] }>
+    unknowns: string[]
+    contradictions: Array<{ summary: string; sourceKeys: string[] }>
+    recentChanges: Array<{ title: string; summary: string; publishedAt: string }>
+    sources: InfoSource[]
+  }
   image?: { src: string; alt: string; caption?: string }
   focusedNoteId?: string
   objectAnchor?: string
@@ -4312,6 +4345,21 @@ function infoSources(sources: InfoSource[]) {
 }
 
 function infoTopicDetail(topic: InfoTopic, feed: InfoFeedEntry[]): ObjectDetail {
+  if (infoTopicUsesReader(topic) && topic.article) return {
+    id: `info-topic-${topic.id}`,
+    kind: 'alert',
+    kindLabel: 'Guide',
+    eyebrow: 'MAINTAINED INFO',
+    title: topic.title,
+    summary: topic.article.lede,
+    reader: {
+      sections: topic.article.sections,
+      unknowns: topic.article.unknowns,
+      contradictions: topic.article.contradictions,
+      recentChanges: topic.article.recent_changes,
+      sources: topic.sources,
+    },
+  }
   const related = relatedInfoFeed(topic.topic_key, feed)
   return {
     id: `info-topic-${topic.id}`,
@@ -4354,17 +4402,19 @@ function InfoTile({ eyebrow, title, summary, meta, tone = 'blue', onClick }: { e
 }
 
 function InfoSurface({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed: InfoFeedEntry[]; onOpenObject: (detail: ObjectDetail) => void }) {
-  const { quick, more } = partitionInfoTopics(topics)
+  const visibleTopics = publishedInfoTopics(topics)
+  const visibleFeed = publishedInfoFeed(feed, topics)
+  const { quick, more } = partitionInfoTopics(visibleTopics)
   return <section className="info-surface" aria-label="Info">
     <section className="info-quick"><div className="info-section-head"><span className="eyebrow">QUICK ANSWERS</span><h2>What do you need right now?</h2><p>Current trip facts, one tap away.</p></div>
-      <div className="info-tile-grid">{quick.map((topic, index) => <InfoTile key={topic.topic_key} eyebrow={topic.title} title={topic.concise_answer} summary={`${topic.facts.length} maintained facts`} tone={index === 0 ? 'green' : index === 2 ? 'gold' : 'blue'} onClick={() => onOpenObject(infoTopicDetail(topic, feed))} />)}</div>
+      <div className="info-tile-grid">{quick.map((topic, index) => <InfoTile key={topic.topic_key} eyebrow={topic.title} title={topic.concise_answer} summary={infoTopicUsesReader(topic) ? 'Read the maintained guide' : `${topic.facts.length} maintained facts`} tone={index === 0 ? 'green' : index === 2 ? 'gold' : 'blue'} onClick={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
     </section>
     <div className="info-columns">
       <section className="info-feed"><div className="info-section-head"><span className="eyebrow">RECENT INFORMATION</span><h2>What changed.</h2><p>Official updates in newest-first order.</p></div>
-        <div className="info-tile-list">{feed.map(entry => { const topic = infoTopicForFeed(entry, topics); return <InfoTile key={entry.entry_key} eyebrow="Official update" title={entry.title} summary={entry.summary} meta={new Date(entry.published_at).toLocaleDateString()} tone="gold" onClick={() => onOpenObject(infoFeedDetail(entry, topic))} /> })}</div>
+        <div className="info-tile-list">{visibleFeed.map(entry => { const topic = infoTopicForFeed(entry, visibleTopics); return <InfoTile key={entry.entry_key} eyebrow="Latest update" title={durableInfoFeedTitle(entry, visibleTopics)} summary={entry.summary} meta={new Date(entry.published_at).toLocaleDateString()} tone="gold" onClick={() => onOpenObject(topic && infoTopicUsesReader(topic) ? infoTopicDetail(topic, visibleFeed) : infoFeedDetail(entry, topic))} /> })}</div>
       </section>
       <section className="info-topics"><div className="info-section-head"><span className="eyebrow">MORE TOPICS</span><h2>Useful references.</h2><p>Maintained answers beyond the quick set.</p></div>
-        <div className="info-tile-list">{more.map(topic => <InfoTile key={topic.topic_key} eyebrow="Reference" title={topic.title} summary={topic.concise_answer} meta={`Updated ${new Date(topic.updated_at).toLocaleDateString()}`} onClick={() => onOpenObject(infoTopicDetail(topic, feed))} />)}</div>
+        <div className="info-tile-list">{more.map(topic => <InfoTile key={topic.topic_key} eyebrow={infoTopicUsesReader(topic) ? 'Maintained guide' : 'Reference'} title={topic.title} summary={topic.concise_answer} meta={`Updated ${new Date(topic.updated_at).toLocaleDateString()}`} onClick={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
       </section>
     </div>
   </section>

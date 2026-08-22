@@ -25,6 +25,8 @@
     "monitor:check": "node --use-system-ca scripts/monitoring_watch_check.mjs",
     "monitor:accept": "node --use-system-ca scripts/monitoring_watch_check.mjs --accept",
     "monitor:stage": "node --use-system-ca scripts/stage_monitoring_findings.mjs",
+    "info:ingest": "node --use-system-ca scripts/ingest_info_articles.mjs",
+    "info:seed-sql": "node scripts/build_info_article_seed_sql.mjs",
     "artist:seed-sql": "node scripts/build_artist_card_catalog_seed_sql.mjs",
     "validate:artist-catalog-db": "powershell -ExecutionPolicy Bypass -File scripts/validate_artist_card_catalog_db.ps1",
     "validate:artist-import": "node scripts/validate_artist_card_import.mjs",
