@@ -129,7 +129,7 @@ for (const observation of observations) {
     if (feedWrite.error) throw feedWrite.error
     infoFeedAdded += feedWrite.data?.length ?? 0
     if (infoProjection.topic) {
-      const topicWrite = await client.from('info_topics').update({ concise_answer: infoProjection.topic.concise_answer, sources: infoProjection.topic.sources, updated_at: infoProjection.topic.updated_at }).eq('topic_key', infoProjection.topic.topic_key)
+      const topicWrite = await client.from('info_topics').update({ concise_answer: infoProjection.topic.concise_answer, article_status: infoProjection.topic.article_status, article: infoProjection.topic.article, sources: infoProjection.topic.sources, updated_at: infoProjection.topic.updated_at }).eq('topic_key', infoProjection.topic.topic_key)
       if (topicWrite.error) throw topicWrite.error
     }
   }

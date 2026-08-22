@@ -1,6 +1,6 @@
 # Info knowledge model
 
-Updated: 2026-08-21
+Updated: 2026-08-22
 
 Info is the durable shared official-knowledge surface. Map remains spatial. Activity remains app and user activity.
 
@@ -16,3 +16,11 @@ Surveyor routing is deterministic:
 - Home receives only separately justified timely or consequential items.
 
 Raw source diffs stay in monitoring evidence. Info does not accept monitoring baselines, manufacture facts, or replace publisher evidence.
+
+## Maintained article contract
+
+Link discovery is never a finished article. `article_status = incomplete` remains internal/compact until a reviewed source-content extraction supplies a lede and at least one factual section. A maintained article contains ordered sections, explicit unknowns, explicit contradictions, recent changes, and keyed sources. External originals are optional provenance at the bottom; the factual synthesis must stand alone.
+
+`info_source_snapshots` retains the official URL, publisher, retrieval time, HTTP status, SHA-256 content fingerprint, and structured capture metadata. It deliberately does not store full copyrighted page bodies. `pnpm info:seed-sql` produces the reviewed idempotent SQL data correction; `pnpm info:ingest` is the server-secret operational lane for later source-backed refreshes.
+
+The first comprehensive capture synthesizes the official Atlanta Prize Wall, On-Demand Events, Ticketed Play Schedule, and play-guide pages, plus the retained official order-confirmation evidence for show hours and Will Call. All five topics are maintained articles. The On-Demand article preserves the unresolved Sunday timing tension between the 3 PM voucher-sales cutoff and 4 PM Commander registration end instead of silently choosing an interpretation.
