@@ -19,8 +19,10 @@ for (const candidate of officialInfoArticles) {
   const topic = reconciled.topic
   const write = await client.from('info_topics').upsert({ topic_key: topic.topic_key, title: topic.title, concise_answer: topic.concise_answer, facts: topic.facts, sources: topic.sources, article_status: topic.article_status, article: topic.article, updated_at: topic.updated_at }, { onConflict: 'topic_key' })
   if (write.error) throw write.error
-  const change = topic.article.recent_changes.at(-1)
-  const feed = await client.from('info_feed_entries').upsert({ entry_key: `article-maintained:${topic.topic_key}:${retrievedAt}`, topic_key: topic.topic_key, title: change.title, summary: change.summary, published_at: change.publishedAt, sources: topic.sources }, { onConflict: 'entry_key', ignoreDuplicates: true })
-  if (feed.error) throw feed.error
+  if (candidate.publish_current_feed) {
+    const change = topic.article.recent_changes.at(-1)
+    const feed = await client.from('info_feed_entries').upsert({ entry_key: `concept-current:${topic.topic_key}`, concept_key: topic.topic_key, topic_key: topic.topic_key, title: change.title, summary: change.summary, published_at: change.publishedAt, sources: topic.sources, feed_status: 'current' }, { onConflict: 'entry_key' })
+    if (feed.error) throw feed.error
+  }
 }
 console.log(`Info ingestion: PASS (${officialInfoSnapshots.length} source snapshots; ${officialInfoArticles.length} maintained articles; deterministic upsert)`)

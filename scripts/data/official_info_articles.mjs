@@ -14,7 +14,7 @@ const source = key => {
 
 export const officialInfoArticles = [
   {
-    topic_key: 'prize-tix', title: 'Prize Tix & Prize Wall', article_status: 'maintained',
+    topic_key: 'prize-tix', title: 'Prize Tix & Prize Wall', article_status: 'maintained', publish_current_feed: true,
     concise_answer: 'Earn Prize Tix through scheduled and on-demand Ticketed Play, then redeem them at the Prize Wall during the same MagicCon.',
     facts: [{ label: 'Location', value: 'Inside the Magic Ticketed Play Area' }, { label: 'Sunday deadline', value: 'Join the line by 5:30 PM' }],
     sources: [source('atlanta-prize-wall'), source('atlanta-on-demand-events')],
@@ -32,7 +32,7 @@ export const officialInfoArticles = [
     }, updated_at: retrievedAt,
   },
   {
-    topic_key: 'on-demand-play', title: 'On-Demand Play', article_status: 'maintained',
+    topic_key: 'on-demand-play', title: 'On-Demand Play', article_status: 'maintained', publish_current_feed: true,
     concise_answer: 'Buy $5 ODE vouchers at the Ticketed Play Hub, join a labeled waiting table, and launch when enough players assemble; no preregistration.',
     facts: [{ label: 'Voucher increment', value: '$5' }, { label: 'Maximum per visit', value: '$100' }, { label: 'Sales end', value: 'Sunday 3 PM PT' }],
     sources: [source('atlanta-on-demand-events'), source('atlanta-playing-guide')],
@@ -54,7 +54,7 @@ export const officialInfoArticles = [
     }, updated_at: retrievedAt,
   },
   {
-    topic_key: 'ticketed-play', title: 'Ticketed Play', article_status: 'maintained',
+    topic_key: 'ticketed-play', title: 'Ticketed Play', article_status: 'maintained', publish_current_feed: true,
     concise_answer: 'Sales open August 25 at 10 AM PT; a MagicCon Atlanta badge is required and sales close one hour before each event.',
     facts: [{ label: 'Sales open', value: 'August 25 at 10 AM PT' }, { label: 'Sales close', value: 'One hour before start' }],
     sources: [source('atlanta-ticketed-play'), source('atlanta-playing-guide')],

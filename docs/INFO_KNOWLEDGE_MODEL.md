@@ -4,13 +4,14 @@ Updated: 2026-08-22
 
 Info is the durable shared official-knowledge surface. Map remains spatial. Activity remains app and user activity.
 
-`info_feed_entries` retains useful official updates even when no maintained topic is warranted. `info_topics` holds concise current answers for recurring retrieval needs such as show hours, Will Call, Ticketed Play, On-Demand Play, and Prize Tix. Topic details retain current facts, update date, sources, and related feed entries. Both tables are shared read-only knowledge for active companions; trusted surveyor/database lanes write them.
+`info_feed_entries` retains useful official updates even when no maintained topic is warranted. Its default Recent projection is not an append-only event log: `concept_key` is the stable semantic identity and exactly one `feed_status = 'current'` row may exist per concept. Superseded rows retain history, while link discovery and ingestion bookkeeping remain `internal`. `info_topics` holds concise current answers for recurring retrieval needs such as show hours, Will Call, Ticketed Play, On-Demand Play, and Prize Tix. Topic details retain current facts, update date, sources, and related feed entries. Both tables are shared read-only knowledge for active companions; trusted surveyor/database lanes write them.
 
 Surveyor routing is deterministic:
 
 - noise creates nothing;
 - corroboration adds source evidence to the concept layer silently;
-- new concepts and meaningful updates persist one fingerprint-deduplicated Info feed entry;
+- new concepts and meaningful updates upsert one stable concept-current Info feed entry; a fingerprint is evidence, never card identity;
+- corroboration, superseded summaries, link-only discovery, and ingestion bookkeeping never render as separate Recent cards;
 - a recognized maintained topic is updated only when the deterministic concept mapping warrants it;
 - contradictions and milestone transitions persist without overwriting raw evidence;
 - Home receives only separately justified timely or consequential items.

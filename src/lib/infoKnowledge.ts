@@ -6,7 +6,7 @@ export type InfoFact = { label: string; value: string; qualifier?: string }
 export type InfoArticleSection = { key: string; title: string; summary?: string; facts?: InfoFact[]; bullets?: string[] }
 export type InfoArticle = { lede: string; sections: InfoArticleSection[]; unknowns: string[]; contradictions: Array<{ summary: string; sourceKeys: string[] }>; recent_changes: Array<{ title: string; summary: string; publishedAt: string }> }
 export type InfoTopic = { id: string; topic_key: string; title: string; concise_answer: string; facts: InfoFact[]; sources: InfoSource[]; article_status?: 'incomplete' | 'maintained'; article?: InfoArticle; updated_at: string }
-export type InfoFeedEntry = { id: string; entry_key: string; topic_key: string | null; title: string; summary: string; published_at: string; sources: InfoSource[] }
+export type InfoFeedEntry = { id: string; entry_key: string; concept_key?: string | null; topic_key: string | null; title: string; summary: string; published_at: string; sources: InfoSource[]; feed_status?: 'current' | 'superseded' | 'internal' }
 
 const previewTopicSeeds: InfoTopic[] = [
   { id: 'hours', topic_key: 'hours', title: 'Show hours', concise_answer: 'The show floor is open 10 AM–7 PM Friday and Saturday, and 10 AM–6 PM Sunday.', facts: [{ label: 'Friday', value: '10 AM–7 PM' }, { label: 'Saturday', value: '10 AM–7 PM' }, { label: 'Sunday', value: '10 AM–6 PM' }, { label: 'Play area', value: 'Friday and Saturday until 11:59 PM' }], sources: [{ label: 'MagicCon: Atlanta 2026 Order Confirmation', detail: 'Received June 16, 2026' }], updated_at: '2026-06-16T00:00:00Z' },

@@ -1,5 +1,7 @@
 # Work Backlog
 
+- [x] Prevent the seven-card Info Recent recurrence: one current meaningful card per stable concept, retained superseded history, and internal-only link discovery.
+
 ## Foundation acceptance
 
 - [x] Historical foundation checkpoint: CI was proven through later direct-to-main Pages deployments; a standing draft PR is no longer the project lane.
