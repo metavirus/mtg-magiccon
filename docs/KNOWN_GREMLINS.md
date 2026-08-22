@@ -6,54 +6,51 @@ Core rule: a known environment-specific failure is no longer debugging. It is op
 
 Recurrence rule: if any failure returns after it was represented as fixed, the prior fix is disproven. Stop feature work on that first recurrence. Do not merely rerun the recovery. Determine why the previous guardrail failed or was absent, add a targeted durable prevention delta, then prove both the original lane and the guardrail. Until both pass, the state is recovered at best, never `FIXED`. This rule overrides the “after two attempts” troubleshooting thresholds elsewhere; those thresholds apply only to first-time diagnosis within one incident. Only an explicit user statement that tokens are low may defer the prevention work, and deferred work must not be called fixed.
 
-Readiness rule: capabilities are task-specific. If a task may require browser inspection, deployment visibility, or database writes, prove that capability with a small observable smoke test before substantive work. A silent tool call is not readiness. After one bounded repair and one retest, stop if the capability still needs host/user action. Use the report shape: failed capability, failed command/check, host-side fix, and proof command.
+Readiness rule: capabilities are task-specific. Check a capability only when the task will use it and its state is uncertain. Use the smallest observable smoke; do not duplicate it before and after the same operation. After one bounded repair and one retest, stop if the capability still needs host/user action.
 
-## Root absorbs delegated work
+## Root absorbs a large delegated tranche
 
-**Symptom:** a multi-tranche request accumulates implementation, activation, browser proof, publishing, or extended diagnostics in root; Kavi reports that context is being blown; or root runs two consecutive substantive tool batches in a delegated lane.
+**Symptom:** after deliberately delegating a substantial implementation, research, browser-proof, or database tranche, root starts doing that same large tranche and context grows out of control.
 
-**Cause:** dispatch was treated as optional coordination advice instead of a hard execution boundary.
+**Cause:** ownership of a substantial compartment became unclear. This does not include root's normal exact staged review, tier-appropriate validation, commit, push, or post-push verification.
 
 **Do this:**
 
-- Stop root tool use immediately and record the coordination breach.
-- Dispatch the remaining tranche. If slots are full, wait for or reuse a completed agent; do not absorb the work.
-- Root resumes only instruction/preflight reads, dispatch, cross-tranche decisions, bounded integration conflict resolution, aggregate final gate, durable-state coordination, and concise updates.
-- Do not invoke near-completion, prior progress, or context already spent as an exception.
+- Stop duplicating the delegated tranche. Let its cohesive worker finish or, if that context is stale, retire it and dispatch one fresh worker.
+- Root may continue coordination, bounded integration decisions, exact staged review, tier-appropriate validation, commit, push, and required post-push verification.
+- Do not delegate small cohesive work or split one tightly coupled change among agents merely to satisfy a lane rule.
 
-**Prevention:** for multi-tranche or explicitly delegated work, dispatch is root's first substantive action. Any prohibited root action or two consecutive substantive root tool batches in a delegated lane re-triggers this stop immediately.
+**Prevention:** use zero agents by default, one fresh cohesive worker for a substantial context compartment, and parallel agents only for independent work with a real time benefit. Keep root as integration/publish owner.
 
 ## Delegated publisher asks for a magic push phrase
 
 **Symptom:** bounded work is already authorized, but the agent assigned to commit or push says it lacks direct user authorization and asks Kavi to type an exact phrase such as `PUSH <sha>`.
 
-**Cause:** the publish step was handed to a long-lived, reused, `fork_turns="none"`, or follow-up agent whose inherited transcript did not contain Kavi's authorizing request. The existing direct-to-main rule described what to do after authorization, but the delegation path failed to preserve that authorization. Root cannot safely compensate because the coordinator boundary forbids root publishing.
+**Cause:** publication was unnecessarily delegated even though root holds the direct user request and is the trusted integration owner.
 
 **Do this:**
 
 - Do not ask Kavi for a proxy command.
-- Stop the ungrounded publish handoff. Wait for an agent slot if necessary, then freshly dispatch the bounded lane from the authorizing user turn with full history or a recent-turn window that includes it.
-- Put edit/integration ownership, validation, commit, push, deploy wait, and public verification in the initial task when that agent is expected to own the whole publish lane.
+- Stop the publish-only handoff. The delegated worker returns its bounded diff and evidence; root reviews the exact staged scope and owns commit, push, deploy wait, and required verification.
 - Treat ordinary natural-language requests to change, build, fix, proceed, or resume an unambiguous bounded public-preview outcome as authorization under `docs/REPO_OPERATING_CONTRACT.md`; re-confirm only when its listed risk or scope conditions change.
 - If the platform itself requires a scoped permission approval, use that approval UI. Repository rules cannot disable platform permission prompts.
 
-**Prevention:** never assign commit or push through a later follow-up to an agent whose trusted transcript lacks the authorizing user request. The initial dispatch packet must carry both the bounded outcome and the full publish responsibility.
+**Prevention:** do not create publish-only agents. Root retains integration/publication responsibility and the trusted user authorization.
 
 ## Context compaction and frontier drift
 
 **Symptom:** repeated context compactions cause frontier drift, retreading, opaque long-running work, or implementation to accumulate in the root chat.
 
-**Cause:** large work was not decomposed and dispatched before implementation, or completed decisions/results were left only in chat context.
+**Cause:** a substantial context compartment was not handed to one cohesive worker, stale agents were kept alive across phases, or meaningful state existed only in chat.
 
 **Do this:**
 
 - Stop implementation as soon as compaction makes the active lane or completed state uncertain; do not code through compaction churn.
 - Rebuild the handoff packet from `CURRENT_FRONTIER.md`, `docs/WORK_BACKLOG.md`, `git status`, `git log`, the dirty diff, and the latest user constraints.
-- Name exactly one active lane, pre-identify its bounded tranches, and dispatch every large independent tranche to a narrow subagent before resuming.
-- Keep the root chat to coordination, integration decisions, verification, and durable state updates.
-- If delegation is blocked or a tranche is not independently separable, disclose that immediately and obtain explicit approval before the root chat absorbs large implementation work.
+- Retire stale workers. Dispatch one fresh cohesive worker for the next substantial compartment; add parallel workers only for genuinely independent work with a material time benefit.
+- Root keeps coordination, bounded integration decisions, exact staged review, tier-appropriate validation, commit/push, and required post-push verification.
 
-**Prevention:** update the frontier/backlog after each material tranche. Chat history is not the only record of current state.
+**Prevention:** the repo is durable memory. Update frontier/backlog or a focused handoff for meaningful decisions and unfinished substantial work, not for trivial edits.
 
 ## pnpm and Corepack on native Windows
 
@@ -202,8 +199,8 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 **Do this:**
 
-- Before relying on GitHub Actions visibility, run `pnpm readiness`; it proves the repo command lane can use `gh` as `metavirus`.
-- If the GitHub CLI check fails, run `pnpm gh:auth-local`, choose browser login, then rerun `pnpm readiness`.
+- The canonical `pnpm verify:github-runs -- -CommitSha <sha>` command proves its own repo-local GitHub identity. Run full `pnpm readiness` only when broader repository/branch/remote state is also in question.
+- If the GitHub CLI check fails, run `pnpm gh:auth-local`, choose browser login, then retry the exact command; rerun `pnpm readiness` only when the broader gate is needed.
 - `pnpm gh:auth-local` stores the GitHub CLI token under ignored `.codex-local\gh` and sets `GH_CONFIG_DIR` for the repo-local Codex lane. Do not print, inspect, or commit `.codex-local\gh\hosts.yml`.
 - Do not use raw host/elevated `gh auth login` as proof for Codex readiness. It can succeed while the repo lane still fails.
 - Do not keep trying `gh run ...` variants when readiness says the token is bad. Fix the CLI auth lane first.

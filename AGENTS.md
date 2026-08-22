@@ -2,13 +2,13 @@
 
 Before substantive application, research, documentation, or database work, read `docs/REPO_OPERATING_CONTRACT.md`, check `docs/KNOWN_GREMLINS.md` for any already-known failure mode, then choose the smallest safe lane from `docs/ANTI_WASTE_OPERATING_MODE.md`.
 
-## Root-coordinator hard stop
+## Proportional execution and root integration
 
-Once a request is classified as multi-tranche, or the user explicitly requires delegation, the root chat coordinates only. Its first substantive action must be dispatch. Root may perform required instruction/preflight reads, dispatch work, resolve cross-tranche product decisions and bounded integration conflicts, run the aggregate final gate, coordinate durable-state updates, and give concise user updates. Root must not implement a tranche, activate operations, perform browser proof, publish, or run extended diagnostics assigned to a tranche.
+Use the smallest capable lane. Small or cohesive work stays in root with zero subagents by default. For a substantial context compartment, prefer one fresh cohesive worker. Use parallel agents only for genuinely independent work when the wall-clock benefit exceeds coordination cost; crossing systems or proof surfaces does not automatically require decomposition.
 
-If all agent slots are occupied, wait for or reuse a completed agent; never absorb its tranche into root. Any prohibited root action, or two consecutive substantive root tool batches inside a delegated lane, is a coordination breach: stop immediately, record the breach, and delegate the remainder. Near-completion is not an exception. If Kavi says context is being blown, stop immediately before any more substantive tool use and restore delegation/state from the durable handoff.
+Root owns narrow authenticated integration and publication: review the exact staged scope, run the risk-tier gate, commit, push, and verify CI/Pages or the public app when required. Do not create publish-only subagents or ask Kavi for a second `PUSH X` instruction after an already-authorized build, fix, proceed, or resume request. Root must not absorb a large implementation, research, browser-proof, or database tranche that was deliberately delegated, but integration/publish is not such a tranche.
 
-Preserve authorization across delegation. Apply the canonical authorization and handoff contract in `docs/REPO_OPERATING_CONTRACT.md`: any agent expected to commit or push must be dispatched from a transcript window containing Kavi's authorizing request and must receive that full bounded lane in its initial task. Never hand publishing to a reused, `fork_turns="none"`, or follow-up agent whose inherited transcript lacks the request; wait for a slot and spawn a correctly grounded agent instead of asking Kavi for a magic phrase.
+Retire workers when their phase ends or context compacts; start a fresh worker when another substantial compartment is needed. Keep meaningful decisions and unfinished substantial state in the repo so chat history is not the only memory. Do not update frontier/backlog files for trivial changes that create no durable project-state change.
 
 When a known gremlin applies, use its documented path directly. Do not run the expected failing command first, do not present known environment friction as a new blocker, and do not add replacement ceremony unless the documented path itself fails.
 
@@ -22,24 +22,19 @@ For Tier 0 small visual/copy fixes, do not drag the full project ceremony into t
 
 For Tier 1 public preview UI changes, follow the publish verification rules in `docs/ANTI_WASTE_OPERATING_MODE.md`.
 
-For Tier 2 data/auth/research/database/monitoring work:
-
-1. Read `README.md`, `docs/PROJECT_CONTEXT.md`, `CURRENT_FRONTIER.md`, and `docs/WORK_BACKLOG.md`.
-2. Run `pnpm readiness` and stop if repository, branch, remote, or Supabase identity is ambiguous.
-3. Follow `docs/CHANGE_CONTROL.md`, `docs/EFFICIENCY_SOP.md`, and `docs/COLLABORATION_SOP.md`.
-4. For research, follow `research/METHODOLOGY.md` and `research/SOURCE_SOP.md`.
+For Tier 2 auth, persistence, monitoring, research, or database work, read only the context and specialized SOPs relevant to the affected surface. Run `pnpm readiness` before live Supabase/database writes, authenticated operational changes, or when repository/branch/remote identity is genuinely ambiguous—not for unrelated research or local-only work. Research follows `research/METHODOLOGY.md` and `research/SOURCE_SOP.md` without inheriting database or publish gates unless it will actually write there.
 
 Supabase project `pavjsexxbueuzhzgemgy` is canonical. Never use another project, the reference project's credentials, a secret/service-role key in browser code, or unverified database URLs. Prefer an ignored Session Pooler URL on port 5432 for direct database tooling.
 
 Keep source evidence, normalized facts, interpretation, private personal state, and agent/workflow proposals distinguishable. A proposal never becomes canonical merely because an agent produced it. Offline mode is read-only and must never silently overwrite newer server data.
 
-Run build, tests, text-integrity, and secret validation before handoff. Database changes require identity proof, migration review, live readback, RLS verification, and advisor review proportionate to risk. Surface encoding drift, schema ambiguity, identity mismatch, or missing capabilities immediately.
+Run only the validation required by the active risk tier. Database changes require canonical identity proof, migration review, live readback, and RLS/advisor checks proportionate to the actual change; do not apply database ceremony when no database write exists. Surface encoding drift, schema ambiguity, identity mismatch, or missing capabilities immediately.
 
 ## Kavi collaboration contract
 
 - Optimize for real speed: assess, execute, file it away. Eliminate recurring failure causes and encode the smallest prevention rule; do not normalize recurrence as ambient friction.
 - Use decisive bounded chunks with little ceremony. Take the obvious approved next step; ask only when risk, product direction, privacy, credentials, or reversibility materially changes.
-- Before implementing work that spans multiple systems, surfaces, or proof lanes, identify and dispatch the bounded tranches under the root-coordinator hard stop above. Persist `CURRENT_FRONTIER.md` and `docs/WORK_BACKLOG.md` after each material tranche so compaction cannot erase state.
+- Keep cohesive work together. Delegate a substantial context compartment or independent parallel tranche when it will genuinely reduce context pressure or elapsed time. Persist frontier/backlog state only after a material durable change or before a substantial handoff/compaction.
 - Visual work requires actual viewport inspection and visual judgment: spacing, hierarchy, controls, alignment, mobile wrapping, drawer size, and false affordances all count.
 - Supabase is truth. Shared trip/event context is shared unless there is a real privacy reason; Black Lotus context is not secret; Kavi's card-signing workbench/details remain private for now.
 - Purchased/locked state gets the strongest visual language. Interested, tentative, and ordinary committed states must not steal that signal.

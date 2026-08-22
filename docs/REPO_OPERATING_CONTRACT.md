@@ -20,16 +20,16 @@ Use this as the one canonical approval policy for repository work:
 - A request to answer, explain, review, diagnose, or plan authorizes relevant read-only inspection and reporting. Do not implement unless Kavi also asks for a change.
 - A request to change, build, fix, proceed, or resume authorizes the already-described, in-scope local edits and non-destructive validation when the bounded outcome is clear. When that outcome is on this repo's normal direct-to-main public-preview lane, the same request authorizes the expected commit, push, deploy wait, and public verification. Natural language is sufficient; never require an exact command such as `PUSH X`.
 - Ask again only when the action becomes destructive, costly, materially scope-expanding, hard to reverse, or when credentials, auth, deploy safety, intended branch, or the exact contents to ship become ambiguous. An unrelated external write remains outside the direct-to-main exception.
-- For delegated work that may commit or push, the publishing agent must be freshly dispatched from the authorizing user turn with full history or a recent-turn window that contains that request. Assign the complete bounded publish lane in the initial dispatch. Do not transfer publishing later to a reused agent, an agent created with `fork_turns="none"`, or a follow-up task when that agent's inherited transcript lacks Kavi's request. If no correctly grounded agent slot is available, wait for one; do not route publishing through root and do not manufacture a second user approval.
+- Root keeps the trusted user authorization and owns narrow integration/publication: exact staged-scope review, risk-tier validation, commit, push, and required CI/Pages or public verification. Delegated workers normally return their bounded diff and evidence; do not create a publish-only worker or transfer push to an agent whose transcript lacks Kavi's request.
 - Repository policy cannot suppress a platform permission dialog. If the platform requires approval for a specific tool action, use its scoped approval UI; do not ask Kavi to type a proxy phrase in chat.
 
-## Work decomposition and capability fidelity
+## Agent lifecycle and capability fidelity
 
-- A multi-system, multi-surface, or multi-proof-lane request is multi-tranche. An explicit user requirement for delegation also makes the delegated lane mandatory. The root chat's first substantive action must be dispatch.
-- After classification, root may only read required instructions/preflight, dispatch, make cross-tranche decisions, resolve bounded integration conflicts, run the aggregate final gate, coordinate durable state, and give concise updates. Root must not implement a tranche, activate operations, perform browser proof, publish, or run extended tranche diagnostics.
-- If slots are full, wait for or reuse a completed agent. Never absorb the tranche into root. A prohibited root action or two consecutive substantive root tool batches in a delegated lane is a coordination breach: stop, record it, and delegate the remainder. There is no near-completion exception.
-- If Kavi says context is being blown, root stops immediately before further substantive tool use, reconstructs from durable state, and restores delegation.
-- Small, genuinely single-tranche work may stay local. Delegation changes who executes work; it does not add ceremony, broaden scope, or authorize external effects.
+- Use zero subagents by default for small or cohesive work. Crossing systems, surfaces, or proof lanes does not by itself justify decomposition.
+- Use one fresh cohesive worker for a substantial context compartment. Add parallel workers only when their tasks are genuinely independent and parallelism will materially save time. Explicit user delegation remains binding.
+- Root may coordinate and resolve bounded integration conflicts, and it owns exact staged review, risk-tier validation, commit, push, and required post-push verification. Root must not absorb a large implementation, research, browser-proof, or database tranche that it deliberately delegated.
+- Do not create agents merely to satisfy process lanes. Retire them at phase end or compaction instead of accumulating long-lived workers; reuse only when the existing context still exactly matches the next bounded task.
+- The repo is durable memory. Update frontier/backlog or a focused handoff for material decisions and unfinished substantial work, not for trivial edits with no durable state change.
 
 ## Recurrence doctrine
 
@@ -43,12 +43,11 @@ Use this as the one canonical approval policy for repository work:
 
 ## Execution standard
 
-- Readiness is task-specific, not generic. Before substantive work, identify the critical capabilities the task depends on:
+- Readiness is task-specific, not generic. Check a capability only when the task will use it and its state is uncertain:
   - browser/viewport inspection for UI, responsive, or deployed-app interaction work;
   - deployment visibility for public publish or public-state debugging;
   - authenticated Supabase/database execution for user-state or schema work.
-- Check those critical capabilities up front with the smallest observable smoke test. Observable means the tool returns usable state, not silence or a vague success.
-- Classify capability state decisively: `READY`, `RECOVERED`, `FIXED`, or `USER-HOST-ACTION REQUIRED`. `RECOVERED` is explicitly incomplete and cannot support a completion claim for a recurring failure. Do not operate in a lingering "maybe usable" state.
+- Use the smallest observable smoke test; a documented healthy lane need not be re-proved for unrelated work or duplicated before and after the same operation.
 - If a platform/environment capability fails, run one bounded agent-accessible repair, retest that same capability once, then stop if it still requires host action. Report the exact failed capability, failed command/check, host-side fix, and proof command to run afterward.
 - Do not retry the same failing command in variants, switch to WSL/Docker/admin/global reinstall paths, add wrappers, or continue coding through a missing capability unless the failure specifically requires that route.
 - Expected project capabilities are assumed available once documented: Git writes through the approved lane, package scripts, Supabase-backed state, GitHub Pages deploy/verify, and browser/viewport inspection for visual work.
@@ -87,8 +86,9 @@ Only the fourth state counts as live.
 
 Use the smallest validation lane that still catches the real failure mode:
 
-- Small app-code UI or routing fix in one bounded area: `pnpm build`, visual check of the affected flow, push `main`, wait for the GitHub Actions Pages deploy, then run `pnpm verify:public`.
-- Public UI change with broader surface area, risk, or multiple touched files: `pnpm check:ship`, visual check of the affected flow, push `main`, wait for the GitHub Actions Pages deploy, then run `pnpm verify:public`.
+- Docs-only change with no workflow, command, generated-asset, or runtime effect: `pnpm validate:text` and `pnpm validate:secrets`; no build, browser check, or CI/Pages wait is required unless an external failure signal appears.
+- Small app-code UI or routing fix in one bounded area: `pnpm build`, visual check of the affected flow, then root reviews the staged scope, pushes `main`, waits for the GitHub Actions Pages deploy, and runs `pnpm verify:public`.
+- Public UI change with broader surface area, risk, or multiple touched files: `pnpm check:ship`, visual check of the affected flow, then the same root-owned publish and verification lane.
 - Auth, persistence, workflow, monitoring, or data-shape change: use the heavier documented gate for that tier.
 
 Do not default to `pnpm check:ship` for every small hobby-app UI tweak when `pnpm build` plus the required visual/public checks would catch the meaningful failure just as well.
@@ -103,7 +103,7 @@ Node is the build/tooling layer, not a user-facing runtime complication. Use the
 
 pnpm is Corepack-managed on the native Windows host. Use normal `pnpm` or `corepack pnpm`; do not reinstall pnpm globally with npm. If pnpm acts strange, first check `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version` before diagnosing app code. A non-admin `corepack enable` shim-write failure under Program Files is not a product blocker.
 
-For browser-dependent visual work, prove the browser lane at the start with `pnpm ui:capture -- -Route <route>` after a build. The capture command serves the built app preview and uses Playwright to return URL/title, visible text, DOM, and screenshot evidence.
+For browser-dependent visual work, use `pnpm ui:capture -- -Route <route>` after the build as the required viewport proof. Run a separate early browser smoke only when that capability is uncertain. The capture command serves the built app preview and returns URL/title, visible text, DOM, and screenshot evidence.
 
 ### Monitoring
 

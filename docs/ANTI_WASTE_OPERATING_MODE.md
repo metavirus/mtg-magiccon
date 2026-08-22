@@ -4,29 +4,29 @@ This is a small hobby companion app, not an enterprise program. Use the narrowes
 
 Known environment constraints are part of the operating model. Do not rediscover them, narrate them as surprises, or prove documented failures still fail. Check `docs/KNOWN_GREMLINS.md`, choose the correct lane first, and only add new process when it removes a wrong path.
 
-## Root coordinator lane
+## Proportional execution and root integration
 
-For any multi-tranche request or explicit delegation requirement, dispatch is root's first substantive action. Root is limited to required reads/preflight, dispatch, cross-tranche decisions, bounded integration conflict resolution, the aggregate final gate, durable-state coordination, and concise updates. Tranche implementation, operational activation, browser proof, publishing, and extended diagnostics belong to dispatched agents.
+Use zero subagents for small or cohesive work. For substantial work that benefits from context separation, use one fresh cohesive worker; parallelize only independent tranches when doing so materially saves time. Do not split work merely because it crosses systems or proof surfaces.
 
-When slots are full, root waits for or reuses a completed agent; it never absorbs the work. A prohibited action or two consecutive substantive root tool batches in a delegated lane triggers an immediate stop, breach record, and delegation of the remainder. Near-completion does not waive the rule. “Context is being blown” from Kavi is an immediate hard stop before further substantive tools.
+Root keeps the trusted user authorization and owns exact staged review, tier-appropriate validation, commit, push, and required CI/Pages or public verification. Delegated workers implement or investigate their bounded tranche and return evidence. Do not create publish-only agents, and do not ask Kavi to restate an already-authorized bounded request as `PUSH X`.
 
-Follow the authorization-preserving handoff rule in `docs/REPO_OPERATING_CONTRACT.md`. In particular, the agent assigned to commit or push must inherit the authorizing user request and own that bounded lane from its initial dispatch; do not use a later follow-up to an ungrounded agent and then ask Kavi to restate approval.
+Root must not absorb a large delegated implementation, research, browser-proof, or database tranche. Retire workers at phase end or compaction, and persist only material durable state before a substantial handoff.
 
 ## Anticipation standard
 
 For known project lanes, choose the expected working path before running commands. This applies to Git writes, package scripts, public deploy/verification, Supabase-backed state, browser/viewport inspection, and Windows/PowerShell quoting.
 
-Readiness is task-specific. Do not begin substantive work while a critical task capability is uncertain:
+Readiness is task-specific. Check a capability only when the task will use it and its state is uncertain:
 
-- Browser-dependent task: run one bounded observable browser smoke test first.
-- Publish/debug-public task: confirm deployment visibility and expected branch/commit path first.
+- Visual/browser-dependent task: use the required post-build viewport check as the capability proof; run a separate early smoke only when browser availability is uncertain.
+- Public publish/debug task: confirm the expected branch/commit path; prove deployment visibility when post-push proof is actually required.
 - Database/user-state task: confirm the Supabase project and authenticated execution path first.
 
 Capability states are `READY`, `RECOVERED`, `FIXED`, or `USER-HOST-ACTION REQUIRED`. `RECOVERED` means the immediate symptom cleared but durable prevention has not been proved; it does not authorize a completion claim for a recurring failure. For a newly observed capability failure, do one bounded agent-accessible repair and retest that same capability once. If it still fails and requires host permissions or user action, stop immediately with the exact failed capability, failed command/check, host-side fix, and proof command to run afterward.
 
 Do not retry the same failing command in variants, switch to WSL/Docker/admin/global reinstall work, add wrappers, or keep coding through a missing capability unless the failure specifically requires that route.
 
-Before starting a multi-system, multi-surface, or multi-proof-lane request, decompose it into bounded tranches and follow the root coordinator lane above. Small, genuinely single-tranche work stays local.
+Keep cohesive work together. Delegate only a substantial context compartment or an independent parallel tranche with a real time benefit.
 
 If a known lane still fails, treat that first as an agent execution failure until evidence says otherwise. Fixing the immediate symptom is not sufficient. Every recurring or preventable failure requires a prevention delta: the code, regression check, preflight, doc, script, command habit, or removed wrong path that prevents the demonstrated failure. A recurrence after a claimed fix triggers that work immediately; the retry thresholds below apply only to first-time diagnosis within one incident. Do not add broad triple-check ceremony as penance; encode the smallest durable correction.
 
@@ -40,6 +40,7 @@ Use for documentation, instructions, and process cleanup that does not change ap
 - Use targeted `rg` searches for stale commands, contradicted state, or obsolete paths.
 - Run `pnpm validate:text` and `pnpm validate:secrets`.
 - Do not run build, browser verification, readiness, or public deploy checks unless the docs change affects commands, workflows, generated assets, or runtime behavior.
+- A docs-only push does not require waiting for CI/Pages when no workflow, command, generated asset, or runtime behavior changed. Investigate if an external failure signal actually appears.
 - If the audit finds stale actionable instructions, patch or delete them. Do not leave them as “historical context” unless they are clearly marked superseded.
 
 ### Tier 0 — small visual/copy fix
@@ -48,9 +49,9 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 
 - Read only the directly relevant code and the current user complaint.
 - Do not re-open the full project documentation set unless the change depends on product history.
-- Do not run database/readiness gates unless publishing or auth/data behavior is involved.
+- Do not run database/full-readiness gates. A public UI push needs the branch and GitHub publish lane, not Supabase/database readiness, unless auth or data behavior actually changed.
 - Verify with `pnpm build` unless a narrower existing package script is clearly the canonical check for that exact surface.
-- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. Browser or viewport inspection is mandatory, not optional; prove the lane first with `pnpm ui:capture -- -Route <route>` when using local preview. If the interactive in-app browser is needed and appears broken, first apply the stale-tab recovery in `docs/KNOWN_GREMLINS.md`: prove the local HTTP response, avoid the selected generated error tab, and claim/open a real app tab. If browser readback still fails after one reset and one retry, stop and request the exact host action rather than continuing blind.
+- If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. `pnpm ui:capture -- -Route <route>` after the build can serve as both the browser-capability check and viewport proof. If interactive browser control is needed and appears broken, apply the stale-tab recovery in `docs/KNOWN_GREMLINS.md`; stop and request the exact host action after one reset and retry rather than continuing blind.
 - For a first-time visual defect, stop patching symptoms after two failed attempts and find the duplicated component, CSS cascade, cache, or publish root cause. If a previously fixed visual defect recurs, do that root-cause work immediately on the first recurrence.
 
 ### Tier 1 — public preview UI change
@@ -60,7 +61,7 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 - Use the smallest validation lane that still covers the real risk:
   - one-file or tightly bounded UI/routing fix: `pnpm build`
   - broader UI change or anything touching multiple surfaces: `pnpm check:ship`
-- Push `main` after a bounded approved fix. GitHub Actions deploys the `dist/` artifact to Pages.
+- Root reviews the exact staged scope, then commits and pushes `main` after a bounded approved fix. GitHub Actions deploys the `dist/` artifact to Pages.
 - Only `main` is allowed to publish the shared public Pages site. Feature branches may be reviewed locally or merged first; they should not overwrite the public preview.
 - After the Pages workflow completes, confirm the workflow completed cleanly. For workflow/deploy-lane changes, “clean” means no visible warning annotations as well as success. Then run `pnpm verify:public`. That script prepares the local Pages-stamped comparison artifact itself.
 - If public verification needs network access, run that exact script with the elevated/network-capable path; do not first invent a different verification method.
@@ -80,7 +81,7 @@ Default fast lane for this hobby app:
 
 Escalate above that fast lane only when the change touches auth, persistence, workflows, multiple broad UI surfaces, or a capability/readiness path is itself under question.
 
-For this app, do not add a separate “ask to push” step once Kavi has approved the bounded work. The public app is the review target. Validate, commit, push to `main`, wait for deploy, verify live, and report. Pause before push only if scope expanded, the change is destructive or hard to reverse, credentials/auth/deploy state is unsafe or ambiguous, or confidence about what will ship has dropped.
+For this app, do not add a separate “ask to push” step once Kavi has approved the bounded work. Root validates, reviews the staged scope, commits, pushes `main`, waits for deploy, verifies live, and reports. Pause only if scope expanded, the change is destructive or hard to reverse, credentials/auth/deploy state is unsafe or ambiguous, or confidence about what will ship has dropped.
 
 ### Commit/publish discipline
 
@@ -113,14 +114,14 @@ When reporting a mistake, keep it compact and concrete:
 
 Do not pad the report with apology theater or a new checklist. Do not hide behind “usual sandbox” language when the failure was predictable from project docs. If a known gremlin was routed correctly and final state was unaffected, report the final outcome only unless Kavi asks for the trace.
 
-### Tier 2 — user data, auth, receipts, monitoring, Supabase, or migrations
+### Tier 2 — auth, persistence, monitoring, research, or database work
 
-Use the full project gate:
+Use a proportional higher-risk gate:
 
-- Read `README.md`, `docs/PROJECT_CONTEXT.md`, `CURRENT_FRONTIER.md`, and `docs/WORK_BACKLOG.md`.
-- Run `pnpm readiness`.
-- Follow `docs/CHANGE_CONTROL.md`, `docs/EFFICIENCY_SOP.md`, and `docs/COLLABORATION_SOP.md`.
-- For database changes, prove identity, migration behavior, RLS, grants, live readback, and validation proportional to risk.
+- Read only the project context and specialized SOPs relevant to the affected surface.
+- Run `pnpm readiness` before live Supabase/database writes, authenticated operational changes, or when repository/branch/remote identity is genuinely in question; do not run it for unrelated research or local-only work.
+- For research, follow the methodology/source rules without adding database or publish gates unless the result will actually be written there.
+- For database changes, prove canonical project identity, review the forward migration, verify live readback and RLS/grants, and run advisor checks proportional to the actual risk. Do not apply migration ceremony when no schema/data write exists.
 
 ## Product simplicity rules
 
