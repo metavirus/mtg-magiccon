@@ -224,6 +224,7 @@ html,body{max-width:100%;overflow-x:hidden}
 
 /* V1.5 shared object detail: one grammar for event, alert, receipt, hotel, and note objects. */
 .signal-chip-card{width:100%;color:inherit;text-align:left;cursor:pointer}
+.home-signal-age-group{display:grid;gap:7px}.home-signal-age-group h3{margin:4px 2px 0;color:#8fa1b8;font-size:9px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}.included-lotus-icon{display:inline-grid;place-items:center;margin-right:4px;color:#8d99a8;vertical-align:-2px}.included-lotus-icon .event-kind-svg{width:12px;height:12px}
 .signal-chip-card:hover{border-color:#5f7898;background:#14263d}
 .object-detail-backdrop{position:fixed;z-index:70;inset:0;width:100vw;display:flex;justify-content:flex-end;align-items:stretch;background:rgba(3,8,15,.34);backdrop-filter:blur(2px)}
 .info-reader-backdrop{justify-content:center;align-items:center;padding:24px;background:rgba(3,8,15,.68);backdrop-filter:blur(5px)}

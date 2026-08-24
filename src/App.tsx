@@ -14,6 +14,7 @@ import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFe
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
+import { homeSignalAgeBucket } from './lib/homeSignalAge'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import {
   formatOccurrenceTime,
@@ -2572,8 +2573,7 @@ function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentP
       if (item.severity !== 'hot' && item.destination !== 'Home' && item.sourceKind !== 'note') return false
       const checkedAt = new Date(item.checkedAtIso).getTime()
       if (!Number.isFinite(checkedAt)) return true
-      const maxAgeDays = item.severity === 'hot' || item.attention === 'Companion picks changed' ? 7 : item.sourceKind === 'note' ? 4 : 3
-      return now - checkedAt <= maxAgeDays * 24 * 60 * 60 * 1000
+      return homeSignalAgeBucket(item.checkedAtIso, now) !== null
     })
   const seenSelectionActors = new Set<string>()
   const collapsedItems = [...eligibleItems]
@@ -3790,7 +3790,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
         <header className="event-detail-heading">
           <div className="plan-inspector-head"><span>{selected.kind}</span><div className="detail-head-actions"><span className={`event-stage stage-${selected.state}`}>{eventStageLabel(selected.state)}</span><button className="detail-close plan-detail-close" type="button" onClick={() => { setSelectedId(null); setDetailOpen(false) }} aria-label="Close event detail">×</button></div></div>
           <h3>{displayEventTitle(selected)}</h3>
-          <div className="plan-inspector-facts"><span>{selected.day} · {selected.time}</span>{!canPurchaseEvent(selected.price) && <span>{formatEventPrice(selected.price)}</span>}<span>{selected.format}</span></div>
+          <div className="plan-inspector-facts"><span>{selected.day} · {selected.time}</span>{!canPurchaseEvent(selected.price) && <span><EventPriceLabel event={selected} /></span>}<span>{selected.format}</span></div>
           <EventDetailActions event={selected} onPurchase={purchased => onPurchase(selected.id, purchased)} />
         </header>
         <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
@@ -4065,7 +4065,7 @@ function ExploreEventRow({ event, selected, onSelect, onState, onPurchase }: { e
         <small>{event.day} · {event.time}</small>
       </span>
       <span className="event-scan">
-        {canPurchaseEvent(event.price) ? <PurchaseControl event={event} onPurchase={onPurchase} /> : <span className={`event-price price-${priceTone}`}><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>}
+        {canPurchaseEvent(event.price) ? <PurchaseControl event={event} onPurchase={onPurchase} /> : <span className={`event-price price-${priceTone}`}><EventPriceLabel event={event} icon /></span>}
       </span>
     </button>
     <div className="explore-hide-action"><IconAction label="Hide from this list" icon="eyeOff" pressed={event.state === 'hidden'} onClick={() => onState('hidden')} /></div>
@@ -4088,6 +4088,13 @@ function formatEventPrice(price: string) {
   if (price.toLowerCase() === 'included') return 'Included'
   if (price.toLowerCase() === 'free') return 'Free'
   return price
+}
+
+function EventPriceLabel({ event, icon = false }: { event: ExploreEvent; icon?: boolean }) {
+  const blackLotusIncluded = event.kind === 'Black Lotus' && event.price.toLowerCase() === 'included'
+  return <>{blackLotusIncluded
+    ? <span className="included-lotus-icon" aria-label="Black Lotus included"><EventKindIcon name="lotus" /></span>
+    : icon && <DetailFactIcon name="price" />}{formatEventPrice(event.price)}</>
 }
 
 function getPriceTone(price: string) {
@@ -4115,7 +4122,7 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
       <h2>{displayEventTitle(event)}</h2>
       <div className="detail-facts">
         <span><DetailFactIcon name="time" />{event.day} · {event.time}</span>
-        {!canPurchaseEvent(event.price) && <span><DetailFactIcon name="price" />{event.price}</span>}
+        {!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}
         <span><DetailFactIcon name="duration" />{event.window}</span>
       </div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
@@ -5725,7 +5732,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
     <header className="event-detail-heading">
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span><button className="detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button></span></div>
       <h2>{displayEventTitle(event)}</h2>
-      <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>}<span><DetailFactIcon name="duration" />{event.window}</span></div>
+      <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}<span><DetailFactIcon name="duration" />{event.window}</span></div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
@@ -5790,21 +5797,26 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
   const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
   const now = Date.now()
   const homeSignals = homeWorthKnowingItems(activityItems, now, currentPerson)
+  const recentSignals = homeSignals.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'recent')
+  const earlierSignals = homeSignals.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'earlier')
   const hotCount = homeSignals.filter(item => item.severity === 'hot').length
   return <div className="home-surface">
     <div className="home-main-row">
       <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading" data-tour-target="home-signals">
         <div className="home-lane-head">
-          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{homeSignals.length ? `${homeSignals.length} recent item${homeSignals.length === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
+          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{homeSignals.length ? `${homeSignals.length} useful item${homeSignals.length === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
           <button type="button" onClick={onOpenActivity}>Full Activity</button>
         </div>
-        <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; the rest are useful recent context.` : 'Recent notes and useful changes land here without turning routine activity into an alarm.'}</p>
-        <div className="timely-home" aria-label="Recent signals">
-          {homeSignals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
-            <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
-            <div>{item.severity === 'hot' && <small>HOT NOW</small>}<strong>{item.title}</strong><small>{item.summary}</small></div>
-            {item.actor && <PersonBubbles people={[item.actor]} />}
-          </button>)}
+        <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; recency is shown separately.` : 'Recent notes and useful earlier context land here without turning routine activity into an alarm.'}</p>
+        <div className="timely-home" aria-label="Worth Knowing signals">
+          {([['Recent', recentSignals], ['Earlier', earlierSignals]] as const).map(([label, signals]) => signals.length > 0 && <section className="home-signal-age-group" key={label} aria-label={`${label} Worth Knowing items`}>
+            <h3>{label}</h3>
+            {signals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
+              <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
+              <div><strong>{item.title}</strong><small>{item.summary}</small></div>
+              {item.actor && <PersonBubbles people={[item.actor]} />}
+            </button>)}
+          </section>)}
           {!homeSignals.length && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
             <span><MilestoneIcon name="badges" /></span>
             <div><strong>No open items</strong><small>Monitoring is quiet and recent collaboration is caught up.</small></div>

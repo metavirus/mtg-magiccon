@@ -27,7 +27,13 @@ describe('paid-event detail layout contract', () => {
   })
 
   it('uses PurchaseControl as the single paid-event price source in every detail header', () => {
-    expect(appSource).toContain('{!canPurchaseEvent(selected.price) && <span>{formatEventPrice(selected.price)}</span>}')
-    expect(appSource.match(/!canPurchaseEvent\(event\.price\) && <span><DetailFactIcon name="price"/g)).toHaveLength(2)
+    expect(appSource).toContain('{!canPurchaseEvent(selected.price) && <span><EventPriceLabel event={selected} /></span>}')
+    expect(appSource.match(/!canPurchaseEvent\(event\.price\) && <span><EventPriceLabel event=\{event\} icon \/>/g)).toHaveLength(2)
+  })
+
+  it('uses a neutral lotus icon only for Black Lotus Included prices', () => {
+    expect(appSource).toContain("event.kind === 'Black Lotus' && event.price.toLowerCase() === 'included'")
+    expect(appSource).toContain('className="included-lotus-icon" aria-label="Black Lotus included"')
+    expect(densitySource).toMatch(/\.included-lotus-icon\{[^}]*color:#8d99a8[^}]*\}/)
   })
 })
