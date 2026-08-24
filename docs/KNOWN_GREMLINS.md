@@ -52,6 +52,21 @@ Readiness rule: capabilities are task-specific. Check a capability only when the
 
 **Prevention:** the repo is durable memory. Update frontier/backlog or a focused handoff for meaningful decisions and unfinished substantial work, not for trivial edits.
 
+## A small fix overlaps a dirty shared file
+
+**Symptom:** a visually small request stays in root, but the target file already contains substantial unfinished work from another scope. Root then spends a long turn separating hunks, reconstructing a safe staged patch, and consuming the main conversation context.
+
+**Cause:** task size was judged only from the requested behavior, without checking whether its implementation surface was already carrying another dirty scope.
+
+**Do this:**
+
+- Before classifying app work as a small root lane, inspect `git status` and the target-file diff.
+- If the request overlaps a dirty shared file containing another substantial scope, treat the request as a separate context compartment even when the visible change is small.
+- Give one fresh cohesive worker the implementation and exact-scope handoff. Root retains review, staged-scope ownership, commit, push, and public verification.
+- Prefer separating or finishing the existing file scope before piling on another feature. Do not make manual cached-patch reconstruction the normal workflow.
+
+**Prevention:** “small request” is not enough for the zero-worker lane; it must also have a clean or singly owned implementation surface.
+
 ## pnpm and Corepack on native Windows
 
 **Symptom:** `pnpm` behaves oddly, hangs, or appears missing after host setup changes.
