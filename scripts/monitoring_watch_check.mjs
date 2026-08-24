@@ -4,6 +4,7 @@ import { execFile } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import { promisify } from 'node:util';
+import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -176,8 +177,8 @@ function buildTicketedPlaySignals(added, changed, retrievedAt) {
     signals.push({
       id: signalId('ticketed-play-sold-out', retrievedAt, soldOut.map(eventKey).join('-')),
       kind: 'availability_change',
-      severity: 'worth_knowing',
-      title: `${soldOut.length} watched ${soldOut.length === 1 ? 'event sold out' : 'events sold out'}`,
+      severity: 'hot',
+      title: soldOut.length === 1 ? `${soldOut[0].title || 'Ticketed Play event'} sold out` : `${soldOut.length} Ticketed Play events sold out`,
       affectedEventIds: soldOut.map((event) => event.id),
       destinationRoute: 'explore',
       destinationFilter: { exploreBucket: 'play', availability: 'sold_out', group: 'sold_out' }
@@ -331,6 +332,10 @@ for (const source of watchSet.sources) {
     });
   }
 }
+
+const milestoneResult = dueMonitoringMilestoneChanges(watchSet.scheduledMilestones, state.reachedMilestones, checkedAt);
+changes.push(...milestoneResult.changes);
+state.reachedMilestones = milestoneResult.reached;
 
 try {
   ticketedPlay = await summarizeTicketedPlayInventory(watchSet.ticketedPlayInventory, checkedAt);

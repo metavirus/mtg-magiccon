@@ -2,6 +2,18 @@
   "version": 1,
   "updatedAt": "2026-08-17",
   "stateFile": ".monitoring-state/watch-state.local.json",
+  "scheduledMilestones": [
+    {
+      "id": "atlanta-ticketed-play-sales-open",
+      "label": "Ticketed Play sales milestone",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html",
+      "opensAt": "2026-08-25T10:00:00-07:00",
+      "semanticSummary": "Ticketed Play sales are now open. Sale date August 25 at 10 AM PT.",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "ticketed play purchasing opens"
+    }
+  ],
   "sources": [
     {
       "id": "atlanta-official-home",

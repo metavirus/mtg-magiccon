@@ -3,6 +3,7 @@
 Backlog intent is explicit: **planned** means “yes, do this when its dependency/window arrives”; **artifact-dependent** means “yes in principle, but the real source must shape it”; **consider later** means “possibly useful, reassess before committing.” An unchecked box alone does not communicate product intent.
 
 - [x] Prevent the seven-card Info Recent recurrence: one current meaningful card per stable concept, retained superseded history, and internal-only link discovery.
+- [x] Group Home Worth Knowing items into `Recent` (past few days) and `Earlier` (past couple weeks) while allowing the surface to grow naturally rather than hiding older useful items in an internal scroll box.
 
 ## Semantic Map miniproject
 
@@ -186,8 +187,9 @@ The venue-level destinations are also deliberately considered but deferred: Offi
 - [x] **v1.5/Info knowledge:** Restore Map as a dedicated spatial surface and make Info a top-level shared destination with immediate show-hours retrieval, a persistent Recent information feed, and maintained topic details. Migrations `20260821212655` / `20260821213154` and `docs/INFO_KNOWLEDGE_MODEL.md` define the source-backed shared read model and trusted writer boundary.
 - [x] **v1.5/Info comprehensive ingestion:** Promote official source content—not link discovery—into maintained, self-contained articles. Migration `20260822154609`, four content-fingerprinted source snapshots, deterministic reconciliation, and comprehensive Prize Tix / On-Demand / Ticketed Play synthesis preserve sections, unknowns, contradictions, recent changes, and provenance without copying full source pages or accepting a monitoring baseline.
 - [ ] **v1.5/artists/privacy:** Keep the authenticated artist directory and confirmed appearances shareable while the card database, owned printings, signing picks/interests, private card images, and signing workbench remain Kavi-only unless explicitly changed.
-- [ ] **Planned now — v1.5/inbox dismissal:** Add a small, unobtrusive dismiss affordance to inbox items such as `@` mentions, with dismissed items recoverable from a collapsed group at the bottom of the inbox window.
-- [ ] **Planned for convention time — v1.5/inbox urgency:** Add a restrained periodic bell shiver only when a genuinely urgent unread item exists, such as publication of the official map or an important onsite change. There is nothing urgent enough to justify motion now. Routine background refreshes remain silent and motion must respect reduced-motion preferences.
+- [x] **v1.5/inbox dismissal:** Inbox items such as `@` mentions have a small dismiss affordance; dismissed items remain recoverable from a collapsed group at the bottom of the inbox window.
+- [x] **v1.5/inbox urgency foundation:** A genuinely urgent unread concept may place a restrained periodic shiver bell over the envelope's top-left corner. Ticketed Play opening is the first bounded use: dismissal of its inbox item stops motion, the signal expires after one week, and reduced-motion preferences suppress animation. Routine background refreshes remain silent.
+- [ ] **Artifact-dependent — v1.5/inbox urgency expansion:** Reuse the urgency treatment for official-map publication or a truly important onsite change only after a concrete concept and consequence exist; do not let ordinary updates acquire motion.
 
 ## Parked
 

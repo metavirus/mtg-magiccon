@@ -16,7 +16,7 @@ Public LEAP schedule pages hydrate event inventory and source availability:
 - full description and headed sections such as registration details, participation details, tournament details, prizes, and questions;
 - source URL, retrieval timestamp, and raw snapshot payload.
 
-Private purchase or registration status does not come from ordinary public LEAP inventory. It comes from a receipt, LEAP order confirmation, intentional My Schedule capture, or a later verified manual proof path. Purchased proof belongs with Wallet/proof objects and hydrates the app's purchased/registered status.
+Private purchase or registration status does not come from ordinary public LEAP inventory. A companion may intentionally mark a paid event Purchased in Explore, Plan, or Calendar; that private app-owned marker is useful planning state, not source proof. A receipt, LEAP order confirmation, intentional My Schedule capture, or later verified proof path may substantiate it. Proof artifacts belong with Wallet/proof objects and may hydrate or corroborate the same purchased/registered status.
 
 User planning intent remains app-owned state in the existing selections layer: interested, tentative, committed, hidden, and not-for-me are not LEAP facts.
 
@@ -44,7 +44,8 @@ Purchased proof is stronger than planning intent, but it does not always create 
 - Purchased plus `fixed_block` creates a firm Plan/Calendar block.
 - Purchased plus `league_window`, `optional_window`, `drop_in`, or `pickup_window` is a flexible entitlement, not a hard block.
 - League-style events may have source times that indicate an optional play window rather than a mandatory full-duration commitment.
-- Purchased status should not be casually toggled from Explore or Plan. Corrections belong in the proof/Wallet layer.
+- Only paid events expose the compact ticket/price purchase control. Marking Purchased requires a small confirmation, forces Committed, and locks the ordinary planning-state controls until purchase is undone.
+- Purchased may be undone from the same compact control when the manual marker was wrong. Removing a manual marker does not delete or contradict retained receipt/proof evidence; later proof reconciliation must resolve that case explicitly.
 
 Suggested UI language:
 
@@ -84,11 +85,13 @@ Activity-only by default:
 - ordinary low-rank new events;
 - minor copy changes;
 - prize/rules/description changes unless high-signal, watched, purchased, or prep-changing;
-- sold-out changes for irrelevant events after the initial grouped signal.
+- no sold-out transition: every newly observed sold-out event is a Hot Home item, even when the event was not previously marked relevant. Repeated observations of the same sold-out state are corroboration, not another alert.
 
 Raw wording churn with no planning consequence belongs in source history/event detail only.
 
-`src/lib/ticketedPlayHydration.ts` now owns the pure inventory-diff boundary for this behavior. It compares previous and current hydrated LEAP event snapshots, reports added/removed/changed events, and emits grouped signal candidates for first drops, high-signal new events, sold-out transitions, and time/location/price changes. The diff layer only prepares signals and Explore routing filters; it does not write Supabase, mutate planning state, or decide final Home/Activity presentation.
+`src/lib/ticketedPlayHydration.ts` now owns the pure inventory-diff boundary for this behavior. It compares previous and current hydrated LEAP event snapshots, reports added/changed events and unresolved missing listings, and emits signal candidates for first drops, high-signal new events, every sold-out transition, and time/location/price changes. A listing missing from a later scrape is retained as unresolved; absence alone never means cancelled or removed. The diff layer only prepares signals and Explore routing filters; it does not write Supabase, mutate planning state, or decide final Home/Activity presentation.
+
+Availability extraction is evidence-led. Explicit source controls or wording may establish `available`, `sold_out`, `waitlist`, or `unavailable`; an ambiguous page remains `unknown` and must not be promoted to available merely because the page loaded.
 
 ## Initial ranking defaults
 

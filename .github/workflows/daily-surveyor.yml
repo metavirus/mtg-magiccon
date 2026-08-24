@@ -3,7 +3,7 @@ name: Daily MagicCon surveyor
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 15 * * *"
+    - cron: "15 17 * * *"
 
 permissions:
   contents: read

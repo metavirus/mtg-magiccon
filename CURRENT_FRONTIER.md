@@ -2,6 +2,16 @@
 
 Updated: 2026-08-24
 
+## Ticketed Play sale-readiness checkpoint
+
+The app is ready for the August 25 sale transition without a bespoke Codex review loop. The daily workflow now runs at 17:15 UTC (10:15 AM Pacific during PDT), after the published 10:00 AM sale opening, and a one-time persisted scheduled milestone guarantees the transition does not depend on a page diff arriving at exactly the right moment. Explicit listing controls and wording determine `available`, `sold_out`, `waitlist`, or `unavailable`; ambiguity remains `unknown`. The 99%-complete baseline stays quiet when unchanged. Missing listings remain unresolved rather than being interpreted as cancellation, and every first sold-out transition produces one Hot Home item while repeated observations of the same state remain corroboration.
+
+The stable `atlanta:ticketed-play:sales-opening` concept now drives one coordinated UI lifecycle. On `announced -> open`, reconciliation records `milestone_opened_at`; Home shows a left-column `ON SALE NOW` hero for seven days, the urgent inbox item sits first and triggers the small top-left envelope shiver, dismissal moves it into the recoverable Dismissed group and stops motion, and the milestone permanently reads `Ticketed play purchasing / Sales open`. The hero links directly to the official Ticketed Play schedule. Its QA overlay is local presentation state and cannot mutate the real monitoring concept.
+
+Paid events now expose one compact ticket/price purchase control in Explore, Plan, and event details. Confirming Purchased forces Committed, disables ordinary planning-state changes until purchase is undone, and gives the purchaser bubble the shared gold-border/lock treatment across Plan, Calendar, and Agenda. Free or Black Lotus-included events do not expose this control. A manual Purchased marker is private planning state; retained receipts remain the proof layer.
+
+Home Worth Knowing now grows naturally and groups useful items into Recent and Earlier rather than hiding them in a fixed-height inner scroller. Inbox dismissal is implemented and recoverable. The urgency shiver is restricted to an explicitly urgent concept; routine refresh and reconnect behavior remains silent.
+
 ## Flight signal closed loop
 
 Hosted migrations `20260822221053_canonical_trip_flights_and_surveyor_apply` and `20260822221437_harden_trip_flight_evidence` establish the shared canonical Atlanta Delta itinerary and current legs, private immutable source evidence, its required FK index/explicit deny policy, and a service-role-only auto-apply function. A complete routine schedule change now requires a confident match on confirmation HOGFBX, Delta, and Kavi + Juan; it atomically updates Trip data and emits one concise unread Home concept. Cancellation, rebooking ambiguity, identity mismatch, low confidence, or incomplete changed-leg facts fail closed. The active `magiccon-atlanta-quiet-period-monitor` heartbeat now follows detect → extract → reconcile → apply → brief signal → done and is prohibited from turning a confidently matched flight update into a generic Codex review request. The actual Aug 22 email has not yet been applied because its changed leg facts were not present in the screenshot; the updated heartbeat must re-read that source and use the bounded executor.
@@ -24,7 +34,7 @@ Atlanta 2025 remains structural reference only. Its west-up orientation is user-
 
 Pre-arrival Map work is now parked by product decision. `MAP-NOW-00` through `MAP-NOW-03` are the completed preparation boundary; remaining prototype/tooling ideas must be reconsidered against the real artifact rather than executed speculatively. Nothing in `docs/map-data/` is imported by the app.
 
-The parked inventory is explicit in `docs/WORK_BACKLOG.md`, with intent preserved rather than flattened. Small per-item inbox dismissal and a recoverable collapsed dismissed group are planned now. Bell movement is separately planned for convention time only, when a genuinely urgent signal such as official-map publication or an onsite change exists; nothing currently merits motion. Show Store, Marketplace/exhibitor, and Art of Magic close views are planned once official layouts exist. Offsite-event handling is artifact-dependent because the event itself is not yet confirmed. Cohesive wayfinding/camera/origin work and optional rotation/compass/depth/control polish remain “consider later” experiments.
+The parked inventory is explicit in `docs/WORK_BACKLOG.md`, with intent preserved rather than flattened. Inbox dismissal and the bounded urgency-bell foundation are complete; future use for map publication or onsite changes remains artifact-dependent and must not broaden into routine motion. Show Store, Marketplace/exhibitor, and Art of Magic close views are planned once official layouts exist. Offsite-event handling is artifact-dependent because the event itself is not yet confirmed. Cohesive wayfinding/camera/origin work and optional rotation/compass/depth/control polish remain “consider later” experiments.
 
 ## Info Recent recurrence correction
 

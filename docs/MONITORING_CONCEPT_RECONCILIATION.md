@@ -26,6 +26,18 @@ Concept identity comes from versioned extraction rules over normalized facts, ne
 
 Repeated mentions of the August 25, 10 AM PT Ticketed Play sale resolve to one concept. Corroboration adds evidence/provenance without producing another Home or Hot card and without downgrading an existing material attention state.
 
+When that concept crosses from `announced` to `open`, reconciliation records `milestone_opened_at` once. The app derives one coordinated consequence set from that same concept:
+
+- a left-column `ON SALE NOW` Home hero for seven days;
+- one urgent inbox item at the top of the inbox, with the small reduced-motion-safe shiver bell overlapping the envelope's top-left corner;
+- dismissal into the recoverable collapsed Dismissed group, which stops the shiver without removing the seven-day Home hero;
+- after the feature window, an unread item falls back to the ordinary Hot list rather than creating a second concept;
+- the Ticketed Play milestone remains permanently complete as `Sales open`; its state is not tied to the temporary hero window.
+
+The hero and inbox item link directly to the official Ticketed Play schedule. The QA sale-open overlay is presentation-only and must never write review state into the real monitoring concept.
+
+The August 25 transition is also encoded as a one-time scheduled monitoring milestone, so it does not depend on an official page producing a novel diff at exactly the right moment. The daily surveyor runs at 17:15 UTC (10:15 AM Pacific during PDT), after the published 10:00 AM opening time. The reached marker is persisted in monitoring state; cache loss may replay the same stable fingerprint, but concept and finding deduplication prevent a second user-visible concept.
+
 Meaningful `new`, `material_update`, `contradiction`, and `milestone_transition` resolutions upsert one deterministic current Info entry keyed by stable topic/concept. They do not append fingerprint-named cards. `noise` and `corroboration` do not project; link-only discovery remains internal. A later material change updates the concept's current card and article history rather than duplicating Recent information. Only explicitly mapped concepts update a maintained Info topic; Home remains a separate consequence gate. See `docs/INFO_KNOWLEDGE_MODEL.md`.
 
 Projection additionally requires structured source content plus a retained content fingerprint. A discovered link or navigation change alone is incomplete evidence and produces neither a finished article nor a user-visible Info publication.
