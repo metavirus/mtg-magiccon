@@ -375,7 +375,7 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 **Symptom:** a red `User selections could not be refreshed` warning remains even though notes, selections, and activity reads are succeeding, or one optional history read makes unrelated user state disappear.
 
-**Prevention:** load notes, selections, and activity history independently; commit each successful result; name only the failed resource; clear stale continuity errors after a fully successful refresh. Never wrap independent owner-state resources in one all-or-nothing `Promise.all`. `user_selections` reads must retry once after a stale Supabase auth-session refresh before surfacing failure. If selections alone fail, show a low-drama sync notice, not a red global failure banner.
+**Prevention:** load notes, selections, and activity history independently; commit each successful result; name only the failed resource; clear stale continuity errors after a fully successful refresh. Never wrap independent owner-state resources in one all-or-nothing `Promise.all`. Notes and `user_selections` reads must retry once after a stale Supabase auth-session refresh before surfacing failure. A notes-only failure belongs as a quiet retry notice on Notes, never as a red global banner across unrelated pages. If selections alone fail, show a low-drama sync notice, not a red global failure banner.
 
 ## Visual/responsive misses
 

@@ -368,9 +368,11 @@ function personalNoteRowToContextNote(row: PersonalNoteRow): ContextNote {
 
 async function loadContextNotes(_ownerId: string): Promise<ContextNote[]> {
   if (!supabase) return []
-  const result = await supabase.from('personal_notes')
-    .select('id,owner_id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at')
-    .order('updated_at', { ascending: false })
+  const client = supabase
+  const fetchNotes = () => client.from('personal_notes')
+      .select('id,owner_id,title,body,object_id,object_kind,object_title,object_anchor,context,visibility,backlink,author_label,updated_at')
+      .order('updated_at', { ascending: false })
+  const result = await retryOnceAfterUnauthorized(fetchNotes, () => client.auth.refreshSession())
   if (result.error) throw result.error
   return (result.data as PersonalNoteRow[]).map(personalNoteRowToContextNote)
 }
@@ -623,6 +625,7 @@ export default function App() {
   const [infoFeed, setInfoFeed] = useState<InfoFeedEntry[]>(previewInfoFeed)
   const [tripFlights, setTripFlights] = useState<TripFlight[]>(previewTripFlights)
   const [continuityReady, setContinuityReady] = useState(false)
+  const [continuityFailures, setContinuityFailures] = useState<string[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
   const [tutorialOpen, setTutorialOpen] = useState(false)
@@ -713,6 +716,7 @@ export default function App() {
 
   useEffect(() => {
     if (designPreview || isPreviewOwnerMode) {
+      setContinuityFailures([])
       setLoading(false)
       return
     }
@@ -778,6 +782,7 @@ export default function App() {
       return
     }
     if (!effectiveOwnerId || !online) {
+      setContinuityFailures([])
       setContextNotesState([])
       setMentionInboxState([])
       setAlertReview({})
@@ -829,13 +834,18 @@ export default function App() {
         .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
       setExploreEventState(applySelectionState(exploreEvents, selections, slice, currentCompanionFromSession(effectiveSession, companionMembers)))
     } else failures.push('selections')
-    if (failures.length) {
+    setContinuityFailures(failures)
+    const globalFailures = failures.filter(resource => resource !== 'notes')
+    if (globalFailures.length) {
       console.warn('Continuity refresh partially failed', failures)
-      setMessageTone(failures.length === 1 && failures[0] === 'selections' ? 'info' : 'error')
-      setMessage(failures.length === 1 && failures[0] === 'selections'
+      setMessageTone(globalFailures.length === 1 && globalFailures[0] === 'selections' ? 'info' : 'error')
+      setMessage(globalFailures.length === 1 && globalFailures[0] === 'selections'
         ? 'Selections are taking a moment to sync. Notes, signals, and other account data are still available.'
-        : `${failures.join(', ')} could not be refreshed. Other account data is still available.`)
-    } else setMessage('')
+        : `${globalFailures.join(', ')} could not be refreshed. Other account data is still available.`)
+    } else {
+      if (failures.length) console.warn('Continuity refresh partially failed', failures)
+      setMessage('')
+    }
     setContinuityReady(true)
   }, [companionMembers, designPreview, isPreviewOwnerMode, online, effectiveOwnerId, slice, effectiveSession])
 
@@ -1611,7 +1621,7 @@ export default function App() {
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
         {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
+        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} refreshFailed={continuityFailures.includes('notes')} onRetry={() => void refreshUserContinuity()} />}
         {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onFindingDecision={decideMonitoringFinding} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
@@ -5901,7 +5911,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
   </div>
 }
 
-function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote }: { notes: ContextNote[]; currentOwnerId?: string; onDeleteNote: (id: string) => void; onOpenNote: (note: ContextNote) => void }) {
+function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote, refreshFailed, onRetry }: { notes: ContextNote[]; currentOwnerId?: string; onDeleteNote: (id: string) => void; onOpenNote: (note: ContextNote) => void; refreshFailed: boolean; onRetry: () => void }) {
   const [personFilter, setPersonFilter] = useState<NotePersonFilter>('all')
   const [typeFilter, setTypeFilter] = useState<NoteTypeFilter>('all')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -5917,6 +5927,7 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote }: { not
   }, {})
 
   return <section className="notes-surface" aria-label="Notes">
+    {refreshFailed && <p className="notes-sync-notice">Showing the last available notes. <button type="button" onClick={onRetry}>Try again</button></p>}
     <NotesFilterBar notes={notes} personFilter={personFilter} typeFilter={typeFilter} onPersonFilter={setPersonFilter} onTypeFilter={setTypeFilter} />
     {notes.length === 0 && <div className="notes-compose">
       <div><span className="eyebrow">UNIVERSAL NOTES</span><h2>No notes yet.</h2><p>Notes added from events, receipts, trip items, places, and alerts collect here.</p></div>
