@@ -919,7 +919,6 @@ html,body{max-width:100%;overflow-x:hidden}
 .plan-row.state-interested,.plan-row.state-interested.conflict:not(.shared){border:1px dotted #4f9d83;border-left:3px solid #397c67;opacity:1}
 .plan-row.state-tentative,.plan-row.state-tentative.conflict:not(.shared){border:1px dotted #a38a4b;border-left:3px solid #8d783f;opacity:1}
 .plan-row.state-committed,.plan-row.state-committed.conflict:not(.shared){border:1px solid #9c623f;border-left:3px solid #bd7347;background:linear-gradient(100deg,#1e1a19,#171a25)}
-.plan-row.purchased{box-shadow:0 0 0 1px #e4c35f,inset 0 0 0 1px rgba(228,195,95,.16)}
 
 /* Event category is primary; Black Lotus is a compact source/access marker. */
 .event-source-mark{position:absolute;z-index:2;left:12px;bottom:10px;display:grid;place-items:center;width:18px;height:18px;border:1px solid #8f62ae;border-radius:6px;background:#2b1c3c;color:#d7afea;box-shadow:0 2px 8px rgba(0,0,0,.28)}
@@ -1087,6 +1086,9 @@ html,body{max-width:100%;overflow-x:hidden}
 /* Shared mobile view-switch contract: page tabs and account utilities occupy one compact row. */
 .mobile-header-view-slot{display:none}
 .surface-view-tabs-desktop{display:contents}
+
+/* Paid-event purchase is a restrained metadata signal; identity and conflict borders stay authoritative. */
+.purchase-control{position:relative;display:inline-flex;justify-self:end}.purchase-control>button{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:3px 7px;border:1px solid #3c4b5e;border-radius:999px;background:#0d1928;color:#a7b4c4;font-size:9px;font-weight:750;white-space:nowrap;cursor:pointer}.purchase-control .action-icon{width:12px;height:12px}.purchase-control.is-purchased>button{border-color:#8f6148;background:#251b18;color:#d59a74}.purchase-control-detail{justify-self:start;margin-top:3px}.purchase-control-detail>button{min-height:30px;padding:5px 9px;font-size:10px}.purchase-confirm{position:absolute;z-index:8;top:calc(100% + 4px);right:0;display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid #6f513e;border-radius:8px;background:#211815;color:#e5c3ae;font-size:9px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.35)}.purchase-confirm button{padding:2px 6px;border:1px solid #74533f;border-radius:5px;background:#34231d;color:#f0d5c4;cursor:pointer}.plan-row-main>.purchase-control{align-self:center}.plan-participant.purchased{position:relative}.plan-participant.purchased .person-bubble{box-shadow:0 0 0 1px #c98d61,0 0 0 2px #31241e}.plan-participant.purchased>.action-icon{width:10px;height:10px;padding:1px;border-radius:50%;background:#442d23;color:#e0a47b;fill:none;stroke:#e0a47b}.calendar-purchase-lock,.agenda-purchase-lock{display:grid;place-items:center;color:#ce8d65}.calendar-purchase-lock .action-icon,.agenda-purchase-lock .action-icon{width:12px;height:12px}.agenda-purchase-lock{position:absolute;right:5px;top:5px}.event-state-rail:has(.decision-state-committed[title^="Set by Purchased"]) .decision-state-committed[aria-pressed=true],.plan-state-controls .decision-state-committed[title^="Set by Purchased"][aria-pressed=true]{background:repeating-linear-gradient(135deg,#493127 0,#493127 5px,#3d2b25 5px,#3d2b25 8px);color:#d9a07a;opacity:.72}
 @media(max-width:560px){
   .hero-has-view-switch .header-status{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;min-width:0;margin-top:10px;overflow-x:auto;scrollbar-width:none}
   .hero-has-view-switch .header-status::-webkit-scrollbar{display:none}
@@ -1098,4 +1100,5 @@ html,body{max-width:100%;overflow-x:hidden}
   .mobile-header-view-slot .mobile-surface-view-tabs button{height:34px;min-width:54px;padding:0 9px;font-size:10px}
   .surface-view-tabs-desktop{display:none}
   .artist-top-tools{grid-template-columns:1fr}
+  .purchase-control>button{padding-inline:6px}.purchase-confirm{position:fixed;z-index:100;left:50%;right:auto;top:auto;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateX(-50%)}
 }

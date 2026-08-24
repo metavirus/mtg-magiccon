@@ -14,6 +14,7 @@ import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFe
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
+import { applyPurchaseTransition, canPurchaseEvent, showCalendarPurchaseMarker } from './lib/eventPurchase'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -527,13 +528,14 @@ function kaviDefaultExploreState(event: ExploreEvent): ExploreState | null {
 function applySelectionState(events: ExploreEvent[], selections: Record<string, string>, trustSlice: TrustSlice | null, companion?: CompanionMember) {
   return events.map(event => {
     const selected = selections[selectionKey(`explore-${event.id}`, 'state')]
+    const purchased = canPurchaseEvent(event.price) && selections[selectionKey(`explore-${event.id}`, 'purchased')] === 'true'
     const personalDefault = isKaviCompanion(companion) ? kaviDefaultExploreState(event) : null
     const fallbackState = isKaviCompanion(companion) ? personalDefault ?? event.state : 'none'
-    const state = isExploreState(selected) ? selected : fallbackState
+    const state = applyPurchaseTransition(isExploreState(selected) ? selected : fallbackState, purchased).state as ExploreState
     if (event.id === 'bl-planechase' && trustSlice && !selected && isKaviCompanion(companion)) {
-      return { ...event, state: trustSlice.decision.planning_state as ExploreState }
+      return { ...event, state: trustSlice.decision.planning_state as ExploreState, purchased }
     }
-    return { ...event, state }
+    return { ...event, state, purchased }
   })
 }
 
@@ -604,7 +606,7 @@ export default function App() {
   const [desktopRailLocked, setDesktopRailLocked] = useState(() => window.innerWidth >= 901)
   const [navNotice, setNavNotice] = useState('')
   const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
-  const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(exploreEvents)
+  const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(() => purchaseQaEvents(exploreEvents))
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
   const [walletProofRequest, setWalletProofRequest] = useState<{ target: WalletProofTarget; nonce: number } | null>(null)
   const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(designPreview ? contextNotes : [])
@@ -768,7 +770,7 @@ export default function App() {
       setMonitoringFindings(isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? monitoringFindingQaRows() : [])
       setMonitoringConcepts(monitoringConceptQaRows())
       setTripFlights(previewTripFlights)
-      setExploreEventState(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers)))
+      setExploreEventState(purchaseQaEvents(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers))))
       setContinuityReady(true)
       return
     }
@@ -782,7 +784,7 @@ export default function App() {
       setMonitoringFindings([])
       setMonitoringConcepts([])
       setTripFlights(previewTripFlights)
-      setExploreEventState(exploreEvents)
+      setExploreEventState(purchaseQaEvents(exploreEvents))
       setContinuityReady(true)
       return
     }
@@ -1226,6 +1228,7 @@ export default function App() {
   }
   const updateExploreEvent = (id: string, state: ExploreState) => {
     const currentEvent = exploreEventState.find(event => event.id === id)
+    if (currentEvent?.purchased) return
     const previousState = currentEvent?.state ?? 'none'
     const nextState: ExploreState = currentEvent?.state === state ? 'none' : state
     setExploreEventState(current => current.map(event => event.id === id ? { ...event, state: nextState } : event))
@@ -1244,6 +1247,15 @@ export default function App() {
         },
       })
     }
+  }
+
+  const updateEventPurchase = (id: string, purchased: boolean) => {
+    const currentEvent = exploreEventState.find(event => event.id === id)
+    if (!currentEvent || !canPurchaseEvent(currentEvent.price)) return
+    const transition = applyPurchaseTransition(currentEvent.state, purchased)
+    setExploreEventState(current => current.map(event => event.id === id ? { ...event, state: transition.state as ExploreState, purchased } : event))
+    void upsertUserSelection(`explore-${id}`, 'event', 'purchased', String(purchased))
+    if (purchased && currentEvent.state !== 'committed') void upsertUserSelection(`explore-${id}`, 'event', 'state', 'committed')
   }
 
   const generatedActivity = clusterActivityEvents(userActivityRows)
@@ -1552,8 +1564,8 @@ export default function App() {
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       <>
         {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
+        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
@@ -1580,7 +1592,7 @@ export default function App() {
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
         {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onFindingDecision={decideMonitoringFinding} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </>
@@ -2392,7 +2404,7 @@ type CalendarFilter = 'all' | 'convention' | 'travel'
 type ExploreType = 'all' | 'play' | 'info' | 'social' | 'other'
 type ExploreState = 'none' | 'interested' | 'tentative' | 'committed' | 'hidden' | 'nope'
 type ComplexityLevel = 'easy' | 'focused' | 'demanding' | 'very-hard' | 'unknown' | 'inconclusive'
-type ActionIconName = 'bookmark' | 'diamond' | 'lock' | 'eyeOff' | 'sign' | 'heart'
+type ActionIconName = 'bookmark' | 'diamond' | 'lock' | 'unlock' | 'check' | 'ticket' | 'eyeOff' | 'sign' | 'heart'
 type EventKindIconName = 'lotus' | 'panel' | 'competitive' | 'ticketed' | 'play' | 'info' | 'social'
 type MilestoneIconName = 'badges' | 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
 type WalletTab = 'home' | 'play' | 'store' | 'other'
@@ -2946,6 +2958,7 @@ type ExploreEvent = {
   moreDetails?: Array<{ label: string; value: string }>
   sourceNote?: string
   planEffect: string
+  purchased?: boolean
 }
 
 const monitoringAlerts: MonitoringAlert[] = [
@@ -3433,6 +3446,18 @@ const exploreEvents = [
   ...(ticketedPlayExploreEvents as ExploreEvent[]),
 ]
 
+function purchaseQaEvents(events: ExploreEvent[]) {
+  if (!new URLSearchParams(window.location.search).get('qa')?.split(',').includes('purchased-event')) return events
+  const paidId = events.find(event => canPurchaseEvent(event.price))?.id
+  return events.map(event => event.id === paidId ? { ...event, state: 'committed' as const, purchased: true } : event)
+}
+
+function purchaseQaEventId(events: ExploreEvent[]) {
+  return new URLSearchParams(window.location.search).get('qa')?.split(',').includes('purchased-event')
+    ? events.find(event => canPurchaseEvent(event.price))?.id ?? null
+    : null
+}
+
 function FunnelNav({ current, onOpenExplore, onOpenPlan, onOpenCalendar }: { current: 'explore' | 'plan' | 'calendar'; onOpenExplore: () => void; onOpenPlan?: () => void; onOpenCalendar: () => void }) {
   return <nav className="funnel-nav" aria-label="Explore, plan, calendar flow">
     <button type="button" data-tour-target="nav-explore" className={current === 'explore' ? 'active' : ''} aria-current={current === 'explore' ? 'page' : undefined} onClick={onOpenExplore}>Explore</button>
@@ -3454,10 +3479,11 @@ function planParticipants(event: ExploreEvent, currentPerson: PersonName, select
     .filter(row => row.object_id === `explore-${event.id}` && row.selection_key === 'state' && ['interested', 'tentative', 'committed'].includes(row.selection_value))
     .forEach(row => {
       const person = companions.find(member => member.userId === row.owner_id)?.name
-      if (person && person !== currentPerson && !participants.some(participant => participant.person === person)) participants.push({ person, state: row.selection_value as PlanParticipantState })
+      const purchased = canPurchaseEvent(event.price) && selectionRows.some(candidate => candidate.owner_id === row.owner_id && candidate.object_id === row.object_id && candidate.selection_key === 'purchased' && candidate.selection_value === 'true')
+      if (person && person !== currentPerson && !participants.some(participant => participant.person === person)) participants.push({ person, state: purchased ? 'committed' : row.selection_value as PlanParticipantState, purchased })
     })
   if (['interested', 'tentative', 'committed'].includes(event.state)) {
-    participants.push({ person: currentPerson, state: event.state as PlanParticipantState })
+    participants.push({ person: currentPerson, state: event.state as PlanParticipantState, purchased: event.purchased })
   }
   return participants
 }
@@ -3545,12 +3571,12 @@ function PlanParticipantBadges({ participants, compact = false, currentPerson }:
   return <span className={`plan-participants ${compact ? 'compact' : ''}`} aria-label={participants.map(participant => `${participant.person} ${participant.purchased ? 'purchased' : participant.state}`).join(', ')}>
     {participants.map(participant => <span key={participant.person} className={`plan-participant ${participant.person.toLowerCase()} state-${participant.state} ${participant.purchased ? 'purchased' : ''} ${participant.person === currentPerson ? 'is-current' : ''}`} title={`${participant.person === currentPerson ? 'You' : participant.person} · ${participant.purchased ? 'Purchased' : eventStageLabel(participant.state)}`}>
       <span className="person-bubble">{labels[participant.person]}</span>
-      <PlanningStateIcon state={participant.state} />
+      {participant.purchased ? <ActionIcon name="lock" /> : <PlanningStateIcon state={participant.state} />}
     </span>)}
   </span>
 }
 
-function PlanSurface({ events, selectionRows, companions, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onChangeSliceState, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
+function PlanSurface({ events, selectionRows, companions, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onChangeSliceState, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
   events: ExploreEvent[]
   selectionRows: UserSelectionRow[]
   companions: CompanionMember[]
@@ -3562,6 +3588,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   onAddNote: (input: AddContextNoteInput) => void
   onDeleteNote: (id: string) => void
   onUpdateEvent: (id: string, state: ExploreState) => void
+  onPurchase: (id: string, purchased: boolean) => void
   onChangeSliceState: (state: PlanningState) => void
   onOpenExplore: () => void
   onOpenCalendar: () => void
@@ -3570,13 +3597,13 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   canCommitBlackLotus: boolean
 }) {
   const days: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
-  const [activeDay, setActiveDay] = useState<ExploreEvent['day']>(() => currentPerson === 'Kyle' ? 'Fri' : 'Thu')
+  const [activeDay, setActiveDay] = useState<ExploreEvent['day']>(() => purchaseQaEventId(events) ? 'Fri' : currentPerson === 'Kyle' ? 'Fri' : 'Thu')
   const planIdentityDefaultApplied = useRef(currentPerson === 'Kyle')
   const [selectedPeople, setSelectedPeople] = useState<PersonName[]>([currentPerson])
   const planPersonDefaultRef = useRef(currentPerson)
   const [planView, setPlanView] = useState<PlanView>(() => window.localStorage.getItem('magiccon-plan-view') === 'agenda' ? 'agenda' : 'list')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [detailOpen, setDetailOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(() => purchaseQaEventId(events))
+  const [detailOpen, setDetailOpen] = useState(() => Boolean(purchaseQaEventId(events)))
   const [collapsedPlanGroups, setCollapsedPlanGroups] = useState<string[]>([])
   const workbarRef = useRef<HTMLDivElement | null>(null)
   const workbarStartRef = useRef(0)
@@ -3716,12 +3743,13 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
                 <span className={`plan-kind type-${event.type}`} aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><span className="plan-kind-icon"><EventKindIcon name={kindIcon} /></span>{event.kind === 'Black Lotus' && <span className="plan-source-mark" title="Black Lotus"><EventKindIcon name="lotus" /></span>}</span>
                 <span className="plan-time-chip">{event.day}<b>{planTimeLines(event.time).start}{planTimeLines(event.time).end && <span>–{planTimeLines(event.time).end}</span>}</b></span>
                 <span className="plan-row-copy"><strong>{displayEventTitle(event)}</strong><small>{event.time} · {event.window}</small><PlanParticipantBadges participants={participants} compact currentPerson={currentPerson} /></span>
+                <PurchaseControl event={event} onPurchase={purchased => onPurchase(event.id, purchased)} />
                 {participants.length > 1 ? <span className="plan-row-signal together">Together</span> : planPressure(event) && <span className="plan-row-signal">{planPressure(event)}</span>}
               </button>
               <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
                 {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
-                  const disabled = event.id === 'bl-planechase' ? !online || saving : false
-                  const title = label
+                  const disabled = Boolean(event.purchased) || (event.id === 'bl-planechase' ? !online || saving : false)
+                  const title = event.purchased ? 'Set by Purchased. Undo purchase to change commitment.' : label
                   return <button key={state} type="button" className={`decision-state-${state}`} aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
                 })}
               </div>
@@ -3744,7 +3772,8 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
                 const participantClasses = participants.map(participant => `has-${participant.person.toLowerCase()}`).join(' ')
                 const short = placement.end - placement.start <= 1.5
                 return <button key={placement.event.id} type="button" className={`agenda-event state-${strongestState(placement.event)} ${ownerClass} ${participantClasses} ${short ? 'short' : ''} ${mine ? 'mine' : ''} ${shared ? 'shared' : ''} ${othersOnly ? 'others-only' : ''} ${nonBlocking ? 'non-blocking' : ''} ${conflict ? 'conflict' : ''} ${selected?.id === placement.event.id ? 'selected' : ''}`} style={{ top: (placement.start - agendaStart) * agendaHourHeight + 4, height: Math.max(48, (placement.end - placement.start) * agendaHourHeight - 8), left: `calc(${placement.lane / placement.lanes * 100}% + ${placement.lane ? 4 : 0}px)`, width: `calc(${100 / placement.lanes}% - ${placement.lane ? 4 : 0}px)` }} onClick={() => openPlanEvent(placement.event)}>
-                  <span className="agenda-event-copy"><strong>{displayEventTitle(placement.event)}</strong><small>{placement.event.time} · {formatEventPrice(placement.event.price)}</small></span>
+                  <span className="agenda-event-copy"><strong>{displayEventTitle(placement.event)}</strong><small>{placement.event.time}</small></span>
+                  {placement.event.purchased && <span className="agenda-purchase-lock" title="Purchased" aria-label="Purchased"><ActionIcon name="lock" /></span>}
                   <PlanParticipantBadges participants={participants} compact currentPerson={currentPerson} />
                   {placement.event.kind === 'Black Lotus' && <span className={`agenda-source-mark ${shared || conflict ? 'above-label' : ''}`} title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
                   {shared && <em>Together</em>}
@@ -3765,6 +3794,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
           <OfficialEventLink event={selected} />
         </header>
         <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
+        <PurchaseControl event={selected} onPurchase={purchased => onPurchase(selected.id, purchased)} detail />
         <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit disabled={!online || saving} />
         <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(selected.detail)}</p></div>
         <section className="detail-section decision-section">
@@ -3833,11 +3863,11 @@ function exploreRouteGroupLabel(group?: ExploreRouteState['group']) {
   return ''
 }
 
-function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onOpenPlan, onOpenCalendar }: { events: ExploreEvent[]; routeState: ExploreRouteState; focusRequest: { eventId: string; noteId?: string; nonce: number } | null; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
+function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenPlan, onOpenCalendar }: { events: ExploreEvent[]; routeState: ExploreRouteState; focusRequest: { eventId: string; noteId?: string; nonce: number } | null; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [detailOpen, setDetailOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(() => purchaseQaEventId(events))
+  const [detailOpen, setDetailOpen] = useState(() => Boolean(purchaseQaEventId(events)))
   const [showHidden, setShowHidden] = useState(false)
   const [hiddenExpanded, setHiddenExpanded] = useState(false)
   const [collapsedExploreGroups, setCollapsedExploreGroups] = useState<string[]>(() => currentPerson === 'Kyle' ? ['Thu'] : [])
@@ -3976,7 +4006,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
               <em>{group.items.length}</em>
               <b aria-hidden="true">⌄</b>
             </button>
-            {!collapsed && group.items.map(event => <ExploreEventRow key={event.id} event={event} selected={selected?.id === event.id} onSelect={() => {
+            {!collapsed && group.items.map(event => <ExploreEventRow key={event.id} event={event} selected={selected?.id === event.id} onPurchase={purchased => onPurchase(event.id, purchased)} onSelect={() => {
               if (selectedId === event.id && detailOpen) {
                 setSelectedId(null)
                 setDetailOpen(false)
@@ -3995,7 +4025,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
             <b aria-hidden="true">⌄</b>
           </button>
           {hiddenExpanded && <div className="hidden-drawer-list">
-            {hiddenMatches.map(event => <ExploreEventRow key={event.id} event={event} selected={selected?.id === event.id} onSelect={() => {
+            {hiddenMatches.map(event => <ExploreEventRow key={event.id} event={event} selected={selected?.id === event.id} onPurchase={purchased => onPurchase(event.id, purchased)} onSelect={() => {
               if (selectedId === event.id && detailOpen) {
                 setSelectedId(null)
                 setDetailOpen(false)
@@ -4009,13 +4039,13 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
       </div>
 
       {selected && <div className="explore-detail-slot" style={{ top: workbarPinned ? workbarHeight + 12 : detailTop }}>
-        <ExploreDetail event={selected} focusedNoteId={focusRequest?.eventId === selected.id ? focusRequest.noteId : undefined} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => { setSelectedId(null); setDetailOpen(false) }} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
+        <ExploreDetail event={selected} onPurchase={purchased => onPurchase(selected.id, purchased)} focusedNoteId={focusRequest?.eventId === selected.id ? focusRequest.noteId : undefined} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => { setSelectedId(null); setDetailOpen(false) }} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
       </div>}
     </div>
   </section>
 }
 
-function ExploreEventRow({ event, selected, onSelect, onState }: { event: ExploreEvent; selected: boolean; onSelect: () => void; onState: (state: ExploreState) => void }) {
+function ExploreEventRow({ event, selected, onSelect, onState, onPurchase }: { event: ExploreEvent; selected: boolean; onSelect: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void }) {
   const kindIcon: EventKindIconName = event.type === 'play' ? 'play' : event.type === 'info' ? 'info' : event.type === 'social' ? 'social' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'
   const blackLotus = event.kind === 'Black Lotus'
   const priceTone = getPriceTone(event.price)
@@ -4036,7 +4066,7 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
         <small>{event.day} · {event.time}</small>
       </span>
       <span className="event-scan">
-        <span className={`event-price price-${priceTone}`}><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>
+        {canPurchaseEvent(event.price) ? <PurchaseControl event={event} onPurchase={onPurchase} /> : <span className={`event-price price-${priceTone}`}><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>}
       </span>
     </button>
     <div className="explore-hide-action"><IconAction label="Hide from this list" icon="eyeOff" pressed={event.state === 'hidden'} onClick={() => onState('hidden')} /></div>
@@ -4049,7 +4079,7 @@ function ExploreEventRow({ event, selected, onSelect, onState }: { event: Explor
     <div className="explore-actions" aria-label={`${event.title} actions`}>
       <IconAction label="Interested" icon="bookmark" pressed={event.state === 'interested'} onClick={() => onState('interested')} />
       <IconAction label="Tentative" icon="diamond" pressed={event.state === 'tentative'} onClick={() => onState('tentative')} />
-      <IconAction label={event.state === 'committed' ? 'Committed — manage in Plan' : 'Commit from Plan'} icon="lock" pressed={event.state === 'committed'} onClick={() => setShowCommitHint(true)} />
+      <IconAction label={event.state === 'committed' ? 'Committed — manage in Plan' : 'Commit from Plan'} icon="check" pressed={event.state === 'committed'} onClick={() => setShowCommitHint(true)} />
       {showCommitHint && <span className="commit-route-hint" role="status">{event.state === 'committed' ? 'This event is committed. Manage it in Plan.' : 'Choose Interested or Tentative first, then commit it in Plan.'}</span>}
     </div>
   </article>
@@ -4071,7 +4101,7 @@ function getPriceTone(price: string) {
   return 'high'
 }
 
-function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onOpenPlan }: { event: ExploreEvent; focusedNoteId?: string; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void }) {
+function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onPurchase, onOpenPlan }: { event: ExploreEvent; focusedNoteId?: string; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void }) {
   const planEnabled = event.state === 'interested' || event.state === 'tentative'
   return <aside className="explore-detail event-detail-panel" data-open={open} aria-label={`${event.title} detail`}>
     <header className="detail-title-group event-detail-heading">
@@ -4090,6 +4120,7 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
         <span><DetailFactIcon name="duration" />{event.window}</span>
       </div>
       <OfficialEventLink event={event} />
+      <PurchaseControl event={event} onPurchase={onPurchase} detail />
       <EventStateRail event={event} context="explore" onState={onState} />
     </header>
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(event.detail)}</p></div>
@@ -4132,8 +4163,8 @@ function EventStateRail({ event, context, onState, disabled = false, canCommit =
   return <div className="event-state-rail" aria-label={`${event.title} funnel state`}>
     {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
       const commitElsewhere = context === 'explore' && state === 'committed'
-      const isDisabled = disabled || (state === 'committed' && !canCommit)
-      const title = commitElsewhere ? 'Commit from Plan after comparing the schedule' : state === 'committed' && !canCommit ? 'Only Kavi and Chris can commit Black Lotus events.' : label
+      const isDisabled = disabled || Boolean(event.purchased) || (state === 'committed' && !canCommit)
+      const title = event.purchased ? 'Set by Purchased. Undo purchase to change commitment.' : commitElsewhere ? 'Commit from Plan after comparing the schedule' : state === 'committed' && !canCommit ? 'Only Kavi and Chris can commit Black Lotus events.' : label
       return <button key={state} type="button" className={`decision-state-${state}`} aria-pressed={event.state === state} disabled={isDisabled} title={title} onClick={() => commitElsewhere ? setShowCommitHint(true) : onState(state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
     })}
     {showCommitHint && <span className="commit-route-hint" role="status">{event.state === 'interested' || event.state === 'tentative' ? 'This event is in Plan. Commit it there after comparing.' : 'Choose Interested or Tentative first to move this event into Plan.'}</span>}
@@ -4141,7 +4172,7 @@ function EventStateRail({ event, context, onState, disabled = false, canCommit =
 }
 
 function PlanningStateIcon({ state }: { state: 'interested' | 'tentative' | 'committed' }) {
-  return <ActionIcon name={state === 'interested' ? 'bookmark' : state === 'tentative' ? 'diamond' : 'lock'} />
+  return <ActionIcon name={state === 'interested' ? 'bookmark' : state === 'tentative' ? 'diamond' : 'check'} />
 }
 
 function DetailFactIcon({ name }: { name: 'time' | 'price' | 'duration' }) {
@@ -4166,6 +4197,17 @@ function TicketMiniIcon() {
   return <svg className="ticket-mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4V8Z" /><path d="M12 7v2M12 11v2M12 15v2" /></svg>
 }
 
+function PurchaseControl({ event, onPurchase, detail = false }: { event: ExploreEvent; onPurchase: (purchased: boolean) => void; detail?: boolean }) {
+  const [confirming, setConfirming] = useState(false)
+  if (!canPurchaseEvent(event.price)) return null
+  return <span className={`purchase-control ${detail ? 'purchase-control-detail' : ''} ${event.purchased ? 'is-purchased' : ''}`}>
+    <button type="button" aria-label={event.purchased ? `Undo purchase for ${event.title}` : `Mark ${event.title} purchased`} aria-pressed={Boolean(event.purchased)} title={event.purchased ? 'Undo purchase' : 'Mark purchased'} onClick={() => event.purchased ? onPurchase(false) : setConfirming(true)}>
+      <ActionIcon name="ticket" /><span>{formatEventPrice(event.price)}</span><ActionIcon name={event.purchased ? 'lock' : 'unlock'} />
+    </button>
+    {confirming && <span className="purchase-confirm" role="group" aria-label="Confirm purchase"><span>Mark purchased?</span><button type="button" onClick={() => { onPurchase(true); setConfirming(false) }}>Yes</button><button type="button" onClick={() => setConfirming(false)}>No</button></span>}
+  </span>
+}
+
 function IconAction({ label, icon, pressed, onClick }: { label: string; icon: ActionIconName; pressed: boolean; onClick: () => void }) {
   return <button type="button" className={`icon-action-${icon}`} aria-label={label} aria-pressed={pressed} title={label} onClick={onClick}><ActionIcon name={icon} /></button>
 }
@@ -4175,6 +4217,9 @@ function ActionIcon({ name }: { name: ActionIconName }) {
     bookmark: <path d="M7 4h10a1 1 0 0 1 1 1v16l-6-3.4L6 21V5a1 1 0 0 1 1-1Z" />,
     diamond: <path d="M12 3 21 12 12 21 3 12Z" />,
     lock: <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>,
+    unlock: <><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M16 10V7a4 4 0 0 0-7.5-2" /></>,
+    check: <path d="m4 12 5 5L20 6" />,
+    ticket: <><path d="M4 8a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4V8Z" /><path d="M12 7v2M12 11v2M12 15v2" /></>,
     eyeOff: <><path d="M3 3l18 18" /><path d="M9.8 9.8A3 3 0 0 0 14.2 14.2" /><path d="M6.5 6.9C4.7 8 3.2 9.7 2 12c2.2 4.1 5.5 6.1 10 6.1 1.4 0 2.7-.2 3.8-.7" /><path d="M10.8 5.9c.4 0 .8-.1 1.2-.1 4.5 0 7.8 2 10 6.1-.5 1-1.1 1.9-1.8 2.7" /></>,
     sign: <><path d="M14.5 3.5 20.5 9.5 11.5 18.5 5.5 20.5 7.5 14.5 14.5 3.5Z" /><path d="M13 5 19 11" /><path d="M7.5 14.5 11.5 18.5" /><path d="M9.5 16.5 8.2 17.8" /></>,
     heart: <path d="M20.8 8.6c0 5.1-8.8 10.4-8.8 10.4S3.2 13.7 3.2 8.6A4.6 4.6 0 0 1 12 6.7a4.6 4.6 0 0 1 8.8 1.9Z" />,
@@ -5509,11 +5554,11 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, events, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ slice, events, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [detail, setDetail] = useState<CalendarDetail | null>(null)
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(() => purchaseQaEventId(events))
   const [selectedPeople, setSelectedPeople] = useState<PersonName[]>([currentPerson])
   const toolbarRef = useRef<HTMLDivElement | null>(null)
   const toolbarStartRef = useRef(0)
@@ -5556,6 +5601,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
       <div className={`agenda-icon type-${event.type}`}><EventKindIcon name={icon} /></div>
       <div className="agenda-copy"><span className="agenda-kind">{blackLotus ? `Black Lotus · ${event.type}` : `${event.type} event`}</span><h2>{displayEventTitle(event)}</h2><p>{event.fit}</p></div>
       {blackLotus && <span className="calendar-source-badge" title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
+      {showCalendarPurchaseMarker(Boolean(event.purchased)) && <span className="calendar-purchase-lock" title="Purchased" aria-label="Purchased"><ActionIcon name="lock" /></span>}
       <span className="agenda-signals"><PlanParticipantBadges participants={participants} currentPerson={currentPerson} compact /></span>
     </button>
   }
@@ -5666,17 +5712,18 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     </>}
 
     {detail && <CalendarDetailSheet detail={detail} slice={slice} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-    {selectedEvent && <CalendarEventDetail event={selectedEvent} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
+    {selectedEvent && <CalendarEventDetail event={selectedEvent} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
 }
 
-function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
   return <aside className="calendar-detail-sheet calendar-event-detail event-detail-panel" aria-label={`${event.title} calendar detail`}>
     <header className="event-detail-heading">
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span><button className="detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button></span></div>
       <h2>{displayEventTitle(event)}</h2>
       <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span><span><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span><span><DetailFactIcon name="duration" />{event.window}</span></div>
       <OfficialEventLink event={event} />
+      <PurchaseControl event={event} onPurchase={onPurchase} detail />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
     <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>WHAT YOU NEED TO KNOW</small>{event.state === 'committed' ? `This is on the calendar for ${event.day} at ${event.time}. ${event.planEffect}` : `This is not a hard calendar commitment yet. ${event.planEffect}`}</p></div>
