@@ -7,6 +7,13 @@ dist/
 .secrets/
 .supabase/
 coverage/
+output/
+scripts/__pycache__/
+/scripts/build_contiguous_wall_map.py
+/scripts/draft_gwcc_navigation_skeleton.mjs
+/scripts/manual_trace_gwcc_attendee_layer.mjs
+/scripts/rationalize_gwcc_attendee_layer.mjs
+/scripts/trace_visible_black_linework.py
 tmp/
 .temp/
 .monitoring-state/

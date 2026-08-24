@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metavirus.github.io/mtg-magiccon/schemas/personal-map-overlay.schema.json",
+  "title": "Private personal map overlay",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["owner_user_id", "bookmarked", "note_count", "updated_at"],
+  "oneOf": [
+    { "required": ["spatial_object_id"], "not": { "required": ["domain_object_id"] } },
+    { "required": ["domain_object_id"], "not": { "required": ["spatial_object_id"] } }
+  ],
+  "properties": {
+    "spatial_object_id": { "type": "string", "minLength": 1 },
+    "domain_object_id": { "type": "string", "minLength": 1 },
+    "owner_user_id": { "type": "string", "minLength": 1 },
+    "bookmarked": { "type": "boolean" },
+    "note_count": { "type": "integer", "minimum": 0 },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metavirus.github.io/mtg-magiccon/schemas/map-manifest.schema.json",
+  "title": "MagicCon reviewed map manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "map_id",
+    "event_key",
+    "revision_id",
+    "status",
+    "edition_namespace",
+    "levels",
+    "objects",
+    "bindings",
+    "search_entries",
+    "source_refs",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "map_id": { "$ref": "#/$defs/id" },
+    "event_key": { "$ref": "#/$defs/id" },
+    "revision_id": { "$ref": "#/$defs/id" },
+    "status": { "enum": ["fixture", "candidate", "reviewed", "active", "superseded"] },
+    "edition_namespace": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "levels": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/level" } },
+    "objects": { "type": "array", "items": { "$ref": "#/$defs/spatialObject" } },
+    "bindings": { "type": "array", "items": { "$ref": "#/$defs/locationBinding" } },
+    "search_entries": { "type": "array", "items": { "$ref": "#/$defs/searchEntry" } },
+    "source_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sourceRef" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "normalizedNumber": { "type": "number", "minimum": 0, "maximum": 1 },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": { "x": { "$ref": "#/$defs/normalizedNumber" }, "y": { "$ref": "#/$defs/normalizedNumber" } }
+    },
+    "geometry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "x", "y"],
+          "properties": { "kind": { "const": "point" }, "x": { "$ref": "#/$defs/normalizedNumber" }, "y": { "$ref": "#/$defs/normalizedNumber" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "x", "y", "width", "height"],
+          "properties": {
+            "kind": { "const": "rect" },
+            "x": { "$ref": "#/$defs/normalizedNumber" },
+            "y": { "$ref": "#/$defs/normalizedNumber" },
+            "width": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+            "height": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "points"],
+          "properties": {
+            "kind": { "const": "polygon" },
+            "points": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "array",
+                "prefixItems": [{ "$ref": "#/$defs/normalizedNumber" }, { "$ref": "#/$defs/normalizedNumber" }],
+                "items": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_zoom", "label_zoom", "detail_zoom", "emphasis", "label_mode", "color_role"],
+      "properties": {
+        "min_zoom": { "type": "number", "minimum": 0 },
+        "label_zoom": { "type": "number", "minimum": 0 },
+        "detail_zoom": { "type": "number", "minimum": 0 },
+        "emphasis": { "enum": ["quiet", "normal", "major"] },
+        "label_mode": { "enum": ["full", "short", "icon", "hidden"] },
+        "color_role": { "type": "string", "minLength": 1 },
+        "icon_key": { "type": "string", "minLength": 1 }
+      }
+    },
+    "accessPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "object_id", "point", "kind", "label", "review_state"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "object_id": { "$ref": "#/$defs/id" },
+        "point": { "$ref": "#/$defs/point" },
+        "kind": { "enum": ["main", "secondary", "open_edge", "doorway"] },
+        "label": { "type": "string", "minLength": 1 },
+        "review_state": { "enum": ["candidate", "reviewed", "rejected", "unresolved"] }
+      }
+    },
+    "level": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "kind", "coordinate_space", "orientation", "default_view", "source_ref_ids"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["campus", "venue", "floor", "zone"] },
+        "parent_level_id": { "$ref": "#/$defs/id" },
+        "coordinate_space": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height", "unit"],
+          "properties": { "width": { "const": 1 }, "height": { "const": 1 }, "unit": { "const": "normalized" } }
+        },
+        "orientation": { "type": "string", "minLength": 1 },
+        "default_view": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["center_x", "center_y", "zoom"],
+          "properties": {
+            "center_x": { "$ref": "#/$defs/normalizedNumber" },
+            "center_y": { "$ref": "#/$defs/normalizedNumber" },
+            "zoom": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "source_ref_ids": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" }, "uniqueItems": true }
+      }
+    },
+    "spatialObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision_id", "level_id", "type", "label", "geometry", "review_state", "source_ref_ids"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "revision_id": { "$ref": "#/$defs/id" },
+        "level_id": { "$ref": "#/$defs/id" },
+        "type": { "enum": ["venue", "floor", "hall", "corridor", "entrance", "room", "zone", "booth", "artist_table", "service", "amenity", "stage", "store", "queue"] },
+        "label": { "type": "string", "minLength": 1 },
+        "short_label": { "type": "string", "minLength": 1 },
+        "aliases": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "parent_id": { "$ref": "#/$defs/id" },
+        "children_order": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+        "access_points": { "type": "array", "items": { "$ref": "#/$defs/accessPoint" } },
+        "permeability": { "enum": ["open", "edge_limited", "enclosed"] },
+        "geometry": { "$ref": "#/$defs/geometry" },
+        "presentation": { "$ref": "#/$defs/presentation" },
+        "detail_ref": { "type": "string", "minLength": 1 },
+        "search_priority": { "type": "number" },
+        "review_state": { "enum": ["candidate", "reviewed", "rejected", "unresolved"] },
+        "source_ref_ids": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" }, "uniqueItems": true }
+      }
+    },
+    "locationBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision_id", "domain", "domain_object_id", "spatial_object_id", "review_state", "source_ref_ids"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "revision_id": { "$ref": "#/$defs/id" },
+        "domain": { "enum": ["calendar", "plan", "info", "artist", "exhibitor", "store", "activity"] },
+        "domain_object_id": { "type": "string", "minLength": 1 },
+        "spatial_object_id": { "$ref": "#/$defs/id" },
+        "focus_object_id": { "$ref": "#/$defs/id" },
+        "effective_from": { "type": "string", "format": "date-time" },
+        "effective_to": { "type": "string", "format": "date-time" },
+        "review_state": { "enum": ["reviewed", "ambiguous", "unbound", "superseded"] },
+        "source_ref_ids": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" }, "uniqueItems": true }
+      }
+    },
+    "searchEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "normalized_terms", "category", "spatial_object_id", "priority"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "type": "string", "minLength": 1 },
+        "normalized_terms": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "category": { "type": "string", "minLength": 1 },
+        "spatial_object_id": { "$ref": "#/$defs/id" },
+        "focus_object_id": { "$ref": "#/$defs/id" },
+        "priority": { "type": "number" }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "artifact_id", "edition_namespace", "source_kind", "locator", "reviewed_at", "reviewed_by"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "edition_namespace": { "type": "string", "minLength": 1 },
+        "source_kind": { "enum": ["official_map", "official_directory", "official_schedule", "reviewer_annotation"] },
+        "locator": { "type": "string", "minLength": 1 },
+        "reviewed_at": { "type": "string", "format": "date-time" },
+        "reviewed_by": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

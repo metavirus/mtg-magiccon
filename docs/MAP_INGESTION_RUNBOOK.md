@@ -1,139 +1,117 @@
-# Official map arrival ingestion runbook
+# Official Atlanta 2026 map arrival runbook
 
-Updated: 2026-08-22
+Updated: 2026-08-24
 
-Use this checklist when an official Atlanta 2026 map artifact appears. It is a controlled evidence-to-spatial-twin workflow, not monitoring-baseline acceptance and not automatic publication.
+Use this only after an official first-party Atlanta 2026 map is actually published. A link, thumbnail, social post, leaked image, or resemblance to Atlanta 2025 does not start this process.
 
-This runbook begins only after a first-party original artifact is reachable. A newly discovered link, social image, monitor finding, or resemblance to Atlanta 2025 stays in NOW mode. The outputs are an immutable candidate `map_revision`, reviewed spatial objects and graph, versioned bindings, one compatible offline bundle, and activation evidence; none is production truth until section K passes.
+The goal is a reviewed, browsable map with useful zoom levels, search, compact details, and links from Calendar, Info, Artists, Exhibitors, and Store. Routing, directions, camera positioning, live location, and turn-by-turn behavior are not part of this release.
 
-## Stop conditions
+The controlling data contract is [`MAP_SEMANTIC_DATA_CONTRACT.md`](MAP_SEMANTIC_DATA_CONTRACT.md). Machine-checkable schemas and guards live in [`map-data/`](map-data/README.md).
 
-Stop before mutation/publication when any of these is unresolved:
+## Stop immediately when
 
-- repository/main/GitHub or canonical Supabase identity is ambiguous;
-- source is not first-party or exact artifact access is unavailable;
-- event, city, year, floor, or revision cannot be proven;
-- a newer reviewed revision may already exist;
-- original-resolution inspection is unavailable;
-- orientation or coordinate calibration is unknown;
-- OCR/CV candidates are being treated as canonical;
-- route barriers, portals, accessibility, or destination joins are unreviewed;
-- required offline, desktop/mobile, or physical-iPhone proof cannot be performed. Sensor permission proof is required only for sensor behavior included in the candidate release; manual-origin proof is always required.
+- the source is not official or the original-resolution file cannot be obtained;
+- Atlanta, 2026, event dates, venue, floor, or map revision cannot be proven;
+- orientation is uncertain;
+- a newer candidate or active revision may already exist;
+- a label, boundary, entrance, room, booth, or containment relationship is being guessed;
+- Atlanta 2025 data is being used as evidence for Atlanta 2026;
+- an unresolved location is about to receive a pin;
+- someone proposes changing the live app before the reviewed candidate package passes.
 
-## A. Arrival and evidence capture
+## 1. Capture the official evidence
 
-- [ ] Run `pnpm readiness`; prove canonical repo, `main`, GitHub repo-local identity, Supabase `pavjsexxbueuzhzgemgy`, and hosted migration alignment.
-- [ ] Run the canonical monitor check first. Do not accept or rewrite a baseline merely because a map link appeared.
-- [ ] Record first-party page URL and direct artifact URL, publisher, retrieval time, publication/effective date if stated, access/HTTP state, and discovery evidence.
-- [ ] Download/capture the original artifact through the approved evidence lane; do not use a social thumbnail or screenshot as the source original.
-- [ ] Record SHA-256, bytes, MIME type, pixel/page dimensions, filename, and private artifact pointer where required.
-- [ ] Verify visible event name, Atlanta, 2026, GWCC, level/floor labels, and dates. Cross-check the source page and venue floor plans.
-- [ ] Compare hash and source metadata with all existing candidate/published artifacts.
-- [ ] Create an immutable candidate `map_revision` under the Atlanta 2026 `map_set`. Do not overwrite or mutate the active revision.
-- [ ] If the artifact is unchanged, attach corroborating provenance and stop; do not create a duplicate revision/card.
+- [ ] Record the official webpage and direct map-file URLs.
+- [ ] Download the original PDF or image; do not use a screenshot or thumbnail as the source.
+- [ ] Record retrieval time, filename, MIME type, byte size, page/pixel dimensions, and SHA-256.
+- [ ] Record the visible event name, Atlanta, 2026, GWCC, dates, level labels, and publisher revision/date when present.
+- [ ] Compare the hash and source metadata with any existing candidate. If unchanged, record corroboration and stop.
+- [ ] Preserve the original artifact unchanged. Derived crops, OCR, and simplified geometry must be separate files.
 
-## B. Artifact and revision classification
+## 2. Open a candidate edition
 
-- [ ] Identify whether this is a full floor, submap, exhibitor/artist enlargement, campus map, accessibility map, or replacement revision.
-- [ ] Enumerate every floor/page/submap and their relationships.
-- [ ] Record revision label/date if present; otherwise use retrieval/hash identity and mark publisher revision unknown.
-- [ ] Link the candidate to the prior revision as `supersedes` only when scope identity is proven.
-- [ ] Preserve the prior artifact and normalized objects until the replacement is reviewed and activated.
-- [ ] Record the expected object, graph, binding, anchor, and offline-bundle versions for this revision; mixed-version activation is forbidden.
+- [ ] Create a new candidate manifest from the map-manifest schema; never edit the synthetic fixture into an official map.
+- [ ] Use `event/atlanta-2026` as `edition_namespace` only after the source identity above is proven.
+- [ ] Give the candidate one immutable `revision_id` and keep that revision consistent across every object and binding.
+- [ ] Set `status` to `candidate`; do not replace any active package.
+- [ ] Add a `source_ref` for each official artifact or reviewer annotation, including its true `edition_namespace`.
+- [ ] Keep `historical/atlanta-2025` quarantined. Its user-confirmed west-up orientation applies only to that edition.
 
-## C. Orientation and coordinate calibration
+## 3. Establish the useful spatial canvases
 
-- [ ] Find north/orientation evidence in the 2026 artifact, venue plan, or independently reviewed landmarks.
-- [ ] Do not inherit the user-confirmed west-up orientation of the 2025 map.
-- [ ] Record `top_bearing_deg`, evidence, reviewer, and uncertainty. If unknown, block production spatial publication.
-- [ ] Select at least four distributed control points visible in both artifact and venue/reference geometry.
-- [ ] Record original image pixels and normalized coordinates.
-- [ ] Fit the approved affine transform; inspect residuals and outliers.
-- [ ] If one affine transform fails, review source distortion before allowing piecewise affine. Never hide error with an opaque warp.
-- [ ] Freeze transform version and golden control-point test.
+- [ ] Decide the smallest useful hierarchy: campus/venue, floor, show floor, and dense zone close views only where needed.
+- [ ] Establish the 2026 display orientation from the 2026 artifact or independently verified venue landmarks.
+- [ ] Record each level's normalized coordinate space and default view.
+- [ ] Use enough reviewed control points to place important areas consistently; exact architectural precision is unnecessary.
+- [ ] Preserve meaningful relative position. Simplify decorative wall detail, loading infrastructure, service rooms, and architectural noise visitors do not need.
 
-## D. Candidate extraction
+## 4. Deconstruct the map into reviewed objects
 
-- [ ] Run OCR/CV only as candidate generation at original resolution.
-- [ ] Extract candidate labels, booth/room numbers, large zones, icons, polygons/boxes, corridors, doors, stairs, elevators, escalators, restrooms, first aid, concessions, entrances, and portals.
-- [ ] Record extractor/version, confidence, source crop/coordinates, and candidate status.
-- [ ] Preserve unreadable/ambiguous text as unknown; do not guess.
-- [ ] Deduplicate candidates by reviewed spatial identity, not fuzzy title alone.
+- [ ] Work at original resolution and visually inspect every authored object against the source.
+- [ ] Create only visitor-meaningful objects: hall boundaries, lobby/corridors, entrances, meeting rooms, major zones, queues, booths/tables, stages, stores, useful services, and light amenities.
+- [ ] Keep adjacent concepts separate. Proximity never creates ownership or containment.
+- [ ] Use `parent_id` only for real containment—for example, Prize Wall and Play HQ inside the Ticketed Play close view.
+- [ ] Record reviewed access points where they aid orientation. An enclosed hall may have only its confirmed lobby entrances; an open zone may use open-edge markers.
+- [ ] Mark ambiguous items `unresolved` rather than guessing.
+- [ ] Retain OCR or image-recognition output only as candidate evidence until a human accepts, edits, or rejects it.
+- [ ] Reconcile coverage: every useful visible label or boundary is reviewed, deliberately excluded as noise, or explicitly unresolved.
 
-## E. Human original-resolution overlay QA
+## 5. Set zoom and visual density
 
-- [ ] Inspect the whole original at 100% and zoomed detail.
-- [ ] Accept/edit/reject every production POI and label.
-- [ ] Draw reviewed polygons/points and at least one usable approach point for route targets.
-- [ ] Deconstruct walkable corridors/hallways, walls/barriers, door gaps, queue boundaries, transitions, and staff-only/nonpublic space.
-- [ ] Verify entrances, floor portals, stairs/elevators/escalators, and accessible alternatives.
-- [ ] Inspect dense booth/artist matrices individually; confirm number/name pairs.
-- [ ] Confirm landmark visibility and direction phrasing from plausible approaches.
-- [ ] Record reviewer, timestamp, source revision, and unresolved objects.
-- [ ] Complete a coverage reconciliation: every labeled public area and every visibly traversable connection is accepted, rejected with reason, or explicitly unresolved. “Important-looking items only” is not complete floorplan deconstruction.
+- [ ] Give each object reviewed `min_zoom`, `label_zoom`, and `detail_zoom` values.
+- [ ] At overview, show only major visitor concepts such as Marketplace, Art of Magic, Ticketed Play, Command Zone, and Queue.
+- [ ] Reveal booths, artist tables, internal services, and room numbers only when the screen has room.
+- [ ] Keep amenities quiet by default; search may highlight them without opening filler explanations.
+- [ ] Use short labels, familiar icons, and semantic color roles where they improve small-screen legibility.
+- [ ] Do not encode literal UI colors as spatial truth.
 
-## F. Spatial object joins
+## 6. Add search and cross-app bindings
 
-- [ ] Join exhibitors by stable official exhibitor identity plus reviewed booth code; never name-only when ambiguous.
-- [ ] Join artists by canonical appearance ID and reviewed Art of Magic booth/table.
-- [ ] Join Store, pickup, Will Call, Prize Wall, Ticketed Play HQ, ODE, stages, rooms, lounges, amenities, and Info topics by reviewed POI ID.
-- [ ] Join event occurrences through normalized room/location IDs; retain original source label.
-- [ ] Prove Calendar and Plan consume those occurrence bindings and next-destination state; Map does not create a second schedule or planning-state record.
-- [ ] Reconcile renamed/moved/removed objects against prior revision.
-- [ ] Keep private receipts, signing picks, itinerary, and position out of shared spatial truth.
-- [ ] Leave unresolved/TBA joins unbound and visible as unknown.
+- [ ] Generate reviewed search entries from names, aliases, room codes, booth names, categories, and common useful synonyms.
+- [ ] Typing may highlight a candidate; the map moves only after the user selects it.
+- [ ] Bind Calendar, Plan, Info, Artists, Exhibitors, and Store records to stable spatial IDs.
+- [ ] Use `focus_object_id` when the useful destination is a child, such as Prize Wall within Ticketed Play.
+- [ ] Keep event, article, artist, exhibitor, and store facts in their existing domains; Map stores only the location binding.
+- [ ] Leave ambiguous or TBA records unbound. No binding means no pin.
+- [ ] Keep private bookmarks and notes in the personal-overlay model, separate from shared geometry.
 
-## G. Route graph and accessibility gate
+## 7. Validate the candidate package
 
-- [ ] Author reviewed centerlines, intersections, barriers, approach points, and floor portals.
-- [ ] Add edge length/time range, directionality, turn cue, transition, accessible state, and landmark cues.
-- [ ] Treat unknown accessibility as unavailable for accessible routing.
-- [ ] Prove entrance→Registration, entrance→panel room, entrance→Prize Wall, Marketplace→Art, Art→Ticketed Play, next-event, and cross-floor/accessibility goldens.
-- [ ] Render and visually inspect every golden path against the original; each rough reviewed line starts at a confirmed landmark/anchor, ends at the destination approach point, and crosses no wall, booth, closed door, or queue barrier.
-- [ ] Confirm official signage/staff override language.
+- [ ] Run `pnpm validate:map-data`.
+- [ ] Confirm the clean candidate passes revision, provenance, containment, binding, bounds, and review checks.
+- [ ] Confirm historical, mixed-revision, incomplete-review, invalid-containment, unresolved-binding, and parked-routing guard tests still fail safely.
+- [ ] Confirm every source reference belongs to `event/atlanta-2026` before activation.
+- [ ] Confirm no `historical/atlanta-2025` source, artifact, orientation, coordinate, label, or binding entered the candidate.
+- [ ] Review the package diff as data, not merely as rendered pixels.
 
-## H. Position anchors
+## 8. Only then connect the reviewed package to the app
 
-- [ ] Select safe, recognizable landmarks with reviewed coordinates and reasonable approach area.
-- [ ] Create manual anchors first.
-- [ ] If approved QR markers exist, bind versioned/checksummed anchor IDs; do not embed arbitrary coordinates.
-- [ ] Build the bounded visual landmark set from source-backed signs/room/booth views; retain no private camera frames. Ordinary camera matches propose an approximate anchor and require user confirmation.
-- [ ] Define covariance radius, freshness, confirmation, expiry, and wrong-anchor recovery for each method.
-- [ ] GPS remains campus/entrance-only. Compass remains orientation-only.
+- [ ] Import one reviewed read-only package; do not hard-code a second copy of the layout in UI components.
+- [ ] Verify overview, zone close views, pinch/desktop zoom, click details, deterministic search, and prior-context recovery.
+- [ ] Verify compact drawers/popovers stay in map context unless the user deliberately opens another surface.
+- [ ] Verify personal markers are private and do not alter shared geometry.
+- [ ] Build one compatible offline bundle and activate it atomically; never expose a partial or mixed revision.
+- [ ] Confirm reconnect refreshes quietly and never overwrites newer shared data with stale offline state.
 
-## I. Offline package
+## 9. Visual and release proof
 
-- [ ] Generate one compatible bundle manifest for shell, raster/pyramid, overlays, search aliases, graph, bindings, anchors, source/revision metadata, and minimum itinerary snapshot.
-- [ ] Confirm asset sizes and iPhone decode/memory performance.
-- [ ] Verify every expected cache entry after download before showing “available offline.”
-- [ ] Test quota failure, eviction, partial download, mixed revision, interrupted update, and recovery.
-- [ ] Activate a new bundle atomically; retain the last complete reviewed bundle until success.
+- [ ] Run the risk-tier build, tests, text, secret, and map-data validation required by the actual implementation change.
+- [ ] Visually inspect desktop and 390px views: orientation, pan/zoom, density, label collisions, search, object details, drawers, and return context.
+- [ ] Test the installed iPhone PWA, including cold offline launch and reconnect.
+- [ ] Confirm the official source remains reachable from provenance/details without requiring it for ordinary use.
+- [ ] Commit and push through the normal root-owned publication lane; verify exact CI/Pages and public cache freshness.
+- [ ] Record active revision, source hash, object/binding counts, unresolved items, screenshots, commit, deployment proof, and any intentionally deferred work.
 
-## J. Validation and publication
+## Parked until separately reconsidered
 
-- [ ] Run unit/fixture gates for transform, object identity, search, joins, graph, routes, revision diff, and historical leakage.
-- [ ] Run build, tests, text-integrity, secret, diff, and task-specific validation.
-- [ ] Review schema/migration only if separately authorized; if changed, perform canonical identity, migration review, hosted apply, readback, RLS, grants, and advisors.
-- [ ] Inspect desktop and 390px Map: pan/zoom, search, POIs, drawers, route, next move, unknown state, source revision, and offline status.
-- [ ] Test the installed physical iPhone PWA. Manual origin, search, drawers, route, and offline behavior always run; granted/denied/revoked camera, compass, and geolocation are added to the matrix only when the release exposes them.
-- [ ] Airplane-mode cold launch proves pan/zoom/search/next move/route.
-- [ ] Run screen reader, keyboard, large text, contrast, reduced-motion, hit-target, and accessible-route checks.
-- [ ] Commit/push through the documented lane; wait for exact clean CI/Pages; verify public cache freshness.
-- [ ] Repeat deployed desktop, 390px, and physical-iPhone affected-path inspection.
+Do not revive these merely because the data model could support them someday:
 
-## K. Readback and activation evidence
+- route graphs or suggested paths;
+- turn-by-turn directions;
+- camera/sign recognition;
+- manual or automatic origin detection;
+- compass, GPS, or live positioning;
+- accessibility routing claims;
+- onsite crowd or obstruction reporting.
 
-- [ ] Read back active map set, artifact hash, transform revision, object/edge/binding counts, unresolved counts, and active bundle manifest.
-- [ ] Confirm the active bundle uses one compatible revision across raster, overlay, search, graph, bindings, anchors, and itinerary projection; confirm no historical namespace or 2025 artifact/orientation appears.
-- [ ] Prove shared/private boundaries and non-owner access proportionately.
-- [ ] Record seven route-golden results, accessibility status, offline proof, device/OS/browser, screenshots, commit, CI, Pages, and public verification.
-- [ ] Update frontier/backlog/handoff with what is active, unresolved, superseded, and next.
-
-## L. Revision diff and supersession
-
-- [ ] On every later artifact, compare hash, pixels/pages, OCR candidates, reviewed objects, graph topology, bindings, and anchor validity.
-- [ ] Classify each change as noise, corroboration, new object, material move/rename, barrier/route change, contradiction, or supersession.
-- [ ] Link evidence; do not duplicate current POIs or public map revisions.
-- [ ] Re-run affected joins and routes, plus all accessibility goldens when topology changes.
-- [ ] Keep old bundle active until replacement passes completely, then atomically supersede.
-- [ ] Surface only meaningful user consequences: moved destination, new floor, closed path, accessibility change, or next-event impact.
+If any returns, it begins as a separate design decision with its own evidence and validation—not as a hidden extension of map ingestion.

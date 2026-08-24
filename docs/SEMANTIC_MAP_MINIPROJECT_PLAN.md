@@ -1,5 +1,9 @@
 # Semantic Map miniproject plan
 
+> **Scope update — 2026-08-23:** All pathfinding and wayfinding work is parked. The active miniproject is a browsable, searchable, offline-capable spatial information surface with useful zoomed details and object popovers. Route graphs, directions, origin detection, camera/sign positioning, accessibility routing, itinerary timing, and route simulation are retained below only as research history for a later reassessment; they are not current acceptance criteria or dependencies.
+
+The active implementation-neutral model is frozen in [MAP_SEMANTIC_DATA_CONTRACT.md](MAP_SEMANTIC_DATA_CONTRACT.md). Its explicit containment, zoom presentation, cross-surface bindings, transient UI state, and personal-overlay separation supersede routing-era assumptions in older sections of this plan.
+
 Updated: 2026-08-22
 
 Status: planning baseline, not implemented. The 2025 Atlanta map is a quarantined structural reference only. Its west-up orientation is user-confirmed for that edition only; no original-resolution 2025 artifact is currently tracked in this repository. The official Atlanta 2026 floor map has not been captured or normalized.

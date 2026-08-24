@@ -1,0 +1,42 @@
+[
+  {
+    "id": "historical-namespace-active",
+    "set": { "edition_namespace": "historical/atlanta-2025" },
+    "expects": "historical namespaces cannot be active"
+  },
+  {
+    "id": "historical-source-in-current-edition",
+    "set": { "source_refs.0.edition_namespace": "historical/atlanta-2025" },
+    "expects": "cross-edition source"
+  },
+  {
+    "id": "historical-artifact-in-current-edition",
+    "set": { "source_refs.0.artifact_id": "official-atlanta-2025-map" },
+    "expects": "historical artifact"
+  },
+  {
+    "id": "mixed-object-revision",
+    "set": { "objects.0.revision_id": "historical-r1" },
+    "expects": "mixed revision"
+  },
+  {
+    "id": "unreviewed-object-in-active-map",
+    "set": { "objects.0.review_state": "candidate" },
+    "expects": "active manifest contains unreviewed object"
+  },
+  {
+    "id": "unbound-binding-in-active-map",
+    "set": { "bindings.0.review_state": "unbound" },
+    "expects": "active manifest contains unresolved binding"
+  },
+  {
+    "id": "invalid-containment",
+    "set": { "objects.1.parent_id": "missing-parent" },
+    "expects": "references missing parent"
+  },
+  {
+    "id": "parked-route-data-injection",
+    "set": { "routing_graph": { "edges": [] } },
+    "expects": "parked routing data"
+  }
+]

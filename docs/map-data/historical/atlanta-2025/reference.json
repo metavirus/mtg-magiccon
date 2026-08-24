@@ -1,0 +1,23 @@
+{
+  "quarantine_version": "1.0.0",
+  "edition_namespace": "historical/atlanta-2025",
+  "event_key": "atlanta-2025",
+  "activation_eligible": false,
+  "artifact_status": "not-captured-in-repository",
+  "known_reviewed_context": {
+    "display_orientation": "west-up",
+    "basis": "user-confirmed for the 2025 edition only"
+  },
+  "allowed_uses": [
+    "schema exercise",
+    "interaction prototype",
+    "historical comparison after explicit review"
+  ],
+  "forbidden_uses": [
+    "2026 orientation evidence",
+    "2026 coordinates",
+    "2026 labels or bindings",
+    "active map fallback"
+  ],
+  "capture_rule": "If an original 2025 artifact is later retained, capture it through the evidence lane with immutable provenance; never place it in a current event namespace."
+}

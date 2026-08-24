@@ -9,7 +9,7 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 - Known environment constraints are part of the repo, not new issues.
 - Use package scripts and documented commands instead of improvised substitutes.
 - Do not claim something is fixed or live until the public GitHub Pages app is verified when public behavior matters.
-- Direct-to-main public publish is the normal workflow for bounded approved fixes. Do not stop for a fresh push approval unless scope, reversibility, credentials/auth/deploy safety, or confidence changed.
+- Active design and ordinary app iteration are local-first. Build, test, and visually verify locally; batch accepted work into a coherent publish checkpoint instead of deploying every intermediate tweak.
 - Do not preserve obsolete paths “for reference” if they can still mislead execution.
 - Do not overcorrect with broad new ceremony; remove wrong paths and use the right lane first.
 
@@ -18,7 +18,7 @@ This is a small personal MagicCon companion app, not an enterprise deployment pr
 Use this as the one canonical approval policy for repository work:
 
 - A request to answer, explain, review, diagnose, or plan authorizes relevant read-only inspection and reporting. Do not implement unless Kavi also asks for a change.
-- A request to change, build, fix, proceed, or resume authorizes the already-described, in-scope local edits and non-destructive validation when the bounded outcome is clear. When that outcome is on this repo's normal direct-to-main public-preview lane, the same request authorizes the expected commit, push, deploy wait, and public verification. Natural language is sufficient; never require an exact command such as `PUSH X`.
+- A request to change, build, fix, proceed, or resume authorizes the already-described, in-scope local edits and non-destructive local validation when the bounded outcome is clear. It does not imply that each intermediate iteration must be published. Commit/push/deploy when Kavi asks to ship/publish/live, needs public or iPhone review, the work inherently changes live automation/data/auth, or a durable shared checkpoint is needed. Natural language is sufficient; never require an exact command such as `PUSH X`.
 - Ask again only when the action becomes destructive, costly, materially scope-expanding, hard to reverse, or when credentials, auth, deploy safety, intended branch, or the exact contents to ship become ambiguous. An unrelated external write remains outside the direct-to-main exception.
 - Root keeps the trusted user authorization and owns narrow integration/publication: exact staged-scope review, risk-tier validation, commit, push, and required CI/Pages or public verification. Delegated workers normally return their bounded diff and evidence; do not create a publish-only worker or transfer push to an agent whose transcript lacks Kavi's request.
 - Repository policy cannot suppress a platform permission dialog. If the platform requires approval for a specific tool action, use its scoped approval UI; do not ask Kavi to type a proxy phrase in chat.
@@ -75,6 +75,10 @@ Use normal Git for read-only checks. Use the elevated Git lane immediately for `
 
 ### Build and publish
 
+Local-first is the default during active design and implementation. A local checkpoint consists of the proportional test/build lane plus actual viewport inspection. Several accepted local changes may remain uncommitted while the session is active, provided unrelated scopes stay separable and the work is recoverable. Do not wait for GitHub Actions, Pages, or public cache verification until a publish checkpoint is actually requested or required.
+
+Publish checkpoints are appropriate when Kavi says ship/publish/live, wants iPhone/public review, a coherent feature is complete, work will pause and needs a durable shared state, or the change inherently affects live automation, authentication, persistence, monitoring, or shared data. At that point root performs one exact-scope commit/push/deploy/verification pass for the batch.
+
 Public behavior has four distinct states:
 
 1. local code changed;
@@ -87,13 +91,13 @@ Only the fourth state counts as live.
 Use the smallest validation lane that still catches the real failure mode:
 
 - Docs-only change with no workflow, command, generated-asset, or runtime effect: `pnpm validate:text` and `pnpm validate:secrets`; no build, browser check, or CI/Pages wait is required unless an external failure signal appears.
-- Small app-code UI or routing fix in one bounded area: `pnpm build`, visual check of the affected flow, then root reviews the staged scope, pushes `main`, waits for the GitHub Actions Pages deploy, and runs `pnpm verify:public`.
-- Public UI change with broader surface area, risk, or multiple touched files: `pnpm check:ship`, visual check of the affected flow, then the same root-owned publish and verification lane.
+- Small local app-code UI or routing fix in one bounded area: `pnpm build` and visual check of the affected flow; keep it local until a publish checkpoint.
+- Requested public UI checkpoint in one bounded area: `pnpm build`, visual check, exact staged review, push `main`, Pages wait, and `pnpm verify:public`. Use `pnpm check:ship` instead when the public checkpoint spans broader UI or multiple surfaces.
 - Auth, persistence, workflow, monitoring, or data-shape change: use the heavier documented gate for that tier.
 
 Do not default to `pnpm check:ship` for every small hobby-app UI tweak when `pnpm build` plus the required visual/public checks would catch the meaningful failure just as well.
 
-For this one-user hobby app, a bounded fix that Kavi already approved should be shipped through that direct-to-main path without asking “push it?” again. Pause before pushing only when the change expanded beyond the approved scope, the push would be destructive or hard to reverse, credentials/auth/deploy state became unsafe or ambiguous, or you are no longer confident what will ship.
+For this one-user hobby app, do not invent a magic push phrase. Continue locally through ordinary iterations. Once Kavi requests or clearly reaches a publish checkpoint, root owns the direct-to-main lane without asking for redundant authorization; pause only when scope, reversibility, credentials/auth/deploy safety, or confidence changed.
 
 Do not blame “propagation” by default. First prove whether the commit was pushed, whether the Pages workflow ran for that commit, whether the live `magiccon-build-sha` matches the deployed build, and whether any remaining mismatch is actually CDN/browser cache instead of old code still being deployed.
 

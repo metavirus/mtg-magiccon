@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metavirus.github.io/mtg-magiccon/schemas/map-ui-session.schema.json",
+  "title": "Device-local map UI session",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["level_id", "viewport"],
+  "properties": {
+    "level_id": { "type": "string", "minLength": 1 },
+    "viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["center_x", "center_y", "zoom", "rotation_deg"],
+      "properties": {
+        "center_x": { "type": "number", "minimum": 0, "maximum": 1 },
+        "center_y": { "type": "number", "minimum": 0, "maximum": 1 },
+        "zoom": { "type": "number", "exclusiveMinimum": 0 },
+        "rotation_deg": { "type": "number", "minimum": -180, "maximum": 180 }
+      }
+    },
+    "selected_object_id": { "type": "string", "minLength": 1 },
+    "focused_object_id": { "type": "string", "minLength": 1 },
+    "search_text": { "type": "string" },
+    "return_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface", "domain_object_id", "scroll_anchor"],
+      "properties": {
+        "surface": { "type": "string", "minLength": 1 },
+        "domain_object_id": { "type": "string", "minLength": 1 },
+        "scroll_anchor": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

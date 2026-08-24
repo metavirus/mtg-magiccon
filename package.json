@@ -31,6 +31,7 @@
     "validate:artist-catalog-db": "powershell -ExecutionPolicy Bypass -File scripts/validate_artist_card_catalog_db.ps1",
     "validate:artist-import": "node scripts/validate_artist_card_import.mjs",
     "validate:monitoring": "powershell -ExecutionPolicy Bypass -File scripts/validate_monitoring_intake.ps1",
+    "validate:map-data": "node scripts/validate_map_data.mjs && node scripts/test_map_data_guards.mjs",
     "validate:text": "powershell -ExecutionPolicy Bypass -File scripts/validate_text_integrity.ps1",
     "validate:secrets": "powershell -ExecutionPolicy Bypass -File scripts/check_secrets.ps1",
     "validate:github-run-verifier": "powershell -ExecutionPolicy Bypass -File scripts/validate_github_run_verifier.ps1",

@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0.0",
+  "map_id": "synthetic-show-floor",
+  "event_key": "synthetic-map-poc",
+  "revision_id": "fixture-r1",
+  "status": "fixture",
+  "edition_namespace": "synthetic/not-an-event-map",
+  "created_at": "2026-08-23T12:00:00Z",
+  "levels": [
+    {
+      "id": "show-floor",
+      "label": "Synthetic show floor",
+      "kind": "floor",
+      "coordinate_space": { "width": 1, "height": 1, "unit": "normalized" },
+      "orientation": "reviewed portrait display",
+      "default_view": { "center_x": 0.5, "center_y": 0.5, "zoom": 1 },
+      "source_ref_ids": ["synthetic-layout-review"]
+    }
+  ],
+  "objects": [
+    {
+      "id": "ticketed-play",
+      "revision_id": "fixture-r1",
+      "level_id": "show-floor",
+      "type": "zone",
+      "label": "Ticketed Play",
+      "geometry": { "kind": "rect", "x": 0.68, "y": 0.48, "width": 0.27, "height": 0.42 },
+      "permeability": "open",
+      "children_order": ["prize-wall", "play-hq"],
+      "presentation": {
+        "min_zoom": 1,
+        "label_zoom": 1,
+        "detail_zoom": 2,
+        "emphasis": "major",
+        "label_mode": "full",
+        "color_role": "play"
+      },
+      "review_state": "reviewed",
+      "source_ref_ids": ["synthetic-layout-review"]
+    },
+    {
+      "id": "prize-wall",
+      "revision_id": "fixture-r1",
+      "level_id": "show-floor",
+      "type": "service",
+      "label": "Prize Wall",
+      "parent_id": "ticketed-play",
+      "geometry": { "kind": "rect", "x": 0.7, "y": 0.52, "width": 0.1, "height": 0.08 },
+      "presentation": {
+        "min_zoom": 2,
+        "label_zoom": 2,
+        "detail_zoom": 3,
+        "emphasis": "normal",
+        "label_mode": "full",
+        "color_role": "service"
+      },
+      "review_state": "reviewed",
+      "source_ref_ids": ["synthetic-layout-review"]
+    },
+    {
+      "id": "play-hq",
+      "revision_id": "fixture-r1",
+      "level_id": "show-floor",
+      "type": "service",
+      "label": "Play HQ",
+      "aliases": ["On-Demand Registration"],
+      "parent_id": "ticketed-play",
+      "geometry": { "kind": "rect", "x": 0.81, "y": 0.52, "width": 0.12, "height": 0.08 },
+      "presentation": {
+        "min_zoom": 2,
+        "label_zoom": 2,
+        "detail_zoom": 3,
+        "emphasis": "normal",
+        "label_mode": "full",
+        "color_role": "service"
+      },
+      "review_state": "reviewed",
+      "source_ref_ids": ["synthetic-layout-review"]
+    },
+    {
+      "id": "marketplace",
+      "revision_id": "fixture-r1",
+      "level_id": "show-floor",
+      "type": "zone",
+      "label": "Marketplace",
+      "aliases": ["Magic Marketplace"],
+      "geometry": { "kind": "rect", "x": 0.28, "y": 0.2, "width": 0.35, "height": 0.38 },
+      "permeability": "open",
+      "presentation": {
+        "min_zoom": 1,
+        "label_zoom": 1,
+        "detail_zoom": 2.5,
+        "emphasis": "major",
+        "label_mode": "full",
+        "color_role": "marketplace"
+      },
+      "review_state": "reviewed",
+      "source_ref_ids": ["synthetic-layout-review"]
+    }
+  ],
+  "bindings": [
+    {
+      "id": "fixture-info-prize-wall",
+      "revision_id": "fixture-r1",
+      "domain": "info",
+      "domain_object_id": "fixture-prize-wall-guide",
+      "spatial_object_id": "ticketed-play",
+      "focus_object_id": "prize-wall",
+      "review_state": "reviewed",
+      "source_ref_ids": ["synthetic-layout-review"]
+    }
+  ],
+  "search_entries": [
+    {
+      "id": "search-ticketed-play",
+      "label": "Ticketed Play",
+      "normalized_terms": ["ticketed play"],
+      "category": "zone",
+      "spatial_object_id": "ticketed-play",
+      "priority": 100
+    },
+    {
+      "id": "search-prize-wall",
+      "label": "Prize Wall",
+      "normalized_terms": ["prize wall", "prize tix", "prizes"],
+      "category": "service",
+      "spatial_object_id": "ticketed-play",
+      "focus_object_id": "prize-wall",
+      "priority": 90
+    },
+    {
+      "id": "search-marketplace",
+      "label": "Marketplace",
+      "normalized_terms": ["marketplace", "magic marketplace", "vendors", "exhibitors"],
+      "category": "zone",
+      "spatial_object_id": "marketplace",
+      "priority": 90
+    }
+  ],
+  "source_refs": [
+    {
+      "id": "synthetic-layout-review",
+      "artifact_id": "synthetic-only",
+      "edition_namespace": "synthetic/not-an-event-map",
+      "source_kind": "reviewer_annotation",
+      "locator": "Purpose-built schema fixture; no real floor-plan claims",
+      "reviewed_at": "2026-08-23T12:00:00Z",
+      "reviewed_by": "schema-fixture"
+    }
+  ]
+}

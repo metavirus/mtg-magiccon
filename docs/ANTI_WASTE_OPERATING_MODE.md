@@ -32,6 +32,12 @@ If a known lane still fails, treat that first as an agent execution failure unti
 
 ## Change tiers
 
+### Local-first default
+
+During an active design/build session, keep ordinary UI and application iterations local. For each bounded change, run the proportional targeted tests/build and inspect the affected desktop/mobile viewport. Do not commit, push, wait for CI/Pages, or verify public caches after every intermediate adjustment.
+
+Publish once at a meaningful checkpoint: Kavi explicitly says ship/publish/live; public or physical-iPhone review is needed; a coherent feature is complete; the session is pausing and needs a durable shared checkpoint; or the work inherently changes live automation, auth, persistence, monitoring, or shared data. Batch accepted local changes into one exact-scope integration and one deployment verification pass.
+
 ### Tier -1 — docs or operating-model hardening
 
 Use for documentation, instructions, and process cleanup that does not change app code, workflows, auth, data shape, monitoring behavior, or public UI.
@@ -54,9 +60,9 @@ Use for CSS, copy, spacing, icon, and layout changes that do not touch data shap
 - If the issue is visual or mobile-specific, inspect the affected public or local viewport before claiming it is fixed. `pnpm ui:capture -- -Route <route>` after the build can serve as both the browser-capability check and viewport proof. If interactive browser control is needed and appears broken, apply the stale-tab recovery in `docs/KNOWN_GREMLINS.md`; stop and request the exact host action after one reset and retry rather than continuing blind.
 - For a first-time visual defect, stop patching symptoms after two failed attempts and find the duplicated component, CSS cascade, cache, or publish root cause. If a previously fixed visual defect recurs, do that root-cause work immediately on the first recurrence.
 
-### Tier 1 — public preview UI change
+### Tier 1 — requested public preview UI change
 
-Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
+Use only when the change is intentionally being pushed to GitHub Pages or reviewed on iPhone. Ordinary in-session UI iteration remains Tier 0/local-first until that checkpoint.
 
 - Use the smallest validation lane that still covers the real risk:
   - one-file or tightly bounded UI/routing fix: `pnpm build`
@@ -70,7 +76,7 @@ Use when the change will be pushed to GitHub Pages or reviewed on iPhone.
 - If public Pages still shows stale behavior, say “pushed but not propagated/cached yet,” not “fixed.”
 - If any known environment/publish/cache/auth/Git failure appears, follow `docs/KNOWN_GREMLINS.md` before inventing a new workaround.
 
-Default fast lane for this hobby app:
+Default fast lane for a requested public checkpoint:
 
 1. edit the smallest relevant file(s);
 2. run `pnpm build`;
@@ -81,7 +87,7 @@ Default fast lane for this hobby app:
 
 Escalate above that fast lane only when the change touches auth, persistence, workflows, multiple broad UI surfaces, or a capability/readiness path is itself under question.
 
-For this app, do not add a separate “ask to push” step once Kavi has approved the bounded work. Root validates, reviews the staged scope, commits, pushes `main`, waits for deploy, verifies live, and reports. Pause only if scope expanded, the change is destructive or hard to reverse, credentials/auth/deploy state is unsafe or ambiguous, or confidence about what will ship has dropped.
+For this app, do not publish ordinary intermediate iterations. Once Kavi asks to ship/publish/live or another documented publish condition applies, do not add a separate magic “ask to push” step: root validates, reviews the staged scope, commits, pushes `main`, waits for deploy, verifies live, and reports. Pause only if scope expanded, the change is destructive or hard to reverse, credentials/auth/deploy state is unsafe or ambiguous, or confidence about what will ship has dropped.
 
 ### Commit/publish discipline
 

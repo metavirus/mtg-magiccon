@@ -1,6 +1,6 @@
 # Current Frontier
 
-Updated: 2026-08-22
+Updated: 2026-08-24
 
 ## Flight signal closed loop
 
@@ -14,9 +14,17 @@ Migration `20260822223827_allow_guarded_airline_assigned_replacements` adds the 
 
 ## Semantic Map planning checkpoint
 
-`docs/SEMANTIC_MAP_MINIPROJECT_PLAN.md` and `docs/MAP_INGESTION_RUNBOOK.md` now define the durable two-mode path from the current honest Map landing to an offline semantic spatial twin. NOW permits product/design freeze, versioned contracts, quarantined historical or synthetic fixtures, overlay/search/route/binding/offline tooling, sensor/privacy contracts, and device-simulation harnesses. ARRIVAL begins only after a first-party original Atlanta 2026 artifact passes event/year/floor/hash checks; it owns independent orientation calibration, original-resolution deconstruction, reviewed joins and route/accessibility goldens, atomic offline activation, deployed desktop/mobile/physical-iPhone proof, and later revision supersession.
+`docs/SEMANTIC_MAP_MINIPROJECT_PLAN.md` preserves the design history, while `docs/MAP_INGESTION_RUNBOOK.md` is now the single clean arrival procedure. The runbook begins only after a first-party original Atlanta 2026 artifact passes event/year/venue/floor/hash checks. It then owns evidence capture, independent 2026 orientation, reviewed visitor-meaningful deconstruction, zoom density, search and domain bindings, data validation, later app integration, offline packaging, and deployed device proof. Obsolete routing, origin, camera, live-position, and accessibility-path instructions were removed rather than left behind as misleading ceremony.
+
+`docs/MAP_SEMANTIC_DATA_CONTRACT.md` now freezes the narrower active model behind the accepted prototype: explicit levels and containment, simplified reviewed geometry, visitor-meaningful access points, zoom-dependent presentation, deterministic search, cross-surface bindings and return context, and private personal overlays. Proximity never implies parentage, unbound domain objects never pin, and routing/camera/live-position records are absent from the active contract. `MAP-NOW-01D` and `MAP-NOW-01` are complete: `docs/map-data/` contains machine-checkable schemas, a deliberately synthetic fixture, and semantic validation. Nothing under `src/` imports it, so the app remains unchanged until a reviewed official map exists.
+
+`MAP-NOW-02` and `MAP-NOW-03` are also complete. `docs/map-data/historical/atlanta-2025/reference.json` quarantines the prior edition without pretending the original artifact is stored, and `pnpm validate:map-data` now proves a clean future-edition control can activate while eight unsafe historical/provenance/revision/review/containment/binding/routing mutations fail. Source references carry their actual edition namespace, which is the enforceable barrier against quietly reusing old coordinates or labels.
 
 Atlanta 2025 remains structural reference only. Its west-up orientation is user-confirmed for that edition and must never seed a 2026 orientation claim; no original-resolution 2025 artifact is currently tracked in this repository. The backlog now decomposes the work into executable `MAP-NOW-*`, `MAP-ARR-*`, `MAP-ON-*`, and `MAP-LATER-*` IDs with dependencies, owner lanes, acceptance criteria, and an explicit safe-now/must-wait boundary. No Map feature, schema, canonical spatial data, or public behavior changed in this planning lane.
+
+Pre-arrival Map work is now parked by product decision. `MAP-NOW-00` through `MAP-NOW-03` are the completed preparation boundary; remaining prototype/tooling ideas must be reconsidered against the real artifact rather than executed speculatively. Nothing in `docs/map-data/` is imported by the app.
+
+The parked inventory is explicit in `docs/WORK_BACKLOG.md`, with intent preserved rather than flattened. Small per-item inbox dismissal and a recoverable collapsed dismissed group are planned now. Bell movement is separately planned for convention time only, when a genuinely urgent signal such as official-map publication or an onsite change exists; nothing currently merits motion. Show Store, Marketplace/exhibitor, and Art of Magic close views are planned once official layouts exist. Offsite-event handling is artifact-dependent because the event itself is not yet confirmed. Cohesive wayfinding/camera/origin work and optional rotation/compass/depth/control polish remain “consider later” experiments.
 
 ## Info Recent recurrence correction
 
