@@ -18,4 +18,11 @@ describe('paid-event detail layout contract', () => {
     expect(appSource).toMatch(/<\/button>\s*<PurchaseControl event=\{event\}/)
     expect(appSource).toContain('onClick={click => click.stopPropagation()}')
   })
+
+  it('uses the participant badge as the single Calendar purchase marker', () => {
+    expect(appSource).not.toContain('className="calendar-purchase-lock"')
+    expect(appSource).toContain("participant.purchased ? <ActionIcon name=\"lock\"")
+    expect(densitySource).toContain('.plan-participant.purchased .person-bubble,.agenda-event .plan-participant.purchased .person-bubble{box-shadow:0 0 0 1px #f0b26f,0 0 0 3px #8f6148}')
+    expect(densitySource).toContain('border:1px solid #e0a47b;border-radius:50%;background:#442d23;color:#e0a47b')
+  })
 })

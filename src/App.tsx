@@ -14,7 +14,7 @@ import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFe
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
-import { applyPurchaseTransition, canPurchaseEvent, showCalendarPurchaseMarker } from './lib/eventPurchase'
+import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -5606,7 +5606,6 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
       <div className={`agenda-icon type-${event.type}`}><EventKindIcon name={icon} /></div>
       <div className="agenda-copy"><span className="agenda-kind">{blackLotus ? `Black Lotus · ${event.type}` : `${event.type} event`}</span><h2>{displayEventTitle(event)}</h2><p>{event.fit}</p></div>
       {blackLotus && <span className="calendar-source-badge" title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
-      {showCalendarPurchaseMarker(Boolean(event.purchased)) && <span className="calendar-purchase-lock" title="Purchased" aria-label="Purchased"><ActionIcon name="lock" /></span>}
       <span className="agenda-signals"><PlanParticipantBadges participants={participants} currentPerson={currentPerson} compact /></span>
     </button>
   }
