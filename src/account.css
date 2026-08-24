@@ -344,19 +344,56 @@
   gap: 7px;
 }
 
+.mention-row {
+  position: relative;
+}
+
 .mention-item {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 9px;
   align-items: start;
   width: 100%;
-  padding: 9px;
+  padding: 9px 34px 9px 9px;
   border: 1px solid #2d415d;
   border-radius: 10px;
   background: #0b1625;
   color: #dce7f5;
   text-align: left;
   cursor: pointer;
+}
+
+.mention-dismiss,
+.mention-restore {
+  position: absolute;
+  z-index: 1;
+  top: 7px;
+  right: 7px;
+  display: inline-grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #8094ac;
+  cursor: pointer;
+}
+
+.mention-dismiss {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.mention-dismiss:hover,
+.mention-dismiss:focus-visible,
+.mention-restore:hover,
+.mention-restore:focus-visible {
+  border-color: #526d8d;
+  background: #1a2c43;
+  color: #edf4fc;
+  outline: none;
 }
 
 .mention-item:hover {
@@ -395,6 +432,66 @@
   color: #97aac1;
   font-size: 11px;
   line-height: 1.5;
+}
+
+.mention-dismissed {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #263a52;
+}
+
+.mention-dismissed > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 3px 2px;
+  color: #879bb3;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mention-dismissed > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mention-dismissed > summary::before {
+  content: '›';
+  display: inline-block;
+  font-size: 15px;
+  transition: transform .16s ease;
+}
+
+.mention-dismissed[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.mention-dismissed > summary b {
+  display: inline-grid;
+  min-width: 17px;
+  height: 17px;
+  place-items: center;
+  border-radius: 999px;
+  background: #1c3048;
+  color: #aebfd2;
+  font-size: 9px;
+}
+
+.mention-dismissed .mention-list {
+  margin-top: 5px;
+}
+
+.mention-row.dismissed .mention-item {
+  opacity: .7;
+}
+
+.mention-restore {
+  width: auto;
+  padding: 0 6px;
+  font-size: 9px;
+  font-weight: 750;
 }
 
 .preview-label {

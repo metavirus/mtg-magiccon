@@ -13,6 +13,7 @@ import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, 
 import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
+import { partitionMentionInboxItems } from './lib/mentionInbox'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -422,7 +423,30 @@ async function loadMonitoringConcepts(): Promise<MonitoringConceptRow[]> {
 type MentionInboxItem = {
   id: string
   mentionToken: string
+  dismissedAt: string | null
   note: ContextNote
+}
+
+function mentionInboxQaRows(): MentionInboxItem[] {
+  const note = (id: string, author: PersonName, body: string): ContextNote => ({
+    id: `qa-note-${id}`,
+    objectId: `qa-object-${id}`,
+    objectKind: 'note',
+    objectTitle: 'Magic: The Menu with Brian David-Marshall',
+    context: 'Event note',
+    title: 'Mention QA',
+    body,
+    author,
+    visibility: 'shared',
+    updatedAt: 'Today',
+    updatedAtIso: '2026-08-24T12:00:00-07:00',
+    backlink: 'notes',
+  })
+  return [
+    { id: 'qa-mention-chris', mentionToken: '@Kavi', dismissedAt: null, note: note('chris', 'Chris', 'This looks fun — should we keep it on the shortlist?') },
+    { id: 'qa-mention-juan', mentionToken: '@Kavi', dismissedAt: null, note: note('juan', 'Juan', 'I can cover the early session if you want the later one.') },
+    { id: 'qa-mention-kyle', mentionToken: '@Kavi', dismissedAt: '2026-08-24T13:00:00-07:00', note: note('kyle', 'Kyle', 'Archived mention used only to verify the collapsed group.') },
+  ]
 }
 
 async function loadMentionInbox(userId: string): Promise<MentionInboxItem[]> {
@@ -442,9 +466,8 @@ async function loadMentionInbox(userId: string): Promise<MentionInboxItem[]> {
       )
     `)
     .eq('mentioned_user_id', userId)
-    .is('dismissed_at', null)
     .order('created_at', { ascending: false })
-    .limit(25)
+    .limit(50)
   if (result.error) throw result.error
   return ((result.data ?? []) as NoteMentionRow[])
     .map(row => {
@@ -452,6 +475,7 @@ async function loadMentionInbox(userId: string): Promise<MentionInboxItem[]> {
       return note ? {
         id: row.id,
         mentionToken: row.mention_token,
+        dismissedAt: row.dismissed_at,
         note: personalNoteRowToContextNote(note),
       } : null
     })
@@ -603,7 +627,7 @@ export default function App() {
   // Badge tier is useful trip context, not an authorization boundary. Active
   // companions can plan around every visible event, including Black Lotus.
   const canCommitBlackLotus = true
-  const mentionUnreadCount = mentionInboxState.length
+  const mentionUnreadCount = partitionMentionInboxItems(mentionInboxState).active.length
 
   useEffect(() => {
     if (designPreview || isPreviewOwnerMode || loading || !continuityReady || !effectiveOwnerId || tutorialPromptedOwner === effectiveOwnerId) return
@@ -736,7 +760,7 @@ export default function App() {
     if (designPreview || isPreviewOwnerMode) {
       setMessage('')
       setContextNotesState(designPreview ? contextNotes : [])
-      setMentionInboxState([])
+      setMentionInboxState(new URLSearchParams(window.location.search).get('qa') === 'mention-inbox' ? mentionInboxQaRows() : [])
       setAlertReview({})
       setUserSelections({})
       setSharedSelectionRows([])
@@ -1024,6 +1048,24 @@ export default function App() {
     const destination = surfaceFromNoteBacklink(note)
     openDestination(surfaceTitle(destination), destination)
     setObjectDetail(detail)
+  }
+  const setMentionDismissed = async (mentionId: string, dismissed: boolean) => {
+    const previous = mentionInboxState.find(item => item.id === mentionId)?.dismissedAt ?? null
+    const dismissedAt = dismissed ? new Date().toISOString() : null
+    setMentionInboxState(current => current.map(item => item.id === mentionId ? { ...item, dismissedAt } : item))
+    if (!canWrite || !supabase || !effectiveOwnerId) return
+
+    const result = await supabase.from('note_mentions')
+      .update({ dismissed_at: dismissedAt, updated_at: new Date().toISOString() })
+      .eq('id', mentionId)
+      .eq('mentioned_user_id', effectiveOwnerId)
+      .select('id')
+      .maybeSingle()
+    if (result.error || !result.data) {
+      setMentionInboxState(current => current.map(item => item.id === mentionId ? { ...item, dismissedAt: previous } : item))
+      setMessageTone('error')
+      setMessage(`Mention could not be ${dismissed ? 'dismissed' : 'restored'}. ${result.error?.message ?? 'Please refresh and try again.'}`)
+    }
   }
   const closeObjectDetail = () => setObjectDetail(null)
   const upsertUserSelection = async (objectId: string, objectKind: SelectionObjectKind, key: string, value: string) => {
@@ -1489,6 +1531,8 @@ export default function App() {
             <MentionInbox
               items={mentionInboxState}
               onOpenMention={openMentionNote}
+              onDismissMention={item => { void setMentionDismissed(item.id, true) }}
+              onRestoreMention={item => { void setMentionDismissed(item.id, false) }}
             />
             <AccountMenu
               email={effectiveSession?.user.email ?? 'kavigrace@gmail.com'}
@@ -6142,8 +6186,37 @@ function OnboardingTutorial({ surface, onNavigate, onMobileMenuChange, onClose }
   </div>
 }
 
-function MentionInbox({ items, onOpenMention }: { items: MentionInboxItem[]; onOpenMention: (note: ContextNote) => void }) {
-  const unread = items.length
+function MentionInbox({
+  items,
+  onOpenMention,
+  onDismissMention,
+  onRestoreMention,
+}: {
+  items: MentionInboxItem[]
+  onOpenMention: (note: ContextNote) => void
+  onDismissMention: (item: MentionInboxItem) => void
+  onRestoreMention: (item: MentionInboxItem) => void
+}) {
+  const { active, dismissed } = partitionMentionInboxItems(items)
+  const unread = active.length
+
+  const mentionButton = (item: MentionInboxItem) => <button
+    type="button"
+    className="mention-item"
+    onClick={event => {
+      const root = event.currentTarget.closest('details.mention-inbox')
+      if (root instanceof HTMLDetailsElement) root.open = false
+      onOpenMention(item.note)
+    }}
+  >
+    <PersonBubbles people={[item.note.author]} />
+    <span>
+      <strong>{item.note.author} mentioned you as {item.mentionToken}</strong>
+      <small>{item.note.objectTitle}{item.note.objectAnchor ? ` · ${item.note.objectAnchor}` : ''}</small>
+      <em>{item.note.body}</em>
+    </span>
+    <i aria-hidden="true">›</i>
+  </button>
 
   return <details className="mention-inbox">
     <summary aria-label={`Mentions${unread ? `, ${unread} unread` : ''}`}>
@@ -6158,28 +6231,23 @@ function MentionInbox({ items, onOpenMention }: { items: MentionInboxItem[]; onO
         <span className="eyebrow">MENTIONS</span>
         <strong>{unread ? `${unread} for you` : 'Nothing waiting'}</strong>
       </header>
-      {items.length
+      {active.length
         ? <div className="mention-list">
-          {items.map(item => <button
-            key={item.id}
-            type="button"
-            className="mention-item"
-            onClick={event => {
-              const root = event.currentTarget.closest('details')
-              if (root instanceof HTMLDetailsElement) root.open = false
-              onOpenMention(item.note)
-            }}
-          >
-            <PersonBubbles people={[item.note.author]} />
-            <span>
-              <strong>{item.note.author} mentioned you as {item.mentionToken}</strong>
-              <small>{item.note.objectTitle}{item.note.objectAnchor ? ` · ${item.note.objectAnchor}` : ''}</small>
-              <em>{item.note.body}</em>
-            </span>
-            <i aria-hidden="true">›</i>
-          </button>)}
+          {active.map(item => <div className="mention-row" key={item.id}>
+            {mentionButton(item)}
+            <button className="mention-dismiss" type="button" aria-label={`Dismiss mention from ${item.note.author}`} title="Dismiss" onClick={() => onDismissMention(item)}>×</button>
+          </div>)}
         </div>
         : <p className="mention-empty">No @mentions yet. Shared notes that name you will land here.</p>}
+      {dismissed.length > 0 && <details className="mention-dismissed">
+        <summary>Dismissed <b>{dismissed.length}</b></summary>
+        <div className="mention-list">
+          {dismissed.map(item => <div className="mention-row dismissed" key={item.id}>
+            {mentionButton(item)}
+            <button className="mention-restore" type="button" aria-label={`Restore mention from ${item.note.author}`} onClick={() => onRestoreMention(item)}>Restore</button>
+          </div>)}
+        </div>
+      </details>}
     </div>
   </details>
 }
