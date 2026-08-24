@@ -133,7 +133,7 @@ describe('ticketed play hydration', () => {
     })
   })
 
-  it('turns sold-out transitions into a targeted Explore signal', () => {
+  it('makes every new sellout hot without pretending it was watched', () => {
     const previous = [
       eventFixture({ id: 'sealed', sourceEventKey: 'sealed', title: 'Collector Booster Sealed', availability: 'available' }),
       eventFixture({ id: 'league', sourceEventKey: 'league', title: 'Commander League', playFormat: 'league', availability: 'available' }),
@@ -154,12 +154,52 @@ describe('ticketed play hydration', () => {
     expect(diff.signals).toEqual([
       expect.objectContaining({
         kind: 'availability_change',
-        severity: 'worth_knowing',
-        title: '1 watched event sold out',
+        severity: 'hot',
+        title: '1 ticketed event sold out',
         affectedEventIds: ['sealed'],
+        destinationRoute: 'explore',
         destinationFilter: { exploreBucket: 'play', availability: 'sold_out', group: 'sold_out' },
       }),
     ])
+  })
+
+  it('surfaces a relevant sellout and preserves a disappeared listing as unresolved', () => {
+    const watched = eventFixture({ id: 'watched', sourceEventKey: 'watched', relevanceReasons: ['interested'] })
+    const missing = eventFixture({ id: 'missing', sourceEventKey: 'missing', title: 'Ordinary side event' })
+    const current = [{ ...watched, availability: 'sold_out' as const }]
+
+    const diff = diffTicketedPlayInventory({ previous: [watched, missing], current, retrievedAt: '2026-08-25T17:00:00Z' })
+
+    expect(diff.unresolvedRemoved).toEqual([missing])
+    expect(diff.signals).toEqual(expect.arrayContaining([
+      expect.objectContaining({ severity: 'hot', title: '1 relevant event sold out' }),
+      expect.objectContaining({
+        severity: 'activity',
+        title: '1 ticketed listing needs reconciliation',
+        summary: expect.stringContaining('retained as unresolved'),
+      }),
+    ]))
+  })
+
+  it('treats a stable unchanged baseline as a silent reconciliation', () => {
+    const baseline = [eventFixture({ id: 'stable', sourceEventKey: 'gtID-123' })]
+    const diff = diffTicketedPlayInventory({ previous: baseline, current: baseline, retrievedAt: '2026-08-25T17:00:00Z' })
+    expect(diff).toMatchObject({ added: [], removed: [], unresolvedRemoved: [], changed: [], signals: [] })
+  })
+
+  it('keeps routine detail changes quiet while surfacing relevant schedule changes', () => {
+    const routine = eventFixture({ id: 'routine', sourceEventKey: 'routine', startsAt: '10:00' })
+    const watched = eventFixture({ id: 'watched', sourceEventKey: 'watched', startsAt: '11:00', relevanceReasons: ['tentative'] })
+    const diff = diffTicketedPlayInventory({
+      previous: [routine, watched],
+      current: [{ ...routine, startsAt: '10:30' }, { ...watched, startsAt: '11:30' }],
+      retrievedAt: '2026-08-25T17:00:00Z',
+    })
+
+    expect(diff.signals).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'time_change', severity: 'worth_knowing', affectedEventIds: ['watched'] }),
+      expect.objectContaining({ kind: 'time_change', severity: 'activity', affectedEventIds: ['routine'] }),
+    ]))
   })
 })
 

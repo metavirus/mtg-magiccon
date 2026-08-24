@@ -94,7 +94,7 @@ export function reconcileMonitoringObservation(observation, existingConcept = nu
   const previousPhase = existingConcept.current_state?.phase
   const nextPhase = extracted.claim?.phase
   if (previousPhase === 'announced' && ['open', 'sold_out', 'cancelled'].includes(nextPhase)) return {
-    ...base, resolution: 'milestone_transition', concept: { ...existingConcept, latest_resolution: 'milestone_transition', attention_state: 'milestone_transition', current_state: withProvenance(extracted.claim, observation, existingConcept.current_state), current_summary: observation.summary || observation.title },
+    ...base, resolution: 'milestone_transition', concept: { ...existingConcept, latest_resolution: 'milestone_transition', attention_state: 'milestone_transition', current_state: withProvenance({ ...extracted.claim, milestone_opened_at: observation.observedAt }, observation, existingConcept.current_state), current_summary: observation.summary || observation.title },
     rationale: `Ticketed Play sales transitioned from ${previousPhase} to ${nextPhase}.`,
   }
   return {

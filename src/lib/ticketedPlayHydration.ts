@@ -156,6 +156,7 @@ export type TicketedPlayInventoryDiff = {
     fields: Array<'availability' | 'time' | 'location' | 'price'>
   }>
   signals: TicketedPlaySignalGroup[]
+  unresolvedRemoved: HydratedTicketedPlayEvent[]
 }
 
 export function blocksCalendar(event: Pick<HydratedTicketedPlayEvent, 'purchaseStatus' | 'timeKind'>): boolean {
@@ -180,9 +181,10 @@ export function diffTicketedPlayInventory(input: {
   const signals = [
     ...buildAddedSignals(added, input.retrievedAt),
     ...buildChangedSignals(changed, input.retrievedAt),
+    ...buildRemovedSignals(removed, input.retrievedAt),
   ]
 
-  return { added, removed, changed, signals }
+  return { added, removed, unresolvedRemoved: removed, changed, signals }
 }
 
 export function shouldKeepSoldOutVisible(event: Pick<HydratedTicketedPlayEvent, 'availability' | 'purchaseStatus' | 'soldOutFirstSeenAt'>, now = new Date()): boolean {
@@ -268,25 +270,66 @@ function buildChangedSignals(
   const priceChanged = changed.filter(change => change.fields.includes('price')).map(change => change.current)
   const signals: TicketedPlaySignalGroup[] = []
 
-  if (soldOut.length > 0) {
+  const relevantSoldOut = soldOut.filter(isRelevantEvent)
+  const routineSoldOut = soldOut.filter(event => !isRelevantEvent(event))
+
+  if (relevantSoldOut.length > 0) {
     signals.push({
-      id: signalId('ticketed-play-sold-out', retrievedAt, soldOut.map(event => event.sourceEventKey).join('-')),
+      id: signalId('ticketed-play-sold-out', retrievedAt, relevantSoldOut.map(event => event.sourceEventKey).join('-')),
       kind: 'availability_change',
-      severity: 'worth_knowing',
-      title: `${soldOut.length} watched ${soldOut.length === 1 ? 'event sold out' : 'events sold out'}`,
-      summary: 'Sold-out events stay visible briefly so purchased or watched items can be reconciled.',
-      affectedEventIds: soldOut.map(event => event.id),
-      groupTags: ['ticketed-play', 'sold-out'],
+      severity: 'hot',
+      title: `${relevantSoldOut.length} relevant ${relevantSoldOut.length === 1 ? 'event sold out' : 'events sold out'}`,
+      summary: 'A purchased, watched, or unusually relevant event changed availability.',
+      affectedEventIds: relevantSoldOut.map(event => event.id),
+      groupTags: ['ticketed-play', 'sold-out', 'relevant'],
       destinationRoute: 'explore',
       destinationFilter: { exploreBucket: 'play', availability: 'sold_out', group: 'sold_out' },
     })
   }
 
-  if (timeChanged.length > 0) signals.push(changeSignal('time_change', 'time changed', timeChanged, retrievedAt))
-  if (locationChanged.length > 0) signals.push(changeSignal('location_change', 'location changed', locationChanged, retrievedAt))
-  if (priceChanged.length > 0) signals.push(changeSignal('price_change', 'price changed', priceChanged, retrievedAt))
+  if (routineSoldOut.length > 0) {
+    signals.push({
+      id: signalId('ticketed-play-sold-out-routine', retrievedAt, routineSoldOut.map(event => event.sourceEventKey).join('-')),
+      kind: 'availability_change',
+      severity: 'hot',
+      title: `${routineSoldOut.length} ticketed ${routineSoldOut.length === 1 ? 'event sold out' : 'events sold out'}`,
+      summary: 'This event just sold out; the listing remains visible for context.',
+      affectedEventIds: routineSoldOut.map(event => event.id),
+      groupTags: ['ticketed-play', 'sold-out', 'routine'],
+      destinationRoute: 'explore',
+      destinationFilter: { exploreBucket: 'play', availability: 'sold_out', group: 'sold_out' },
+    })
+  }
+
+  signals.push(...relevanceAwareChangeSignals('time_change', 'time changed', timeChanged, retrievedAt))
+  signals.push(...relevanceAwareChangeSignals('location_change', 'location changed', locationChanged, retrievedAt))
+  if (priceChanged.length > 0) signals.push(changeSignal('price_change', 'price changed', priceChanged, retrievedAt, 'activity'))
 
   return signals
+}
+
+function buildRemovedSignals(events: HydratedTicketedPlayEvent[], retrievedAt: string): TicketedPlaySignalGroup[] {
+  if (events.length === 0) return []
+  const relevant = events.filter(isRelevantEvent)
+  return [{
+    id: signalId('ticketed-play-listing-missing', retrievedAt, events.map(event => event.sourceEventKey).join('-')),
+    kind: 'availability_change',
+    severity: relevant.length > 0 ? 'worth_knowing' : 'activity',
+    title: relevant.length > 0
+      ? `${relevant.length} relevant ${relevant.length === 1 ? 'listing needs' : 'listings need'} reconciliation`
+      : `${events.length} ticketed ${events.length === 1 ? 'listing needs' : 'listings need'} reconciliation`,
+    summary: 'Missing from this scan; retained as unresolved until the source confirms removal or cancellation.',
+    affectedEventIds: events.map(event => event.id),
+    groupTags: ['ticketed-play', 'listing-missing', relevant.length > 0 ? 'relevant' : 'routine'],
+    destinationRoute: relevant.length > 0 ? 'explore' : 'activity',
+    destinationFilter: relevant.length > 0 ? { exploreBucket: 'play', group: 'watched' } : undefined,
+  }]
+}
+
+function isRelevantEvent(event: HydratedTicketedPlayEvent): boolean {
+  if (event.purchaseStatus === 'purchased' || event.purchaseStatus === 'registered') return true
+  if (event.relevanceReasons.length > 0) return true
+  return isHighSignalEvent(event)
 }
 
 function changeSignal(
@@ -294,11 +337,12 @@ function changeSignal(
   label: string,
   events: HydratedTicketedPlayEvent[],
   retrievedAt: string,
+  severity: TicketedPlaySignalGroup['severity'] = 'worth_knowing',
 ): TicketedPlaySignalGroup {
   return {
     id: signalId(`ticketed-play-${kind}`, retrievedAt, events.map(event => event.sourceEventKey).join('-')),
     kind,
-    severity: 'worth_knowing',
+    severity,
     title: `${events.length} ticketed play ${events.length === 1 ? 'event' : 'events'} ${label}`,
     summary: 'Review the affected listings before turning them into plan or calendar commitments.',
     affectedEventIds: events.map(event => event.id),
@@ -306,6 +350,20 @@ function changeSignal(
     destinationRoute: 'explore',
     destinationFilter: { exploreBucket: 'play', group: 'watched' },
   }
+}
+
+function relevanceAwareChangeSignals(
+  kind: Extract<TicketedPlaySignalGroup['kind'], 'time_change' | 'location_change'>,
+  label: string,
+  events: HydratedTicketedPlayEvent[],
+  retrievedAt: string,
+): TicketedPlaySignalGroup[] {
+  const relevant = events.filter(isRelevantEvent)
+  const routine = events.filter(event => !isRelevantEvent(event))
+  return [
+    ...(relevant.length > 0 ? [changeSignal(kind, label, relevant, retrievedAt, 'worth_knowing')] : []),
+    ...(routine.length > 0 ? [changeSignal(kind, label, routine, retrievedAt, 'activity')] : []),
+  ]
 }
 
 function isHighSignalEvent(event: HydratedTicketedPlayEvent): boolean {

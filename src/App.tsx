@@ -14,7 +14,7 @@ import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFe
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
-import { homeSignalAgeBucket } from './lib/homeSignalAge'
+import { homeSignalAgeBucket, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen } from './lib/homeSignalAge'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import {
   formatOccurrenceTime,
@@ -505,18 +505,20 @@ function monitoringFindingQaRows(): MonitoringFindingRow[] {
 }
 
 function monitoringConceptQaRows(): MonitoringConceptRow[] {
-  if (!new URLSearchParams(window.location.search).get('qa')?.split(',').includes('monitoring-concepts')) return []
+  const qa = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
+  if (!qa.includes('monitoring-concepts') && !qa.includes('sale-open')) return []
+  const saleOpen = qa.includes('sale-open')
   return [{
     concept_key: 'atlanta:ticketed-play:sales-opening',
     title: 'Ticketed Play sales',
-    current_summary: 'Ticketed Play sales open August 25 at 10 AM PT.',
+    current_summary: saleOpen ? 'Ticketed Play sales are now open.' : 'Ticketed Play sales open August 25 at 10 AM PT.',
     attention_state: 'material_update',
     review_state: 'unread',
     latest_resolution: 'material_update',
-    current_state: { phase: 'announced', sale_date: '2026-08-25', sale_time: '10:00', resources: [{ label: 'Ticketed Play Schedule', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html' }] },
+    current_state: { phase: saleOpen ? 'open' : 'announced', milestone_opened_at: saleOpen ? new Date().toISOString() : undefined, sale_date: '2026-08-25', sale_time: '10:00', resources: [{ label: 'Ticketed Play Schedule', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html' }] },
     evidence_count: 2,
     first_seen_at: '2026-08-18T17:29:32.154Z',
-    last_seen_at: '2026-08-21T18:57:59.364Z',
+    last_seen_at: saleOpen ? new Date().toISOString() : '2026-08-21T18:57:59.364Z',
   }]
 }
 
@@ -808,7 +810,11 @@ export default function App() {
     else failures.push('activity')
     if (findingsResult.status === 'fulfilled') setMonitoringFindings(findingsResult.value)
     else failures.push('monitoring findings')
-    if (conceptsResult.status === 'fulfilled') setMonitoringConcepts(conceptsResult.value)
+    if (conceptsResult.status === 'fulfilled') {
+      const qaConcepts = monitoringConceptQaRows()
+      const qaKeys = new Set(qaConcepts.map(row => row.concept_key))
+      setMonitoringConcepts([...conceptsResult.value.filter(row => !qaKeys.has(row.concept_key)), ...qaConcepts])
+    }
     else failures.push('monitoring concepts')
     if (infoResult.status === 'fulfilled') { setInfoTopics(infoResult.value.topics); setInfoFeed(infoResult.value.feed) }
     else failures.push('Info knowledge')
@@ -1310,6 +1316,7 @@ export default function App() {
         backlinks: [{ label: 'Activity', destination: 'activity' }],
       },
       monitoringConcept: concept,
+      officialResources: resources,
     }
   })
   const findingActivity: ActivityItem[] = monitoringFindings.map(finding => {
@@ -1368,6 +1375,12 @@ export default function App() {
   })
   const setActivityReviewState = (item: ActivityItem, state: AlertReviewState) => {
     if (item.monitoringConcept) {
+      const qaSaleOpen = (new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []).includes('sale-open')
+        && item.monitoringConcept.concept_key === 'atlanta:ticketed-play:sales-opening'
+      if (qaSaleOpen) {
+        setMonitoringConcepts(current => current.map(row => row.concept_key === item.monitoringConcept!.concept_key ? { ...row, review_state: state === 'archived' ? 'archived' : state === 'reviewed' ? 'read' : 'unread' } : row))
+        return
+      }
       if (!supabase) return
       const reviewState = state === 'reviewed' ? 'read' : state === 'archived' ? 'archived' : 'unread'
       setMonitoringConcepts(current => current.map(row => row.concept_key === item.monitoringConcept!.concept_key ? { ...row, review_state: reviewState } : row))
@@ -1438,6 +1451,8 @@ export default function App() {
   }
   const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems, Date.now(), currentCompanion?.name ?? 'Kavi') : []
   const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
+  const saleInboxSignal = activityItems.find(item => isFeaturedTicketedPlaySale(item, Date.now()))
+  const shiverSignal = saleInboxSignal?.reviewState === 'needs-review' ? saleInboxSignal : undefined
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
   const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
   const headerSubtitle = surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
@@ -1543,7 +1558,11 @@ export default function App() {
           <div className="header-actions">
             <MentionInbox
               items={mentionInboxState}
+              alert={saleInboxSignal}
               onOpenMention={openMentionNote}
+              onOpenAlert={() => openDestination('Activity', 'activity')}
+              onDismissAlert={item => setActivityReviewState(item, 'archived')}
+              onRestoreAlert={item => setActivityReviewState(item, 'needs-review')}
               onDismissMention={item => { void setMentionDismissed(item.id, true) }}
               onRestoreMention={item => { void setMentionDismissed(item.id, false) }}
             />
@@ -5797,18 +5816,35 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
   const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
   const now = Date.now()
   const homeSignals = homeWorthKnowingItems(activityItems, now, currentPerson)
-  const recentSignals = homeSignals.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'recent')
-  const earlierSignals = homeSignals.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'earlier')
-  const hotCount = homeSignals.filter(item => item.severity === 'hot').length
+  const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
+  const ticketedPlaySaleIsOpen = activityItems.some(isTicketedPlaySaleOpen)
+  const ordinarySignals = homeSignals.filter(item => item.id !== featuredSale?.id)
+  const recentSignals = ordinarySignals.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'recent')
+  const earlierSignals = ordinarySignals.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'earlier')
+  const featuredAlreadyCounted = Boolean(featuredSale && homeSignals.some(item => item.id === featuredSale.id))
+  const visibleSignalCount = homeSignals.length + (featuredSale && !featuredAlreadyCounted ? 1 : 0)
+  const hotCount = homeSignals.filter(item => item.severity === 'hot').length + (featuredSale?.severity === 'hot' && !featuredAlreadyCounted ? 1 : 0)
+  const saleUrl = featuredSale?.officialResources?.find(resource => /ticketed.play|schedule/i.test(`${resource.label} ${resource.url}`))?.url
   return <div className="home-surface">
     <div className="home-main-row">
       <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading" data-tour-target="home-signals">
         <div className="home-lane-head">
-          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{homeSignals.length ? `${homeSignals.length} useful item${homeSignals.length === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
+          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{visibleSignalCount ? `${visibleSignalCount} useful item${visibleSignalCount === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
           <button type="button" onClick={onOpenActivity}>Full Activity</button>
         </div>
         <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; recency is shown separately.` : 'Recent notes and useful earlier context land here without turning routine activity into an alarm.'}</p>
         <div className="timely-home" aria-label="Worth Knowing signals">
+          {featuredSale && (saleUrl
+            ? <a className="home-featured-sale" href={saleUrl} target="_blank" rel="noreferrer">
+                <span className="home-featured-sale-icon"><MilestoneIcon name="ticketed-play" /></span>
+                <span><small>ON SALE NOW</small><strong>Ticketed Play is up for sale!</strong><em>Open the official Ticketed Play page to purchase events.</em></span>
+                <b aria-hidden="true">↗</b>
+              </a>
+            : <button type="button" className="home-featured-sale" onClick={() => onOpenItem(featuredSale)}>
+                <span className="home-featured-sale-icon"><MilestoneIcon name="ticketed-play" /></span>
+                <span><small>ON SALE NOW</small><strong>Ticketed Play is up for sale!</strong><em>Open Ticketed Play details.</em></span>
+                <b aria-hidden="true">›</b>
+              </button>)}
           {([['Recent', recentSignals], ['Earlier', earlierSignals]] as const).map(([label, signals]) => signals.length > 0 && <section className="home-signal-age-group" key={label} aria-label={`${label} Worth Knowing items`}>
             <h3>{label}</h3>
             {signals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
@@ -5825,21 +5861,24 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
       </section>
 
       <div className="home-right-rail">
-        <button className="next-milestone home-top-forecast" type="button" onClick={() => setShowTicketedPlayMilestone(true)}>
-          <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
-          <div>
-            <span className="eyebrow">NEXT EXPECTED</span>
-            <h2>Ticketed play purchasing is next.</h2>
-            <p>The schedule page is published. Now the next milestone is buying ticketed play on August 25 at 10 AM PT.</p>
-          </div>
-          <span className="milestone-date"><small>Official</small><strong>Aug 25</strong></span>
-        </button>
+        {ticketedPlaySaleIsOpen
+          ? <div className="next-milestone home-top-forecast">
+              <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="artists" /></div>
+              <div><span className="eyebrow">NEXT EXPECTED</span><h2>The artist directory is next.</h2><p>Ticketed Play is live. The next major expected planning drop is the Atlanta artist directory.</p></div>
+              <span className="milestone-date"><small>Estimate</small><strong>Oct</strong></span>
+            </div>
+          : <button className="next-milestone home-top-forecast" type="button" onClick={() => setShowTicketedPlayMilestone(true)}>
+              <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
+              <div><span className="eyebrow">NEXT EXPECTED</span><h2>Ticketed play purchasing is next.</h2><p>The schedule page is published. Now the next milestone is buying ticketed play on August 25 at 10 AM PT.</p></div>
+              <span className="milestone-date"><small>Official</small><strong>Aug 25</strong></span>
+            </button>}
 
         <section className="runway planning-runway home-runway-only" aria-labelledby="planning-runway-heading">
-          <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h3 id="planning-runway-heading">What we are waiting for</h3></div><span>2 known · 3 waiting</span></div>
+          <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h3 id="planning-runway-heading">What we are waiting for</h3></div><span>{ticketedPlaySaleIsOpen ? '3 known · 2 waiting' : '2 known · 3 waiting'}</span></div>
           <ol>
             <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
-            {milestoneForecasts.map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
+            {ticketedPlaySaleIsOpen && <li className="complete"><span className="runway-icon"><MilestoneIcon name="ticketed-play" /></span><div><strong>Ticketed play purchasing</strong><small>Sales open</small></div></li>}
+            {(ticketedPlaySaleIsOpen ? milestoneForecasts.slice(1) : milestoneForecasts).map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
               <span className="runway-icon"><MilestoneIcon name={forecast.icon} /></span>
               <details className="runway-forecast">
                 <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · {forecast.confidence}</small></summary>
@@ -6250,17 +6289,28 @@ function OnboardingTutorial({ surface, onNavigate, onMobileMenuChange, onClose }
 
 function MentionInbox({
   items,
+  alert,
   onOpenMention,
+  onOpenAlert,
+  onDismissAlert,
+  onRestoreAlert,
   onDismissMention,
   onRestoreMention,
 }: {
   items: MentionInboxItem[]
+  alert?: ActivityItem
   onOpenMention: (note: ContextNote) => void
+  onOpenAlert: () => void
+  onDismissAlert: (item: ActivityItem) => void
+  onRestoreAlert: (item: ActivityItem) => void
   onDismissMention: (item: MentionInboxItem) => void
   onRestoreMention: (item: MentionInboxItem) => void
 }) {
   const { active, dismissed } = partitionMentionInboxItems(items)
-  const unread = active.length
+  const alertDismissed = alert?.reviewState === 'archived'
+  const activeAlert = alert && !alertDismissed ? alert : undefined
+  const unread = active.length + (activeAlert ? 1 : 0)
+  const dismissedCount = dismissed.length + (alertDismissed ? 1 : 0)
 
   const mentionButton = (item: MentionInboxItem) => <button
     type="button"
@@ -6280,12 +6330,13 @@ function MentionInbox({
     <i aria-hidden="true">›</i>
   </button>
 
-  return <details className="mention-inbox">
+  return <details className={`mention-inbox ${activeAlert ? 'has-urgent' : ''}`}>
     <summary aria-label={`Mentions${unread ? `, ${unread} unread` : ''}`}>
       <svg className="mention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <rect x="4" y="6" width="16" height="12" rx="2" />
         <path d="m4 8 8 6 8-6" />
       </svg>
+      {activeAlert && <span className="mention-shiver-bell" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></svg></span>}
       {unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}
     </summary>
     <div className="mention-popover">
@@ -6293,6 +6344,14 @@ function MentionInbox({
         <span className="eyebrow">MENTIONS</span>
         <strong>{unread ? `${unread} for you` : 'Nothing waiting'}</strong>
       </header>
+      {activeAlert && <div className="mention-row mention-alert-row">
+        <button type="button" className="mention-item mention-alert-item" onClick={onOpenAlert}>
+          <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
+          <span><strong>Ticketed Play is up for sale!</strong><small>Sales are open now.</small><em>Open the signal for purchasing details.</em></span>
+          <i aria-hidden="true">›</i>
+        </button>
+        <button className="mention-dismiss" type="button" aria-label="Dismiss Ticketed Play sale alert" title="Dismiss" onClick={() => onDismissAlert(activeAlert)}>×</button>
+      </div>}
       {active.length
         ? <div className="mention-list">
           {active.map(item => <div className="mention-row" key={item.id}>
@@ -6301,9 +6360,17 @@ function MentionInbox({
           </div>)}
         </div>
         : <p className="mention-empty">No @mentions yet. Shared notes that name you will land here.</p>}
-      {dismissed.length > 0 && <details className="mention-dismissed">
-        <summary>Dismissed <b>{dismissed.length}</b></summary>
+      {dismissedCount > 0 && <details className="mention-dismissed">
+        <summary>Dismissed <b>{dismissedCount}</b></summary>
         <div className="mention-list">
+          {alertDismissed && alert && <div className="mention-row dismissed mention-alert-row">
+            <button type="button" className="mention-item mention-alert-item" onClick={onOpenAlert}>
+              <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
+              <span><strong>Ticketed Play is up for sale!</strong><small>Sales are open now.</small><em>Dismissed alert</em></span>
+              <i aria-hidden="true">›</i>
+            </button>
+            <button className="mention-restore" type="button" aria-label="Restore Ticketed Play sale alert" onClick={() => onRestoreAlert(alert)}>Restore</button>
+          </div>}
           {dismissed.map(item => <div className="mention-row dismissed" key={item.id}>
             {mentionButton(item)}
             <button className="mention-restore" type="button" aria-label={`Restore mention from ${item.note.author}`} onClick={() => onRestoreMention(item)}>Restore</button>

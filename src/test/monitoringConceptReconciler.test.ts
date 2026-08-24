@@ -23,7 +23,7 @@ describe('monitoring concept reconciliation', () => {
   })
   it('surfaces a sale-opening milestone transition', () => {
     const result = reconcileMonitoringObservation(observation('schedule', 'Ticketed Play sales are now open. Sale date August 25 at 10 AM PT.'), existing)
-    expect(result).toMatchObject({ resolution: 'milestone_transition', concept: { attention_state: 'milestone_transition', current_state: { phase: 'open' } } })
+    expect(result).toMatchObject({ resolution: 'milestone_transition', concept: { attention_state: 'milestone_transition', current_state: { phase: 'open', milestone_opened_at: '2026-08-21T20:00:00Z' } } })
   })
   it('retains a contradiction instead of overwriting active truth', () => {
     const result = reconcileMonitoringObservation(observation('faq', 'The FAQ says Ticketed Play sales open August 26 at 10 AM PT, while the schedule still says August 25 at 10 AM PT.'), existing)

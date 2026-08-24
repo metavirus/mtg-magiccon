@@ -267,7 +267,7 @@
   width: max-content;
 }
 
-.mention-inbox summary {
+.mention-inbox > summary {
   position: relative;
   display: grid;
   width: 42px;
@@ -281,12 +281,12 @@
   list-style: none;
 }
 
-.mention-inbox summary::-webkit-details-marker {
+.mention-inbox > summary::-webkit-details-marker {
   display: none;
 }
 
-.mention-inbox[open] summary,
-.mention-inbox summary:hover {
+.mention-inbox[open] > summary,
+.mention-inbox > summary:hover {
   border-color: #79aaff;
   background: #1a3150;
 }
@@ -296,7 +296,26 @@
   height: 17px;
 }
 
-.mention-inbox summary b {
+.mention-shiver-bell {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border: 1px solid #8a6732;
+  border-radius: 50%;
+  background: #33291c;
+  color: #efc86f;
+  box-shadow: 0 2px 7px rgba(0,0,0,.35);
+  animation: signal-bell-shiver 4.8s ease-in-out infinite;
+  transform-origin: 50% 20%;
+}
+
+.mention-shiver-bell svg { width: 10px; height: 10px; }
+
+.mention-inbox > summary b {
   position: absolute;
   top: -5px;
   right: -4px;
@@ -343,6 +362,12 @@
   display: grid;
   gap: 7px;
 }
+
+.mention-alert-row { margin-bottom: 9px; }
+.mention-alert-item { border-color: #7d5f34; background: linear-gradient(110deg,#211d1a,#111d30); }
+.mention-alert-item:hover { border-color: #dfb865; background: linear-gradient(110deg,#2b231b,#14233a); }
+.mention-alert-icon { display:grid!important; width:28px; height:28px; place-items:center; border-radius:8px; background:#342a1e; color:#efc86f; }
+.mention-alert-icon svg { width:15px; height:15px; }
 
 .mention-row {
   position: relative;
@@ -441,11 +466,18 @@
 }
 
 .mention-dismissed > summary {
+  position: relative;
   display: flex;
+  width: 100%;
+  height: auto;
   align-items: center;
+  place-items: initial;
   gap: 6px;
   min-height: 28px;
   padding: 3px 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: #879bb3;
   font-size: 10px;
   font-weight: 750;
@@ -469,6 +501,9 @@
 }
 
 .mention-dismissed > summary b {
+  position: static;
+  top: auto;
+  right: auto;
   display: inline-grid;
   min-width: 17px;
   height: 17px;
@@ -484,6 +519,7 @@
 }
 
 .mention-row.dismissed .mention-item {
+  padding-right: 72px;
   opacity: .7;
 }
 

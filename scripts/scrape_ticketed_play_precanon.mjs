@@ -2,6 +2,7 @@ import { chromium } from 'playwright'
 import { createHash } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import { inferTicketedPlayAvailability } from './lib/ticketed_play_availability.mjs'
 
 const SOURCE_ID = 'official-magiccon-atlanta-2026-ticketed-play'
 const SOURCE_URL = 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html'
@@ -30,12 +31,6 @@ function cleanTitle(title) {
 function priceFromTitle(title) {
   const match = title.match(/\$(\d+(?:\.\d{2})?)/)
   return match ? { amount: Number(match[1]), display: `$${match[1]}`, currency: 'USD' } : null
-}
-
-function availabilityFromTitle(title) {
-  if (/^\s*SOLD\s+OUT\b/i.test(title)) return 'sold_out'
-  if (/\bwait\s*list|waitlist\b/i.test(title)) return 'waitlist'
-  return 'listed'
 }
 
 function inferDifficulty(text) {
@@ -136,6 +131,12 @@ async function main() {
         href: anchor.href,
         text: anchor.textContent?.replace(/\s+/g, ' ').trim() ?? '',
       })),
+      availabilityControls: Array.from(document.querySelectorAll('button, a, [role="button"], input[type="submit"]'))
+        .map(control => ({
+          text: (control.textContent || control.getAttribute('value') || control.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim(),
+          disabled: control.matches(':disabled') || control.getAttribute('aria-disabled') === 'true',
+        }))
+        .filter(control => control.text),
     }))
     const sourceEventKey = new URL(detail.url).searchParams.get('gtID') ?? `event-${index + 1}`
     const lines = cleanLines(detail.text)
@@ -143,6 +144,7 @@ async function main() {
       .find(title => title && !/^event information$/i.test(title)) ?? titleFromUrl(detail.url)
     const allText = `${rawTitle}\n${detail.text}`
     const price = priceFromTitle(rawTitle)
+    const availability = inferTicketedPlayAvailability({ title: rawTitle, controls: detail.availabilityControls })
     const rawLocation = extractFirst(lines, /^Ticketed Play$/i)
     const officialDescription = extractOfficialDescription(lines, rawLocation)
     events.push({
@@ -155,7 +157,7 @@ async function main() {
       rawDateLabel: extractFirst(lines, /\b(Fri|Sat|Sun),\s+Nov\s+\d{1,2},\s+2026\b/i),
       rawTimeLabel: extractFirst(lines, /\b\d{1,2}:\d{2}\s*(AM|PM)\s*-\s*\d{1,2}:\d{2}\s*(AM|PM)\b/i),
       rawLocation,
-      rawAvailability: availabilityFromTitle(rawTitle),
+      rawAvailability: availability,
       rawPrice: price?.display,
       rawDetailText: detail.text,
       rawLinks: detail.links,
@@ -170,7 +172,7 @@ async function main() {
         playFormat: inferFormat(rawTitle, detail.text),
         difficulty: inferDifficulty(allText),
         timeKind: inferTimeKind(rawTitle, detail.text),
-        availability: availabilityFromTitle(rawTitle),
+        availability,
         price,
         purchaseRequired: Boolean(price),
         purchaseStatus: 'none',
