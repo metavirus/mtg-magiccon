@@ -3743,9 +3743,9 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
                 <span className={`plan-kind type-${event.type}`} aria-label={eventKindLabel(event)} data-kind-label={eventKindLabel(event)}><span className="plan-kind-icon"><EventKindIcon name={kindIcon} /></span>{event.kind === 'Black Lotus' && <span className="plan-source-mark" title="Black Lotus"><EventKindIcon name="lotus" /></span>}</span>
                 <span className="plan-time-chip">{event.day}<b>{planTimeLines(event.time).start}{planTimeLines(event.time).end && <span>–{planTimeLines(event.time).end}</span>}</b></span>
                 <span className="plan-row-copy"><strong>{displayEventTitle(event)}</strong><small>{event.time} · {event.window}</small><PlanParticipantBadges participants={participants} compact currentPerson={currentPerson} /></span>
-                <PurchaseControl event={event} onPurchase={purchased => onPurchase(event.id, purchased)} />
                 {participants.length > 1 ? <span className="plan-row-signal together">Together</span> : planPressure(event) && <span className="plan-row-signal">{planPressure(event)}</span>}
               </button>
+              <PurchaseControl event={event} onPurchase={purchased => onPurchase(event.id, purchased)} />
               <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
                 {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
                   const disabled = Boolean(event.purchased) || (event.id === 'bl-planechase' ? !online || saving : false)
@@ -3791,10 +3791,9 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
           <div className="plan-inspector-head"><span>{selected.kind}</span><div className="detail-head-actions"><span className={`event-stage stage-${selected.state}`}>{eventStageLabel(selected.state)}</span><button className="detail-close plan-detail-close" type="button" onClick={() => { setSelectedId(null); setDetailOpen(false) }} aria-label="Close event detail">×</button></div></div>
           <h3>{displayEventTitle(selected)}</h3>
           <div className="plan-inspector-facts"><span>{selected.day} · {selected.time}</span><span>{formatEventPrice(selected.price)}</span><span>{selected.format}</span></div>
-          <OfficialEventLink event={selected} />
+          <EventDetailActions event={selected} onPurchase={purchased => onPurchase(selected.id, purchased)} />
         </header>
         <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
-        <PurchaseControl event={selected} onPurchase={purchased => onPurchase(selected.id, purchased)} detail />
         <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit disabled={!online || saving} />
         <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(selected.detail)}</p></div>
         <section className="detail-section decision-section">
@@ -4119,8 +4118,7 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
         <span><DetailFactIcon name="price" />{event.price}</span>
         <span><DetailFactIcon name="duration" />{event.window}</span>
       </div>
-      <OfficialEventLink event={event} />
-      <PurchaseControl event={event} onPurchase={onPurchase} detail />
+      <EventDetailActions event={event} onPurchase={onPurchase} />
       <EventStateRail event={event} context="explore" onState={onState} />
     </header>
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(event.detail)}</p></div>
@@ -4186,7 +4184,14 @@ function DetailFactIcon({ name }: { name: 'time' | 'price' | 'duration' }) {
 
 function OfficialEventLink({ event }: { event: ExploreEvent }) {
   if (!event.officialUrl) return null
-  return <a className="official-event-link" href={event.officialUrl} target="_blank" rel="noreferrer"><PaperclipIcon /><span>Official event details</span><small>Opens MagicCon listing ↗</small></a>
+  return <a className="official-event-link" href={event.officialUrl} target="_blank" rel="noreferrer"><PaperclipIcon /><span>Official event details</span><span aria-hidden="true">↗</span></a>
+}
+
+function EventDetailActions({ event, onPurchase }: { event: ExploreEvent; onPurchase: (purchased: boolean) => void }) {
+  return <div className="event-detail-actions">
+    <OfficialEventLink event={event} />
+    <PurchaseControl event={event} onPurchase={onPurchase} detail />
+  </div>
 }
 
 function PaperclipIcon() {
@@ -4200,7 +4205,7 @@ function TicketMiniIcon() {
 function PurchaseControl({ event, onPurchase, detail = false }: { event: ExploreEvent; onPurchase: (purchased: boolean) => void; detail?: boolean }) {
   const [confirming, setConfirming] = useState(false)
   if (!canPurchaseEvent(event.price)) return null
-  return <span className={`purchase-control ${detail ? 'purchase-control-detail' : ''} ${event.purchased ? 'is-purchased' : ''}`}>
+  return <span className={`purchase-control ${detail ? 'purchase-control-detail' : ''} ${event.purchased ? 'is-purchased' : ''}`} onClick={click => click.stopPropagation()}>
     <button type="button" aria-label={event.purchased ? `Undo purchase for ${event.title}` : `Mark ${event.title} purchased`} aria-pressed={Boolean(event.purchased)} title={event.purchased ? 'Undo purchase' : 'Mark purchased'} onClick={() => event.purchased ? onPurchase(false) : setConfirming(true)}>
       <ActionIcon name="ticket" /><span>{formatEventPrice(event.price)}</span><ActionIcon name={event.purchased ? 'lock' : 'unlock'} />
     </button>
@@ -5722,8 +5727,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span><button className="detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button></span></div>
       <h2>{displayEventTitle(event)}</h2>
       <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span><span><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span><span><DetailFactIcon name="duration" />{event.window}</span></div>
-      <OfficialEventLink event={event} />
-      <PurchaseControl event={event} onPurchase={onPurchase} detail />
+      <EventDetailActions event={event} onPurchase={onPurchase} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
     <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>WHAT YOU NEED TO KNOW</small>{event.state === 'committed' ? `This is on the calendar for ${event.day} at ${event.time}. ${event.planEffect}` : `This is not a hard calendar commitment yet. ${event.planEffect}`}</p></div>
