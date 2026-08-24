@@ -3790,7 +3790,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
         <header className="event-detail-heading">
           <div className="plan-inspector-head"><span>{selected.kind}</span><div className="detail-head-actions"><span className={`event-stage stage-${selected.state}`}>{eventStageLabel(selected.state)}</span><button className="detail-close plan-detail-close" type="button" onClick={() => { setSelectedId(null); setDetailOpen(false) }} aria-label="Close event detail">×</button></div></div>
           <h3>{displayEventTitle(selected)}</h3>
-          <div className="plan-inspector-facts"><span>{selected.day} · {selected.time}</span><span>{formatEventPrice(selected.price)}</span><span>{selected.format}</span></div>
+          <div className="plan-inspector-facts"><span>{selected.day} · {selected.time}</span>{!canPurchaseEvent(selected.price) && <span>{formatEventPrice(selected.price)}</span>}<span>{selected.format}</span></div>
           <EventDetailActions event={selected} onPurchase={purchased => onPurchase(selected.id, purchased)} />
         </header>
         <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
@@ -4115,7 +4115,7 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
       <h2>{displayEventTitle(event)}</h2>
       <div className="detail-facts">
         <span><DetailFactIcon name="time" />{event.day} · {event.time}</span>
-        <span><DetailFactIcon name="price" />{event.price}</span>
+        {!canPurchaseEvent(event.price) && <span><DetailFactIcon name="price" />{event.price}</span>}
         <span><DetailFactIcon name="duration" />{event.window}</span>
       </div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
@@ -5725,7 +5725,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
     <header className="event-detail-heading">
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span><button className="detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button></span></div>
       <h2>{displayEventTitle(event)}</h2>
-      <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span><span><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span><span><DetailFactIcon name="duration" />{event.window}</span></div>
+      <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><DetailFactIcon name="price" />{formatEventPrice(event.price)}</span>}<span><DetailFactIcon name="duration" />{event.window}</span></div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />

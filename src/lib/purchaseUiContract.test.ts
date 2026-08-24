@@ -25,4 +25,9 @@ describe('paid-event detail layout contract', () => {
     expect(densitySource).toContain('.plan-participant.purchased .person-bubble,.agenda-event .plan-participant.purchased .person-bubble{box-shadow:0 0 0 1px #f0b26f,0 0 0 3px #8f6148}')
     expect(densitySource).toContain('border:1px solid #e0a47b;border-radius:50%;background:#442d23;color:#e0a47b')
   })
+
+  it('uses PurchaseControl as the single paid-event price source in every detail header', () => {
+    expect(appSource).toContain('{!canPurchaseEvent(selected.price) && <span>{formatEventPrice(selected.price)}</span>}')
+    expect(appSource.match(/!canPurchaseEvent\(event\.price\) && <span><DetailFactIcon name="price"/g)).toHaveLength(2)
+  })
 })
