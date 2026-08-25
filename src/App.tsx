@@ -191,6 +191,19 @@ type UserActivityEventRow = {
   created_at: string
 }
 
+type WalletReceiptLine = { event_id: string; title: string; price: number; code?: string }
+type WalletReceiptRow = {
+  id: string
+  title: string
+  vendor: string
+  receipt_date: string
+  amount: number
+  currency: string
+  attendee_person_key: string
+  line_items: WalletReceiptLine[]
+  original_html: string
+}
+
 type CompanionMemberRow = {
   person_key: string
   display_name: PersonName
@@ -4745,6 +4758,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
     return Number.isFinite(parsed) ? parsed : 1700
   })
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
+  const [playReceipts, setPlayReceipts] = useState<WalletReceiptRow[]>([])
   const openModal = (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => setModal({ eyebrow, title, body, people })
   const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Kavi', 'Chris'])
   const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
@@ -4752,6 +4766,20 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
     const parsed = Number(prizeTixValue)
     if (Number.isFinite(parsed)) setTix(parsed)
   }, [prizeTixValue])
+  useEffect(() => {
+    if (!supabase || !currentOwnerId) { setPlayReceipts([]); return }
+    let active = true
+    void supabase.from('wallet_receipts')
+      .select('id,title,vendor,receipt_date,amount,currency,attendee_person_key,line_items,original_html')
+      .eq('receipt_type', 'ticketed_play')
+      .order('receipt_date', { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return
+        if (error) { console.warn('Wallet receipts could not be loaded', error); return }
+        setPlayReceipts((data ?? []) as WalletReceiptRow[])
+      })
+    return () => { active = false }
+  }, [currentOwnerId])
   useEffect(() => {
     if (!proofRequest) return
     if (proofRequest.target === 'black-lotus') openBlackLotusProof()
@@ -4781,7 +4809,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
       </div>
     </div>
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
-    {tab === 'play' && <WalletPlayTab openModal={openModal} />}
+    {tab === 'play' && <WalletPlayTab receipts={playReceipts} openModal={openModal} />}
     {tab === 'store' && <WalletStoreEmpty />}
     {tab === 'other' && <WalletOtherTab openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
@@ -4959,12 +4987,39 @@ function PersonBubbles({ people }: { people: PersonName[] }) {
   </span>
 }
 
-function WalletPlayTab({ openModal: _openModal }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void }) {
+function receiptPerson(key: string): PersonName {
+  return key === 'chris' ? 'Chris' : key === 'juan' ? 'Juan' : key === 'kyle' ? 'Kyle' : 'Kavi'
+}
+
+function TicketedReceiptDetail({ receipt }: { receipt: WalletReceiptRow }) {
+  const [mode, setMode] = useState<'info' | 'original'>('info')
+  return <div className="proof-detail">
+    <div className="proof-mode-tabs" role="tablist" aria-label="Ticketed play receipt view">
+      <button type="button" role="tab" aria-selected={mode === 'info'} className={mode === 'info' ? 'active' : ''} onClick={() => setMode('info')}>Info</button>
+      <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
+    </div>
+    {mode === 'info' ? <>
+      <div className="proof-info-list">
+        <div><span>Attendee</span><strong>{receiptPerson(receipt.attendee_person_key)}</strong></div>
+        <div><span>Order</span><strong>{receipt.vendor} · {new Date(receipt.receipt_date).toLocaleString()}</strong></div>
+        <div><span>Total</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></div>
+      </div>
+      <div className="receipt-lines">{receipt.line_items.map(line => <div className="receipt-line-row" key={line.event_id}><span>{line.title}</span><b>${line.price.toFixed(2)}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
+    </> : <>
+      <p className="original-receipt-note">Full source email captured during receipt ingestion.</p>
+      <div className="original-html-frame"><iframe title={`${receipt.title} original receipt`} srcDoc={receipt.original_html} sandbox="" /></div>
+    </>}
+  </div>
+}
+
+function WalletPlayTab({ receipts, openModal }: { receipts: WalletReceiptRow[]; openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
-      <article className="receipt-card future-store">
+      {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <TicketedReceiptDetail receipt={receipt} />, [receiptPerson(receipt.attendee_person_key)])}>
+        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>{receipt.title}</h2><p>{receipt.line_items.length} purchased {receipt.line_items.length === 1 ? 'event' : 'events'} · {receipt.vendor}</p></div><span className="receipt-people-total"><PersonBubbles people={[receiptPerson(receipt.attendee_person_key)]} /><strong>${Number(receipt.amount).toFixed(2)}</strong></span></div>
+      </button>) : <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>Purchased event receipts will appear here.</p></div></div>
-      </article>
+      </article>}
     </section>
   </div>
 }

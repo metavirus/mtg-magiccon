@@ -1,0 +1,13 @@
+begin;
+select plan(9);
+select has_table('public', 'wallet_receipts', 'wallet_receipts exists');
+select row_security_active('public.wallet_receipts'), 'wallet_receipts RLS is active');
+select policies_are('public', 'wallet_receipts', array['owners_delete_wallet_receipts','owners_insert_wallet_receipts','owners_or_attendees_select_wallet_receipts','owners_update_wallet_receipts']);
+select table_privs_are('public', 'wallet_receipts', 'anon', array[]::text[], 'anonymous users cannot access receipts');
+select table_privs_are('public', 'wallet_receipts', 'authenticated', array['DELETE','INSERT','SELECT','UPDATE'], 'authenticated grants are explicit');
+select like((select qual from pg_policies where schemaname='public' and tablename='wallet_receipts' and policyname='owners_or_attendees_select_wallet_receipts'), '%attendee_person_key%', 'attendee read access is identity-bound');
+select isnt((select with_check from pg_policies where schemaname='public' and tablename='wallet_receipts' and policyname='owners_update_wallet_receipts'), null, 'owner update has WITH CHECK');
+select col_is_unique('public', 'wallet_receipts', array['owner_id','source_system','source_message_id'], 'source messages ingest idempotently');
+select results_eq($$ select count(*)::integer from public.wallet_receipts where receipt_type = 'ticketed_play' $$, array[2], 'two ticketed-play receipts are hydrated');
+select * from finish();
+rollback;
