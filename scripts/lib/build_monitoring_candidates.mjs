@@ -57,6 +57,12 @@ export function buildMonitoringCandidateRows(report) {
       updated_at: report.checkedAt,
     }
     const classification = classifyMonitoringFinding(row)
+    if (change.intakeKind === 'first_party_newsletter') return {
+      ...row,
+      status: 'archived',
+      review_question: 'Internal source evidence; registered claims are reconciled separately.',
+      evidence: { ...row.evidence, intake_kind: change.intakeKind, discovered_from: change.discoveredFrom },
+    }
     return classification.classification === 'informational_official_links'
       ? {
           ...row,

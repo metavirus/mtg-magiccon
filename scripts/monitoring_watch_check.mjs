@@ -5,6 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { promisify } from 'node:util';
 import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
+import { discoverNewsletterLinks, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -276,7 +277,8 @@ async function fetchSource(source) {
     textSample: normalizedText.slice(0, 500),
     linkCount: links.length,
     linkSample: linkRecords.slice(0, 40),
-    links: linkRecords
+    links: linkRecords,
+    rawHtml: html
   };
 }
 
@@ -287,11 +289,15 @@ const checkedAt = new Date().toISOString();
 const results = [];
 const changes = [];
 const failures = [];
+let newsletterIntake = { enabled: false, discoveredCount: 0, fetchedCount: 0, observationCount: 0, failureCount: 0 };
+const fetchedSourcePages = [];
 let ticketedPlay = ticketedPlayEmptyDiff;
 
 for (const source of watchSet.sources) {
   try {
     const current = await fetchSource(source);
+    fetchedSourcePages.push({ id: source.id, url: source.url, html: current.rawHtml });
+    delete current.rawHtml;
     const previous = state.accepted[source.id];
     const changed = Boolean(
       previous &&
@@ -333,6 +339,42 @@ for (const source of watchSet.sources) {
   }
 }
 
+if (watchSet.newsletterIntake) {
+  const config = watchSet.newsletterIntake;
+  const policy = {
+    allowedHost: config.allowedHost,
+    discoverySourceIds: config.discoverySourceIds,
+    pathPrefixes: config.pathPrefixes,
+    linkPattern: new RegExp(config.linkPattern, 'i'),
+  };
+  const limits = {
+    maxLinks: config.maxLinks,
+    maxPages: config.maxPages,
+    maxBytes: config.maxBytes,
+    timeoutMs: config.timeoutMs,
+    maxTextChars: config.maxTextChars,
+  };
+  const links = discoverNewsletterLinks(fetchedSourcePages, policy, limits);
+  const plan = planNewsletterFetch({ links, initialized: state.newsletterIntakeInitialized === true, discoveredUrls: state.discoveredNewsletterUrls, seen: state.seenNewsletters });
+  const intake = await fetchNewsletterPages({ links: plan.linksToFetch, policy, limits, seen: state.seenNewsletters ?? {}, observedAt: checkedAt, suppressObservations: plan.initialBaseline });
+  state.seenNewsletters = intake.seen;
+  state.discoveredNewsletterUrls = [...new Set([...(state.discoveredNewsletterUrls ?? []), ...plan.eligible.map(link => link.url)])].sort();
+  const unfingerprintedBaseline = plan.initialBaseline ? plan.eligible.filter(link => !intake.seen[link.url]) : [];
+  state.newsletterIntakeInitialized = !plan.initialBaseline || unfingerprintedBaseline.length === 0;
+  changes.push(...intake.observations);
+  newsletterIntake = {
+    enabled: true,
+    discoveredCount: plan.eligible.length,
+    fetchedCount: intake.fetchedCount,
+    observationCount: intake.observations.length,
+    rejectedNonAtlantaCount: links.length - plan.eligible.length,
+    initialBaseline: plan.initialBaseline,
+    baselineRemainingCount: unfingerprintedBaseline.length,
+    failureCount: intake.failures.length,
+    failures: intake.failures.slice(0, 8),
+  };
+}
+
 const milestoneResult = dueMonitoringMilestoneChanges(watchSet.scheduledMilestones, state.reachedMilestones, checkedAt);
 changes.push(...milestoneResult.changes);
 state.reachedMilestones = milestoneResult.reached;
@@ -369,6 +411,7 @@ const output = {
   changeCount: changes.length,
   failureCount: failures.length,
   ticketedPlay,
+  newsletterIntake,
   changes,
   failures,
   summary: changes.length

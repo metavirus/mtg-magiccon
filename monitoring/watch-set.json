@@ -1,7 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-17",
+  "updatedAt": "2026-08-24",
   "stateFile": ".monitoring-state/watch-state.local.json",
+  "newsletterIntake": {
+    "allowedHost": "www.mtgfestivals.com",
+    "discoverySourceIds": ["global-magiccon-news"],
+    "pathPrefixes": ["/global/en-us/magiccon-news/"],
+    "linkPattern": "newsletter|magiccon[ -]news|news|article",
+    "maxLinks": 12,
+    "maxPages": 4,
+    "maxBytes": 196608,
+    "timeoutMs": 8000,
+    "maxTextChars": 48000
+  },
   "scheduledMilestones": [
     {
       "id": "atlanta-ticketed-play-sales-open",

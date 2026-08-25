@@ -1,6 +1,8 @@
 const ATLANTA_FIRST_PARTY = {
-  hosts: ['mcatlanta.mtgfestivals.com'],
-  pathPrefixes: ['/'],
+  origins: [
+    { host: 'mcatlanta.mtgfestivals.com', pathPrefixes: ['/'] },
+    { host: 'www.mtgfestivals.com', pathPrefixes: ['/global/en-us/magiccon-news/'], requiredPathPattern: /atlanta/i },
+  ],
 }
 
 const timeRange = String.raw`(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\s*(?:-|to)\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)`
@@ -54,8 +56,9 @@ export function registryEntryForConcept(conceptKey) {
 export function sourceIsTrustedForEntry(entry, sourceUrl) {
   try {
     const url = new URL(sourceUrl)
-    return url.protocol === 'https:' && entry.trustedSourceScope.hosts.includes(url.hostname.toLowerCase())
-      && entry.trustedSourceScope.pathPrefixes.some(prefix => url.pathname.startsWith(prefix))
+    return url.protocol === 'https:' && entry.trustedSourceScope.origins.some(origin => origin.host === url.hostname.toLowerCase()
+      && origin.pathPrefixes.some(prefix => url.pathname.startsWith(prefix))
+      && (!origin.requiredPathPattern || origin.requiredPathPattern.test(url.pathname)))
   } catch { return false }
 }
 
