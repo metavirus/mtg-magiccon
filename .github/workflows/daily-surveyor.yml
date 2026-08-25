@@ -2,6 +2,11 @@ name: Daily MagicCon surveyor
 
 on:
   workflow_dispatch:
+    inputs:
+      replay_run_id:
+        description: "Optional failed run ID whose retained survey artifact should be restaged"
+        required: false
+        type: string
   schedule:
     - cron: "15 17 * * *"
 
@@ -37,6 +42,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Restore monitoring baseline
+        if: inputs.replay_run_id == ''
         id: monitoring-state-restore
         uses: actions/cache/restore@v6
         with:
@@ -46,10 +52,20 @@ jobs:
             monitoring-state-
 
       - name: Run monitoring watch check
+        if: inputs.replay_run_id == ''
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path work/monitoring | Out-Null
           node scripts/monitoring_watch_check.mjs | Tee-Object -FilePath work/monitoring/monitor-check.json
+
+      - name: Download retained survey artifact for replay
+        if: inputs.replay_run_id != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: daily-magiccon-surveyor
+          path: work/monitoring
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.replay_run_id }}
 
       - name: Stage deduplicated findings for Kavi review
         env:
@@ -80,7 +96,7 @@ jobs:
           }
 
       - name: Save monitoring baseline
-        if: always()
+        if: success() && inputs.replay_run_id == ''
         uses: actions/cache/save@v6
         with:
           path: .monitoring-state
