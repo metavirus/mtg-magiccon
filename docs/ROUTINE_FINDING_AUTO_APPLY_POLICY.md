@@ -1,5 +1,7 @@
 # Routine finding auto-apply policy
 
+Maintained Info factual conflicts use the controlled registry and server bindings described in `docs/MAINTAINED_INFO_CLAIM_REGISTRY.md`; they are concrete owner choices, not routine auto-apply mutations.
+
 Updated: 2026-08-22
 
 The surveyor should finish ordinary information work instead of handing it back to Kavi. This is a bounded policy for existing canonical objects, not a generic autonomous-ingestion framework.

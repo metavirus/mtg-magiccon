@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import { createClient } from '@supabase/supabase-js'
 import { buildMonitoringCandidateRows } from './lib/build_monitoring_candidates.mjs'
-import { extractMonitoringConcept, factualChoiceFindingForResolution, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
+import { extractMonitoringConcepts, factualChoiceFindingForResolution, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
 import { projectResolutionToInfo } from './lib/monitoring_info_projection.mjs'
 
 const reportPath = process.argv[2]
@@ -59,7 +59,7 @@ const observations = candidateRows.map(row => ({
   text: [row.evidence.current?.title, row.evidence.current?.textSample].filter(Boolean).join(' '),
   links: row.evidence.presentation_links ?? row.evidence.linkDelta?.added ?? [],
 }))
-const conceptKeys = [...new Set(observations.map(extractMonitoringConcept).filter(Boolean).map(concept => concept.concept_key))]
+const conceptKeys = [...new Set(observations.flatMap(extractMonitoringConcepts).map(concept => concept.concept_key))]
 const conceptResult = conceptKeys.length
   ? await client.from('monitoring_concepts').select('*').eq('owner_id', ownerId).in('concept_key', conceptKeys)
   : { data: [], error: null }
@@ -71,22 +71,32 @@ let factualChoicesStaged = 0
 
 for (const observation of observations) {
   if (!observation.findingId) throw new Error(`Missing staged finding readback for ${observation.fingerprint}.`)
-  const extracted = extractMonitoringConcept(observation)
-  const resolution = reconcileMonitoringObservation(observation, extracted ? concepts.get(extracted.concept_key) : null)
+  const extractedClaims = extractMonitoringConcepts(observation)
   const sourceRow = candidateRows.find(row => row.fingerprint === observation.fingerprint)
-  const findingEvidenceWrite = await client.from('monitoring_findings').update({
-    evidence: {
-      ...sourceRow.evidence,
-      concept_resolution: resolution.resolution,
-      concept_key: resolution.concept?.concept_key ?? null,
-      concept_rule_version: resolution.rule_version,
-      concept_rationale: resolution.rationale,
-    },
-  }).eq('id', observation.findingId)
-  if (findingEvidenceWrite.error) throw findingEvidenceWrite.error
-  if (resolution.resolution === 'noise') continue
-  if (resolution.resolution === 'contradiction' && resolution.concept?.concept_key === 'atlanta:on-demand-play:registration-hours:constructed-draft:sunday') {
-    const topicRead = await client.from('info_topics').select('article').eq('topic_key', 'on-demand-play').single()
+  if (!extractedClaims.length) {
+    const noiseWrite = await client.from('monitoring_findings').update({
+      ...(existingStatuses.has(observation.fingerprint) ? {} : { status: 'archived' }),
+      evidence: { ...sourceRow.evidence, concept_resolution: 'noise', concept_keys: [], concept_rule_version: 2, concept_rationale: 'No deterministic planning concept or material fact was extracted.' },
+    }).eq('id', observation.findingId)
+    if (noiseWrite.error) throw noiseWrite.error
+    continue
+  }
+  for (const extracted of extractedClaims) {
+    const resolution = reconcileMonitoringObservation(observation, concepts.get(extracted.concept_key), extracted)
+    const findingEvidenceWrite = await client.from('monitoring_findings').update({
+      ...(extractedClaims.some(item => item.concept_kind === 'info_article_fact') && !existingStatuses.has(observation.fingerprint) ? { status: 'archived' } : {}),
+      evidence: {
+        ...sourceRow.evidence,
+        concept_resolution: resolution.resolution,
+        concept_key: resolution.concept?.concept_key ?? null,
+        concept_keys: extractedClaims.map(item => item.concept_key),
+        concept_rule_version: resolution.rule_version,
+        concept_rationale: resolution.rationale,
+      },
+    }).eq('id', observation.findingId)
+    if (findingEvidenceWrite.error) throw findingEvidenceWrite.error
+  if (resolution.resolution === 'contradiction' && resolution.concept?.concept_kind === 'info_article_fact') {
+    const topicRead = await client.from('info_topics').select('article').eq('topic_key', resolution.concept.current_state.topic_key).single()
     if (topicRead.error) throw topicRead.error
     const choiceRow = factualChoiceFindingForResolution(resolution, observation, topicRead.data.article)
     if (choiceRow) {
@@ -149,6 +159,7 @@ for (const observation of observations) {
       const topicWrite = await client.from('info_topics').update({ concise_answer: infoProjection.topic.concise_answer, article_status: infoProjection.topic.article_status, article: infoProjection.topic.article, sources: infoProjection.topic.sources, updated_at: infoProjection.topic.updated_at }).eq('topic_key', infoProjection.topic.topic_key)
       if (topicWrite.error) throw topicWrite.error
     }
+  }
   }
 }
 

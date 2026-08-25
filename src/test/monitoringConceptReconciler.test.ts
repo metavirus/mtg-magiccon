@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { factualChoiceFindingForResolution, reconcileMonitoringObservation } from '../../scripts/lib/monitoring_concept_reconciler.mjs'
+import { extractMonitoringConcepts, factualChoiceFindingForResolution, reconcileMonitoringObservation } from '../../scripts/lib/monitoring_concept_reconciler.mjs'
 // @ts-expect-error The executable monitoring helper is an ESM script without a declaration file.
 import { dueMonitoringMilestoneChanges } from '../../scripts/lib/scheduled_monitoring_milestones.mjs'
 import { buildMonitoringCandidateRows } from '../../scripts/lib/build_monitoring_candidates.mjs'
@@ -60,6 +60,8 @@ describe('monitoring concept reconciliation', () => {
     }] })
     const newsletterObservation = { fingerprint: newsletterRow.fingerprint, sourceId: newsletterRow.source_id, sourceLabel: newsletterRow.source_label, sourceUrl: newsletterRow.source_url, observedAt: newsletterRow.last_seen_at, summary: newsletterRow.evidence.semanticSummary }
     const conflict = reconcileMonitoringObservation(newsletterObservation, first.concept)
+    const legacyRuleOneConcept = { ...first.concept, current_state: { section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', category: 'constructed_draft', day: 'sunday', value: '10 AM–3 PM', provenance: first.concept.current_state.provenance } }
+    expect(reconcileMonitoringObservation(newsletterObservation, legacyRuleOneConcept)).toMatchObject({ resolution: 'contradiction', concept: { current_state: { topic_key: 'on-demand-play', value_kind: 'time_range' } } })
     const article = { sections: [{ key: 'registration-hours', facts: [{ label: 'Constructed & Draft · Sun', value: '10 AM–3 PM' }, { label: 'Commander · Sun', value: '10 AM–4 PM' }, { label: 'All voucher sales end', value: 'Sunday 3 PM PT' }] }] }
     const staged = factualChoiceFindingForResolution(conflict, newsletterObservation, article)
 
@@ -84,5 +86,33 @@ describe('monitoring concept reconciliation', () => {
     expect(reconcileMonitoringObservation(observation('faq', 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–3 PM.'), first.concept)).toMatchObject({ resolution: 'corroboration' })
     expect(reconcileMonitoringObservation({ ...official, sourceId: 'fan-post', sourceUrl: 'https://example.com/post', summary: 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–4 PM.' }, first.concept)).toMatchObject({ resolution: 'noise', concept: null })
     expect(reconcileMonitoringObservation(observation('nuance', 'Sunday On-Demand Commander registration runs 10 AM–4 PM, while all voucher sales end Sunday at 3 PM PT.'), first.concept)).toMatchObject({ resolution: 'noise', concept: null })
+    expect(extractMonitoringConcepts(observation('ambiguous', 'Sunday show floor hours may be 10 AM–6 PM or 10 AM–7 PM.')).some(item => item.concept_key === 'atlanta:hours:show-floor:sunday')).toBe(false)
+  })
+
+  it('decomposes a mixed official newsletter and stages only the changed approved maintained fact', () => {
+    const newsletter = {
+      sourceId: 'atlanta-newsletter', sourceLabel: 'Official MagicCon newsletter', sourceUrl: 'https://mcatlanta.mtgfestivals.com/en-us/newsletter/operations.html', observedAt: '2026-08-24T20:00:00Z',
+      summary: 'Ticketed Play sales go on sale August 25 at 10 AM PT. On-Demand vouchers are available in $5 increments. Sunday Prize Wall guests must join the line by 5:30 PM. Sunday show floor hours are 10 AM–7 PM.',
+    }
+    const extracted = extractMonitoringConcepts(newsletter)
+    const byKey = new Map(extracted.map(item => [item.concept_key, item]))
+    expect([...byKey.keys()]).toEqual(expect.arrayContaining([
+      'atlanta:ticketed-play:sales-opening', 'atlanta:on-demand-play:voucher-price',
+      'atlanta:prize-tix:sunday-line-cutoff', 'atlanta:hours:show-floor:sunday',
+    ]))
+    const maintained = new Map<string, Record<string, unknown>>([
+      ['atlanta:ticketed-play:sales-opening', existing],
+      ['atlanta:on-demand-play:voucher-price', { concept_key: 'atlanta:on-demand-play:voucher-price', concept_kind: 'info_article_fact', current_state: { topic_key: 'on-demand-play', section_key: 'how-to-play', fact_label: 'Voucher price', value_kind: 'currency_increment', value: '$5 increments' } }],
+      ['atlanta:prize-tix:sunday-line-cutoff', { concept_key: 'atlanta:prize-tix:sunday-line-cutoff', concept_kind: 'info_article_fact', current_state: { topic_key: 'prize-tix', section_key: 'location-hours', fact_label: 'Sunday line cutoff', value_kind: 'time', value: '5:30 PM' } }],
+      ['atlanta:hours:show-floor:sunday', { concept_key: 'atlanta:hours:show-floor:sunday', concept_kind: 'info_article_fact', current_state: { topic_key: 'hours', section_key: 'hours', fact_label: 'Sunday, Nov. 15', value_kind: 'time_range', value: '10 AM–6 PM', provenance: [{ source_id: 'order', label: 'Order confirmation', url: 'https://mcatlanta.mtgfestivals.com/en-us/order', observed_at: '2026-06-16T00:00:00Z' }] } }],
+    ])
+    const resolutions = extracted.map(claim => reconcileMonitoringObservation(newsletter, maintained.get(claim.concept_key), claim))
+    expect(resolutions.filter(result => result.resolution === 'corroboration')).toHaveLength(3)
+    const changed = resolutions.find(result => result.resolution === 'contradiction')
+    expect(changed?.concept.concept_key).toBe('atlanta:hours:show-floor:sunday')
+    const article = { sections: [{ key: 'hours', facts: [{ label: 'Sunday, Nov. 15', value: '10 AM–6 PM' }] }] }
+    const choice = factualChoiceFindingForResolution(changed!, newsletter, article)
+    expect(choice).toMatchObject({ action_payload: { topic_key: 'hours', section_key: 'hours', fact_label: 'Sunday, Nov. 15' }, rollback_payload: { value: '10 AM–6 PM' } })
+    expect(factualChoiceFindingForResolution(changed!, newsletter, article)?.fingerprint).toBe(choice?.fingerprint)
   })
 })
