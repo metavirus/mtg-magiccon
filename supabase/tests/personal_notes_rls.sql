@@ -1,5 +1,5 @@
 begin;
-select plan(31);
+select plan(32);
 select has_table('public', 'personal_notes', 'personal_notes exists');
 select row_security_active('public.personal_notes'), 'RLS is active';
 select policies_are('public', 'personal_notes', array['Authenticated users can select shared notes','owners_delete_personal_notes','owners_insert_personal_notes','owners_select_personal_notes','owners_update_personal_notes']);
@@ -14,7 +14,8 @@ select has_table('public', 'user_selections', 'user_selections exists');
 select row_security_active('public.user_selections'), 'user_selections RLS is active';
 select policies_are('public', 'user_selections', array['active_companions_select_group_selections','owners_delete_user_selections','owners_insert_user_selections','owners_update_user_selections']);
 select like((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%object_kind = ''event''%', 'companion selection sharing is event-only');
-select like((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%selection_key = ''state''%', 'companion selection sharing is planning-state-only');
+select like((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%purchased%', 'companion selection sharing includes purchases');
+select like((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%purchase_locked%', 'companion selection sharing includes permanent purchase locks');
 select table_privs_are('public', 'user_selections', 'anon', array[]::text[], 'anon has no user_selections grants');
 select table_privs_are('public', 'user_selections', 'authenticated', array['DELETE','INSERT','SELECT','UPDATE'], 'authenticated user_selections grants are explicit');
 select has_table('public', 'companion_members', 'companion_members exists');
