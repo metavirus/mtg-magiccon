@@ -3727,11 +3727,9 @@ function planTimeLines(time: string) {
 }
 
 function isFlexiblePlanEvent(event: ExploreEvent) {
-  const agendaInterval = parseAgendaInterval(event)
-  const looksLikePlaceholderWindow = Boolean(agendaInterval && agendaInterval.end - agendaInterval.start <= 5 / 60)
   return event.id === 'bl-progressive-sealed'
     || event.id === 'bl-mystery-booster-drafts'
-    || (/mage tower league/i.test(`${event.title} ${event.format}`) && looksLikePlaceholderWindow)
+    || /mage tower league/i.test(`${event.title} ${event.format}`)
     || /start/i.test(event.time)
     || /on-demand/i.test(event.window)
 }
