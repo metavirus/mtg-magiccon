@@ -3727,12 +3727,13 @@ function planTimeLines(time: string) {
 }
 
 function isFlexiblePlanEvent(event: ExploreEvent) {
+  const agendaInterval = parseAgendaInterval(event)
+  const looksLikePlaceholderWindow = Boolean(agendaInterval && agendaInterval.end - agendaInterval.start <= 5 / 60)
   return event.id === 'bl-progressive-sealed'
     || event.id === 'bl-mystery-booster-drafts'
-    || /mage tower league/i.test(`${event.title} ${event.format}`)
-    || event.tags.some(tag => tag.toLowerCase() === 'flexible')
+    || (/mage tower league/i.test(`${event.title} ${event.format}`) && looksLikePlaceholderWindow)
     || /start/i.test(event.time)
-    || /on-demand|league window/i.test(event.window)
+    || /on-demand/i.test(event.window)
 }
 
 function isNonBlockingPlanEvent(event: ExploreEvent) {
