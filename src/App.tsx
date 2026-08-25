@@ -76,15 +76,15 @@ function surfaceTitle(surface: Surface) {
 
 function surfaceSubtitle(surface: Surface) {
   const subtitles: Record<Surface, string> = {
-    home: 'No new signal needs attention.',
-    calendar: 'Only the dates that shape the trip.',
-    plan: 'Compare real anchors and contenders before they become commitments.',
-    explore: 'Browse likely contenders without drowning in event text.',
-    map: 'Trip-area orientation now; official event map when Atlanta publishes it.',
-    info: 'Quick answers, maintained topics, and every useful official update.',
+    home: 'Changes and decisions worth seeing.',
+    calendar: 'Trip milestones and committed events.',
+    plan: "Compare everyone's possible and committed events.",
+    explore: 'Events worth comparing.',
+    map: 'Omni, downtown hotels, and GWCC Building C.',
+    info: 'Official hours, play guidance, and updates.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Every stay, address, and roommate in one shared view.',
-    artists: 'Official Art of Magic guests are live; card-signing matches come next.',
+    artists: 'Official Atlanta artists and your signing shortlist.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
     activity: 'Signals, changes, and notes in one review lane.',
   }
@@ -3751,9 +3751,9 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
     return states.includes('committed') ? 'committed' : states.includes('tentative') ? 'tentative' : 'interested'
   }
   const planGroups = [
-    { key: 'committed', label: 'Committed anchors', hint: 'calendar-bound', items: dayEvents.filter(event => strongestState(event) === 'committed') },
-    { key: 'tentative', label: 'Tentative contenders', hint: 'compare against the day', items: dayEvents.filter(event => strongestState(event) === 'tentative') },
-    { key: 'interested', label: 'Interesting maybes', hint: 'promoted from Explore', items: dayEvents.filter(event => strongestState(event) === 'interested') },
+    { key: 'committed', label: 'Committed anchors', items: dayEvents.filter(event => strongestState(event) === 'committed') },
+    { key: 'tentative', label: 'Tentative contenders', items: dayEvents.filter(event => strongestState(event) === 'tentative') },
+    { key: 'interested', label: 'Interesting maybes', items: dayEvents.filter(event => strongestState(event) === 'interested') },
   ].filter(group => group.items.length > 0)
   const flexibleEvents = dayEvents.filter(isFlexiblePlanEvent)
   const agendaPlacements = placeAgendaEvents(dayEvents)
@@ -3857,7 +3857,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
           const collapsed = collapsedPlanGroups.includes(group.key)
           return <section className={`plan-row-group group-${group.key}`} key={group.key}>
             <button className="funnel-group-header" type="button" aria-expanded={!collapsed} onClick={() => togglePlanGroup(group.key)}>
-              <span><strong>{group.label}</strong><small>{group.hint}</small></span>
+              <span><strong>{group.label}</strong></span>
               <em>{group.items.length}</em>
               <b aria-hidden="true">⌄</b>
             </button>
@@ -3934,7 +3934,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={displayEventTitle(selected)} context={`Event · ${displayEventTitle(selected)}`} backlink="plan" compact />
         {(eventMoreDetails(selected).length > 0 || selected.sourceNote) && <details className="detail-more">
-          <summary><span>More details</span><small>Official and operational</small></summary>
+          <summary><span>More details</span></summary>
           <div className="detail-more-body">
             {eventMoreDetails(selected).map(item => <div className="more-row" key={item.label}><span>{item.label}</span><p>{renderLinkedText(item.value)}</p></div>)}
             {selected.sourceNote && <div className="more-row source-row"><span>Source</span><p>{renderLinkedText(selected.sourceNote)}</p></div>}
@@ -4137,7 +4137,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
     <div className={`explore-layout ${selected ? 'has-detail' : ''}`}>
       <div ref={eventListRef} className="event-list" aria-label="Event results">
         <div className="event-list-summary"><strong>{visible.length}</strong><span>events in view</span></div>
-        {routeGroupLabel && <div className="explore-route-chip"><span>{routeGroupLabel}</span><small>Opened from a grouped signal; this slice is ready for future ticketed-play drops.</small></div>}
+        {routeGroupLabel && <div className="explore-route-chip"><span>{routeGroupLabel}</span></div>}
         {exploreContenders.length > 0 && <section className="explore-row-group explore-contender-group">
           <button className="funnel-group-header" type="button" aria-expanded={!collapsedExploreGroups.includes('contenders')} onClick={() => toggleExploreGroup('contenders')}>
             <span><strong>Your contenders</strong><small>Interested and tentative</small></span>
@@ -4297,7 +4297,7 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
     </section>
     <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} focusedNoteId={focusedNoteId} context={`Event · ${displayEventTitle(event)}`} backlink="explore" compact />
     {(eventMoreDetails(event).length > 0 || event.sourceNote) && <details className="detail-more">
-      <summary><span>More details</span><small>Official and operational</small></summary>
+      <summary><span>More details</span></summary>
       <div className="detail-more-body">
         {eventMoreDetails(event).map(item => <div className="more-row" key={item.label}><span>{item.label}</span><p>{renderLinkedText(item.value)}</p></div>)}
         {event.sourceNote && <div className="more-row source-row"><span>Source</span><p>{renderLinkedText(event.sourceNote)}</p></div>}
@@ -4583,7 +4583,7 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
 
 function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
   return <section className="map-shell" aria-label="Map">
-    <div className="map-surface">
+    <div className="map-surface map-surface-orientation">
       <article className="map-card trip-area-card">
         <span className="eyebrow">ORIENTATION NOW</span>
         <h2>Omni to Building C, visually.</h2>
@@ -4612,17 +4612,6 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
           <span><strong>Hotel base</strong>Omni at Centennial Park</span>
           <span><strong>Useful cue</strong>Building C sits farther west, toward Mercedes-Benz Stadium / Northside Dr.</span>
         </div>
-      </article>
-      <article className="map-card event-map-card">
-        <span className="eyebrow">EVENT MAP LATER</span>
-        <h2>Floor map becomes the real tool later.</h2>
-        <p>When the official 2026 map appears, this should switch from campus orientation to clickable con-floor navigation.</p>
-        <ul>
-          <li>Artist Alley, vendors, show store, prize wall, ticketed play, panels, and BL lounge become clickable areas.</li>
-          <li>Receipts, event cards, and artist cards can backlink into exact map spots.</li>
-          <li>Offline cache matters here because this is an onsite panic surface.</li>
-        </ul>
-        <div className="map-source-note">Source cues: Atlanta FAQ identifies GWCC Building C; GWCC navigation identifies Building C access/rideshare context.</div>
       </article>
     </div>
   </section>
@@ -4681,10 +4670,10 @@ function infoFeedDetail(entry: InfoFeedEntry, topic?: InfoTopic): ObjectDetail {
   }
 }
 
-function InfoTile({ eyebrow, title, summary, meta, tone = 'blue', onClick }: { eyebrow: string; title: string; summary: string; meta?: string; tone?: 'blue' | 'green' | 'gold'; onClick: () => void }) {
+function InfoTile({ eyebrow, title, summary, meta, tone = 'blue', onClick }: { eyebrow: string; title: string; summary?: string; meta?: string; tone?: 'blue' | 'green' | 'gold'; onClick: () => void }) {
   return <button className={`info-tile ${tone}`} type="button" onClick={onClick}>
     <span className="info-tile-icon"><NavIcon name="info" /></span>
-    <span className="info-tile-copy"><small>{eyebrow}</small><strong>{title}</strong><span>{summary}</span>{meta && <time>{meta}</time>}</span>
+    <span className="info-tile-copy"><small>{eyebrow}</small><strong>{title}</strong>{summary && <span>{summary}</span>}{meta && <time>{meta}</time>}</span>
     <b aria-hidden="true">›</b>
   </button>
 }
@@ -4694,14 +4683,14 @@ function InfoSurface({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed
   const visibleFeed = publishedInfoFeed(feed, topics)
   const { quick, more } = partitionInfoTopics(visibleTopics)
   return <section className="info-surface" aria-label="Info">
-    <section className="info-quick"><div className="info-section-head"><span className="eyebrow">QUICK ANSWERS</span><h2>What do you need right now?</h2><p>Current trip facts, one tap away.</p></div>
-      <div className="info-tile-grid">{quick.map((topic, index) => <InfoTile key={topic.topic_key} eyebrow={topic.title} title={topic.concise_answer} summary={infoTopicUsesReader(topic) ? 'Read the maintained guide' : `${topic.facts.length} maintained facts`} tone={index === 0 ? 'green' : index === 2 ? 'gold' : 'blue'} onClick={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
+    <section className="info-quick"><div className="info-section-head"><span className="eyebrow">QUICK ANSWERS</span><h2>What do you need right now?</h2></div>
+      <div className="info-tile-grid">{quick.map((topic, index) => <InfoTile key={topic.topic_key} eyebrow={topic.title} title={topic.concise_answer} tone={index === 0 ? 'green' : index === 2 ? 'gold' : 'blue'} onClick={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
     </section>
     <div className="info-columns">
-      <section className="info-feed"><div className="info-section-head"><span className="eyebrow">RECENT INFORMATION</span><h2>What changed.</h2><p>Official updates in newest-first order.</p></div>
+      <section className="info-feed"><div className="info-section-head"><span className="eyebrow">RECENT INFORMATION</span><h2>What changed.</h2></div>
         <div className="info-tile-list">{visibleFeed.map(entry => { const topic = infoTopicForFeed(entry, visibleTopics); return <InfoTile key={entry.entry_key} eyebrow="Latest update" title={durableInfoFeedTitle(entry, visibleTopics)} summary={entry.summary} meta={new Date(entry.published_at).toLocaleDateString()} tone="gold" onClick={() => onOpenObject(topic && infoTopicUsesReader(topic) ? infoTopicDetail(topic, visibleFeed) : infoFeedDetail(entry, topic))} /> })}</div>
       </section>
-      <section className="info-topics"><div className="info-section-head"><span className="eyebrow">MORE TOPICS</span><h2>Useful references.</h2><p>Maintained answers beyond the quick set.</p></div>
+      <section className="info-topics"><div className="info-section-head"><span className="eyebrow">MORE TOPICS</span><h2>Useful references.</h2></div>
         <div className="info-tile-list">{more.map(topic => <InfoTile key={topic.topic_key} eyebrow={infoTopicUsesReader(topic) ? 'Maintained guide' : 'Reference'} title={topic.title} summary={topic.concise_answer} meta={`Updated ${new Date(topic.updated_at).toLocaleDateString()}`} onClick={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
       </section>
     </div>
@@ -4932,67 +4921,9 @@ function WalletPlayTab({ openModal: _openModal }: { openModal: (eyebrow: string,
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
       <article className="receipt-card future-store">
-        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>This tab wakes up when ticketed events are purchased.</p></div></div>
+        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>Purchased event receipts will appear here.</p></div></div>
       </article>
     </section>
-  </div>
-}
-
-function WalletStoreTab({ openModal }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void }) {
-  const [assignments, setAssignments] = useState<Record<string, string>>({
-    sheoldred: 'Kavi',
-    urabrask: 'Chris',
-    event: 'Assign',
-  })
-  const saveAssignment = (key: string, value: string) => {
-    setAssignments(current => ({ ...current, [key]: value }))
-  }
-  const assignmentLabel = (value: string) => {
-    if (value === 'Assign') return <span className="assignment-bubble">+</span>
-    if (['Kavi', 'Juan', 'Chris'].includes(value)) return <span className={`assignment-bubble ${value.toLowerCase()}`}>{value[0]}</span>
-    return <span className="assignment-custom-label">{value}</span>
-  }
-  const assignmentPicker = (key: string) => <details className="inline-assignment" onClick={event => event.stopPropagation()}>
-    <summary className={assignments[key] !== 'Assign' ? 'assigned' : ''}>{assignmentLabel(assignments[key])}</summary>
-    <span className="assignment-popover">
-      {['Kavi', 'Chris', 'Juan'].map(person => <button key={person} type="button" onClick={() => saveAssignment(key, person)}>{person}</button>)}
-      <button type="button" onClick={() => saveAssignment(key, 'Kellen')}>Kellen</button>
-      <input aria-label="Custom assignment" placeholder="Custom…" onClick={event => event.stopPropagation()} onKeyDown={event => {
-        if (event.key !== 'Enter') return
-        const value = event.currentTarget.value.trim()
-        if (value) saveAssignment(key, value)
-      }} />
-    </span>
-  </details>
-
-  return <div className="wallet-layout wallet-store-legacy" hidden>
-    <section className="receipt-list" aria-label="Receipts">
-      <article className="receipt-card store-receipt">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">SHOW STORE FIXTURE</span><h2>Magic Con · Dragon Shield</h2><p>9 items · assignment notes ready</p></div><strong>$255.00</strong></div>
-        <div className="receipt-lines">
-          <div className="receipt-line-row" role="button" tabIndex={0} onClick={() => openModal('LINE ITEM', 'Sheoldred exclusive × 3', <AssignmentPreview item="Sheoldred - Exclusive: Vegas 2026" />)}><span>Sheoldred - Exclusive: Vegas 2026 × 3</span><b>$90</b>{assignmentPicker('sheoldred')}</div>
-          <div className="receipt-line-row" role="button" tabIndex={0} onClick={() => openModal('LINE ITEM', 'Urabrask exclusive × 3', <AssignmentPreview item="Urabrask - Exclusive: Vegas 2026" />)}><span>Urabrask - Exclusive: Vegas 2026 × 3</span><b>$90</b>{assignmentPicker('urabrask')}</div>
-          <div className="receipt-line-row" role="button" tabIndex={0} onClick={() => openModal('LINE ITEM', 'Event exclusive × 3', <AssignmentPreview item="Event Exclusive 2026" />)}><span>Event Exclusive 2026 × 3</span><b>$75</b>{assignmentPicker('event')}</div>
-        </div>
-        <div className="receipt-note">Assignment note example: “three of these shirts were for Kellen.”</div>
-        <div className="receipt-actions"><button type="button" onClick={() => openModal('ORIGINAL STORE RECEIPT', 'Magic Con #39Z8', <ProofPreview kind="receipt" note="Original Square receipt render." />)}>Show original</button><button type="button" onClick={() => openModal('EXTRACTED LINE ITEMS', 'Magic Con #39Z8 line items', <ul><li>Sheoldred exclusive × 3 — $90</li><li>Urabrask exclusive × 3 — $90</li><li>Event Exclusive 2026 × 3 — $75</li></ul>)}>Line items</button><button type="button" onClick={() => openModal('NOTE', 'Receipt note', <p>Three of these shirts were for Kellen.</p>)}>Add note</button></div>
-      </article>
-      <article className="receipt-card future-store">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="explore" /></span><div><span className="eyebrow">ATLANTA STORE</span><h2>Catalog links later</h2><p>When the show store catalog appears, receipt items should backlink to product cards.</p></div></div>
-      </article>
-    </section>
-    <aside className="wallet-show-card receipt-preview">
-      <span className="eyebrow">ORIGINAL PRESERVED</span>
-      <h2>PNG first, PDF if needed.</h2>
-      <div className="receipt-image-fixture">
-        <span>Receipt image · #39Z8</span>
-        <i />
-        <i />
-        <i />
-        <strong>Total $255.00</strong>
-      </div>
-      <p>The point is quick staff/show reference without losing the exact email/PDF artifact behind the extracted facts.</p>
-    </aside>
   </div>
 }
 
@@ -5003,13 +4934,6 @@ function WalletStoreEmpty() {
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">STORE</span><h2>No Atlanta store receipts yet</h2><p>Purchases and extracted line items will appear here.</p></div></div>
       </article>
     </section>
-  </div>
-}
-
-function AssignmentPreview({ item }: { item: string }) {
-  return <div className="assignment-preview">
-    <p>{item}</p>
-    <small>Use the assignment chip on the receipt row to save Kavi, Chris, Juan, Kellen, or a custom name locally for this preview.</small>
   </div>
 }
 
@@ -5929,7 +5853,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
       <EventDetailActions event={event} onPurchase={onPurchase} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
-    <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>WHAT YOU NEED TO KNOW</small>{event.state === 'committed' ? `This is on the calendar for ${event.day} at ${event.time}. ${event.planEffect}` : `This is not a hard calendar commitment yet. ${event.planEffect}`}</p></div>
+    <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>PLAN EFFECT</small>{event.planEffect}</p></div>
     <section className="detail-section"><strong>{event.format}</strong><p>{renderLinkedText(event.detail)}</p></section>
     {event.decisionFacts && <div className="decision-facts" aria-label="Event logistics">{event.decisionFacts.map(fact => <div key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
     <div className="plan-provenance"><span>{event.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{renderLinkedText(event.sourceNote ?? 'Source context captured for this item.')}</small></div>
@@ -6006,7 +5930,6 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
           <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{visibleSignalCount ? `${visibleSignalCount} useful item${visibleSignalCount === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
           <button type="button" onClick={onOpenActivity}>Full Activity</button>
         </div>
-        <p>{hotCount ? `${hotCount} item${hotCount === 1 ? '' : 's'} genuinely need attention; recency is shown separately.` : 'Recent notes and useful earlier context land here without turning routine activity into an alarm.'}</p>
         <div className="timely-home" aria-label="Worth Knowing signals">
           {featuredSale && (saleUrl
             ? <a className="home-featured-sale" href={saleUrl} target="_blank" rel="noreferrer">
@@ -6038,7 +5961,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
         {ticketedPlaySaleIsOpen
           ? <div className="next-milestone home-top-forecast">
               <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="artists" /></div>
-              <div><span className="eyebrow">NEXT EXPECTED</span><h2>The artist directory is next.</h2><p>Ticketed Play is live. The next major expected planning drop is the Atlanta artist directory.</p></div>
+              <div><span className="eyebrow">NEXT EXPECTED</span><h2>The full artist directory is next.</h2><p>Three Art of Magic guests are listed; the broader Atlanta artist directory is still expected.</p></div>
               <span className="milestone-date"><small>Estimate</small><strong>Oct</strong></span>
             </div>
           : <button className="next-milestone home-top-forecast" type="button" onClick={() => setShowTicketedPlayMilestone(true)}>
