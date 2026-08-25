@@ -78,7 +78,7 @@ The venue-level destinations are also deliberately considered but deferred: Offi
 - [x] Model a small itinerary slice from actual official Atlanta Black Lotus evidence.
 - [ ] Design private Storage and retention rules for confirmations and receipts.
 - [x] **v1.5/trust:** Document the receipt artifact ingestion contract in `docs/RECEIPT_ARTIFACT_INGESTION.md`: receipts should be captured once as an original proof artifact plus extracted facts, then rendered from the stable artifact bundle rather than re-querying Gmail during UI work.
-- [ ] Test installability and cached critical-view behavior on a real mobile device.
+- [ ] Test installability and cached critical-view behavior on a real mobile device. Local app-shell precaching and owner-scoped, read-only continuity caches now preserve already-read notes, selections/Plan overlays, activity, Info knowledge, and Trip flights through temporary offline periods; installed-iPhone airplane-mode/reopen proof remains.
 - [x] Confirm the temporary GitHub Pages preview opens reliably on iPhone after the relative asset-path fix and record any remaining mobile-only layout defects. Auth is now fully parked for POC review; remaining mobile tension is design quality, especially Wallet Home/Prize Tix, not access.
 - [x] Historical POC phase: disable client auth for fixture-backed review so local, GitHub Pages, and installed mobile review could not be blocked by Supabase magic-link quota. Superseded by the Google OAuth live-auth path.
 - [x] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC stopped fighting mobile review. Google OAuth is now the normal auth-first path; `?preview=1` is the deliberate fixture bypass and magic-link UI is parked.

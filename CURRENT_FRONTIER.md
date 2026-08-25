@@ -10,7 +10,7 @@ The stable `atlanta:ticketed-play:sales-opening` concept now drives one coordina
 
 Paid events now expose one compact ticket/price purchase control in Explore, Plan, and event details. Confirming Purchased forces Committed, disables ordinary planning-state changes until purchase is undone, and gives the purchaser bubble the shared gold-border/lock treatment across Plan, Calendar, and Agenda. Free or Black Lotus-included events do not expose this control. A manual Purchased marker is private planning state; retained receipts remain the proof layer.
 
-Home Worth Knowing now grows naturally and groups useful items into Recent and Earlier rather than hiding them in a fixed-height inner scroller. Inbox dismissal is implemented and recoverable. The urgency shiver is restricted to an explicitly urgent concept; routine refresh and reconnect behavior remains silent.
+Home Worth Knowing now grows naturally and groups useful items into Recent and Earlier rather than hiding them in a fixed-height inner scroller. Inbox dismissal is implemented and recoverable. The urgency shiver is restricted to an explicitly urgent concept; routine refresh and reconnect behavior remains silent. The local PWA now precaches its app shell and keeps successful owner-scoped continuity lanes as a read-only offline snapshot; reconnect refreshes those lanes independently, successful server data replaces stale cache, and no write queue exists.
 
 ## Flight signal closed loop
 

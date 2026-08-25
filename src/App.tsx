@@ -16,6 +16,7 @@ import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLe
 import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { homeSignalAgeBucket, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen } from './lib/homeSignalAge'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
+import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -602,6 +603,7 @@ export default function App() {
     : null, [previewOwner?.displayName, previewOwner?.key])
   const [session, setSession] = useState<Session | null>(null)
   const [online, setOnline] = useState(navigator.onLine)
+  const onlineRef = useRef(navigator.onLine)
   const canWrite = !designPreview && !isPreviewOwnerMode && Boolean(session && supabase && online)
   const effectiveOwnerId = (previewOwner ? `preview-${previewOwner.key}` : session?.user.id ?? undefined) as string | undefined
   const effectiveSession = isPreviewOwnerMode ? previewSession : session
@@ -681,17 +683,6 @@ export default function App() {
   }, [canWrite, continuityReady, designPreview, effectiveOwnerId, isPreviewOwnerMode, loading, tutorialPromptedOwner, userSelections])
 
   useEffect(() => {
-    const handleOnline = () => setOnline(true)
-    const handleOffline = () => setOnline(false)
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
-
-  useEffect(() => {
     const syncDesktopRail = () => setDesktopRailLocked(window.innerWidth >= 901)
     syncDesktopRail()
     window.addEventListener('resize', syncDesktopRail)
@@ -746,8 +737,8 @@ export default function App() {
     return () => data.subscription.unsubscribe()
   }, [companionMembers, designPreview, isPreviewOwnerMode])
 
-  const refresh = useCallback(async () => {
-    if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || !online) return
+  const refresh = useCallback(async (forceOnline = false) => {
+    if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || (!onlineRef.current && !forceOnline)) return
     setLoading(true)
     setMessage('')
     setMessageTone('info')
@@ -768,11 +759,11 @@ export default function App() {
     } finally {
       setLoading(false)
     }
-  }, [designPreview, isPreviewOwnerMode, online, effectiveOwnerId, shouldLoadOwnerTrustSlice])
+  }, [designPreview, isPreviewOwnerMode, effectiveOwnerId, shouldLoadOwnerTrustSlice])
 
   useEffect(() => { void refresh() }, [refresh])
 
-  const refreshUserContinuity = useCallback(async () => {
+  const refreshUserContinuity = useCallback(async (forceOnline = false) => {
     setContinuityReady(false)
     if (designPreview || isPreviewOwnerMode) {
       setMessage('')
@@ -789,18 +780,49 @@ export default function App() {
       setContinuityReady(true)
       return
     }
-    if (!effectiveOwnerId || !online) {
+    if (!effectiveOwnerId || (!onlineRef.current && !forceOnline)) {
       setContinuityFailures([])
-      setContextNotesState([])
-      setMentionInboxState([])
-      setAlertReview({})
-      setUserSelections({})
-      setSharedSelectionRows([])
-      setUserActivityRows([])
-      setMonitoringFindings([])
-      setMonitoringConcepts([])
-      setTripFlights(previewTripFlights)
-      setExploreEventState(purchaseQaEvents(exploreEvents))
+      if (!effectiveOwnerId) {
+        setContextNotesState([])
+        setMentionInboxState([])
+        setAlertReview({})
+        setUserSelections({})
+        setSharedSelectionRows([])
+        setUserActivityRows([])
+        setMonitoringFindings([])
+        setMonitoringConcepts([])
+        setInfoTopics(previewInfoTopics)
+        setInfoFeed(previewInfoFeed)
+        setTripFlights(previewTripFlights)
+        setExploreEventState(purchaseQaEvents(exploreEvents))
+        setContinuityReady(true)
+        return
+      }
+      const cached = effectiveOwnerId ? readOfflineContinuity(effectiveOwnerId) : null
+      if (cached) {
+        const lanes = cached.lanes
+        if (lanes.notes) setContextNotesState(lanes.notes as ContextNote[])
+        if (lanes.mentions) setMentionInboxState(lanes.mentions as MentionInboxItem[])
+        if (lanes.activity) setUserActivityRows(lanes.activity as UserActivityEventRow[])
+        if (lanes.findings) setMonitoringFindings(lanes.findings as MonitoringFindingRow[])
+        if (lanes.concepts) setMonitoringConcepts(lanes.concepts as MonitoringConceptRow[])
+        if (lanes.info) {
+          const info = lanes.info as { topics: InfoTopic[]; feed: InfoFeedEntry[] }
+          setInfoTopics(info.topics)
+          setInfoFeed(info.feed)
+        }
+        if (lanes.flights) setTripFlights(lanes.flights as TripFlight[])
+        if (lanes.selections) {
+          const rows = lanes.selections as UserSelectionRow[]
+          setSharedSelectionRows(rows)
+          const selections = userSelectionMap(rows.filter(row => row.owner_id === effectiveOwnerId))
+          setUserSelections(selections)
+          setAlertReview(Object.fromEntries(Object.entries(selections)
+            .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
+            .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
+          setExploreEventState(applySelectionState(exploreEvents, selections, slice, currentCompanionFromSession(effectiveSession, companionMembers)))
+        }
+      }
       setContinuityReady(true)
       return
     }
@@ -815,25 +837,35 @@ export default function App() {
         supabase ? loadTripFlights(supabase) : Promise.resolve(previewTripFlights),
       ])
     const failures: string[] = []
-    if (notesResult.status === 'fulfilled') setContextNotesState(notesResult.value)
+    const cacheLane = (lane: Parameters<typeof writeOfflineContinuityLane>[1], value: unknown) => {
+      try { writeOfflineContinuityLane(effectiveOwnerId, lane, value) } catch { /* read-only cache is best effort */ }
+    }
+    if (notesResult.status === 'fulfilled') { setContextNotesState(notesResult.value); cacheLane('notes', notesResult.value) }
     else failures.push('notes')
-    if (mentionsResult.status === 'fulfilled') setMentionInboxState(mentionsResult.value)
+    if (mentionsResult.status === 'fulfilled') { setMentionInboxState(mentionsResult.value); cacheLane('mentions', mentionsResult.value) }
     else failures.push('mentions')
-    if (activityResult.status === 'fulfilled') setUserActivityRows(activityResult.value)
+    if (activityResult.status === 'fulfilled') { setUserActivityRows(activityResult.value); cacheLane('activity', activityResult.value) }
     else failures.push('activity')
-    if (findingsResult.status === 'fulfilled') setMonitoringFindings(findingsResult.value)
+    if (findingsResult.status === 'fulfilled') { setMonitoringFindings(findingsResult.value); cacheLane('findings', findingsResult.value) }
     else failures.push('monitoring findings')
     if (conceptsResult.status === 'fulfilled') {
       const qaConcepts = monitoringConceptQaRows()
       const qaKeys = new Set(qaConcepts.map(row => row.concept_key))
-      setMonitoringConcepts([...conceptsResult.value.filter(row => !qaKeys.has(row.concept_key)), ...qaConcepts])
+      const concepts = [...conceptsResult.value.filter(row => !qaKeys.has(row.concept_key)), ...qaConcepts]
+      setMonitoringConcepts(concepts)
+      cacheLane('concepts', concepts)
     }
     else failures.push('monitoring concepts')
-    if (infoResult.status === 'fulfilled') { setInfoTopics(infoResult.value.topics); setInfoFeed(infoResult.value.feed) }
+    if (infoResult.status === 'fulfilled') { setInfoTopics(infoResult.value.topics); setInfoFeed(infoResult.value.feed); cacheLane('info', infoResult.value) }
     else failures.push('Info knowledge')
-    if (flightsResult.status === 'fulfilled') setTripFlights(flightsResult.value.length ? flightsResult.value : previewTripFlights)
+    if (flightsResult.status === 'fulfilled') {
+      const flights = flightsResult.value.length ? flightsResult.value : previewTripFlights
+      setTripFlights(flights)
+      cacheLane('flights', flights)
+    }
     else failures.push('Trip flights')
     if (selectionsResult.status === 'fulfilled') {
+      cacheLane('selections', selectionsResult.value)
       setSharedSelectionRows(selectionsResult.value)
       const selections = userSelectionMap(selectionsResult.value.filter(row => row.owner_id === effectiveOwnerId))
       setUserSelections(selections)
@@ -855,21 +887,45 @@ export default function App() {
       setMessage('')
     }
     setContinuityReady(true)
-  }, [companionMembers, designPreview, isPreviewOwnerMode, online, effectiveOwnerId, slice, effectiveSession])
+  }, [companionMembers, designPreview, isPreviewOwnerMode, effectiveOwnerId, slice, effectiveSession])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
 
-  useEffect(() => {
-    if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || !online) {
+  const refreshCompanions = useCallback(async (forceOnline = false) => {
+    if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || (!onlineRef.current && !forceOnline)) {
       setCompanionMembers(fallbackCompanionMembers)
       return
     }
-    void loadCompanionMembers().then(setCompanionMembers).catch(error => {
+    await loadCompanionMembers().then(setCompanionMembers).catch(error => {
       setMessageTone('error')
       setMessage(error instanceof Error ? `Companion roster could not be refreshed: ${error.message}` : 'Companion roster could not be refreshed.')
       setCompanionMembers(fallbackCompanionMembers)
     })
-  }, [designPreview, isPreviewOwnerMode, online, effectiveOwnerId])
+  }, [designPreview, isPreviewOwnerMode, effectiveOwnerId])
+
+  useEffect(() => { void refreshCompanions() }, [refreshCompanions])
+
+  useEffect(() => {
+    const reconnect = createReconnectRefresh(async () => {
+      await Promise.allSettled([refresh(true), refreshUserContinuity(true), refreshCompanions(true)])
+    })
+    const handleOnline = () => {
+      onlineRef.current = true
+      setOnline(true)
+      void reconnect(true)
+    }
+    const handleOffline = () => {
+      onlineRef.current = false
+      setOnline(false)
+      void reconnect(false)
+    }
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [refresh, refreshCompanions, refreshUserContinuity])
 
   useEffect(() => {
     let active = true

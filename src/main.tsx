@@ -4,13 +4,8 @@ import './styles.css'
 import './account.css'
 import './density.css'
 import App from './App'
+import { registerSW } from 'virtual:pwa-register'
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    registrations.forEach((registration) => {
-      registration.unregister().catch(() => undefined)
-    })
-  }).catch(() => undefined)
-}
+registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
