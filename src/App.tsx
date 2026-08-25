@@ -6491,10 +6491,8 @@ function Login({ onGoogleSignIn, message, messageTone }: { onGoogleSignIn: () =>
   return <div className="login-shell"><section className="login-card" aria-label="Sign in">
     <img src={assetUrl('magiccon-atlanta-peach.png')} alt="MagicCon Atlanta" />
     <span className="kicker">PRIVATE FIELD GUIDE</span><h1>Welcome back.</h1>
-    <p className="login-intro">Use Google OAuth for a persistent Supabase session. Magic links stay parked so we do not burn email quota during testing.</p>
+    <p className="login-intro">Sign in to open your private MagicCon field guide.</p>
     <button type="button" className="oauth-button" onClick={onGoogleSignIn}><span aria-hidden="true">G</span>Continue with Google</button>
-    <a className="preview-link" href={`${window.location.pathname}?preview=1`}>Open preview mode</a>
-    <a className="preview-link" href={`${window.location.pathname}?preview=1&previewOwner=chris#home`}>Open as Chris</a>
     {message && <p role="status" className={`login-message ${messageTone}`}>{message}</p>}
   </section></div>
 }

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { surfaceFromHash } from '../App'
 import { AUTH_MODE_KEY, authRedirectUrl, resolveDesignPreviewMode } from './appMode'
 
@@ -47,5 +49,12 @@ describe('application mode', () => {
     expect(surfaceFromHash('#explore?type=play&group=high_signal')).toBe('explore')
     expect(surfaceFromHash('#calendar-con')).toBe('home')
     expect(surfaceFromHash('')).toBe('home')
+  })
+
+  it('does not advertise fixture or test entry points on the public login screen', () => {
+    const appSource = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8')
+    expect(appSource).not.toContain('Open preview mode')
+    expect(appSource).not.toContain('Open as Chris')
+    expect(appSource).not.toContain('Magic links stay parked')
   })
 })
