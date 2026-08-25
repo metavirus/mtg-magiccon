@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { homeSignalAgeBucket, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen } from './homeSignalAge'
+import { homeSignalAgeBucket, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './homeSignalAge'
 
 const now = new Date('2026-08-24T12:00:00Z').getTime()
 
 describe('Home Worth Knowing age buckets', () => {
+  it('switches the official sale milestone at 10 AM Pacific', () => {
+    const openedAt = new Date(TICKETED_PLAY_SALE_OPENED_AT).getTime()
+    expect(ticketedPlaySaleHasOpened(openedAt - 1)).toBe(false)
+    expect(ticketedPlaySaleHasOpened(openedAt)).toBe(true)
+  })
+
   it('labels the past three days Recent and days four through fourteen Earlier', () => {
     expect(homeSignalAgeBucket('2026-08-22T12:00:00Z', now)).toBe('recent')
     expect(homeSignalAgeBucket('2026-08-20T12:00:00Z', now)).toBe('earlier')

@@ -14,7 +14,7 @@ import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFe
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
-import { homeSignalAgeBucket, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen } from './lib/homeSignalAge'
+import { homeSignalAgeBucket, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import {
@@ -1363,11 +1363,39 @@ export default function App() {
     objectDetail: alertToObjectDetail(alert),
     conceptKey: alert.conceptKey,
   }))
-  const conceptActivity: ActivityItem[] = monitoringConcepts.map(concept => {
+  const effectiveMonitoringConcepts = [...monitoringConcepts]
+  if (ticketedPlaySaleHasOpened()) {
+    const conceptIndex = effectiveMonitoringConcepts.findIndex(concept => concept.concept_key === 'atlanta:ticketed-play:sales-opening')
+    const currentConcept = effectiveMonitoringConcepts[conceptIndex]
+    if (currentConcept?.current_state.phase !== 'open') {
+      const openedConcept: MonitoringConceptRow = {
+        concept_key: 'atlanta:ticketed-play:sales-opening',
+        title: 'Ticketed Play sales',
+        current_summary: 'Ticketed Play sales are now open.',
+        attention_state: 'milestone_transition',
+        review_state: currentConcept?.review_state ?? 'unread',
+        latest_resolution: 'Sales open',
+        current_state: {
+          ...(currentConcept?.current_state ?? {}),
+          phase: 'open',
+          milestone_opened_at: TICKETED_PLAY_SALE_OPENED_AT,
+          clock_derived: true,
+          resources: [{ label: 'Ticketed Play Schedule', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html' }],
+        },
+        evidence_count: currentConcept?.evidence_count ?? 1,
+        first_seen_at: currentConcept?.first_seen_at ?? TICKETED_PLAY_SALE_OPENED_AT,
+        last_seen_at: TICKETED_PLAY_SALE_OPENED_AT,
+      }
+      if (conceptIndex >= 0) effectiveMonitoringConcepts[conceptIndex] = openedConcept
+      else effectiveMonitoringConcepts.push(openedConcept)
+    }
+  }
+  const conceptActivity: ActivityItem[] = effectiveMonitoringConcepts.map(concept => {
     const resources = monitoringConceptResources(concept)
     const sourceLabel = typeof concept.current_state.source_label === 'string' ? concept.current_state.source_label : 'Official source'
     const sourceUrl = typeof concept.current_state.source_url === 'string' ? concept.current_state.source_url : ''
-    const reviewState: AlertReviewState = concept.review_state === 'archived' ? 'archived' : concept.review_state === 'read' ? 'reviewed' : 'needs-review'
+    const persistedReview = alertReview[`concept-${concept.concept_key}`]
+    const reviewState: AlertReviewState = persistedReview ?? (concept.review_state === 'archived' ? 'archived' : concept.review_state === 'read' ? 'reviewed' : 'needs-review')
     const needsAttention = ['hot', 'material_update', 'milestone_transition', 'contradiction'].includes(concept.attention_state)
     return {
       id: `concept-${concept.concept_key}`,
@@ -1449,6 +1477,10 @@ export default function App() {
   })
   const setActivityReviewState = (item: ActivityItem, state: AlertReviewState) => {
     if (item.monitoringConcept) {
+      if (item.monitoringConcept.current_state.clock_derived) {
+        setAlertReviewState(item.id, state)
+        return
+      }
       const qaSaleOpen = (new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []).includes('sale-open')
         && item.monitoringConcept.concept_key === 'atlanta:ticketed-play:sales-opening'
       if (qaSaleOpen) {
@@ -1652,6 +1684,13 @@ export default function App() {
         </div>
         <div className="header-status">
           <div className="header-actions">
+            {message && messageTone === 'error' && <details className="global-alert-control">
+              <summary aria-label="Account refresh alert" title="Account refresh alert">!</summary>
+              <div className="global-alert-popover" role="status">
+                <span className="eyebrow">SYNC ALERT</span>
+                <p>{message}</p>
+              </div>
+            </details>}
             <MentionInbox
               items={mentionInboxState}
               alert={saleInboxSignal}
@@ -1677,7 +1716,7 @@ export default function App() {
         </div>
       </header>
 
-      {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
+      {((message && messageTone !== 'error') || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       <>
         {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}

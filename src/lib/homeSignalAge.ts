@@ -1,4 +1,5 @@
 const DAY_MS = 24 * 60 * 60 * 1000
+export const TICKETED_PLAY_SALE_OPENED_AT = '2026-08-25T17:00:00.000Z'
 
 export type HomeSignalAgeBucket = 'recent' | 'earlier'
 
@@ -10,6 +11,10 @@ type FeatureableHomeSignal = {
 export function isTicketedPlaySaleOpen(item: FeatureableHomeSignal) {
   return item.conceptKey === 'atlanta:ticketed-play:sales-opening'
     && item.monitoringConcept?.current_state?.phase === 'open'
+}
+
+export function ticketedPlaySaleHasOpened(now = Date.now()) {
+  return now >= new Date(TICKETED_PLAY_SALE_OPENED_AT).getTime()
 }
 
 export function isFeaturedTicketedPlaySale(item: FeatureableHomeSignal, now = Date.now()) {
