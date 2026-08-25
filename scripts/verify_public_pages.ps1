@@ -5,6 +5,28 @@ $distRoot = Join-Path $repoRoot 'dist'
 $distIndexPath = Join-Path $distRoot 'index.html'
 $publicUrl = 'https://metavirus.github.io/mtg-magiccon/'
 
+function Get-PublicContent {
+  param([Parameter(Mandatory = $true)][string]$Uri)
+  try {
+    return (Invoke-WebRequest -Uri $Uri -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }).Content
+  } catch {
+    $content = & node --use-system-ca scripts/fetch_public_verification.mjs content $Uri
+    if ($LASTEXITCODE -ne 0) { throw "Public fetch failed through Invoke-WebRequest and Node fetch: $Uri" }
+    return ($content -join "`n")
+  }
+}
+
+function Get-PublicStatusCode {
+  param([Parameter(Mandatory = $true)][string]$Uri)
+  try {
+    return [int](Invoke-WebRequest -Uri $Uri -Method Head -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }).StatusCode
+  } catch {
+    $status = & node --use-system-ca scripts/fetch_public_verification.mjs status $Uri
+    if ($LASTEXITCODE -ne 0 -or $status -notmatch '^\d{3}$') { throw "Public HEAD failed through Invoke-WebRequest and Node fetch: $Uri" }
+    return [int]$status
+  }
+}
+
 if (-not (Test-Path -LiteralPath $distIndexPath)) {
   throw "Missing dist index at $distIndexPath. Run pnpm build:pages first."
 }
@@ -24,8 +46,7 @@ if (-not $expectedAssets -or $expectedAssets.Count -eq 0) {
 
 $cacheBust = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 $uri = "${publicUrl}?verify=$cacheBust"
-$response = Invoke-WebRequest -Uri $uri -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }
-$publicIndex = $response.Content
+$publicIndex = Get-PublicContent -Uri $uri
 $publicShaMatch = [System.Text.RegularExpressions.Regex]::Match($publicIndex, '<meta name="magiccon-build-sha" content="([^"]+)" />')
 if (-not $publicShaMatch.Success) {
   throw 'No magiccon-build-sha meta tag found in public GitHub Pages HTML. The public page is still on a pre-workflow build.'
@@ -39,9 +60,9 @@ if ($expectedSha -ne $publicSha) {
 $publicAssets = [System.Text.RegularExpressions.Regex]::Matches($publicIndex, $assetPattern) | ForEach-Object { $_.Value } | Select-Object -Unique
 foreach ($asset in $publicAssets) {
   $assetUri = [System.Uri]::new([System.Uri]$publicUrl, $asset)
-  $assetResponse = Invoke-WebRequest -Uri $assetUri.AbsoluteUri -Method Head -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }
-  if ($assetResponse.StatusCode -lt 200 -or $assetResponse.StatusCode -ge 400) {
-    throw "Public asset did not load: $($assetUri.AbsoluteUri) returned $($assetResponse.StatusCode)."
+  $assetStatus = Get-PublicStatusCode -Uri $assetUri.AbsoluteUri
+  if ($assetStatus -lt 200 -or $assetStatus -ge 400) {
+    throw "Public asset did not load: $($assetUri.AbsoluteUri) returned $assetStatus."
   }
 }
 
