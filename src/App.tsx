@@ -3727,7 +3727,11 @@ function planTimeLines(time: string) {
 }
 
 function isFlexiblePlanEvent(event: ExploreEvent) {
-  return event.id === 'bl-progressive-sealed' || event.id === 'bl-mystery-booster-drafts' || /start/i.test(event.time) || /on-demand|league window/i.test(event.window)
+  return event.id === 'bl-progressive-sealed'
+    || event.id === 'bl-mystery-booster-drafts'
+    || event.tags.some(tag => tag.toLowerCase() === 'flexible')
+    || /start/i.test(event.time)
+    || /on-demand|league window/i.test(event.window)
 }
 
 function isNonBlockingPlanEvent(event: ExploreEvent) {
