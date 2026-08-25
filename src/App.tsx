@@ -2439,13 +2439,12 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
   if (!detail) return null
   return <div className={`object-detail-backdrop ${detail.reader ? 'info-reader-backdrop' : ''}`} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind} ${detail.reader ? 'object-detail-reader' : ''}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
-      {detail.reader && <button className="detail-close reader-close-sticky" type="button" onClick={onClose} aria-label="Close article">×</button>}
+      <button className={`detail-close persistent-detail-close ${detail.reader ? 'reader-close-sticky' : 'object-detail-close'}`} type="button" onClick={onClose} aria-label={detail.reader ? 'Close article' : 'Close detail'}>×</button>
       <header className="object-detail-head">
         <div className="object-detail-topline">
           <span className="eyebrow">{detail.eyebrow}</span>
           <span className="object-detail-top-actions">
             <span className="object-kind-chip">{detail.kindLabel ?? detailKindLabel(detail.kind)}</span>
-            {!detail.reader && <button className="detail-close object-detail-close" type="button" onClick={onClose} aria-label="Close detail">×</button>}
           </span>
         </div>
         <h2 id="object-detail-title">{detail.title}</h2>
@@ -4761,7 +4760,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
 
 function WalletModal({ eyebrow, title, body, people, onClose }: { eyebrow: string; title: string; body: ReactNode; people?: PersonName[]; onClose: () => void }) {
   return <aside className="wallet-modal" role="dialog" aria-modal="true" aria-label={title}>
-    <button className="detail-close" type="button" onClick={onClose} aria-label="Close Wallet detail">×</button>
+    <button className="detail-close persistent-detail-close" type="button" onClick={onClose} aria-label="Close Wallet detail">×</button>
     <div className="wallet-modal-head">
       <div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div>
       {people?.length ? <PersonBubbles people={people} /> : null}
@@ -5645,7 +5644,7 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
       if (event.target === event.currentTarget) setPreviewCard(null)
     }}>
       <div className="artist-card-popover">
-        <button type="button" className="detail-close artist-card-popover-close" aria-label="Close card preview" onClick={() => setPreviewCard(null)}>×</button>
+        <button type="button" className="detail-close persistent-detail-close artist-card-popover-close" aria-label="Close card preview" onClick={() => setPreviewCard(null)}>×</button>
         <div className="artist-card-popover-art">
           <img src={previewCard.cardImageUrl} alt={`${previewCard.cardName} card art by ${previewCard.artistName}`} />
         </div>
@@ -5689,9 +5688,9 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
       if (event.target === event.currentTarget) setSelectedArtist(null)
     }}>
       <div className="artist-detail-popover">
+        <button type="button" className="detail-close persistent-detail-close artist-detail-popover-close" aria-label="Close artist details" onClick={() => setSelectedArtist(null)}>×</button>
         <div className="artist-detail-popover-head">
           <span className="eyebrow">{selectedArtist.signal}</span>
-          <button type="button" className="detail-close" aria-label="Close artist details" onClick={() => setSelectedArtist(null)}>×</button>
         </div>
         <div className="artist-detail-popover-body">
           {selectedArtist.thumbnailUrl && <img className="artist-detail-popover-image" src={selectedArtist.thumbnailUrl} alt="" />}
@@ -5922,8 +5921,9 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
 
 function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
   return <aside className="calendar-detail-sheet calendar-event-detail event-detail-panel" aria-label={`${event.title} calendar detail`}>
+    <button className="detail-close persistent-detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
     <header className="event-detail-heading">
-      <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span><button className="detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button></span></div>
+      <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span></span></div>
       <h2>{displayEventTitle(event)}</h2>
       <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}<span><DetailFactIcon name="duration" />{event.window}</span></div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
@@ -5961,9 +5961,9 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
             : { eyebrow: 'BLACK LOTUS · NOV 14', title: slice.occurrence.title.replace('Black Lotus ', ''), copy: '11:30 AM–3:00 PM · included Black Lotus event.' }
 
   return <aside className="calendar-detail-sheet" aria-label={`${content.title} details`}>
+    <button className="detail-close persistent-detail-close calendar-detail-close" type="button" onClick={onClose} aria-label="Close details">×</button>
     <div className="calendar-detail-head">
       <span className="eyebrow">{content.eyebrow}</span>
-      <button className="detail-close calendar-detail-close" type="button" onClick={onClose} aria-label="Close details">×</button>
     </div>
     <h2>{content.title}</h2>
     <p>{content.copy}</p>
