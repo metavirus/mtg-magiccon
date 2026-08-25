@@ -1883,18 +1883,43 @@ function renderLinkedText(text: string): ReactNode {
   return parts.length ? parts : text
 }
 
-const promotedMoreDetailLabels = new Set(['prize tix', 'rounds'])
+const promotedMoreDetailLabels = new Set(['prize tix', 'product', 'rounds'])
+const wideEventDetailLabels = new Set(['prize tix', 'product'])
+
+const roundNumberWords: Record<string, string> = {
+  one: '1', two: '2', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: '10',
+}
 
 function shouldPromoteEventDetail(label: string) {
   return promotedMoreDetailLabels.has(label.trim().toLowerCase())
 }
 
+function isWideEventDetail(label: string) {
+  return wideEventDetailLabels.has(label.trim().toLowerCase())
+}
+
+function compactRounds(value: string) {
+  const parentheticalCount = value.match(/\((\d+)\)/)?.[1]
+  const wordCount = value.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\b/i)?.[1].toLowerCase()
+  const numericCount = value.match(/\b(\d+)\s+(?:swiss\s+|best[- ]of[- ](?:one|three|1|3)\s+|single[- ]elimination\s+)?rounds?\b/i)?.[1]
+  const count = parentheticalCount ?? (wordCount ? roundNumberWords[wordCount] : numericCount)
+  const minutes = value.match(/\b(\d+)\s*[- ]?minutes?\b/i)?.[1]
+  const prefix = /\b(?:up to|max(?:imum)? of)\b/i.test(value) ? 'up to ' : ''
+  const facts = [count ? `${prefix}${count}` : undefined, minutes ? `${minutes} mins/round` : /\buntimed\b/i.test(value) ? 'untimed' : undefined].filter(Boolean)
+  return facts.length ? facts.join(', ') : value
+}
+
 function eventDecisionFacts(event: ExploreEvent) {
   const baseFacts = event.decisionFacts ?? []
   const baseLabels = new Set(baseFacts.map(fact => fact.label.trim().toLowerCase()))
+  const promotionOrder = new Map([['rounds', 0], ['prize tix', 1], ['product', 2]])
   const promotedFacts = (event.moreDetails ?? [])
     .filter(item => shouldPromoteEventDetail(item.label) && !baseLabels.has(item.label.trim().toLowerCase()))
-    .map(item => ({ label: item.label, value: item.value, icon: item.label.trim().toLowerCase() === 'prize tix' ? 'ticket' as const : undefined }))
+    .sort((left, right) => (promotionOrder.get(left.label.trim().toLowerCase()) ?? 99) - (promotionOrder.get(right.label.trim().toLowerCase()) ?? 99))
+    .map(item => {
+      const label = item.label.trim().toLowerCase()
+      return { label: item.label, value: label === 'rounds' ? compactRounds(item.value) : item.value, icon: label === 'prize tix' ? 'ticket' as const : undefined }
+    })
   return [...baseFacts, ...promotedFacts]
 }
 
@@ -3981,7 +4006,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
         <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(selected.detail)}</p></div>
         <section className="detail-section decision-section">
           <div className="format-heading"><strong>{selected.format}</strong>{selected.formatHelp && <details className="format-help"><summary aria-label={`Explain ${selected.format}`}>?</summary><p>{selected.formatHelp}</p></details>}</div>
-          {eventDecisionFacts(selected).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(selected).map(fact => <div key={fact.label} className={shouldPromoteEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
+          {eventDecisionFacts(selected).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(selected).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
           <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {selected.complexityWhy}</p>
         </section>
         <section className="detail-section plan-summary"><strong>Plan effect</strong><p>{selected.planEffect}</p></section>
@@ -4342,7 +4367,7 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(event.detail)}</p></div>
     <section className="detail-section decision-section">
       <div className="format-heading"><strong>{event.format}</strong>{event.formatHelp && <details className="format-help"><summary aria-label={`Explain ${event.format}`}>?</summary><p>{event.formatHelp}</p></details>}</div>
-      {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={shouldPromoteEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
+      {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
       <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {event.complexityWhy}</p>
     </section>
     <section className="detail-section plan-summary">
@@ -5952,7 +5977,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
     <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>PLAN EFFECT</small>{event.planEffect}</p></div>
     <section className="detail-section"><strong>{event.format}</strong><p>{renderLinkedText(event.detail)}</p></section>
-    {event.decisionFacts && <div className="decision-facts" aria-label="Event logistics">{event.decisionFacts.map(fact => <div key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
+    {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event logistics">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
     <div className="plan-provenance"><span>{event.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{renderLinkedText(event.sourceNote ?? 'Source context captured for this item.')}</small></div>
     <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} context={`Event · ${displayEventTitle(event)}`} backlink="calendar" compact />
     <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Open in Plan <span aria-hidden="true">›</span></button>
