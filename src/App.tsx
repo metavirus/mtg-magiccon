@@ -543,13 +543,14 @@ function applySelectionState(events: ExploreEvent[], selections: Record<string, 
   return events.map(event => {
     const selected = selections[selectionKey(`explore-${event.id}`, 'state')]
     const purchased = canPurchaseEvent(event.price) && selections[selectionKey(`explore-${event.id}`, 'purchased')] === 'true'
+    const purchaseLocked = purchased && selections[selectionKey(`explore-${event.id}`, 'purchase_locked')] === 'true'
     const personalDefault = isKaviCompanion(companion) ? kaviDefaultExploreState(event) : null
     const fallbackState = isKaviCompanion(companion) ? personalDefault ?? event.state : 'none'
     const state = applyPurchaseTransition(isExploreState(selected) ? selected : fallbackState, purchased).state as ExploreState
     if (event.id === 'bl-planechase' && trustSlice && !selected && isKaviCompanion(companion)) {
-      return { ...event, state: trustSlice.decision.planning_state as ExploreState, purchased }
+      return { ...event, state: trustSlice.decision.planning_state as ExploreState, purchased, purchaseLocked }
     }
-    return { ...event, state, purchased }
+    return { ...event, state, purchased, purchaseLocked }
   })
 }
 
@@ -1332,7 +1333,7 @@ export default function App() {
 
   const updateEventPurchase = (id: string, purchased: boolean) => {
     const currentEvent = exploreEventState.find(event => event.id === id)
-    if (!currentEvent || !canPurchaseEvent(currentEvent.price)) return
+    if (!currentEvent || !canPurchaseEvent(currentEvent.price) || currentEvent.purchaseLocked) return
     const transition = applyPurchaseTransition(currentEvent.state, purchased)
     setExploreEventState(current => current.map(event => event.id === id ? { ...event, state: transition.state as ExploreState, purchased } : event))
     void upsertUserSelection(`explore-${id}`, 'event', 'purchased', String(purchased))
@@ -3112,6 +3113,7 @@ type ExploreEvent = {
   sourceNote?: string
   planEffect: string
   purchased?: boolean
+  purchaseLocked?: boolean
 }
 
 const monitoringAlerts: MonitoringAlert[] = [
@@ -4432,7 +4434,7 @@ function PurchaseControl({ event, onPurchase, detail = false }: { event: Explore
   }, [confirming])
   if (!canPurchaseEvent(event.price)) return null
   return <span ref={controlRef} className={`purchase-control ${detail ? 'purchase-control-detail' : ''} ${event.purchased ? 'is-purchased' : ''}`} onClick={click => click.stopPropagation()}>
-    <button type="button" aria-label={event.purchased ? `Undo purchase for ${event.title}` : `Mark ${event.title} purchased`} aria-pressed={Boolean(event.purchased)} title={event.purchased ? 'Undo purchase' : 'Mark purchased'} onClick={() => event.purchased ? onPurchase(false) : setConfirming(true)}>
+    <button type="button" disabled={event.purchaseLocked} aria-label={event.purchaseLocked ? `${event.title} purchase permanently locked` : event.purchased ? `Undo purchase for ${event.title}` : `Mark ${event.title} purchased`} aria-pressed={Boolean(event.purchased)} title={event.purchaseLocked ? 'Purchased · permanently locked' : event.purchased ? 'Undo purchase' : 'Mark purchased'} onClick={() => event.purchased ? onPurchase(false) : setConfirming(true)}>
       <ActionIcon name="ticket" /><span>{formatEventPrice(event.price)}</span><ActionIcon name={event.purchased ? 'lock' : 'unlock'} />
     </button>
     {confirming && createPortal(<span className="purchase-confirm purchase-confirm-portal" style={confirmPosition} role="group" aria-label="Confirm purchase"><span>Mark purchased?</span><button type="button" onClick={() => { onPurchase(true); setConfirming(false) }}>Yes</button><button type="button" onClick={() => setConfirming(false)}>No</button></span>, document.body)}
@@ -4824,7 +4826,7 @@ function WalletHomeTab({ openBlackLotusProof, openJuanProof, onOpenObject }: { o
         <button className="mini-pass lotus-pass" type="button" onClick={openBlackLotusProof}>
           <span><EventKindIcon name="lotus" /></span>
           <strong>Chris</strong>
-          <small>Black Lotus</small>
+          <small>Black Lotus · transferred Aug 25</small>
           <PersonBubbles people={['Chris']} />
         </button>
         <button className="mini-pass premium-pass" type="button" onClick={openJuanProof}>
@@ -4863,6 +4865,7 @@ function BlackLotusProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote 
         </div>
         <div className="proof-info-list">
           <div><span>Order proof</span><strong>QR code captured from Leap email</strong></div>
+          <div><span>Chris badge</span><strong>Transferred to Chris Tom · Aug 25, 2026</strong></div>
           <div><span>Will Call</span><strong>Thu 12-6 · Fri/Sat 8:30-7 · Sun 8:30-6</strong></div>
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
         </div>
