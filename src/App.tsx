@@ -4906,7 +4906,7 @@ function WalletHomeTab({ openBlackLotusProof, openChrisBlackLotusProof, openJuan
 }
 
 function ChrisBlackLotusTransferDetail({ receipt, notes, currentOwnerId, onAddNote, onDeleteNote }: { receipt: WalletReceiptRow | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
-  const [mode, setMode] = useState<'info' | 'original'>('info')
+  const [mode, setMode] = useState<'info' | 'original' | 'transfer'>('info')
   const orderCode = '[private-receipt-value-removed]'
   const orderUrl = '[private-receipt-value-removed]'
   const qrUrl = '[private-receipt-value-removed]'
@@ -4915,6 +4915,7 @@ function ChrisBlackLotusTransferDetail({ receipt, notes, currentOwnerId, onAddNo
     <div className="proof-mode-tabs" role="tablist" aria-label="Chris Black Lotus transfer proof view">
       <button type="button" role="tab" aria-selected={mode === 'info'} className={mode === 'info' ? 'active' : ''} onClick={() => setMode('info')}>Info</button>
       <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
+      <button type="button" role="tab" aria-selected={mode === 'transfer'} className={mode === 'transfer' ? 'active' : ''} onClick={() => setMode('transfer')}>Transfer</button>
     </div>
     {mode === 'info' ? <>
       <div className="proof-status-grid">
@@ -4923,18 +4924,26 @@ function ChrisBlackLotusTransferDetail({ receipt, notes, currentOwnerId, onAddNo
       </div>
       <div className="proof-info-list">
         <div><span>Attendee</span><strong>Chris Tom</strong></div>
-        <div><span>Transfer proof</span><strong>Leap confirmation received by Chris</strong></div>
+        <div><span>Order proof</span><strong>Original Black Lotus purchase receipt captured</strong></div>
+        <div><span>Transfer proof</span><strong>Available under Transfer</strong></div>
         <div><span>Will Call</span><strong>Bring this confirmation email and photo ID</strong></div>
         <div><span>Original</span><strong>{receipt ? 'Full forwarded email captured' : 'Loading captured email…'}</strong></div>
       </div>
-      <div className="proof-qr-card" aria-label="Showable Chris Black Lotus order QR">
+      <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-chris-black-lotus-transfer" objectKind="receipt" objectTitle="Chris Black Lotus transfer confirmation" context="Wallet · Chris Black Lotus transfer" backlink="wallet" compact />
+    </> : mode === 'original' ? <>
+      <p className="original-receipt-note">Original Black Lotus purchase email for the two-badge order.</p>
+      <div className="original-proof-stack full-email">
+        {[1, 2, 3, 4, 5].map(page => <figure key={page}><img src={`./black-lotus-order-original-page-${page}.png`} alt={`Original MagicCon Atlanta Black Lotus order confirmation email page ${page}`} /><figcaption>Original email page {page} of 5</figcaption></figure>)}
+      </div>
+    </> : <>
+      <div className="proof-qr-card" aria-label="Showable Chris Black Lotus transfer QR">
         <figure><img src={qrUrl} alt="QR code from Chris's transferred Black Lotus confirmation email" /><figcaption>Show this confirmation QR if staff asks for Chris's transferred badge proof.</figcaption></figure>
         <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
       </div>
-      <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-chris-black-lotus-transfer" objectKind="receipt" objectTitle="Chris Black Lotus transfer confirmation" context="Wallet · Chris Black Lotus transfer" backlink="wallet" compact />
-    </> : receipt
-      ? <div className="original-html-frame"><p className="original-receipt-note">Full forwarded Leap transfer confirmation captured from Gmail.</p><iframe title="Chris Black Lotus transfer confirmation original email" srcDoc={receipt.original_html} sandbox="" /></div>
-      : <p className="original-receipt-note">The captured confirmation is still loading.</p>}
+      {receipt
+        ? <div className="original-html-frame"><p className="original-receipt-note">Full forwarded Leap transfer confirmation captured from Gmail.</p><iframe title="Chris Black Lotus transfer confirmation original email" srcDoc={receipt.original_html} sandbox="" /></div>
+        : <p className="original-receipt-note">The captured transfer confirmation is still loading.</p>}
+    </>}
     <div className="proof-links"><a href={orderUrl} target="_blank" rel="noreferrer">Open Chris's Leap order</a></div>
   </div>
 }
