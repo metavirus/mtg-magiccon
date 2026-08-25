@@ -4781,7 +4781,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
-    return Number.isFinite(parsed) ? parsed : 1700
+    return Number.isFinite(parsed) ? parsed : 0
   })
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
   const [playReceipts, setPlayReceipts] = useState<WalletReceiptRow[]>([])
