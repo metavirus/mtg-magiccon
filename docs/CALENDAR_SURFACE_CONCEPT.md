@@ -62,7 +62,7 @@ Clicking the day expands a compact summary inline so the owner retains Calendar 
 
 The expanded view includes “Open in Plan,” which deliberately changes context to the focused Plan workspace with the selected day active. Calendar never embeds the complete contention workspace.
 
-Rows are not dead summaries. Milestones and travel anchors open compact contextual detail; convention days open day context; captured events open a responsive detail drawer or sheet with reversible Interested, Tentative, and Committed controls. Removing a planning state is deliberate rather than a stray row tap, while purchased financial history remains separate when that model is introduced.
+Rows are not dead summaries. Milestones and travel anchors open compact contextual detail; convention days open day context; captured timed events open a responsive detail drawer or sheet with reversible Interested, Tentative, and Committed controls. Flexible/ongoing event families with no legitimate attendance slot, such as Mage Tower League and Progressive Sealed, belong in the Plan flexible lane rather than as fake agenda rows. Timed optional events, such as Commander and Cocktails, remain agenda rows because optional attendance is not the same thing as no scheduled time. Removing a planning state is deliberate rather than a stray row tap, while purchased financial history remains separate from planning state.
 
 Clickable rows expose a compact destination cue so the interaction is predictable: Details, Trip, Plan, Day, or Official. On narrow screens the same cue collapses to its vector icon. The first click preserves Calendar context; a primary action inside the resulting detail moves to the full destination when that surface exists.
 

@@ -153,7 +153,7 @@ Wallet owns badges, entitlements, ticketed events, receipts, QR or alphanumeric 
 
 Proof opens in one focused layer, never stacked modal boxes.
 
-The current Wallet Home POC is parked as design evidence rather than final polish. The next serious Wallet pass should begin from the onsite phone use case: show proof quickly, adjust Prize Tix with minimal friction, and then scale outward to desktop. Prize Tix may work better as a right-edge quick drawer or similar transient control than as a large permanent hero object. The ticket art needs a stronger generated or source-inspired treatment, a softer border, and a composition that does not crowd badge proof.
+The current Wallet Home POC is parked as design evidence rather than final polish. Superseding direction: show proof quickly, keep Prize Tix as a compact Supabase-backed counter with direct `-100` / `+100` controls, and scale outward from the onsite phone case. The older ticket-art and right-edge drawer ideas are historical evidence only, not active guidance.
 
 ### Notes and Activity
 

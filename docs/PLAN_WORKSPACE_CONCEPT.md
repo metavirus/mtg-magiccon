@@ -98,6 +98,14 @@ There is no generic month or week context inside Plan. Broad dates and travel da
 
 ### Time layers
 
+Plan distinguishes three timing classes and should not blur them:
+
+- **Flexible / ongoing:** no legitimate appointment block; belongs in the Flexible lane rather than the agenda ruler. Mage Tower League entries are one family here even when the upstream listing carries a placeholder like `3 PM–3:05 PM`. Progressive Sealed also belongs here.
+- **Timed optional event:** has a real start/end window and remains in the agenda even when attendance is optional. Commander and Cocktails is this class; optional interest is not the same as flexible/no-time.
+- **Inflection point:** a useful timestamp or deadline that belongs as a thin chronological text marker, not as a full event card.
+
+When upstream data encodes placeholder timing, prefer the product meaning over the literal timestamp. Do not let a fake five-minute window turn a flexible family into a scheduled agenda item.
+
 - **Committed blocks:** solid primary blocks; overlapping fixed Commitments are the only hard conflicts.
 - **Purchased overlay:** gold lock layered onto the event.
 - **Tentative blocks:** shaded or outlined blocks that can stack or offset.

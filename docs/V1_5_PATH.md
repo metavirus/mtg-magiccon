@@ -17,7 +17,7 @@ Do not use the remainder of 1.5 to broaden the app into every future feature. Th
 
 - Shared object-detail drawer/sheet grammar works across representative events, alerts, receipts, hotels, notes, and monitor-discovered objects.
 - Home is a command center: it distinguishes quiet status from review-worthy signals and avoids becoming a dump of every monitored fact.
-- Activity is a reviewed monitor inbox with Review, Changes, Sources, Notes, and Archive streams. It has been volume-tested with representative monitoring output and is frozen for this tranche.
+- Activity is a reviewed, grouped history surface with Hot/All/Changes/Notes-style filtering. Home shows only Hot plus moderate Worth Knowing context; Activity keeps the fuller durable trail without turning every small action into Home noise.
 - Wallet Home uses a simple compact Prize Tix counter with `-100` / `+100`; decorative ticket art and drawer ideas are parked.
 - Mobile navigation uses five primary destinations: Home, Events, Map, Wallet, and More. Events opens Explore / Plan / Calendar; More opens Trip / Artists / Notes / Activity.
 - Explore and Calendar contain the known official Atlanta Black Lotus schedule as fixture-backed, source-caveated data.
@@ -148,10 +148,9 @@ Goal: make Wallet useful onsite, not just visually interesting.
   - update Prize Tix;
   - see assignments and notes.
 - Rework Prize Tix:
-  - keep the ticket-art idea as personality;
-  - make the interaction one-handed and resilient;
-  - consider a persistent mini-card plus drawer for `+` / `-`;
-  - soften harsh borders and improve art quality only after the interaction works.
+  - use the simple compact counter with direct `-100` / `+100` controls;
+  - persist the balance in Supabase user state;
+  - do not resurrect the decorative ticket art or quick drawer until the simple onsite counter proves insufficient.
 - Keep Play as the highest-value onsite receipt tab:
   - event codes;
   - QR or original receipt;

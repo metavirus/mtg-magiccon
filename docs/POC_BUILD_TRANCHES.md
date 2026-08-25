@@ -80,13 +80,7 @@ Implementation checkpoint (2026-08-03): Trip is the first retrieval-cluster slic
 
 Wallet now has a first fixture-backed retrieval surface with Home, Play, Store, and Other subtabs. Play is reserved for ticketed-play/event receipts because those are likely the highest-value onsite proof objects: event codes, original receipts, included-product claims, pickup proof, and one tap back to the event. Store uses the prior Vegas Square receipt #39Z8 as structural evidence for extracted line items, assignment notes, catalog backlinks, preserved originals, and fast assignment chips. Known people use the app's K/J/C person-bubble language; ad hoc names render as small text pills. User selections and notes must now persist through Supabase-backed owner state rather than per-device browser storage; browser storage is only acceptable for UI chrome and read-only offline cache. Other holds travel, hotel, Black Lotus badge-order receipts, and miscellaneous confirmations that backlink to Trip or the relevant proof surface. This proves the UI shape only; it does not authorize private Storage buckets, a mailbox monitor, receipt ingestion automation, or a generalized artifact schema.
 
-Wallet Home is parked for v1.5 rather than optimized further in this MVP pass. The current proof dashboard and Prize Tix ticket are useful interaction evidence, but the final page should be designed mobile-first because it is mainly an onsite retrieval surface. Open v1.5 decisions:
-
-- regenerate or source stronger Prize Tix art with the same recognizable ticket structure;
-- soften the ticket border so it feels like MagicCon flavor rather than a harsh page weight;
-- keep `+`/`-` adjustment fast, possibly by letting Prize Tix slide in from the right as a quick drawer;
-- preserve QR/original-order access without letting badge proof and Prize Tix fight for the same hero space;
-- then adapt the desktop view from the mobile composition, not the other way around.
+Wallet Home is parked for v1.5 rather than optimized further in this MVP pass. Superseding direction: Prize Tix is a simple compact Supabase-backed counter with direct `-100` / `+100` controls. The decorative ticket and right-edge drawer concepts are historical design evidence only; do not revive them unless the compact onsite counter later proves insufficient.
 
 Build only the minimum Map, Trip, and Wallet paths needed to test contextual retrieval:
 
