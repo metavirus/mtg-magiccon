@@ -282,6 +282,20 @@ If public verification fails after a correct push, report propagation/cache lag 
 - If both Node fetch and the PowerShell fallback fail, treat it as a real network/source failure and report the exact source IDs.
 - Do not replace the monitor with ad hoc browser scraping just because Node fetch alone failed.
 
+## Surveyor mixed-batch status normalization
+
+**Symptom:** `Daily MagicCon surveyor` completes the watch check but `monitor:stage` fails with PostgreSQL `23502`, reporting a null `monitoring_findings.status`.
+
+**Cause:** Supabase bulk upsert normalizes missing properties across mixed row shapes. If classified rows specify `status` while an ordinary candidate omits it, the omitted value may be sent as null instead of receiving the database default.
+
+**Do this:**
+
+- Every row returned by `buildMonitoringCandidateRows` must carry an explicit status; the safe initial state for an unmapped candidate is `needs_review`.
+- Run the mixed-batch regression in `src/test/stageMonitoringFindings.test.ts` before rerunning the workflow.
+- Do not repair this by weakening the database not-null constraint or by filtering out ordinary changed-source evidence.
+
+**Prevention:** the candidate builder now assigns `needs_review` before specialized informational/newsletter classifications override it, and the regression test covers one ordinary row mixed with one informational row.
+
 ## Service worker / PWA cache
 
 **Symptom:** iPhone or installed app shows an old shell after a successful deploy.

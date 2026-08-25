@@ -43,6 +43,7 @@ export function buildMonitoringCandidateRows(report) {
       title: `${change.label} changed`,
       summary: summarize(change),
       review_question: `Action mapping required before approving this ${change.label} change.`,
+      status: 'needs_review',
       evidence: {
         previous: change.previous,
         current: change.current,

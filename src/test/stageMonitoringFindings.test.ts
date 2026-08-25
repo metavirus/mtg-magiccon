@@ -33,7 +33,18 @@ describe('monitoring finding action mapping', () => {
       changes: [{ id: 'atlanta-faq', label: 'FAQ', url: 'https://mcatlanta.mtgfestivals.com/faq', destination: 'Activity', current: {}, previous: {}, linkDelta: { added: [], removed: [] } }],
     })
     expect(row.action_type).toBeUndefined()
-    expect(row.status).toBeUndefined()
+    expect(row.status).toBe('needs_review')
     expect(row.review_question).toBe('Action mapping required before approving this FAQ change.')
+  })
+
+  it('gives every row in a mixed bulk-upsert batch an explicit non-null status', () => {
+    const rows = buildMonitoringCandidateRows({
+      checkedAt: '2026-08-25T17:45:00.000Z',
+      changes: [
+        { id: 'atlanta-faq', label: 'FAQ', url: 'https://mcatlanta.mtgfestivals.com/en-us/info/faq.html', destination: 'Activity', current: {}, previous: {}, linkDelta: { added: [], removed: [] } },
+        { id: 'atlanta-official-home', label: 'Atlanta', url: 'https://mcatlanta.mtgfestivals.com/en-us.html', destination: 'Home', current: { status: 200 }, previous: { status: 200 }, linkDelta: { added: ['Prize Wall -> https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html'], removed: [] } },
+      ],
+    })
+    expect(rows.map(row => row.status)).toEqual(['needs_review', 'unread'])
   })
 })
