@@ -4832,6 +4832,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
       </div>
       <div className="wallet-tix-counter" aria-label={`${tix.toLocaleString()} Prize Tix`}>
         <TicketMiniIcon />
+        <span className="wallet-tix-label">Prize Tix</span>
         <button type="button" aria-label="Subtract 100 Prize Tix" onClick={() => adjustTix(-100)}>−</button>
         <strong>{tix.toLocaleString()}</strong>
         <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+</button>
