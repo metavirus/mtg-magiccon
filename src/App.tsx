@@ -3588,6 +3588,25 @@ type AgendaPlacement = { event: ExploreEvent; start: number; end: number; lane: 
 
 const planPeople: PersonName[] = ['Kavi', 'Chris', 'Juan', 'Kyle']
 
+function peopleVisibilityKey(currentOwnerId: string | undefined, currentPerson: PersonName) {
+  return `magiccon-visible-people-v2:${currentOwnerId ?? currentPerson.toLowerCase()}`
+}
+
+function readPeopleVisibility(currentOwnerId: string | undefined, currentPerson: PersonName) {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(peopleVisibilityKey(currentOwnerId, currentPerson)) ?? 'null')
+    if (!Array.isArray(stored)) return [...planPeople]
+    const visible = planPeople.filter(person => stored.includes(person))
+    return visible.length > 0 ? visible : [...planPeople]
+  } catch {
+    return [...planPeople]
+  }
+}
+
+function writePeopleVisibility(currentOwnerId: string | undefined, currentPerson: PersonName, people: PersonName[]) {
+  window.localStorage.setItem(peopleVisibilityKey(currentOwnerId, currentPerson), JSON.stringify(people))
+}
+
 function planParticipants(event: ExploreEvent, currentPerson: PersonName, selectionRows: UserSelectionRow[], companions: CompanionMember[]): PlanParticipant[] {
   const participants: PlanParticipant[] = []
   selectionRows
@@ -3712,10 +3731,8 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   canCommitBlackLotus: boolean
 }) {
   const days: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
-  const [activeDay, setActiveDay] = useState<ExploreEvent['day']>(() => purchaseQaEventId(events) ? 'Fri' : currentPerson === 'Kyle' ? 'Fri' : 'Thu')
-  const planIdentityDefaultApplied = useRef(currentPerson === 'Kyle')
-  const [selectedPeople, setSelectedPeople] = useState<PersonName[]>([currentPerson])
-  const planPersonDefaultRef = useRef(currentPerson)
+  const [activeDay, setActiveDay] = useState<ExploreEvent['day']>('Fri')
+  const [selectedPeople, setSelectedPeople] = useState<PersonName[]>(() => readPeopleVisibility(currentOwnerId, currentPerson))
   const [planView, setPlanView] = useState<PlanView>(() => window.localStorage.getItem('magiccon-plan-view') === 'agenda' ? 'agenda' : 'list')
   const [selectedId, setSelectedId] = useState<string | null>(() => purchaseQaEventId(events))
   const [detailOpen, setDetailOpen] = useState(() => Boolean(purchaseQaEventId(events)))
@@ -3746,27 +3763,23 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   const agendaHourHeight = 64
   const agendaHeight = Math.max(280, (agendaEnd - agendaStart) * agendaHourHeight)
   const agendaHours = Array.from({ length: agendaEnd - agendaStart + 1 }, (_, index) => agendaStart + index)
+  const agendaOperatingBoundary = activeDay === 'Fri' || activeDay === 'Sat'
+    ? { opens: '10:00 AM', closes: '11:59 PM' }
+    : activeDay === 'Sun' ? { opens: '10:00 AM', closes: '6:00 PM' } : null
   const conflictPairs = agendaPlacements.flatMap((first, index) => agendaPlacements.slice(index + 1).filter(second => planEventsOverlap(first.event, second.event)).map(second => [first.event.id, second.event.id] as const))
   const conflictIds = new Set(conflictPairs.flat())
   const sharedCount = dayEvents.filter(event => (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person)).length > 1).length
   const togglePlanGroup = (key: string) => setCollapsedPlanGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
 
   useEffect(() => {
-    const previousPerson = planPersonDefaultRef.current
-    if (previousPerson === currentPerson) return
-    planPersonDefaultRef.current = currentPerson
-    setSelectedPeople(current => current.length === 1 && current[0] === previousPerson ? [currentPerson] : current)
-  }, [currentPerson])
+    setSelectedPeople(readPeopleVisibility(currentOwnerId, currentPerson))
+  }, [currentOwnerId, currentPerson])
 
-  useEffect(() => {
-    if (planIdentityDefaultApplied.current || currentPerson !== 'Kyle') return
-    planIdentityDefaultApplied.current = true
-    setActiveDay('Fri')
-  }, [currentPerson])
-
-  const togglePerson = (person: PersonName) => setSelectedPeople(current => current.includes(person)
-    ? current.length === 1 ? current : current.filter(item => item !== person)
-    : [...current, person])
+  const togglePerson = (person: PersonName) => setSelectedPeople(current => {
+    const next = current.includes(person) ? current.length === 1 ? current : current.filter(item => item !== person) : [...current, person]
+    writePeopleVisibility(currentOwnerId, currentPerson, next)
+    return next
+  })
 
   const changePlanView = (view: PlanView) => {
     setPlanView(view)
@@ -3872,6 +3885,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
           </section>
         })}
         {planView === 'agenda' && <div className="plan-agenda">
+          {agendaOperatingBoundary && <div className="agenda-boundary agenda-boundary-open"><time>{agendaOperatingBoundary.opens}</time><span>Show floor opens</span></div>}
           {flexibleEvents.length > 0 && <section className="agenda-flexible-strip"><span>Flexible</span><div>{flexibleEvents.map(event => <button key={event.id} type="button" onClick={() => openPlanEvent(event)} className={selected?.id === event.id ? 'selected' : ''}><strong>{displayEventTitle(event)}</strong><PlanParticipantBadges participants={(participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person))} compact currentPerson={currentPerson} /></button>)}</div></section>}
           {agendaPlacements.length > 0 && <div className="agenda-timeline" style={{ height: agendaHeight }}>
             <div className="agenda-time-axis" aria-hidden="true">{agendaHours.map(hour => <span key={hour} style={{ top: (hour - agendaStart) * agendaHourHeight }}>{formatAgendaHour(hour)}</span>)}</div>
@@ -3897,6 +3911,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
               })}
             </div>
           </div>}
+          {agendaOperatingBoundary && <div className="agenda-boundary agenda-boundary-close"><time>{agendaOperatingBoundary.closes}</time><span>Gaming closes</span></div>}
         </div>}
         {dayEvents.length === 0 && <div className="plan-empty"><strong>No active contenders yet.</strong><span>Mark something Interested or Tentative in Explore.</span><button type="button" onClick={onOpenExplore}>Browse Explore</button></div>}
       </div>
@@ -3977,6 +3992,16 @@ function exploreRouteGroupLabel(group?: ExploreRouteState['group']) {
   return ''
 }
 
+export function partitionExploreContenders<T extends { state: ExploreState }>(events: T[]) {
+  const contenders: T[] = []
+  const remainder: T[] = []
+  events.forEach(event => {
+    if (event.state === 'interested' || event.state === 'tentative') contenders.push(event)
+    else remainder.push(event)
+  })
+  return { contenders, remainder }
+}
+
 function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenPlan, onOpenCalendar }: { events: ExploreEvent[]; routeState: ExploreRouteState; focusRequest: { eventId: string; noteId?: string; nonce: number } | null; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
@@ -4005,13 +4030,15 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
     const matchesHidden = showHidden ? true : event.state !== 'hidden' && event.state !== 'nope'
     return matchesHidden && matchesSearchAndDay(event)
   })
+  const { contenders: exploreContenders, remainder: exploreRemainder } = partitionExploreContenders(visible)
   const hiddenCount = events.filter(event => event.state === 'hidden' || event.state === 'nope').length
   const hiddenMatches = events.filter(event => (event.state === 'hidden' || event.state === 'nope') && matchesSearchAndDay(event))
   const ticketedVisibleCount = visible.filter(event => event.kind === 'Ticketed play').length
   const hasOtherEvents = events.some(event => event.type === 'other')
   const exploreDays: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
+  const exploreDayLabels: Record<ExploreEvent['day'], string> = { Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' }
   const exploreGroups = (day === 'all' ? exploreDays : [day])
-    .map(groupDay => ({ key: groupDay, label: `${groupDay} scan`, hint: exploreDayContext(groupDay), items: visible.filter(event => event.day === groupDay) }))
+    .map(groupDay => ({ key: groupDay, label: exploreDayLabels[groupDay], hint: exploreDayContext(groupDay), items: exploreRemainder.filter(event => event.day === groupDay) }))
     .filter(group => group.items.length > 0)
   const toggleExploreGroup = (key: string) => setCollapsedExploreGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
 
@@ -4038,7 +4065,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
     setDay(event.day)
     setEventType('all')
     setShowHidden(event.state === 'hidden' || event.state === 'nope')
-    setCollapsedExploreGroups(groups => groups.filter(group => group !== event.day))
+    setCollapsedExploreGroups(groups => groups.filter(group => group !== event.day && group !== 'contenders'))
     setSelectedId(event.id)
     setDetailOpen(true)
     window.setTimeout(() => {
@@ -4112,6 +4139,22 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
       <div ref={eventListRef} className="event-list" aria-label="Event results">
         <div className="event-list-summary"><strong>{visible.length}</strong><span>events in view</span></div>
         {routeGroupLabel && <div className="explore-route-chip"><span>{routeGroupLabel}</span><small>Opened from a grouped signal; this slice is ready for future ticketed-play drops.</small></div>}
+        {exploreContenders.length > 0 && <section className="explore-row-group explore-contender-group">
+          <button className="funnel-group-header" type="button" aria-expanded={!collapsedExploreGroups.includes('contenders')} onClick={() => toggleExploreGroup('contenders')}>
+            <span><strong>Your contenders</strong><small>Interested and tentative</small></span>
+            <em>{exploreContenders.length}</em>
+            <b aria-hidden="true">⌄</b>
+          </button>
+          {!collapsedExploreGroups.includes('contenders') && exploreContenders.map(event => <ExploreEventRow key={event.id} event={event} selected={selected?.id === event.id} onPurchase={purchased => onPurchase(event.id, purchased)} onSelect={() => {
+            if (selectedId === event.id && detailOpen) {
+              setSelectedId(null)
+              setDetailOpen(false)
+              return
+            }
+            setSelectedId(event.id)
+            setDetailOpen(true)
+          }} onState={state => updateEvent(event.id, state)} />)}
+        </section>}
         {exploreGroups.map(group => {
           const collapsed = collapsedExploreGroups.includes(group.key)
           return <section className="explore-row-group" key={group.key}>
@@ -4326,12 +4369,35 @@ function TicketMiniIcon() {
 
 function PurchaseControl({ event, onPurchase, detail = false }: { event: ExploreEvent; onPurchase: (purchased: boolean) => void; detail?: boolean }) {
   const [confirming, setConfirming] = useState(false)
+  const controlRef = useRef<HTMLSpanElement | null>(null)
+  const [confirmPosition, setConfirmPosition] = useState({ left: 16, top: 16 })
+  useEffect(() => {
+    if (!confirming) return
+    const positionConfirmation = () => {
+      const rect = controlRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const width = 176
+      const height = 40
+      const gap = 4
+      setConfirmPosition({
+        left: Math.max(8, Math.min(window.innerWidth - width - 8, rect.right - width)),
+        top: rect.bottom + gap + height <= window.innerHeight ? rect.bottom + gap : Math.max(8, rect.top - height - gap),
+      })
+    }
+    positionConfirmation()
+    window.addEventListener('scroll', positionConfirmation, true)
+    window.addEventListener('resize', positionConfirmation)
+    return () => {
+      window.removeEventListener('scroll', positionConfirmation, true)
+      window.removeEventListener('resize', positionConfirmation)
+    }
+  }, [confirming])
   if (!canPurchaseEvent(event.price)) return null
-  return <span className={`purchase-control ${detail ? 'purchase-control-detail' : ''} ${event.purchased ? 'is-purchased' : ''}`} onClick={click => click.stopPropagation()}>
+  return <span ref={controlRef} className={`purchase-control ${detail ? 'purchase-control-detail' : ''} ${event.purchased ? 'is-purchased' : ''}`} onClick={click => click.stopPropagation()}>
     <button type="button" aria-label={event.purchased ? `Undo purchase for ${event.title}` : `Mark ${event.title} purchased`} aria-pressed={Boolean(event.purchased)} title={event.purchased ? 'Undo purchase' : 'Mark purchased'} onClick={() => event.purchased ? onPurchase(false) : setConfirming(true)}>
       <ActionIcon name="ticket" /><span>{formatEventPrice(event.price)}</span><ActionIcon name={event.purchased ? 'lock' : 'unlock'} />
     </button>
-    {confirming && <span className="purchase-confirm" role="group" aria-label="Confirm purchase"><span>Mark purchased?</span><button type="button" onClick={() => { onPurchase(true); setConfirming(false) }}>Yes</button><button type="button" onClick={() => setConfirming(false)}>No</button></span>}
+    {confirming && createPortal(<span className="purchase-confirm purchase-confirm-portal" style={confirmPosition} role="group" aria-label="Confirm purchase"><span>Mark purchased?</span><button type="button" onClick={() => { onPurchase(true); setConfirming(false) }}>Yes</button><button type="button" onClick={() => setConfirming(false)}>No</button></span>, document.body)}
   </span>
 }
 
@@ -4439,7 +4505,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
       {objectNotes.length > 0 && <span className="note-author-cluster"><PersonBubbles people={[...new Set(objectNotes.map(note => note.author))]} /></span>}
     </header>
     {objectNotes.length > 0 && <div className="note-thread">
-      {objectNotes.slice(0, compact ? 2 : 5).map(note => <article key={note.id} ref={note.id === focusedNoteId ? focusedNoteRef : undefined} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
+      {objectNotes.map(note => <article key={note.id} ref={note.id === focusedNoteId ? focusedNoteRef : undefined} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
         <PersonBubbles people={[note.author]} />
         <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</small></div>
         {note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
@@ -5686,7 +5752,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [detail, setDetail] = useState<CalendarDetail | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(() => purchaseQaEventId(events))
-  const [selectedPeople, setSelectedPeople] = useState<PersonName[]>([currentPerson])
+  const [selectedPeople, setSelectedPeople] = useState<PersonName[]>(() => readPeopleVisibility(currentOwnerId, currentPerson))
   const toolbarRef = useRef<HTMLDivElement | null>(null)
   const toolbarStartRef = useRef(0)
   const [toolbarPinned, setToolbarPinned] = useState(false)
@@ -5717,7 +5783,14 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
   const showSaturday = showConvention && saturdaySelected.length > 0
   const showSunday = showConvention && sundaySelected.length > 0
   const hasCommittedEvent = (id: string) => committedEvents.some(event => event.id === id)
-  const togglePerson = (person: PersonName) => setSelectedPeople(current => current.includes(person) ? current.length === 1 ? current : current.filter(item => item !== person) : [...current, person])
+  useEffect(() => {
+    setSelectedPeople(readPeopleVisibility(currentOwnerId, currentPerson))
+  }, [currentOwnerId, currentPerson])
+  const togglePerson = (person: PersonName) => setSelectedPeople(current => {
+    const next = current.includes(person) ? current.length === 1 ? current : current.filter(item => item !== person) : [...current, person]
+    writePeopleVisibility(currentOwnerId, currentPerson, next)
+    return next
+  })
   const renderCommittedEvent = (event: ExploreEvent) => {
     const participants = (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person) && participant.state === 'committed')
     const blackLotus = event.kind === 'Black Lotus'
@@ -5814,20 +5887,25 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <AgendaMarker time="8:30 AM" label="Online store pre-order pickup begins" detail="Pickup window runs until 5 PM" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} />}
+    {showConvention && <AgendaMarker time="10:00 AM" label="Show floor opens" detail="Friday show-floor hours run 10 AM–7 PM" />}
     {showConvention && fridaySelected.map(renderCommittedEvent)}
+    {showConvention && <AgendaMarker time="7:00 PM" label="Show floor closes" detail="Gaming remains open until 11:59 PM" />}
+    {showConvention && <AgendaMarker time="11:59 PM" label="Gaming closes" detail="End of Friday play-area hours" />}
     {showConvention && <CalendarDayHeader day="SAT" date="November 14" label={showSaturday ? 'Committed events' : 'Convention day 2'} />}
     {showConvention && <AgendaMarker time="10:00 AM" label="Show floor opens" detail="Saturday show-floor hours run 10 AM-7 PM" />}
     {showConvention && saturdaySelected.map(renderCommittedEvent)}
-    {showConvention && <AgendaMarker time="7:00 PM" label="Show floor closes" detail="The play area remains open later" />}
-    {showConvention && <AgendaMarker time="11:59 PM" label="Play area closes" detail="End of Saturday play-area hours" />}
+    {showConvention && <AgendaMarker time="7:00 PM" label="Show floor closes" detail="Gaming remains open until 11:59 PM" />}
+    {showConvention && <AgendaMarker time="11:59 PM" label="Gaming closes" detail="End of Saturday play-area hours" />}
 
     {showConvention && <CalendarDayHeader day="SUN" date="November 15" label={showSunday ? 'Committed events' : 'Final day'} />}
     {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-sunday')} />}
     {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-sunday')} />}
+    {showConvention && <AgendaMarker time="10:00 AM" label="Show floor opens" detail="Sunday show-floor hours run 10 AM–6 PM" />}
     {showConvention && sundaySelected.map(renderCommittedEvent)}
     {showConvention && <AgendaMarker time="4:00 PM" label="Last Mystery Booster 2 draft fires" onOpen={() => setDetail('bl-sunday')} />}
     {showConvention && hasCommittedEvent('bl-progressive-sealed') && <AgendaMarker time="5:00 PM" label="Final chance to claim Progressive Sealed booster prizes" onOpen={() => openEvent('bl-progressive-sealed')} />}
     {showConvention && <AgendaMarker time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} />}
+    {showConvention && <AgendaMarker time="6:00 PM" label="Gaming closes" detail="End of Sunday convention hours" />}
 
     {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>8:35 PM</em></div>
