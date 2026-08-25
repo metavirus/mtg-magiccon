@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { reconcileMonitoringObservation } from '../../scripts/lib/monitoring_concept_reconciler.mjs'
+import { factualChoiceFindingForResolution, reconcileMonitoringObservation } from '../../scripts/lib/monitoring_concept_reconciler.mjs'
 // @ts-expect-error The executable monitoring helper is an ESM script without a declaration file.
 import { dueMonitoringMilestoneChanges } from '../../scripts/lib/scheduled_monitoring_milestones.mjs'
 import { buildMonitoringCandidateRows } from '../../scripts/lib/build_monitoring_candidates.mjs'
@@ -40,5 +40,49 @@ describe('monitoring concept reconciliation', () => {
   it('retains a contradiction instead of overwriting active truth', () => {
     const result = reconcileMonitoringObservation(observation('faq', 'The FAQ says Ticketed Play sales open August 26 at 10 AM PT, while the schedule still says August 25 at 10 AM PT.'), existing)
     expect(result).toMatchObject({ resolution: 'contradiction', concept: { attention_state: 'contradiction', current_state: saleClaim } })
+  })
+
+  it('routes a first-party Sunday On-Demand cutoff conflict into one precise staged choice payload', () => {
+    const checkedAt = '2026-08-24T18:00:00.000Z'
+    const [maintainedRow] = buildMonitoringCandidateRows({ checkedAt, changes: [{
+      id: 'atlanta-on-demand', label: 'Official On-Demand page', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html', destination: 'Activity',
+      current: { textSample: 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–3 PM.' }, previous: {}, linkDelta: { added: [], removed: [] },
+      semanticSummary: 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–3 PM.',
+    }] })
+    const maintainedObservation = { fingerprint: maintainedRow.fingerprint, sourceId: maintainedRow.source_id, sourceLabel: maintainedRow.source_label, sourceUrl: maintainedRow.source_url, observedAt: maintainedRow.last_seen_at, summary: maintainedRow.evidence.semanticSummary }
+    const first = reconcileMonitoringObservation(maintainedObservation)
+    expect(first).toMatchObject({ resolution: 'new', concept: { concept_key: 'atlanta:on-demand-play:registration-hours:constructed-draft:sunday', current_state: { section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', value: '10 AM–3 PM' } } })
+
+    const [newsletterRow] = buildMonitoringCandidateRows({ checkedAt: '2026-08-24T19:00:00.000Z', changes: [{
+      id: 'atlanta-newsletter', label: 'Official MagicCon newsletter', url: 'https://mcatlanta.mtgfestivals.com/en-us/newsletter/august-24.html', destination: 'Activity',
+      current: { textSample: 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–4 PM.' }, previous: {}, linkDelta: { added: [], removed: [] },
+      semanticSummary: 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–4 PM.',
+    }] })
+    const newsletterObservation = { fingerprint: newsletterRow.fingerprint, sourceId: newsletterRow.source_id, sourceLabel: newsletterRow.source_label, sourceUrl: newsletterRow.source_url, observedAt: newsletterRow.last_seen_at, summary: newsletterRow.evidence.semanticSummary }
+    const conflict = reconcileMonitoringObservation(newsletterObservation, first.concept)
+    const article = { sections: [{ key: 'registration-hours', facts: [{ label: 'Constructed & Draft · Sun', value: '10 AM–3 PM' }, { label: 'Commander · Sun', value: '10 AM–4 PM' }, { label: 'All voucher sales end', value: 'Sunday 3 PM PT' }] }] }
+    const staged = factualChoiceFindingForResolution(conflict, newsletterObservation, article)
+
+    expect(conflict).toMatchObject({ resolution: 'contradiction', concept: { concept_key: first.concept.concept_key, current_state: { value: '10 AM–3 PM' }, proposed_state: { value: '10 AM–4 PM' } } })
+    expect(staged).not.toBeNull()
+    expect(staged!).toMatchObject({
+      status: 'needs_review', destination: 'Activity', action_type: 'resolve_info_topic_article_fact_conflict',
+      action_payload: { target_kind: 'info_topic_article_fact', topic_key: 'on-demand-play', section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', choice_options: [
+        { choice_key: 'proposed', label: 'Use 10 AM–4 PM', value: '10 AM–4 PM' },
+        { choice_key: 'maintained', label: 'Keep 10 AM–3 PM', value: '10 AM–3 PM' },
+      ] },
+      rollback_payload: { operation: 'restore_info_topic_article_fact', topic_key: 'on-demand-play', section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', value: '10 AM–3 PM' },
+    })
+    expect(staged!.evidence.compared_claims.every((claim: { sources: unknown[] }) => claim.sources.length === 1)).toBe(true)
+    expect(factualChoiceFindingForResolution(conflict, newsletterObservation, article)?.fingerprint).toBe(staged!.fingerprint)
+    expect(article.sections[0].facts).toEqual([{ label: 'Constructed & Draft · Sun', value: '10 AM–3 PM' }, { label: 'Commander · Sun', value: '10 AM–4 PM' }, { label: 'All voucher sales end', value: 'Sunday 3 PM PT' }])
+  })
+
+  it('dedupes corroborating On-Demand cutoff evidence and rejects non-authoritative lookalikes', () => {
+    const official = observation('on-demand', 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–3 PM.')
+    const first = reconcileMonitoringObservation(official)
+    expect(reconcileMonitoringObservation(observation('faq', 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–3 PM.'), first.concept)).toMatchObject({ resolution: 'corroboration' })
+    expect(reconcileMonitoringObservation({ ...official, sourceId: 'fan-post', sourceUrl: 'https://example.com/post', summary: 'Sunday On-Demand Constructed & Draft registration hours are 10 AM–4 PM.' }, first.concept)).toMatchObject({ resolution: 'noise', concept: null })
+    expect(reconcileMonitoringObservation(observation('nuance', 'Sunday On-Demand Commander registration runs 10 AM–4 PM, while all voucher sales end Sunday at 3 PM PT.'), first.concept)).toMatchObject({ resolution: 'noise', concept: null })
   })
 })

@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import { createClient } from '@supabase/supabase-js'
 import { buildMonitoringCandidateRows } from './lib/build_monitoring_candidates.mjs'
-import { extractMonitoringConcept, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
+import { extractMonitoringConcept, factualChoiceFindingForResolution, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
 import { projectResolutionToInfo } from './lib/monitoring_info_projection.mjs'
 
 const reportPath = process.argv[2]
@@ -67,6 +67,7 @@ if (conceptResult.error) throw conceptResult.error
 const concepts = new Map((conceptResult.data ?? []).map(concept => [concept.concept_key, concept]))
 let conceptEvidenceAdded = 0
 let infoFeedAdded = 0
+let factualChoicesStaged = 0
 
 for (const observation of observations) {
   if (!observation.findingId) throw new Error(`Missing staged finding readback for ${observation.fingerprint}.`)
@@ -84,6 +85,22 @@ for (const observation of observations) {
   }).eq('id', observation.findingId)
   if (findingEvidenceWrite.error) throw findingEvidenceWrite.error
   if (resolution.resolution === 'noise') continue
+  if (resolution.resolution === 'contradiction' && resolution.concept?.concept_key === 'atlanta:on-demand-play:registration-hours:constructed-draft:sunday') {
+    const topicRead = await client.from('info_topics').select('article').eq('topic_key', 'on-demand-play').single()
+    if (topicRead.error) throw topicRead.error
+    const choiceRow = factualChoiceFindingForResolution(resolution, observation, topicRead.data.article)
+    if (choiceRow) {
+      const existingChoice = await client.from('monitoring_findings').select('status,occurrence_count').eq('fingerprint', choiceRow.fingerprint).maybeSingle()
+      if (existingChoice.error) throw existingChoice.error
+      const choiceWrite = await client.from('monitoring_findings').upsert({
+        ...choiceRow,
+        occurrence_count: (existingChoice.data?.occurrence_count ?? 0) + 1,
+        ...(existingChoice.data ? { status: existingChoice.data.status } : {}),
+      }, { onConflict: 'fingerprint' })
+      if (choiceWrite.error) throw choiceWrite.error
+      factualChoicesStaged += 1
+    }
+  }
   const prior = concepts.get(resolution.concept.concept_key)
   const conceptRow = {
     owner_id: ownerId,
@@ -135,4 +152,4 @@ for (const observation of observations) {
   }
 }
 
-console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${conceptEvidenceAdded} new concept evidence link(s); ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)
+console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${conceptEvidenceAdded} new concept evidence link(s); ${factualChoicesStaged} factual choice${factualChoicesStaged === 1 ? '' : 's'} staged; ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)

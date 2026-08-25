@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingDisplaySummary, findingExecutionDetail, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
+import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
 
 const finding = (overrides: Partial<MonitoringFindingRow> = {}): MonitoringFindingRow => ({
   id: 'finding', fingerprint: 'a'.repeat(64), source_id: 'source', source_label: 'Official source', source_url: 'https://example.com/very/long/source/url', destination: 'Home', title: 'New official links', summary: 'Summary', review_question: 'Add the links?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T20:00:00.000Z', last_seen_at: '2026-08-21T20:00:00.000Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, ...overrides,
@@ -32,6 +32,36 @@ describe('monitoring finding decisions', () => {
 
   it('dismisses no and leaves staged_at empty', () => {
     expect(monitoringDecisionPatch('no', 'kavi-id', undefined, '2026-08-21T20:00:00.000Z')).toMatchObject({ status: 'dismissed', decision: 'no', staged_at: null, execution_status: 'not_started' })
+  })
+
+  it('exposes exactly two concrete server-authored factual choices', () => {
+    const conflict = finding({
+      action_type: 'resolve_info_topic_article_fact_conflict',
+      action_payload: { target_kind: 'info_topic_article_fact', topic_key: 'on-demand-play', section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', choice_options: [
+        { choice_key: 'newsletter', label: 'Use 10 AM–4 PM', value: '10 AM–4 PM' },
+        { choice_key: 'maintained', label: 'Keep 10 AM–3 PM', value: '10 AM–3 PM' },
+      ] },
+      rollback_payload: { operation: 'restore_info_topic_article_fact', topic_key: 'on-demand-play', section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', value: '10 AM–3 PM' },
+    })
+    expect(findingIsChoiceResolution(conflict)).toBe(true)
+    expect(findingChoices(conflict).map(choice => choice.label)).toEqual(['Use 10 AM–4 PM', 'Keep 10 AM–3 PM'])
+  })
+
+  it('treats not now as defer without recording a factual decision', () => {
+    expect(monitoringDeferPatch('2026-08-24T20:00:00.000Z')).toEqual({
+      status: 'deferred', decision: null, decided_by: null, decided_at: null, staged_at: null,
+      execution_status: 'not_started', updated_at: '2026-08-24T20:00:00.000Z',
+    })
+  })
+
+  it('rejects malformed or duplicate choice mappings', () => {
+    const malformed = finding({ action_type: 'resolve_info_topic_article_fact_conflict', action_payload: {
+      target_kind: 'info_topic_article_fact', topic_key: 'on-demand-play', section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', choice_options: [
+        { choice_key: 'same', label: 'Use newer value', value: 'new' }, { choice_key: 'same', label: 'Keep current value', value: 'current' },
+      ],
+    } })
+    expect(findingChoices(malformed)).toEqual([])
+    expect(findingIsChoiceResolution(malformed)).toBe(false)
   })
 
   it('names the authorized consequence instead of offering a generic yes', () => {

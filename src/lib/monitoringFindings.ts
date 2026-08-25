@@ -1,7 +1,8 @@
-export type MonitoringFindingStatus = 'unread' | 'read' | 'archived' | 'needs_review' | 'authorized' | 'staged' | 'completed' | 'dismissed'
+export type MonitoringFindingStatus = 'unread' | 'read' | 'archived' | 'needs_review' | 'deferred' | 'authorized' | 'staged' | 'completed' | 'dismissed'
 export type MonitoringFindingDecision = 'yes' | 'no'
 export type MonitoringExecutionStatus = 'not_started' | 'queued' | 'executing' | 'completed' | 'failed' | 'blocked'
 export type MonitoringOfficialResource = { label: string; url: string }
+export type MonitoringFindingChoice = { choice_key: string; label: string; value: string }
 
 export type MonitoringConceptRow = {
   concept_key: string
@@ -79,6 +80,30 @@ export type MonitoringFindingRow = {
   verification_evidence?: Record<string, unknown> | null
   retry_count?: number | null
   rollback_payload?: Record<string, unknown> | null
+  selected_choice_key?: string | null
+}
+
+export function findingChoices(finding: MonitoringFindingRow): MonitoringFindingChoice[] {
+  const choices = finding.action_payload?.choice_options
+  if (!Array.isArray(choices) || choices.length !== 2) return []
+  const normalized = choices.flatMap(choice => {
+    if (!choice || typeof choice !== 'object') return []
+    const value = choice as Record<string, unknown>
+    const choice_key = typeof value.choice_key === 'string' ? value.choice_key.trim() : ''
+    const label = typeof value.label === 'string' ? value.label.trim() : ''
+    const choiceValue = typeof value.value === 'string' ? value.value.trim() : ''
+    return choice_key && label && choiceValue ? [{ choice_key, label, value: choiceValue }] : []
+  })
+  return normalized.length === 2 && normalized[0].choice_key !== normalized[1].choice_key ? normalized : []
+}
+
+export function findingIsChoiceResolution(finding: MonitoringFindingRow) {
+  return finding.action_type === 'resolve_info_topic_article_fact_conflict'
+    && findingChoices(finding).length === 2
+    && finding.action_payload?.target_kind === 'info_topic_article_fact'
+    && typeof finding.action_payload?.topic_key === 'string'
+    && typeof finding.action_payload?.section_key === 'string'
+    && typeof finding.action_payload?.fact_label === 'string'
 }
 
 export function monitoringDecisionPatch(decision: MonitoringFindingDecision, userId: string, finding?: MonitoringFindingRow, now = new Date().toISOString()) {
@@ -93,6 +118,7 @@ export function findingReviewLabel(finding: MonitoringFindingRow) {
   if (finding.status === 'unread') return 'new'
   if (finding.status === 'read') return 'read'
   if (finding.status === 'archived') return 'archived'
+  if (finding.status === 'deferred') return 'deferred'
   if (finding.execution_status === 'queued') return 'approved · queued'
   if (finding.execution_status === 'executing') return 'executing'
   if (finding.execution_status === 'completed') return 'completed'
@@ -117,6 +143,10 @@ export function findingApprovalLabel(finding: MonitoringFindingRow) {
 
 export function findingCanAuthorize(finding: MonitoringFindingRow) {
   return !findingIsInformational(finding) && Boolean(finding.action_type && finding.action_payload && finding.rollback_payload)
+}
+
+export function monitoringDeferPatch(now = new Date().toISOString()) {
+  return { status: 'deferred' as const, decision: null, decided_by: null, decided_at: null, staged_at: null, execution_status: 'not_started' as const, updated_at: now }
 }
 
 export function findingIsInformational(finding: MonitoringFindingRow) {
