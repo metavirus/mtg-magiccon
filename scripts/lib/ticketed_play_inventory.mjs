@@ -94,8 +94,15 @@ export async function scrapeLeapTicketedPlayInventory({ url, retrievedAt, canoni
     const allDates = page.getByRole('button', { name: /View All Dates/i })
     if (await allDates.isVisible()) {
       await allDates.click()
-      await page.waitForTimeout(500)
     }
+    // LEAP renders Friday first and hydrates the other dates asynchronously.
+    // A card selector alone can therefore return a valid-looking partial set.
+    await page.waitForFunction(() => {
+      const days = new Set(Array.from(document.querySelectorAll('.schedule-day'))
+        .map(node => node.textContent?.replace(/\s+/g, ' ').trim())
+        .filter(Boolean))
+      return days.size >= 3
+    }, { timeout: 30000 })
     const cards = await page.locator('.schedule.card').evaluateAll(nodes => nodes.map(card => {
       const text = selector => card.querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
       const controls = Array.from(card.querySelectorAll('button, [role="button"], input[type="submit"]')).map(control => ({
