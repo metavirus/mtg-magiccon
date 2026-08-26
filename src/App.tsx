@@ -1439,13 +1439,15 @@ export default function App() {
   const findingActivity: ActivityItem[] = monitoringFindings.map(finding => {
     const resources = findingOfficialResources(finding)
     const informational = findingIsInformational(finding)
+    const ticketedInventory = finding.evidence.intake_kind === 'ticketed_play_inventory'
+    const ticketedInbox = ticketedInventory && finding.destination === 'Inbox'
     return {
     id: `finding-${finding.id}`,
     sourceKind: 'monitor',
     kind: 'site',
-    severity: findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
+    severity: ticketedInbox ? 'hot' : ticketedInventory ? 'notice' : findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
     destination: finding.destination,
-    attention: informational ? 'New official resources' : 'Kavi decision needed',
+    attention: ticketedInbox ? 'Selected event sold out' : ticketedInventory ? 'Ticketed Play availability' : informational ? 'New official resources' : 'Kavi decision needed',
     title: finding.title,
     summary: findingDisplaySummary(finding),
     object: finding.source_label,
@@ -1453,8 +1455,8 @@ export default function App() {
     checkedAt: new Date(finding.last_seen_at).toLocaleString(),
     checkedAtIso: finding.last_seen_at,
     status: findingReviewLabel(finding),
-    rationale: informational ? 'These first-party links make the new play information directly useful without changing any canonical event or plan.' : 'The surveyor retained source evidence for a bounded canonical decision.',
-    nextAction: informational ? 'Open the relevant official resource, then mark this read or archive it.' : findingExecutionDetail(finding),
+    rationale: ticketedInventory ? 'The official registration inventory changed. Personal and shared selections were used only to route this alert; no selection was changed.' : informational ? 'These first-party links make the new play information directly useful without changing any canonical event or plan.' : 'The surveyor retained source evidence for a bounded canonical decision.',
+    nextAction: ticketedInbox ? 'Review the affected selected event, then dismiss this alert when it is handled.' : ticketedInventory ? 'Review the grouped sold-out events.' : informational ? 'Open the relevant official resource, then mark this read or archive it.' : findingExecutionDetail(finding),
     reviewState: ['archived', 'dismissed', 'deferred'].includes(finding.status) ? 'archived' : ['read', 'completed'].includes(finding.status) ? 'reviewed' : 'needs-review',
     objectDetail: {
       id: `monitoring-finding-${finding.id}`,
@@ -1479,7 +1481,11 @@ export default function App() {
   }})
   // Raw source-diff findings are internal evidence. Only a genuinely mapped
   // canonical action may bypass the concept read model during rollout.
-  const actionableFindingActivity = findingActivity.filter(item => item.monitoringFinding && (findingNeedsKaviAction(item.monitoringFinding) || (item.monitoringFinding.status === 'deferred' && findingIsChoiceResolution(item.monitoringFinding))))
+  const actionableFindingActivity = findingActivity.filter(item => item.monitoringFinding && (
+    ['Home', 'Inbox'].includes(item.monitoringFinding.destination)
+    || findingNeedsKaviAction(item.monitoringFinding)
+    || (item.monitoringFinding.status === 'deferred' && findingIsChoiceResolution(item.monitoringFinding))
+  ))
   const monitoringActivity = coalesceMonitoringConcepts(conceptActivity, [...actionableFindingActivity, ...monitorActivity])
   const activityItems = [...generatedActivity, ...noteActivity, ...monitoringActivity].filter(shouldShowActivityItem).sort((a, b) => {
     const severityRank = { hot: 0, notice: 1, quiet: 2 } as const
@@ -1594,7 +1600,8 @@ export default function App() {
   }
   const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems, Date.now(), currentCompanion?.name ?? 'Kavi') : []
   const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
-  const saleInboxSignal = activityItems.find(item => isFeaturedTicketedPlaySale(item, Date.now()))
+  const saleInboxSignal = activityItems.find(item => item.monitoringFinding?.destination === 'Inbox')
+    ?? activityItems.find(item => isFeaturedTicketedPlaySale(item, Date.now()))
   const shiverSignal = saleInboxSignal?.reviewState === 'needs-review' ? saleInboxSignal : undefined
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
   const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
@@ -2654,7 +2661,7 @@ type MonitoringAlert = {
   id: string
   kind: AlertKind
   severity: AlertSeverity
-  destination: 'Home' | 'Activity' | 'Wallet' | 'Trip' | 'Explore' | 'Calendar' | 'Map' | 'Artists' | 'Notes'
+  destination: 'Home' | 'Activity' | 'Inbox' | 'Wallet' | 'Trip' | 'Explore' | 'Calendar' | 'Map' | 'Artists' | 'Notes'
   attention: string
   title: string
   summary: string
@@ -6586,6 +6593,7 @@ function MentionInbox({
   const { active, dismissed } = partitionMentionInboxItems(items)
   const alertDismissed = alert?.reviewState === 'archived'
   const activeAlert = alert && !alertDismissed ? alert : undefined
+  const ticketedSelloutAlert = alert?.monitoringFinding?.destination === 'Inbox'
   const unread = active.length + (activeAlert ? 1 : 0)
   const dismissedCount = dismissed.length + (alertDismissed ? 1 : 0)
 
@@ -6624,7 +6632,7 @@ function MentionInbox({
       {activeAlert && <div className="mention-row mention-alert-row">
         <button type="button" className="mention-item mention-alert-item" onClick={onOpenAlert}>
           <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
-          <span><strong>Ticketed Play is up for sale!</strong><small>Sales are open now.</small><em>Open the signal for purchasing details.</em></span>
+          <span><strong>{ticketedSelloutAlert ? alert?.title : 'Ticketed Play is up for sale!'}</strong><small>{ticketedSelloutAlert ? alert?.summary : 'Sales are open now.'}</small><em>{ticketedSelloutAlert ? 'A selected event sold out. Open the alert for the retained source evidence.' : 'Open the signal for purchasing details.'}</em></span>
           <i aria-hidden="true">›</i>
         </button>
         <button className="mention-dismiss" type="button" aria-label="Dismiss Ticketed Play sale alert" title="Dismiss" onClick={() => onDismissAlert(activeAlert)}>×</button>
@@ -6643,7 +6651,7 @@ function MentionInbox({
           {alertDismissed && alert && <div className="mention-row dismissed mention-alert-row">
             <button type="button" className="mention-item mention-alert-item" onClick={onOpenAlert}>
               <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
-              <span><strong>Ticketed Play is up for sale!</strong><small>Sales are open now.</small><em>Dismissed alert</em></span>
+              <span><strong>{ticketedSelloutAlert ? alert.title : 'Ticketed Play is up for sale!'}</strong><small>{ticketedSelloutAlert ? alert.summary : 'Sales are open now.'}</small><em>Dismissed alert</em></span>
               <i aria-hidden="true">›</i>
             </button>
             <button className="mention-restore" type="button" aria-label="Restore Ticketed Play sale alert" onClick={() => onRestoreAlert(alert)}>Restore</button>

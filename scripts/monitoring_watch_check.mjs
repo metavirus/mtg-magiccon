@@ -6,6 +6,7 @@ import process from 'node:process';
 import { promisify } from 'node:util';
 import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
 import { discoverNewsletterLinks, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
+import { diffTicketedPlayInventory, scrapeLeapTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -190,13 +191,21 @@ function buildTicketedPlaySignals(added, changed, retrievedAt) {
 }
 
 async function summarizeTicketedPlayInventory(config, checkedAt) {
-  if (!config?.currentSnapshotFile) return ticketedPlayEmptyDiff;
+  if (!config?.url) return ticketedPlayEmptyDiff;
 
-  const currentPath = path.join(root, config.currentSnapshotFile);
   const stateFile = config.stateFile || '.monitoring-state/ticketed-play-inventory.local.json';
   const statePath = path.join(root, stateFile);
-  const currentSnapshot = await readJson(currentPath, { events: [] });
-  const current = Array.isArray(currentSnapshot) ? currentSnapshot : currentSnapshot.events || [];
+  const canonicalSnapshot = config.canonicalSnapshotFile
+    ? await readJson(path.join(root, config.canonicalSnapshotFile), { events: [] })
+    : { events: [] };
+  const canonicalEvents = (canonicalSnapshot.events || []).map(event => ({
+    sourceEventKey: event.sourceEventKey,
+    id: event.sourceEventKey ? `ticketed-${event.sourceEventKey}` : undefined,
+    rawTitle: event.rawTitle,
+    rawDateLabel: event.rawDateLabel,
+    rawTimeLabel: event.rawTimeLabel,
+  }));
+  const current = await scrapeLeapTicketedPlayInventory({ url: config.url, retrievedAt: checkedAt, canonicalEvents });
   const state = await readJson(statePath, { version: 1, accepted: [] });
   const previous = Array.isArray(state.accepted) ? state.accepted : [];
   const previousByKey = new Map(previous.map((event) => [eventKey(event), event]));
@@ -209,25 +218,28 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
     const fields = eventChangedFields(previousEvent, event);
     return fields.length > 0 ? [{ previous: previousEvent, current: event, fields }] : [];
   });
-  const signals = buildTicketedPlaySignals(added, changed, checkedAt);
+  const transitions = diffTicketedPlayInventory(previous, current);
+  const signals = transitions.some(transition => transition.availability === 'sold_out')
+    ? [{ kind: 'ticketed_play_sold_out_group', severity: 'worth_knowing', affectedEventIds: transitions.filter(transition => transition.availability === 'sold_out').map(transition => transition.eventId) }]
+    : [];
 
-  if (accept) {
-    await mkdir(path.dirname(statePath), { recursive: true });
-    await writeFile(statePath, `${JSON.stringify({ version: 1, accepted: current, acceptedAt: checkedAt }, null, 2)}\n`, 'utf8');
-  }
+  await mkdir(path.dirname(statePath), { recursive: true });
+  await writeFile(statePath, `${JSON.stringify({ version: 2, accepted: current, acceptedAt: checkedAt }, null, 2)}\n`, 'utf8');
 
   return {
     enabled: true,
     status: current.length > 0 ? 'checked' : 'empty-snapshot',
-    currentSnapshotFile: config.currentSnapshotFile,
+    url: config.url,
     stateFile,
     previousEventCount: previous.length,
     currentEventCount: current.length,
     addedCount: added.length,
     removedCount: removed.length,
     changedCount: changed.length,
+    transitionCount: transitions.length,
     signalCount: signals.length,
-    signals
+    signals,
+    transitions,
   };
 }
 
@@ -381,6 +393,15 @@ state.reachedMilestones = milestoneResult.reached;
 
 try {
   ticketedPlay = await summarizeTicketedPlayInventory(watchSet.ticketedPlayInventory, checkedAt);
+  if (ticketedPlay.transitions?.length) changes.push({
+    id: 'atlanta-ticketed-play-inventory',
+    label: 'MagicCon Atlanta Ticketed Play registration',
+    url: watchSet.ticketedPlayInventory.url,
+    priority: 'canonical',
+    destination: 'Home',
+    intakeKind: 'ticketed_play_inventory',
+    transitions: ticketedPlay.transitions,
+  });
 } catch (error) {
   ticketedPlay = {
     ...ticketedPlayEmptyDiff,
@@ -391,7 +412,7 @@ try {
   failures.push({
     id: 'ticketed-play-inventory',
     label: 'Ticketed play inventory snapshot',
-    url: watchSet.ticketedPlayInventory?.currentSnapshotFile || '',
+    url: watchSet.ticketedPlayInventory?.url || '',
     error: error.message
   });
 }

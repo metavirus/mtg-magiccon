@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import { classifyMonitoringFinding } from './monitoring_action_router.mjs'
+import { routeTicketedPlaySoldOutTransitions } from './ticketed_play_inventory.mjs'
 
 function summarize(change) {
   const added = change.linkDelta?.added ?? []
@@ -11,9 +12,24 @@ function summarize(change) {
   return parts.join(' ')
 }
 
-export function buildMonitoringCandidateRows(report) {
+export function buildMonitoringCandidateRows(report, routingContext = {}) {
+  const ticketedRows = (Array.isArray(report.changes) ? report.changes : [])
+    .filter(change => change.intakeKind === 'ticketed_play_inventory')
+    .flatMap(change => routeTicketedPlaySoldOutTransitions(change.transitions ?? [], {
+      ...routingContext,
+      checkedAt: report.checkedAt,
+    }))
+    .map(row => ({
+      ...row,
+      review_question: row.destination === 'Inbox'
+        ? 'Persistent selection-impact alert; dismiss only after the affected companions have reviewed it.'
+        : 'Informational grouped availability signal.',
+      last_seen_at: report.checkedAt,
+      updated_at: report.checkedAt,
+    }))
   const grouped = new Map()
   for (const change of Array.isArray(report.changes) ? report.changes : []) {
+    if (change.intakeKind === 'ticketed_play_inventory') continue
     const added = change.linkDelta?.added ?? []
     const removed = change.linkDelta?.removed ?? []
     const deltaKey = added.length || removed.length
@@ -24,7 +40,7 @@ export function buildMonitoringCandidateRows(report) {
     else grouped.set(deltaKey, { representative: change, sourceIds: [change.id] })
   }
 
-  return [...grouped.values()].map(({ representative: change, sourceIds }) => {
+  return [...ticketedRows, ...[...grouped.values()].map(({ representative: change, sourceIds }) => {
     sourceIds.sort()
     const material = JSON.stringify({
       sourceIds,
@@ -82,5 +98,5 @@ export function buildMonitoringCandidateRows(report) {
           },
         }
       : row
-  })
+  })]
 }

@@ -68,7 +68,7 @@ export type MonitoringFindingRow = {
   source_id: string
   source_label: string
   source_url: string
-  destination: 'Home' | 'Activity'
+  destination: 'Home' | 'Activity' | 'Inbox'
   title: string
   summary: string
   review_question: string

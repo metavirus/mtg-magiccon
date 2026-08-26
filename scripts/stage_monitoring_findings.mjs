@@ -26,9 +26,19 @@ if (!changes.length) {
   process.exit(0)
 }
 
-const candidateRows = buildMonitoringCandidateRows(report)
-
 const client = createClient(supabaseUrl, secretKey, { auth: { persistSession: false, autoRefreshToken: false } })
+const hasTicketedInventory = changes.some(change => change.intakeKind === 'ticketed_play_inventory')
+let routingContext = {}
+if (hasTicketedInventory) {
+  const [selectionsResult, companionsResult] = await Promise.all([
+    client.from('user_selections').select('owner_id,object_id,object_kind,selection_key,selection_value').eq('object_kind', 'event').in('selection_key', ['state', 'purchased', 'purchase_locked']),
+    client.from('companion_members').select('user_id,display_name').eq('active', true).not('user_id', 'is', null),
+  ])
+  if (selectionsResult.error) throw selectionsResult.error
+  if (companionsResult.error) throw companionsResult.error
+  routingContext = { selectionRows: selectionsResult.data ?? [], companions: companionsResult.data ?? [] }
+}
+const candidateRows = buildMonitoringCandidateRows(report, routingContext)
 const fingerprints = candidateRows.map(row => row.fingerprint)
 const existingResult = await client.from('monitoring_findings').select('fingerprint,occurrence_count,status').in('fingerprint', fingerprints)
 if (existingResult.error) throw existingResult.error
@@ -71,8 +81,14 @@ let factualChoicesStaged = 0
 
 for (const observation of observations) {
   if (!observation.findingId) throw new Error(`Missing staged finding readback for ${observation.fingerprint}.`)
-  const extractedClaims = extractMonitoringConcepts(observation)
   const sourceRow = candidateRows.find(row => row.fingerprint === observation.fingerprint)
+  if (sourceRow?.evidence?.intake_kind === 'ticketed_play_inventory') {
+    // Ticketed inventory transitions are already event-normalized and routed.
+    // They retain their Home/Inbox lifecycle instead of passing through the
+    // generic page-concept noise classifier.
+    continue
+  }
+  const extractedClaims = extractMonitoringConcepts(observation)
   if (!extractedClaims.length) {
     const noiseWrite = await client.from('monitoring_findings').update({
       ...(existingStatuses.has(observation.fingerprint) ? {} : { status: 'archived' }),

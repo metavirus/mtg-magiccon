@@ -2,6 +2,11 @@
   "version": 1,
   "updatedAt": "2026-08-24",
   "stateFile": ".monitoring-state/watch-state.local.json",
+  "ticketedPlayInventory": {
+    "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
+    "canonicalSnapshotFile": "research/precanon/ticketed-play/snapshots/2026-08-18_ticketed-play-v1.raw.json",
+    "stateFile": ".monitoring-state/ticketed-play-inventory.local.json"
+  },
   "newsletterIntake": {
     "allowedHost": "www.mtgfestivals.com",
     "discoverySourceIds": ["global-magiccon-news"],
