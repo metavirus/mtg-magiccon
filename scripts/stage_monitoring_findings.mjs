@@ -26,7 +26,19 @@ if (!changes.length) {
   process.exit(0)
 }
 
-const client = createClient(supabaseUrl, secretKey, { auth: { persistSession: false, autoRefreshToken: false } })
+const fetchWithClockSkewRetry = async (input, init) => {
+  let response
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    response = await fetch(input, init)
+    if (response.status !== 401 || !/JWT issued at future/i.test(await response.clone().text())) return response
+    await new Promise(resolve => setTimeout(resolve, 2000))
+  }
+  return response
+}
+const client = createClient(supabaseUrl, secretKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
+  global: { fetch: fetchWithClockSkewRetry },
+})
 const hasTicketedInventory = changes.some(change => change.intakeKind === 'ticketed_play_inventory')
 let routingContext = {}
 if (hasTicketedInventory) {

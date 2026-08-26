@@ -20,4 +20,12 @@ describe('daily surveyor browser contract', () => {
     expect(scraper).toContain("/\\bSOLD OUT\\b/i.test(document.body.innerText)")
     expect(scraper).toContain('registrationControlMissing: controls.length === 0')
   })
+
+  it('retries the known transient Supabase runner clock-skew response', () => {
+    const staging = fs.readFileSync(path.resolve('scripts/stage_monitoring_findings.mjs'), 'utf8')
+
+    expect(staging).toContain('fetchWithClockSkewRetry')
+    expect(staging).toContain('/JWT issued at future/i')
+    expect(staging).toContain('global: { fetch: fetchWithClockSkewRetry }')
+  })
 })
