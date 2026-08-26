@@ -38,10 +38,12 @@ function receiptPlan(message) {
   const receipt = message.receipt
   const source = message.source
   if (!receipt || !RECEIPT_TYPES.has(receipt.receiptType)) return notCovered('receipt', source.messageId, 'receipt_type_unmapped')
-  const attendeePersonKeys = Array.isArray(receipt.attendeePersonKeys)
+  const hasExplicitAttendeeSet = Array.isArray(receipt.attendeePersonKeys)
+  const attendeePersonKeys = hasExplicitAttendeeSet
     ? [...new Set(receipt.attendeePersonKeys.map(value => String(value).trim().toLowerCase()).filter(Boolean))]
     : nonblank(receipt.attendeePersonKey) ? [receipt.attendeePersonKey.trim().toLowerCase()] : []
-  if (!attendeePersonKeys.length || !attendeePersonKeys.includes(message.mailboxOwnerPersonKey)) {
+  const companionOnlyTicketedReceipt = receipt.receiptType === 'ticketed_play' && hasExplicitAttendeeSet
+  if (!attendeePersonKeys.length || (!attendeePersonKeys.includes(message.mailboxOwnerPersonKey) && !companionOnlyTicketedReceipt)) {
     return notCovered('receipt', source.messageId, 'attendee_identity_ambiguous')
   }
   if (![receipt.title, receipt.vendor].every(nonblank) || !validTimestamp(receipt.receiptDate)) {

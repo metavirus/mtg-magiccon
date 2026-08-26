@@ -38,6 +38,15 @@ describe('private Gmail intake', () => {
     expect(summarizePrivateIntake(result)).toMatchObject({ consequence: { attendeeCount: 2, purchaseLockCount: 2 } })
   })
 
+  it('covers an explicitly assigned companion-only ticketed-play order', () => {
+    const result = planPrivateGmailIntake({
+      kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source,
+      receipt: { receiptType: 'ticketed_play', title: 'Juan · Ticketed Play order', vendor: 'Leap', receiptDate: source.receivedAt, amount: 200, currency: 'USD', attendeePersonKeys: ['juan'], lineItems: [{ title: 'Commander and Cocktails', eventId: 'ticketed-944111', price: 200, quantity: 1, code: '563MXW5', attendeePersonKeys: ['juan'] }] },
+    })
+    expect(result).toMatchObject({ status: 'covered', operation: { attendeePersonKeys: ['juan'], receipt: { attendee_person_keys: ['juan'] } } })
+    expect(summarizePrivateIntake(result)).toMatchObject({ consequence: { attendeeCount: 1, purchaseLockCount: 1 } })
+  })
+
   it('fails closed when a shared line names an attendee outside the receipt or its quantity disagrees', () => {
     const base = { receiptType: 'ticketed_play', title: 'Shared order', vendor: 'Leap', receiptDate: source.receivedAt, amount: 200, currency: 'USD', attendeePersonKeys: ['kavi', 'juan'] }
     expect(planPrivateGmailIntake({ kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source, receipt: { ...base, lineItems: [{ title: 'Sealed', eventId: 'ticketed-944015', attendeePersonKeys: ['kavi', 'chris'] }] } })).toMatchObject({ status: 'not_covered', reason: 'ticketed_line_attendee_binding_ambiguous' })
