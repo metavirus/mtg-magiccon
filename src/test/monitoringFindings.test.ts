@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
+import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
 
 const finding = (overrides: Partial<MonitoringFindingRow> = {}): MonitoringFindingRow => ({
   id: 'finding', fingerprint: 'a'.repeat(64), source_id: 'source', source_label: 'Official source', source_url: 'https://example.com/very/long/source/url', destination: 'Home', title: 'New official links', summary: 'Summary', review_question: 'Add the links?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T20:00:00.000Z', last_seen_at: '2026-08-21T20:00:00.000Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, ...overrides,
@@ -74,16 +74,31 @@ describe('monitoring finding decisions', () => {
     expect(() => monitoringDecisionPatch('yes', 'kavi-id', finding())).toThrow(/bounded canonical action mapping/)
   })
 
-  it('promotes an unread informational Activity finding with useful official links to Home', () => {
+  it('keeps an unread link-only Activity finding off Home', () => {
     const informationalActivityFinding = finding({
       destination: 'Activity',
       status: 'unread',
       evidence: { presentation_links: [{ label: 'Ticketed Play Schedule', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play.html' }] },
       execution_status: 'not_started',
     })
-    expect(findingIsHomeWorthy(informationalActivityFinding)).toBe(true)
+    expect(findingIsHomeWorthy(informationalActivityFinding)).toBe(false)
     expect(findingCanAuthorize(informationalActivityFinding)).toBe(false)
     expect(() => monitoringDecisionPatch('yes', 'kavi-id', informationalActivityFinding)).toThrow(/canonical action/)
+  })
+
+  it('keeps generic updates and legacy resource concepts off Home and out of user-facing Activity', () => {
+    const base = {
+      title: 'Concept', current_summary: 'Summary', review_state: 'unread' as const, latest_resolution: 'material_update',
+      current_state: {}, evidence_count: 1, first_seen_at: '2026-08-25T00:00:00Z', last_seen_at: '2026-08-25T00:00:00Z',
+    }
+    expect(monitoringConceptIsHomeWorthy({ ...base, concept_key: 'real-fact', concept_kind: 'info_article_fact', attention_state: 'material_update' })).toBe(false)
+    const legacy = { ...base, concept_key: 'atlanta:magic-play:official-resources-available', concept_kind: 'official_resource_availability', attention_state: 'material_update' }
+    expect(monitoringConceptIsUserFacing(legacy)).toBe(false)
+    expect(monitoringConceptIsHomeWorthy(legacy)).toBe(false)
+    expect(monitoringConceptIsHomeWorthy({ ...base, concept_key: 'flight', concept_kind: 'flight_schedule', attention_state: 'material_update' })).toBe(true)
+    expect(monitoringConceptIsHomeWorthy({ ...base, concept_key: 'sale', concept_kind: 'ticketed_play_sales', attention_state: 'material_update' })).toBe(true)
+    expect(monitoringConceptIsHomeWorthy({ ...base, concept_key: 'deadline', attention_state: 'milestone_transition' })).toBe(true)
+    expect(monitoringConceptIsHomeWorthy({ ...base, concept_key: 'conflict', attention_state: 'contradiction' })).toBe(true)
   })
 
   it('does not promote unmapped or resolved Activity findings to Home attention', () => {

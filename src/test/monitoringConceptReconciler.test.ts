@@ -9,6 +9,35 @@ const saleClaim = { sale_date: '2026-08-25', sale_time: '10:00', timezone: 'Amer
 const existing = { concept_key: 'atlanta:ticketed-play:sales-opening', concept_kind: 'ticketed_play_sales', current_state: saleClaim, attention_state: 'informational', current_summary: 'Ticketed Play sales open August 25 at 10 AM PT' }
 
 describe('monitoring concept reconciliation', () => {
+  it('archives Aug 25 shared-navigation link deltas without inventing a resource concept', () => {
+    const sharedLinks = [
+      { label: 'Ticketed Play', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html' },
+      { label: 'On-Demand Events', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html' },
+      { label: 'Prize Wall', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html' },
+    ]
+    const pages = ['home', 'magic-play', 'ticketed-play', 'on-demand'].map((sourceId, index) => ({
+      sourceId, sourceUrl: `https://mcatlanta.mtgfestivals.com/en-us/${sourceId}.html`, observedAt: '2026-08-25T17:00:00Z',
+      summary: 'Official Magic Play navigation links changed.', links: sharedLinks.slice(index % 2),
+    }))
+    for (const page of pages) {
+      expect(extractMonitoringConcepts(page)).toEqual([])
+      expect(reconcileMonitoringObservation(page)).toMatchObject({ resolution: 'noise', concept: null })
+    }
+  })
+
+  it('still hydrates and corroborates a registered fact when shared navigation accompanies it', () => {
+    const links = [{ label: 'Magic Play', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play.html' }]
+    const firstObservation = { sourceId: 'on-demand', sourceUrl: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html', observedAt: '2026-08-25T17:00:00Z', summary: 'On-Demand vouchers are sold in $5 increments.', links }
+    const secondObservation = { ...firstObservation, sourceId: 'newsletter', sourceUrl: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/atlanta-august-25.html', observedAt: '2026-08-25T17:05:00Z' }
+    const [firstClaim] = extractMonitoringConcepts(firstObservation)
+    expect(extractMonitoringConcepts(firstObservation).map(claim => claim.concept_kind)).toEqual(['info_article_fact'])
+    const first = reconcileMonitoringObservation(firstObservation, null, firstClaim)
+    const [secondClaim] = extractMonitoringConcepts(secondObservation)
+    const corroborated = reconcileMonitoringObservation(secondObservation, first.concept, secondClaim)
+    expect(first).toMatchObject({ resolution: 'new', concept: { concept_key: 'atlanta:on-demand-play:voucher-price' } })
+    expect(corroborated).toMatchObject({ resolution: 'corroboration', concept: { current_state: { value: '$5 increments' } } })
+    expect(corroborated.concept.current_state.provenance).toHaveLength(2)
+  })
   it('collapses a cross-source semantic duplicate into corroboration', () => {
     const result = reconcileMonitoringObservation(observation('faq', 'Ticketed Play events go on sale August 25 at 10:00 AM PT.'), existing)
     expect(result).toMatchObject({ resolution: 'corroboration', concept: { concept_key: existing.concept_key, attention_state: 'informational' } })

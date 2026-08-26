@@ -6,6 +6,7 @@ export type MonitoringFindingChoice = { choice_key: string; label: string; value
 
 export type MonitoringConceptRow = {
   concept_key: string
+  concept_kind?: string
   title: string
   current_summary: string
   attention_state: string
@@ -17,6 +18,18 @@ export type MonitoringConceptRow = {
   last_seen_at: string
   created_at?: string
   updated_at?: string
+}
+
+export function monitoringConceptIsUserFacing(concept: MonitoringConceptRow) {
+  return concept.concept_kind !== 'official_resource_availability'
+    && concept.concept_key !== 'atlanta:magic-play:official-resources-available'
+}
+
+export function monitoringConceptIsHomeWorthy(concept: MonitoringConceptRow) {
+  if (!monitoringConceptIsUserFacing(concept)) return false
+  if (['hot', 'milestone_transition', 'contradiction'].includes(concept.attention_state)) return true
+  return concept.attention_state === 'material_update'
+    && ['flight_schedule', 'ticketed_play_sales'].includes(concept.concept_kind ?? '')
 }
 
 export function monitoringConceptResources(concept: MonitoringConceptRow): MonitoringOfficialResource[] {
@@ -197,8 +210,7 @@ export function findingNeedsKaviAction(finding: MonitoringFindingRow) {
 }
 
 export function findingIsHomeWorthy(finding: MonitoringFindingRow) {
-  if (findingNeedsKaviAction(finding)) return true
-  return ['unread', 'needs_review'].includes(finding.status) && findingIsInformational(finding) && findingOfficialResources(finding).length > 0
+  return findingNeedsKaviAction(finding)
 }
 
 export function findingExecutionDetail(finding: MonitoringFindingRow) {

@@ -1,9 +1,8 @@
 import { createHash } from 'node:crypto'
 import { extractRegisteredInfoClaims, registryEntryForConcept } from './maintained_info_claim_registry.mjs'
 
-export const CONCEPT_RULE_VERSION = 2
+export const CONCEPT_RULE_VERSION = 3
 const SALE_CONCEPT_KEY = 'atlanta:ticketed-play:sales-opening'
-const RESOURCE_CONCEPT_KEY = 'atlanta:magic-play:official-resources-available'
 
 function normalizedText(observation) {
   return [observation.title, observation.summary, observation.text, ...(observation.links ?? []).map(link => typeof link === 'string' ? link : `${link.label ?? ''} ${link.url ?? ''}`)]
@@ -28,23 +27,11 @@ function ticketedPlaySaleClaim(text) {
   return { sale_date: date, sale_time: time, timezone: time ? 'America/Los_Angeles' : null, phase }
 }
 
-function officialResourcesClaim(observation, text) {
-  const resources = (observation.links ?? []).flatMap(link => {
-    const value = typeof link === 'string' ? link : link.url
-    if (!value || !/mtgfestivals\.com\/en-us\/magic-play/i.test(value)) return []
-    return [{ label: typeof link === 'string' ? value : link.label, url: value }]
-  })
-  if (!resources.length || !/(magic play|ticketed play|prize wall|on-demand)/.test(text)) return null
-  return { resources: [...new Map(resources.map(resource => [resource.url, resource])).values()].sort((a, b) => a.url.localeCompare(b.url)) }
-}
-
 export function extractMonitoringConcepts(observation) {
   const text = normalizedText(observation)
   const registered = extractRegisteredInfoClaims(observation, text).map(({ entry, claim }) => ({ concept_key: entry.conceptKey, concept_kind: 'info_article_fact', title: entry.title, consequence_class: entry.consequenceClass, claim }))
   const saleClaim = ticketedPlaySaleClaim(text)
   if (saleClaim) registered.push({ concept_key: SALE_CONCEPT_KEY, concept_kind: 'ticketed_play_sales', title: 'Ticketed Play sales', claim: saleClaim })
-  const resourceClaim = officialResourcesClaim(observation, text)
-  if (resourceClaim) registered.push({ concept_key: RESOURCE_CONCEPT_KEY, concept_kind: 'official_resource_availability', title: 'Official Magic Play resources', claim: resourceClaim })
   return registered
 }
 

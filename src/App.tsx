@@ -9,7 +9,7 @@ import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
-import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
+import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
@@ -432,7 +432,7 @@ async function loadMonitoringFindings(): Promise<MonitoringFindingRow[]> {
 async function loadMonitoringConcepts(): Promise<MonitoringConceptRow[]> {
   if (!supabase) return []
   const result = await supabase.from('monitoring_concepts')
-    .select('concept_key,title,current_summary,attention_state,review_state,latest_resolution,current_state,evidence_count,first_seen_at,last_seen_at,created_at,updated_at')
+    .select('concept_key,concept_kind,title,current_summary,attention_state,review_state,latest_resolution,current_state,evidence_count,first_seen_at,last_seen_at,created_at,updated_at')
     .order('last_seen_at', { ascending: false })
     .limit(100)
   if (result.error) throw result.error
@@ -1405,13 +1405,13 @@ export default function App() {
       else effectiveMonitoringConcepts.push(openedConcept)
     }
   }
-  const conceptActivity: ActivityItem[] = effectiveMonitoringConcepts.map(concept => {
+  const conceptActivity: ActivityItem[] = effectiveMonitoringConcepts.filter(monitoringConceptIsUserFacing).map(concept => {
     const resources = monitoringConceptResources(concept)
     const sourceLabel = typeof concept.current_state.source_label === 'string' ? concept.current_state.source_label : 'Official source'
     const sourceUrl = typeof concept.current_state.source_url === 'string' ? concept.current_state.source_url : ''
     const persistedReview = alertReview[`concept-${concept.concept_key}`]
     const reviewState: AlertReviewState = persistedReview ?? (concept.review_state === 'archived' ? 'archived' : concept.review_state === 'read' ? 'reviewed' : 'needs-review')
-    const needsAttention = ['hot', 'material_update', 'milestone_transition', 'contradiction'].includes(concept.attention_state)
+    const needsAttention = monitoringConceptIsHomeWorthy(concept)
     return {
       id: `concept-${concept.concept_key}`,
       conceptKey: concept.concept_key,

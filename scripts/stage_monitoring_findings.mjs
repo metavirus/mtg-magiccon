@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import { createClient } from '@supabase/supabase-js'
 import { buildMonitoringCandidateRows } from './lib/build_monitoring_candidates.mjs'
-import { extractMonitoringConcepts, factualChoiceFindingForResolution, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
+import { CONCEPT_RULE_VERSION, extractMonitoringConcepts, factualChoiceFindingForResolution, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
 import { projectResolutionToInfo } from './lib/monitoring_info_projection.mjs'
 
 const reportPath = process.argv[2]
@@ -76,7 +76,7 @@ for (const observation of observations) {
   if (!extractedClaims.length) {
     const noiseWrite = await client.from('monitoring_findings').update({
       ...(existingStatuses.has(observation.fingerprint) ? {} : { status: 'archived' }),
-      evidence: { ...sourceRow.evidence, concept_resolution: 'noise', concept_keys: [], concept_rule_version: 2, concept_rationale: 'No deterministic planning concept or material fact was extracted.' },
+      evidence: { ...sourceRow.evidence, concept_resolution: 'noise', concept_keys: [], concept_rule_version: CONCEPT_RULE_VERSION, concept_rationale: 'No deterministic planning concept or material fact was extracted.' },
     }).eq('id', observation.findingId)
     if (noiseWrite.error) throw noiseWrite.error
     continue
