@@ -25,6 +25,20 @@ describe('LEAP Ticketed Play inventory', () => {
     expect(events[0]).toMatchObject({ title: 'Commander Sealed Draft with Commander at Home - Rochester draft your Sealed pool!', day: '2026-11-13', startsAt: '11:30', endsAt: '15:25' })
   })
 
+  it('recognizes LEAP anonymous soldout cards by their missing registration control', () => {
+    const [event] = normalizeLeapInventoryCards([{
+      title: soldOutCards[0].title,
+      day: soldOutCards[0].day,
+      time: soldOutCards[0].time,
+      soldOut: false,
+      registrationControlMissing: true,
+      controls: [],
+    }], { sourceUrl })
+
+    expect(event.availability).toBe('sold_out')
+    expect(event.availabilityEvidence.kind).toBe('missing_registration_control')
+  })
+
   it('maps live LEAP identities onto canonical Explore event IDs', () => {
     const snapshot = JSON.parse(fs.readFileSync('research/precanon/ticketed-play/snapshots/2026-08-18_ticketed-play-v1.raw.json', 'utf8'))
     const canonicalEvents = snapshot.events.map((event: any) => ({ ...event, id: `ticketed-${event.sourceEventKey}` }))

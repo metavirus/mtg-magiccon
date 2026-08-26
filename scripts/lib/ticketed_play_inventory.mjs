@@ -63,8 +63,9 @@ export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, can
       return normalizedTitle.startsWith(candidateTitle) || candidateTitle.startsWith(normalizedTitle)
     })
     const sourceEventKey = String(canonical?.sourceEventKey ?? `leap-${crypto.createHash('sha256').update(identity).digest('hex').slice(0, 16)}`)
+    const soldOut = Boolean(card.soldOut || card.registrationControlMissing)
     const availability = inferTicketedPlayAvailability({
-      title: card.soldOut ? `${title} SOLD OUT` : title,
+      title: soldOut ? `${title} SOLD OUT` : title,
       controls: card.controls ?? [],
     })
     return {
@@ -77,8 +78,10 @@ export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, can
       startsAt,
       endsAt,
       availability,
-      availabilityEvidence: card.soldOut
-        ? { kind: 'explicit_text', text: 'SOLD OUT' }
+      availabilityEvidence: soldOut
+        ? card.soldOut
+          ? { kind: 'explicit_text', text: 'SOLD OUT' }
+          : { kind: 'missing_registration_control', text: 'No add/login registration control; available cards retain one.' }
         : { kind: 'purchase_control', controls: card.controls ?? [] },
     }
   }).sort((a, b) => `${a.day}|${a.startsAt}|${a.title}`.localeCompare(`${b.day}|${b.startsAt}|${b.title}`))
@@ -103,6 +106,10 @@ export async function scrapeLeapTicketedPlayInventory({ url, retrievedAt, canoni
         .filter(Boolean))
       return days.size >= 3
     }, { timeout: 30000 })
+    // Availability badges arrive after the date/card shell. Give the explicit
+    // state lane a bounded chance to hydrate; absence after the timeout is a
+    // valid all-available/unknown inventory, not a navigation failure.
+    await page.waitForFunction(() => /\bSOLD OUT\b/i.test(document.body.innerText), { timeout: 10000 }).catch(() => {})
     const cards = await page.locator('.schedule.card').evaluateAll(nodes => nodes.map(card => {
       const text = selector => card.querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
       const controls = Array.from(card.querySelectorAll('button, [role="button"], input[type="submit"]')).map(control => ({
@@ -114,6 +121,7 @@ export async function scrapeLeapTicketedPlayInventory({ url, retrievedAt, canoni
         day: text('.schedule-day'),
         time: text('.schedule-time'),
         soldOut: /\bSOLD OUT\b/i.test(card.textContent ?? ''),
+        registrationControlMissing: controls.length === 0,
         controls,
       }
     }))

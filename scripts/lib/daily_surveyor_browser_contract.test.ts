@@ -17,5 +17,7 @@ describe('daily surveyor browser contract', () => {
 
     expect(scraper).toContain("document.querySelectorAll('.schedule-day')")
     expect(scraper).toContain('return days.size >= 3')
+    expect(scraper).toContain("/\\bSOLD OUT\\b/i.test(document.body.innerText)")
+    expect(scraper).toContain('registrationControlMissing: controls.length === 0')
   })
 })
