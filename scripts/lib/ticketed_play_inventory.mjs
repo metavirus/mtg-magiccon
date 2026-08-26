@@ -160,9 +160,33 @@ function selectedPeopleForEvent(eventId, selectionRows, companions) {
   return [...ownerIsActionable].map(ownerId => names.get(ownerId) ?? 'A companion').sort()
 }
 
-export function routeTicketedPlaySoldOutTransitions(transitions, { selectionRows = [], companions = [], checkedAt } = {}) {
+export function routeTicketedPlayAvailabilityTransitions(transitions, { selectionRows = [], companions = [], checkedAt, availabilityWatches = [] } = {}) {
   const soldOut = transitions.filter(item => item.availability === 'sold_out')
-  if (!soldOut.length) return []
+  const rows = []
+  const fingerprint = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex')
+  const watches = new Map(availabilityWatches.map(watch => [String(watch.sourceEventKey), watch]))
+  const reopened = transitions.filter(item => ['available', 'waitlist'].includes(item.availability) && watches.has(String(item.sourceEventKey)))
+  for (const item of reopened) {
+    const watch = watches.get(String(item.sourceEventKey))
+    const purchaseReady = item.availability === 'available'
+    rows.push({
+      fingerprint: fingerprint({ kind: 'ticketed_play_watched_reopened', sourceEventKey: item.sourceEventKey, availability: item.availability }),
+      source_id: 'atlanta-ticketed-play-inventory',
+      source_label: 'MagicCon Atlanta Ticketed Play registration',
+      source_url: watch.registrationUrl || item.event.sourceUrl,
+      destination: 'Inbox',
+      title: purchaseReady ? `${item.event.title} is available again` : `${item.event.title} has a waitlist`,
+      summary: purchaseReady ? 'A purchase spot appears to be open. Act quickly if Juan still wants to join.' : 'The sold-out event now offers a waitlist. Join it if Juan still wants a spot.',
+      status: 'unread',
+      evidence: {
+        intake_kind: 'ticketed_play_inventory', transition: 'reopened', availability: item.availability,
+        previous_availability: item.previousAvailability, persistent_inbox: true, bell: true,
+        email_alert: watch.emailAlert === true, notify_person_key: watch.notifyPersonKey,
+        registration_url: watch.registrationUrl || item.event.sourceUrl, event: item.event, monitorCheckedAt: checkedAt,
+      },
+    })
+  }
+  if (!soldOut.length) return rows
   const material = soldOut.map(item => ({
     eventId: item.eventId,
     sourceEventKey: item.sourceEventKey,
@@ -174,8 +198,7 @@ export function routeTicketedPlaySoldOutTransitions(transitions, { selectionRows
     availabilityEvidence: item.event.availabilityEvidence,
     people: selectedPeopleForEvent(item.eventId, selectionRows, companions),
   }))
-  const fingerprint = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex')
-  const rows = [{
+  rows.push({
     fingerprint: fingerprint({ kind: 'ticketed_play_sold_out_group', events: material.map(event => event.sourceEventKey).sort() }),
     source_id: 'atlanta-ticketed-play-inventory',
     source_label: 'MagicCon Atlanta Ticketed Play registration',
@@ -185,7 +208,7 @@ export function routeTicketedPlaySoldOutTransitions(transitions, { selectionRows
     summary: material.map(event => `${event.day} ${event.startsAt} · ${event.title}`).join('; '),
     status: 'unread',
     evidence: { intake_kind: 'ticketed_play_inventory', transition: 'sold_out', events: material, monitorCheckedAt: checkedAt },
-  }]
+  })
   const selected = material.filter(event => event.people.length)
   if (selected.length) rows.push({
     fingerprint: fingerprint({ kind: 'ticketed_play_selection_sold_out', events: selected.map(event => [event.sourceEventKey, event.people]).sort() }),
@@ -200,3 +223,5 @@ export function routeTicketedPlaySoldOutTransitions(transitions, { selectionRows
   })
   return rows
 }
+
+export const routeTicketedPlaySoldOutTransitions = routeTicketedPlayAvailabilityTransitions

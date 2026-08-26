@@ -40,4 +40,15 @@ describe('daily surveyor browser contract', () => {
     expect(workflow).toContain('work/monitoring/closure-manifest.json')
     expect(workflow.indexOf('if: always()', save)).toBeGreaterThan(save)
   })
+
+  it('sends a watched reopening alert only after closure and before accepting the baseline', () => {
+    const workflow = fs.readFileSync(path.resolve('.github/workflows/daily-surveyor.yml'), 'utf8')
+    const verify = workflow.indexOf('pnpm monitor:verify-closure')
+    const email = workflow.indexOf('node scripts/send_ticketed_availability_alert.mjs')
+    const save = workflow.indexOf('- name: Save monitoring baseline')
+
+    expect(email).toBeGreaterThan(verify)
+    expect(save).toBeGreaterThan(email)
+    expect(workflow).toContain('ALERT_GMAIL_APP_PASSWORD: ${{ secrets.ALERT_GMAIL_APP_PASSWORD }}')
+  })
 })

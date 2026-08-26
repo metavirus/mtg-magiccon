@@ -402,6 +402,7 @@ try {
     destination: 'Home',
     intakeKind: 'ticketed_play_inventory',
     transitions: ticketedPlay.transitions,
+    availabilityWatches: watchSet.ticketedPlayInventory.availabilityWatches ?? [],
   });
 } catch (error) {
   ticketedPlay = {

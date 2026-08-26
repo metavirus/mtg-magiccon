@@ -5,7 +5,17 @@
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
     "canonicalSnapshotFile": "research/precanon/ticketed-play/snapshots/2026-08-18_ticketed-play-v1.raw.json",
-    "stateFile": ".monitoring-state/ticketed-play-inventory.local.json"
+    "stateFile": ".monitoring-state/ticketed-play-inventory.local.json",
+    "availabilityWatches": [
+      {
+        "sourceEventKey": "944127",
+        "eventId": "ticketed-944127",
+        "title": "Magic: The Menu - Brunch - with Numot the Nummy",
+        "notifyPersonKey": "kavi",
+        "registrationUrl": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10?op=59962344#",
+        "emailAlert": true
+      }
+    ]
   },
   "newsletterIntake": {
     "allowedHost": "www.mtgfestivals.com",

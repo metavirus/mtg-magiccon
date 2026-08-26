@@ -101,6 +101,14 @@ jobs:
       - name: Verify catch-to-closure contract
         run: pnpm monitor:verify-closure work/monitoring/monitor-check.json work/monitoring/closure-manifest.json
 
+      - name: Send watched Ticketed Play availability alert
+        if: inputs.replay_run_id == ''
+        env:
+          ALERT_GMAIL_USERNAME: ${{ vars.ALERT_GMAIL_USERNAME }}
+          ALERT_GMAIL_APP_PASSWORD: ${{ secrets.ALERT_GMAIL_APP_PASSWORD }}
+          ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
+        run: node scripts/send_ticketed_availability_alert.mjs work/monitoring/monitor-check.json work/monitoring/closure-manifest.json
+
       - name: Save monitoring baseline
         if: success() && inputs.replay_run_id == ''
         uses: actions/cache/save@v6

@@ -86,4 +86,21 @@ describe('LEAP Ticketed Play inventory', () => {
     expect(rows[1].summary).toContain('Chris, Kavi')
     expect(routeTicketedPlaySoldOutTransitions(diffTicketedPlayInventory(soldOut, soldOut), { selectionRows: [] })).toEqual([])
   })
+
+  it('routes a configured reopening to one persistent Inbox bell and email intent', () => {
+    const event = { id: 'ticketed-944127', sourceEventKey: '944127', sourceUrl, title: 'Magic: The Menu - Brunch - with Numot the Nummy', day: '2026-11-15', startsAt: '11:30', endsAt: '16:25', availabilityEvidence: { kind: 'purchase_control' } }
+    const watch = { sourceEventKey: '944127', notifyPersonKey: 'kavi', registrationUrl: `${sourceUrl}?op=59962344#`, emailAlert: true }
+    const rows = routeTicketedPlaySoldOutTransitions([{ eventId: event.id, sourceEventKey: event.sourceEventKey, previousAvailability: 'sold_out', availability: 'available', event: { ...event, availability: 'available' } }], { checkedAt: '2026-08-26T20:00:00Z', availabilityWatches: [watch] })
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ destination: 'Inbox', status: 'unread', title: `${event.title} is available again` })
+    expect(rows[0].evidence).toMatchObject({ persistent_inbox: true, bell: true, email_alert: true, notify_person_key: 'kavi' })
+  })
+
+  it('does not treat unknown or an unrelated reopening as alertable', () => {
+    const event = { id: 'ticketed-944127', sourceEventKey: '944127', sourceUrl, title: 'Magic: The Menu', availabilityEvidence: {} }
+    const watch = { sourceEventKey: '944127', emailAlert: true }
+    const transition = availability => [{ eventId: event.id, sourceEventKey: event.sourceEventKey, previousAvailability: 'sold_out', availability, event: { ...event, availability } }]
+    expect(routeTicketedPlaySoldOutTransitions(transition('unknown'), { availabilityWatches: [watch] })).toEqual([])
+    expect(routeTicketedPlaySoldOutTransitions(transition('available'), { availabilityWatches: [{ sourceEventKey: 'other', emailAlert: true }] })).toEqual([])
+  })
 })

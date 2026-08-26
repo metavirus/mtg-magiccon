@@ -18,6 +18,7 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
     .flatMap(change => routeTicketedPlaySoldOutTransitions(change.transitions ?? [], {
       ...routingContext,
       checkedAt: report.checkedAt,
+      availabilityWatches: change.availabilityWatches ?? [],
     }))
     .map(row => ({
       ...row,

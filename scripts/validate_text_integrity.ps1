@@ -1,9 +1,12 @@
 $ErrorActionPreference = 'Stop'
-$excluded = @('.git', 'node_modules', 'dist', 'output', 'coverage', 'tmp', '.secrets', '.supabase', '.temp', '.codex-local', 'local-assets')
+$excluded = @('.git', 'node_modules', 'dist', 'output', 'coverage', 'tmp', '.secrets', '.supabase', '.temp', '.codex-local', '.monitoring-state', 'local-assets')
 $extensions = @('.md', '.json', '.ts', '.tsx', '.js', '.css', '.html', '.yml', '.yaml', '.toml', '.sql', '.ps1', '.txt', '.example', '.editorconfig', '.gitattributes', '.gitignore')
 $failures = @()
 
-Get-ChildItem -File -Recurse | Where-Object {
+# Some ignored tool caches contain unreadable links or ACL-protected folders.
+# They are outside the validation scope, so traversal errors must not fail an
+# otherwise valid ship gate before the exclusion filter can run.
+Get-ChildItem -File -Recurse -ErrorAction SilentlyContinue | Where-Object {
   $pathParts = $_.FullName.Substring((Get-Location).Path.Length).Split([IO.Path]::DirectorySeparatorChar)
   -not ($pathParts | Where-Object { $excluded -contains $_ }) -and ($extensions -contains $_.Extension -or $_.Name.StartsWith('.'))
 } | ForEach-Object {
