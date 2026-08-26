@@ -192,7 +192,7 @@ type UserActivityEventRow = {
   created_at: string
 }
 
-type WalletReceiptLine = { event_id: string; title: string; price: number; code?: string }
+type WalletReceiptLine = { event_id: string; title: string; price: number; quantity?: number; code?: string; attendee_person_keys?: string[] }
 type WalletReceiptRow = {
   id: string
   receipt_type: 'badge' | 'ticketed_play' | 'store' | 'travel' | 'hotel' | 'other'
@@ -202,8 +202,30 @@ type WalletReceiptRow = {
   amount: number
   currency: string
   attendee_person_key: string
+  attendee_person_keys: string[]
   line_items: WalletReceiptLine[]
   original_html: string
+}
+
+function useWalletReceipts(currentOwnerId?: string) {
+  const [receipts, setReceipts] = useState<WalletReceiptRow[]>([])
+  useEffect(() => {
+    if (!supabase || !currentOwnerId) { setReceipts([]); return }
+    let active = true
+    void supabase.from('wallet_receipts')
+      .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,original_html')
+      .order('receipt_date', { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return
+        if (error) { console.warn('Wallet receipts could not be loaded', error); return }
+        setReceipts(((data ?? []) as WalletReceiptRow[]).map(receipt => ({
+          ...receipt,
+          attendee_person_keys: receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key],
+        })))
+      })
+    return () => { active = false }
+  }, [currentOwnerId])
+  return receipts
 }
 
 type CompanionMemberRow = {
@@ -3715,15 +3737,16 @@ const exploreEvents = [
 ]
 
 function purchaseQaEvents(events: ExploreEvent[]) {
-  if (!new URLSearchParams(window.location.search).get('qa')?.split(',').includes('purchased-event')) return events
-  const paidId = events.find(event => canPurchaseEvent(event.price))?.id
+  const qaModes = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
+  if (!qaModes.includes('purchased-event')) return events
+  const paidId = qaModes.includes('ticketed-availability') ? 'ticketed-944015' : events.find(event => canPurchaseEvent(event.price))?.id
   return events.map(event => event.id === paidId ? { ...event, state: 'committed' as const, purchased: true } : event)
 }
 
 function purchaseQaEventId(events: ExploreEvent[]) {
-  return new URLSearchParams(window.location.search).get('qa')?.split(',').includes('purchased-event')
-    ? events.find(event => canPurchaseEvent(event.price))?.id ?? null
-    : null
+  const qaModes = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
+  if (!qaModes.includes('purchased-event')) return null
+  return qaModes.includes('ticketed-availability') ? 'ticketed-944015' : events.find(event => canPurchaseEvent(event.price))?.id ?? null
 }
 
 function FunnelNav({ current, onOpenExplore, onOpenPlan, onOpenCalendar }: { current: 'explore' | 'plan' | 'calendar'; onOpenExplore: () => void; onOpenPlan?: () => void; onOpenCalendar: () => void }) {
@@ -4058,7 +4081,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
                 const participantClasses = participants.map(participant => `has-${participant.person.toLowerCase()}`).join(' ')
                 const short = placement.end - placement.start <= 1.5
                 return <button key={placement.event.id} type="button" className={`agenda-event state-${strongestState(placement.event)} ${ownerClass} ${participantClasses} ${short ? 'short' : ''} ${mine ? 'mine' : ''} ${shared ? 'shared' : ''} ${othersOnly ? 'others-only' : ''} ${nonBlocking ? 'non-blocking' : ''} ${conflict ? 'conflict' : ''} ${selected?.id === placement.event.id ? 'selected' : ''}`} style={{ top: (placement.start - agendaStart) * agendaHourHeight + 4, height: Math.max(48, (placement.end - placement.start) * agendaHourHeight - 8), left: `calc(${placement.lane / placement.lanes * 100}% + ${placement.lane ? 4 : 0}px)`, width: `calc(${100 / placement.lanes}% - ${placement.lane ? 4 : 0}px)` }} onClick={() => openPlanEvent(placement.event)}>
-                  <span className="agenda-event-copy"><strong>{displayEventTitle(placement.event)}</strong><small>{placement.event.time}</small></span>
+                  <span className="agenda-event-copy"><strong>{displayEventTitle(placement.event)}</strong><small>{placement.event.time}</small>{placement.event.availability === 'sold-out' && <span className="availability-marker">Sold out</span>}</span>
                   {placement.event.purchased && <span className="agenda-purchase-lock" title="Purchased" aria-label="Purchased"><ActionIcon name="lock" /></span>}
                   <PlanParticipantBadges participants={participants} compact currentPerson={currentPerson} />
                   {placement.event.kind === 'Black Lotus' && <span className={`agenda-source-mark ${shared || conflict ? 'above-label' : ''}`} title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
@@ -4573,6 +4596,7 @@ function PurchaseControl({ event, onPurchase, detail = false }: { event: Explore
     <button type="button" disabled={event.purchaseLocked} aria-label={event.purchaseLocked ? `${event.title} purchase permanently locked` : event.purchased ? `Undo purchase for ${event.title}` : `Mark ${event.title} purchased`} aria-pressed={Boolean(event.purchased)} title={event.purchaseLocked ? 'Purchased · permanently locked' : event.purchased ? 'Undo purchase' : 'Mark purchased'} onClick={() => event.purchased ? onPurchase(false) : setConfirming(true)}>
       <ActionIcon name="ticket" /><span>{formatEventPrice(event.price)}</span><ActionIcon name={event.purchased ? 'lock' : 'unlock'} />
     </button>
+    {event.availability === 'sold-out' && <span className="availability-marker">Sold out</span>}
     {confirming && createPortal(<span className="purchase-confirm purchase-confirm-portal" style={confirmPosition} role="group" aria-label="Confirm purchase"><span>Mark purchased?</span><button type="button" onClick={() => { onPurchase(true); setConfirming(false) }}>Yes</button><button type="button" onClick={() => setConfirming(false)}>No</button></span>, document.body)}
   </span>
 }
@@ -4881,8 +4905,9 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
     return Number.isFinite(parsed) ? parsed : 0
   })
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
-  const [playReceipts, setPlayReceipts] = useState<WalletReceiptRow[]>([])
-  const [chrisBlackLotusReceipt, setChrisBlackLotusReceipt] = useState<WalletReceiptRow | null>(null)
+  const receipts = useWalletReceipts(currentOwnerId)
+  const playReceipts = receipts.filter(receipt => receipt.receipt_type === 'ticketed_play')
+  const chrisBlackLotusReceipt = receipts.find(receipt => receipt.receipt_type === 'badge' && receipt.attendee_person_key === 'chris') ?? null
   const openModal = (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => setModal({ eyebrow, title, body, people })
   const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Kavi', 'Chris'])
   const openChrisBlackLotusProof = () => openModal('BLACK LOTUS TRANSFER', 'Chris Black Lotus badge proof', <ChrisBlackLotusTransferDetail receipt={chrisBlackLotusReceipt} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Chris'])
@@ -4891,21 +4916,6 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
     const parsed = Number(prizeTixValue)
     if (Number.isFinite(parsed)) setTix(parsed)
   }, [prizeTixValue])
-  useEffect(() => {
-    if (!supabase || !currentOwnerId) { setPlayReceipts([]); setChrisBlackLotusReceipt(null); return }
-    let active = true
-    void supabase.from('wallet_receipts')
-      .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,line_items,original_html')
-      .order('receipt_date', { ascending: false })
-      .then(({ data, error }) => {
-        if (!active) return
-        if (error) { console.warn('Wallet receipts could not be loaded', error); return }
-        const receipts = (data ?? []) as WalletReceiptRow[]
-        setPlayReceipts(receipts.filter(receipt => receipt.receipt_type === 'ticketed_play'))
-        setChrisBlackLotusReceipt(receipts.find(receipt => receipt.receipt_type === 'badge' && receipt.attendee_person_key === 'chris') ?? null)
-      })
-    return () => { active = false }
-  }, [currentOwnerId])
   useEffect(() => {
     if (!proofRequest) return
     if (proofRequest.target === 'black-lotus') openBlackLotusProof()
@@ -5161,6 +5171,10 @@ function receiptPerson(key: string): PersonName {
   return key === 'chris' ? 'Chris' : key === 'juan' ? 'Juan' : key === 'kyle' ? 'Kyle' : 'Kavi'
 }
 
+function receiptPeople(receipt: WalletReceiptRow): PersonName[] {
+  return (receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key]).map(receiptPerson)
+}
+
 function TicketedReceiptDetail({ receipt }: { receipt: WalletReceiptRow }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
   return <div className="proof-detail">
@@ -5170,11 +5184,11 @@ function TicketedReceiptDetail({ receipt }: { receipt: WalletReceiptRow }) {
     </div>
     {mode === 'info' ? <>
       <div className="proof-info-list">
-        <div><span>Attendee</span><strong>{receiptPerson(receipt.attendee_person_key)}</strong></div>
+        <div><span>Attendees</span><strong>{receiptPeople(receipt).join(' + ')}</strong></div>
         <div><span>Order</span><strong>{receipt.vendor} · {new Date(receipt.receipt_date).toLocaleString()}</strong></div>
         <div><span>Total</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></div>
       </div>
-      <div className="receipt-lines">{receipt.line_items.map(line => <div className="receipt-line-row" key={line.event_id}><span>{line.title}</span><b>${line.price.toFixed(2)}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
+      <div className="receipt-lines">{receipt.line_items.map(line => <div className="receipt-line-row" key={line.event_id}><span>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</span><b>${line.price.toFixed(2)}{line.quantity && line.quantity > 1 ? ' each' : ''}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
     </> : <>
       <p className="original-receipt-note">Full source email captured during receipt ingestion.</p>
       <div className="original-html-frame"><iframe title={`${receipt.title} original receipt`} srcDoc={receipt.original_html} sandbox="" /></div>
@@ -5185,8 +5199,8 @@ function TicketedReceiptDetail({ receipt }: { receipt: WalletReceiptRow }) {
 function WalletPlayTab({ receipts, openModal }: { receipts: WalletReceiptRow[]; openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
-      {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <TicketedReceiptDetail receipt={receipt} />, [receiptPerson(receipt.attendee_person_key)])}>
-        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>{receipt.title}</h2><p>{receipt.line_items.length} purchased {receipt.line_items.length === 1 ? 'event' : 'events'} · {receipt.vendor}</p></div><span className="receipt-people-total"><PersonBubbles people={[receiptPerson(receipt.attendee_person_key)]} /><strong>${Number(receipt.amount).toFixed(2)}</strong></span></div>
+      {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <TicketedReceiptDetail receipt={receipt} />, receiptPeople(receipt))}>
+        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>{receipt.title}</h2><p>{receipt.line_items.length} purchased {receipt.line_items.length === 1 ? 'event' : 'events'} · {receipt.vendor}</p></div><span className="receipt-people-total"><PersonBubbles people={receiptPeople(receipt)} /><strong>${Number(receipt.amount).toFixed(2)}</strong></span></div>
       </button>) : <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>Purchased event receipts will appear here.</p></div></div>
       </article>}
@@ -5943,6 +5957,7 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
   const [detail, setDetail] = useState<CalendarDetail | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(() => purchaseQaEventId(events))
   const [selectedPeople, setSelectedPeople] = useState<PersonName[]>(() => readPeopleVisibility(currentOwnerId, currentPerson))
+  const receipts = useWalletReceipts(currentOwnerId)
   const toolbarRef = useRef<HTMLDivElement | null>(null)
   const toolbarStartRef = useRef(0)
   const [toolbarPinned, setToolbarPinned] = useState(false)
@@ -5951,6 +5966,9 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
   const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
   const committedEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed'))
   const selectedEvent = candidateEvents.find(event => event.id === selectedEventId) ?? null
+  const selectedReceiptLine = selectedEvent
+    ? receipts.flatMap(receipt => receipt.line_items).find(line => line.event_id === selectedEvent.id)
+    : undefined
   const openEvent = (id: string) => {
     setDetail(null)
     if (selectedEventId === id) {
@@ -6106,11 +6124,18 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     </>}
 
     {detail && <CalendarDetailSheet detail={detail} slice={slice} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-    {selectedEvent && <CalendarEventDetail event={selectedEvent} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
+    {selectedEvent && <CalendarEventDetail event={selectedEvent} receiptLine={selectedReceiptLine} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
 }
 
-function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+function CalendarEventDetail({ event, receiptLine, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; receiptLine?: WalletReceiptLine; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+  const [copied, setCopied] = useState(false)
+  const copyCode = async () => {
+    if (!receiptLine?.code) return
+    await navigator.clipboard.writeText(receiptLine.code)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1800)
+  }
   return <aside className="calendar-detail-sheet calendar-event-detail event-detail-panel" aria-label={`${event.title} calendar detail`}>
     <button className="detail-close persistent-detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
     <header className="event-detail-heading">
@@ -6120,6 +6145,11 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
       <EventDetailActions event={event} onPurchase={onPurchase} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
+    {event.purchased && receiptLine?.code && <section className="companion-code-panel" aria-label="Magic Companion event code">
+      <div><span>COMPANION CODE</span><strong>{receiptLine.code}</strong><small>{copied ? 'Copied' : 'Tap to copy, then join the event in Companion.'}</small></div>
+      <button type="button" onClick={() => void copyCode()}>{copied ? 'Copied' : 'Copy code'}</button>
+      <a href="https://magic.wizards.com/products/companion-app" target="_blank" rel="noreferrer">Open Companion</a>
+    </section>}
     <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>PLAN EFFECT</small>{event.planEffect}</p></div>
     <section className="detail-section"><strong>{event.format}</strong><p>{renderLinkedText(event.detail)}</p></section>
     {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event logistics">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}

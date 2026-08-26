@@ -29,6 +29,21 @@ describe('private Gmail intake', () => {
     expect(ambiguousEvent).toMatchObject({ status: 'not_covered', reason: 'ticketed_event_binding_ambiguous' })
   })
 
+  it('binds one shared order to multiple known attendees and preserves per-line assignments', () => {
+    const result = planPrivateGmailIntake({
+      kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source,
+      receipt: { receiptType: 'ticketed_play', title: 'Shared order', vendor: 'Leap', receiptDate: source.receivedAt, amount: 200, currency: 'USD', attendeePersonKeys: ['kavi', 'juan'], lineItems: [{ title: 'Sealed', eventId: 'ticketed-944015', price: 100, quantity: 2, code: 'ABC1234', attendeePersonKeys: ['kavi', 'juan'] }] },
+    })
+    expect(result).toMatchObject({ status: 'covered', operation: { attendeePersonKeys: ['kavi', 'juan'], receipt: { attendee_person_keys: ['kavi', 'juan'] } } })
+    expect(summarizePrivateIntake(result)).toMatchObject({ consequence: { attendeeCount: 2, purchaseLockCount: 2 } })
+  })
+
+  it('fails closed when a shared line names an attendee outside the receipt or its quantity disagrees', () => {
+    const base = { receiptType: 'ticketed_play', title: 'Shared order', vendor: 'Leap', receiptDate: source.receivedAt, amount: 200, currency: 'USD', attendeePersonKeys: ['kavi', 'juan'] }
+    expect(planPrivateGmailIntake({ kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source, receipt: { ...base, lineItems: [{ title: 'Sealed', eventId: 'ticketed-944015', attendeePersonKeys: ['kavi', 'chris'] }] } })).toMatchObject({ status: 'not_covered', reason: 'ticketed_line_attendee_binding_ambiguous' })
+    expect(planPrivateGmailIntake({ kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source, receipt: { ...base, lineItems: [{ title: 'Sealed', eventId: 'ticketed-944015', quantity: 1 }] } })).toMatchObject({ status: 'not_covered', reason: 'ticketed_line_quantity_mismatch' })
+  })
+
   it('does not expose private original HTML in summaries', () => {
     const result = planPrivateGmailIntake({
       kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source,

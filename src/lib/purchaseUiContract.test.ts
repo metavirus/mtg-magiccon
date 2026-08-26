@@ -36,4 +36,12 @@ describe('paid-event detail layout contract', () => {
     expect(appSource).toContain('className="included-lotus-icon" aria-label="Black Lotus included"')
     expect(densitySource).toMatch(/\.included-lotus-icon\{[^}]*color:#8d99a8[^}]*\}/)
   })
+
+  it('shows a purchased event code only from the viewer-visible receipt and links to Companion', () => {
+    expect(appSource).toContain("receipts.flatMap(receipt => receipt.line_items).find(line => line.event_id === selectedEvent.id)")
+    expect(appSource).toContain("event.purchased && receiptLine?.code")
+    expect(appSource).toContain('aria-label="Magic Companion event code"')
+    expect(appSource).toContain('https://magic.wizards.com/products/companion-app')
+    expect(densitySource).toContain('.companion-code-panel{display:grid;grid-template-columns:minmax(0,1fr) auto auto')
+  })
 })

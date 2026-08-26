@@ -27,10 +27,17 @@ export function applyTicketedPlayAvailabilityProjection<T extends { id: string; 
   })
 }
 
-export function partitionExploreAvailability<T extends { availability: ExploreAvailability }>(events: T[]) {
+type PlanningState = 'none' | 'interested' | 'tentative' | 'committed' | 'hidden' | 'nope'
+
+function hasActivePlanningIntent(event: { state?: PlanningState; purchased?: boolean }) {
+  return Boolean(event.purchased) || event.state === 'interested' || event.state === 'tentative' || event.state === 'committed'
+}
+
+/** Availability may suppress discovery, but it never overrides an existing plan or purchase. */
+export function partitionExploreAvailability<T extends { availability: ExploreAvailability; state?: PlanningState; purchased?: boolean }>(events: T[]) {
   const active: T[] = []
   const soldOut: T[] = []
-  for (const event of events) (event.availability === 'sold-out' ? soldOut : active).push(event)
+  for (const event of events) (event.availability === 'sold-out' && !hasActivePlanningIntent(event) ? soldOut : active).push(event)
   return { active, soldOut }
 }
 

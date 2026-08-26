@@ -27,6 +27,20 @@ describe('current Ticketed Play availability projection', () => {
     expect([...result.active, ...result.soldOut]).toHaveLength(events.length)
   })
 
+  it('keeps sold-out events in the active flow when someone already selected or purchased them', () => {
+    const events = [
+      { id: 'purchased', availability: 'sold-out' as const, state: 'committed' as const, purchased: true },
+      { id: 'committed', availability: 'sold-out' as const, state: 'committed' as const },
+      { id: 'tentative', availability: 'sold-out' as const, state: 'tentative' as const },
+      { id: 'interested', availability: 'sold-out' as const, state: 'interested' as const },
+      { id: 'unselected', availability: 'sold-out' as const, state: 'none' as const },
+    ]
+    const result = partitionExploreAvailability(events)
+    expect(result.active.map(event => event.id)).toEqual(['purchased', 'committed', 'tentative', 'interested'])
+    expect(result.soldOut.map(event => event.id)).toEqual(['unselected'])
+    expect([...result.active, ...result.soldOut]).toHaveLength(events.length)
+  })
+
   it('suppresses new purchase affordances but preserves existing purchases', () => {
     expect(ticketedPurchasePresentation({ availability: 'sold-out' })).toBe('sold_out')
     expect(ticketedPurchasePresentation({ availability: 'sold-out', purchased: true })).toBe('purchased')

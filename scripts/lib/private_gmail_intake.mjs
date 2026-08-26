@@ -38,7 +38,10 @@ function receiptPlan(message) {
   const receipt = message.receipt
   const source = message.source
   if (!receipt || !RECEIPT_TYPES.has(receipt.receiptType)) return notCovered('receipt', source.messageId, 'receipt_type_unmapped')
-  if (!nonblank(receipt.attendeePersonKey) || receipt.attendeePersonKey !== message.mailboxOwnerPersonKey) {
+  const attendeePersonKeys = Array.isArray(receipt.attendeePersonKeys)
+    ? [...new Set(receipt.attendeePersonKeys.map(value => String(value).trim().toLowerCase()).filter(Boolean))]
+    : nonblank(receipt.attendeePersonKey) ? [receipt.attendeePersonKey.trim().toLowerCase()] : []
+  if (!attendeePersonKeys.length || !attendeePersonKeys.includes(message.mailboxOwnerPersonKey)) {
     return notCovered('receipt', source.messageId, 'attendee_identity_ambiguous')
   }
   if (![receipt.title, receipt.vendor].every(nonblank) || !validTimestamp(receipt.receiptDate)) {
@@ -62,6 +65,15 @@ function receiptPlan(message) {
       if (!nonblank(item?.eventId) || !/^ticketed-\d+$/.test(item.eventId)) {
         return notCovered('receipt', source.messageId, 'ticketed_event_binding_ambiguous')
       }
+      const lineAttendees = Array.isArray(item.attendeePersonKeys)
+        ? [...new Set(item.attendeePersonKeys.map(value => String(value).trim().toLowerCase()).filter(Boolean))]
+        : attendeePersonKeys
+      if (!lineAttendees.length || lineAttendees.some(personKey => !attendeePersonKeys.includes(personKey))) {
+        return notCovered('receipt', source.messageId, 'ticketed_line_attendee_binding_ambiguous')
+      }
+      if (item.quantity != null && (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity !== lineAttendees.length)) {
+        return notCovered('receipt', source.messageId, 'ticketed_line_quantity_mismatch')
+      }
       eventIds.push(item.eventId)
     }
   }
@@ -77,12 +89,21 @@ function receiptPlan(message) {
       receipt_date: receipt.receiptDate,
       amount: receipt.amount,
       currency: receipt.currency.trim().toUpperCase(),
-      attendee_person_key: receipt.attendeePersonKey,
-      line_items: receipt.lineItems,
+      attendee_person_key: attendeePersonKeys[0],
+      attendee_person_keys: attendeePersonKeys,
+      line_items: receipt.lineItems.map(item => ({
+        event_id: item.eventId,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity ?? (Array.isArray(item.attendeePersonKeys) ? item.attendeePersonKeys.length : attendeePersonKeys.length),
+        code: nonblank(item.code) ? item.code.trim().toUpperCase() : undefined,
+        attendee_person_keys: Array.isArray(item.attendeePersonKeys) ? [...new Set(item.attendeePersonKeys.map(value => String(value).trim().toLowerCase()).filter(Boolean))] : attendeePersonKeys,
+      })),
       original_html: source.originalHtml,
       confidence: receipt.confidence ?? 'verified',
     },
     eventIds: [...new Set(eventIds)].sort(),
+    attendeePersonKeys,
   })
 }
 
@@ -143,7 +164,7 @@ export function summarizePrivateIntake(result) {
     kind: result.kind,
     sourceMessageId: result.sourceMessageId,
     consequence: result.kind === 'receipt'
-      ? { walletReceipt: true, purchaseLockCount: result.operation.eventIds.length }
+      ? { walletReceipt: true, attendeeCount: result.operation.attendeePersonKeys.length, purchaseLockCount: result.operation.eventIds.length * result.operation.attendeePersonKeys.length }
       : { flightExecutor: result.operation.rpc },
   }
 }
