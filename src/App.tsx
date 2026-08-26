@@ -14,7 +14,8 @@ import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFe
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
-import { homeSignalAgeBucket, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
+import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
+import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import {
@@ -439,6 +440,15 @@ async function loadMonitoringConcepts(): Promise<MonitoringConceptRow[]> {
   return result.data as MonitoringConceptRow[]
 }
 
+async function loadTicketedPlayAvailability(): Promise<TicketedPlayAvailabilityProjectionRow[]> {
+  if (!supabase) return []
+  const result = await supabase.from('ticketed_play_current_availability')
+    .select('event_id,source_event_key,availability,observed_at')
+    .order('event_id')
+  if (result.error) throw result.error
+  return result.data as TicketedPlayAvailabilityProjectionRow[]
+}
+
 type MentionInboxItem = {
   id: string
   mentionToken: string
@@ -511,6 +521,20 @@ function isKaviCompanion(companion?: CompanionMember) {
 
 function monitoringFindingQaRows(): MonitoringFindingRow[] {
   const qa = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
+  if (qa.includes('soldout')) return [{
+    id: 'qa-ticketed-soldout', fingerprint: 'c'.repeat(64), source_id: 'atlanta-ticketed-play-inventory', source_label: 'MagicCon Atlanta Ticketed Play registration', source_url: 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10', destination: 'Home', title: '10 Ticketed Play events are sold out', summary: 'Machine-shaped source summary intentionally replaced by the presentation model.', review_question: 'Informational grouped availability signal.', evidence: { intake_kind: 'ticketed_play_inventory', transition: 'sold_out', events: [
+      { day: '2026-11-13', startsAt: '11:30', title: 'Commander Sealed Draft with Commander at Home' },
+      { day: '2026-11-13', startsAt: '16:30', title: 'Prismatic Pride Commander Sealed' },
+      { day: '2026-11-13', startsAt: '16:30', title: '2HG – Full-Box Sealed' },
+      { day: '2026-11-14', startsAt: '11:00', title: 'Grand Melee – Mega Sealed' },
+      { day: '2026-11-14', startsAt: '12:00', title: 'Team Trios – Collector Booster Sealed' },
+      { day: '2026-11-14', startsAt: '14:00', title: 'Draft – Mystery Booster Commander Edition' },
+      { day: '2026-11-14', startsAt: '14:00', title: '2HG – Full-Box Sealed' },
+      { day: '2026-11-14', startsAt: '16:30', title: 'Team Trios – Sealed' },
+      { day: '2026-11-14', startsAt: '19:00', title: '2HG – Full-Box Sealed' },
+      { day: '2026-11-15', startsAt: '12:00', title: 'Team Trios – Full-Box Sealed' },
+    ] }, status: 'unread', decision: null, first_seen_at: new Date().toISOString(), last_seen_at: new Date().toISOString(), occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null,
+  }]
   if (qa.includes('factual-choice')) return [{
     id: 'qa-factual-choice', fingerprint: 'b'.repeat(64), source_id: 'atlanta-newsletter', source_label: 'MagicCon Atlanta newsletter', source_url: 'https://mcatlanta.mtgfestivals.com/', destination: 'Activity', title: 'Confirm Constructed & Draft Sunday hours', summary: 'The maintained registration-hours fact says 10 AM–3 PM. A hypothetical newer official source says 10 AM–4 PM.', review_question: 'Which Constructed & Draft Sunday registration hours should the maintained guide use?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: new Date().toISOString(), last_seen_at: new Date().toISOString(), occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null,
     action_type: 'resolve_info_topic_article_fact_conflict', action_payload: { target_kind: 'info_topic_article_fact', topic_key: 'on-demand-play', section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', choice_options: [
@@ -646,6 +670,8 @@ export default function App() {
   const [userActivityRows, setUserActivityRows] = useState<UserActivityEventRow[]>([])
   const [monitoringFindings, setMonitoringFindings] = useState<MonitoringFindingRow[]>([])
   const [monitoringConcepts, setMonitoringConcepts] = useState<MonitoringConceptRow[]>([])
+  const [ticketedAvailability, setTicketedAvailability] = useState<TicketedPlayAvailabilityProjectionRow[]>([])
+  const displayedExploreEvents = applyTicketedPlayAvailabilityProjection(exploreEventState, ticketedAvailability) as ExploreEvent[]
   const [infoTopics, setInfoTopics] = useState<InfoTopic[]>(previewInfoTopics)
   const [infoFeed, setInfoFeed] = useState<InfoFeedEntry[]>(previewInfoFeed)
   const [tripFlights, setTripFlights] = useState<TripFlight[]>(previewTripFlights)
@@ -790,6 +816,10 @@ export default function App() {
       setUserActivityRows([])
       setMonitoringFindings(isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? monitoringFindingQaRows() : [])
       setMonitoringConcepts(monitoringConceptQaRows())
+      setTicketedAvailability((new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []).includes('ticketed-availability') ? [
+        { event_id: 'ticketed-944015', source_event_key: '944015', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z' },
+        { event_id: 'ticketed-944083', source_event_key: '944083', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z' },
+      ] : [])
       setTripFlights(previewTripFlights)
       setExploreEventState(purchaseQaEvents(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers))))
       setContinuityReady(true)
@@ -806,6 +836,7 @@ export default function App() {
         setUserActivityRows([])
         setMonitoringFindings([])
         setMonitoringConcepts([])
+        setTicketedAvailability([])
         setInfoTopics(previewInfoTopics)
         setInfoFeed(previewInfoFeed)
         setTripFlights(previewTripFlights)
@@ -827,6 +858,7 @@ export default function App() {
           setInfoFeed(info.feed)
         }
         if (lanes.flights) setTripFlights(lanes.flights as TripFlight[])
+        if (lanes.ticketedAvailability) setTicketedAvailability(lanes.ticketedAvailability as TicketedPlayAvailabilityProjectionRow[])
         if (lanes.selections) {
           const rows = lanes.selections as UserSelectionRow[]
           setSharedSelectionRows(rows)
@@ -841,7 +873,7 @@ export default function App() {
       setContinuityReady(true)
       return
     }
-    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult, flightsResult] = await Promise.allSettled([
+    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult, flightsResult, ticketedAvailabilityResult] = await Promise.allSettled([
         loadContextNotes(effectiveOwnerId),
         loadMentionInbox(effectiveOwnerId),
         loadUserSelections(effectiveOwnerId),
@@ -850,6 +882,7 @@ export default function App() {
         isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]),
         loadInfoKnowledge(),
         supabase ? loadTripFlights(supabase) : Promise.resolve(previewTripFlights),
+        loadTicketedPlayAvailability(),
       ])
     const failures: string[] = []
     const cacheLane = (lane: Parameters<typeof writeOfflineContinuityLane>[1], value: unknown) => {
@@ -879,6 +912,10 @@ export default function App() {
       cacheLane('flights', flights)
     }
     else failures.push('Trip flights')
+    if (ticketedAvailabilityResult.status === 'fulfilled') {
+      setTicketedAvailability(ticketedAvailabilityResult.value)
+      cacheLane('ticketedAvailability', ticketedAvailabilityResult.value)
+    } else failures.push('Ticketed Play availability')
     if (selectionsResult.status === 'fulfilled') {
       cacheLane('selections', selectionsResult.value)
       setSharedSelectionRows(selectionsResult.value)
@@ -1131,7 +1168,7 @@ export default function App() {
     }
     if (note.objectKind === 'event' || note.objectId.startsWith('explore-')) {
       const legacyEventId = note.objectId.replace(/^explore-/, '')
-      const event = exploreEventState.find(candidate => candidate.id === legacyEventId || candidate.title === note.objectTitle || displayEventTitle(candidate) === note.objectTitle)
+      const event = displayedExploreEvents.find(candidate => candidate.id === legacyEventId || candidate.title === note.objectTitle || displayEventTitle(candidate) === note.objectTitle)
       if (event) {
         setExploreFocusRequest({ eventId: event.id, noteId: note.id, nonce: Date.now() })
         openDestination('Explore', 'explore')
@@ -1323,7 +1360,7 @@ export default function App() {
     openDestination(surfaceTitle(destination), destination)
   }
   const updateExploreEvent = (id: string, state: ExploreState) => {
-    const currentEvent = exploreEventState.find(event => event.id === id)
+    const currentEvent = displayedExploreEvents.find(event => event.id === id)
     if (currentEvent?.purchased) return
     const previousState = currentEvent?.state ?? 'none'
     const nextState: ExploreState = currentEvent?.state === state ? 'none' : state
@@ -1346,7 +1383,7 @@ export default function App() {
   }
 
   const updateEventPurchase = (id: string, purchased: boolean) => {
-    const currentEvent = exploreEventState.find(event => event.id === id)
+    const currentEvent = displayedExploreEvents.find(event => event.id === id)
     if (!currentEvent || !canPurchaseEvent(currentEvent.price) || currentEvent.purchaseLocked) return
     const transition = applyPurchaseTransition(currentEvent.state, purchased)
     setExploreEventState(current => current.map(event => event.id === id ? { ...event, state: transition.state as ExploreState, purchased } : event))
@@ -1355,7 +1392,7 @@ export default function App() {
   }
 
   const generatedActivity = clusterActivityEvents(userActivityRows)
-    .map(cluster => activityFromEventCluster(cluster, exploreEventState, userSelections, currentCompanion?.name ?? 'Kavi'))
+    .map(cluster => activityFromEventCluster(cluster, displayedExploreEvents, userSelections, currentCompanion?.name ?? 'Kavi'))
     .filter((item): item is ActivityItem => item !== null)
   const noteActivity = contextNotesToActivity(contextNotesState, userSelections)
   const monitorActivity: ActivityItem[] = monitorAlerts.map(alert => ({
@@ -1441,15 +1478,41 @@ export default function App() {
     const informational = findingIsInformational(finding)
     const ticketedInventory = finding.evidence.intake_kind === 'ticketed_play_inventory'
     const ticketedInbox = ticketedInventory && finding.destination === 'Inbox'
+    const ticketedEvents = ticketedInventory && Array.isArray(finding.evidence.events)
+      ? finding.evidence.events.flatMap(raw => {
+          if (!raw || typeof raw !== 'object') return []
+          const event = raw as { title?: unknown; day?: unknown; startsAt?: unknown; people?: unknown }
+          if (typeof event.title !== 'string' || typeof event.day !== 'string' || typeof event.startsAt !== 'string') return []
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(event.day) || !/^\d{2}:\d{2}$/.test(event.startsAt)) return []
+          return [{ title: event.title, day: event.day, startsAt: event.startsAt, people: Array.isArray(event.people) ? event.people.filter(person => typeof person === 'string') : [] }]
+        })
+      : []
+    const ticketedEventsByDay = ticketedEvents.reduce<Record<string, typeof ticketedEvents>>((groups, event) => {
+      const day = String(event.day ?? '')
+      groups[day] = [...(groups[day] ?? []), event]
+      return groups
+    }, {})
+    const ticketedDayFacts = Object.entries(ticketedEventsByDay).sort(([left], [right]) => left.localeCompare(right)).map(([day, events]) => ({
+      label: new Date(`${day}T12:00:00`).toLocaleDateString([], { weekday: 'long' }),
+      value: events.map(event => {
+        const [hour = '0', minute = '00'] = String(event.startsAt ?? '').split(':')
+        const time = new Date(2000, 0, 1, Number(hour), Number(minute)).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        return `${time} · ${event.title}`
+      }).join('\n'),
+    }))
+    const ticketedOverlap = ticketedEvents.some(event => event.people.length > 0)
+    const ticketedSummary = ticketedInventory && ticketedEvents.length
+      ? `${ticketedEvents.length} events sold out across ${ticketedDayFacts.map(fact => fact.label).join(', ')}.${ticketedOverlap ? ' One or more overlap saved plans.' : " None overlap anyone's saved plans."}`
+      : findingDisplaySummary(finding)
     return {
     id: `finding-${finding.id}`,
     sourceKind: 'monitor',
     kind: 'site',
-    severity: ticketedInbox ? 'hot' : ticketedInventory ? 'notice' : findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
+    severity: ticketedInbox || (ticketedInventory && homeSignalIsHotNow(finding.last_seen_at)) ? 'hot' : ticketedInventory ? 'notice' : findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
     destination: finding.destination,
     attention: ticketedInbox ? 'Selected event sold out' : ticketedInventory ? 'Ticketed Play availability' : informational ? 'New official resources' : 'Kavi decision needed',
     title: finding.title,
-    summary: findingDisplaySummary(finding),
+    summary: ticketedSummary,
     object: finding.source_label,
     source: finding.source_label,
     checkedAt: new Date(finding.last_seen_at).toLocaleString(),
@@ -1461,10 +1524,11 @@ export default function App() {
     objectDetail: {
       id: `monitoring-finding-${finding.id}`,
       kind: 'alert',
-      eyebrow: 'Surveyor finding',
+      eyebrow: ticketedInventory ? 'Ticketed Play update' : 'Surveyor finding',
+      kindLabel: ticketedInventory ? 'Sold out' : undefined,
       title: finding.title,
-      summary: findingDisplaySummary(finding),
-      facts: [
+      summary: ticketedSummary,
+      facts: ticketedInventory ? ticketedDayFacts : [
         { label: informational ? 'Status' : 'Decision', value: findingReviewLabel(finding) },
         { label: 'First seen', value: new Date(finding.first_seen_at).toLocaleString() },
         { label: 'Last seen', value: new Date(finding.last_seen_at).toLocaleString() },
@@ -1473,7 +1537,7 @@ export default function App() {
       ],
       source: { label: finding.source_label, value: finding.source_url },
       links: resources,
-      rationale: informational ? 'Use the labeled official resources below; no app data changes are waiting for approval.' : findingExecutionDetail(finding),
+      rationale: ticketedInventory ? 'These events are no longer purchasable. The grouped list keeps the change visible without flooding Home with one alert per event.' : informational ? 'Use the labeled official resources below; no app data changes are waiting for approval.' : findingExecutionDetail(finding),
       backlinks: [{ label: 'Activity', destination: 'activity' }],
     },
     monitoringFinding: finding,
@@ -1741,8 +1805,8 @@ export default function App() {
       {((message && messageTone !== 'error') || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       <>
         {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface events={exploreEventState} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
+        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
@@ -1769,7 +1833,7 @@ export default function App() {
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
         {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} refreshFailed={continuityFailures.includes('notes')} onRetry={() => void refreshUserContinuity()} />}
-        {surface === 'plan' && <PlanSurface events={exploreEventState} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'plan' && <PlanSurface events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onFindingDecision={decideMonitoringFinding} onFindingChoice={chooseMonitoringFinding} onFindingDefer={deferMonitoringFinding} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </>
@@ -1918,7 +1982,9 @@ function compactRounds(value: string) {
 }
 
 function eventDecisionFacts(event: ExploreEvent) {
-  const baseFacts = event.decisionFacts ?? []
+  const baseFacts = (event.decisionFacts ?? []).map(fact => event.availability === 'sold-out' && fact.label.trim().toLowerCase() === 'status'
+    ? { ...fact, value: 'Sold out' }
+    : fact)
   const baseLabels = new Set(baseFacts.map(fact => fact.label.trim().toLowerCase()))
   const promotionOrder = new Map([['rounds', 0], ['prize tix', 1], ['product', 2]])
   const promotedFacts = (event.moreDetails ?? [])
@@ -2769,6 +2835,7 @@ function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentP
   const eligibleItems = items
     .filter(item => item.reviewState === 'needs-review')
     .filter(item => {
+      if (item.monitoringFinding?.destination === 'Inbox') return false
       if (item.sourceKind === 'activity-log' && item.objectDetail.id === 'wallet-prize-tix') return false
       if (item.severity !== 'hot' && item.destination !== 'Home' && item.sourceKind !== 'note') return false
       const checkedAt = new Date(item.checkedAtIso).getTime()
@@ -4099,6 +4166,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
   const [detailOpen, setDetailOpen] = useState(() => Boolean(purchaseQaEventId(events)))
   const [showHidden, setShowHidden] = useState(false)
   const [hiddenExpanded, setHiddenExpanded] = useState(false)
+  const [soldOutExpanded, setSoldOutExpanded] = useState(routeState.group === 'sold_out')
   const [collapsedExploreGroups, setCollapsedExploreGroups] = useState<string[]>(() => currentPerson === 'Kyle' ? ['Thu'] : [])
   const exploreIdentityDefaultApplied = useRef(currentPerson === 'Kyle')
   const [query, setQuery] = useState('')
@@ -4117,10 +4185,12 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
     return matchesDay && matchesType && (!query.trim() || text.includes(query.trim().toLowerCase()))
   }
   const visible = events.filter(event => {
-    const matchesHidden = showHidden ? true : event.state !== 'hidden' && event.state !== 'nope'
-    return matchesHidden && matchesSearchAndDay(event)
+    const matchesHidden = showHidden || routeState.group === 'sold_out' ? true : event.state !== 'hidden' && event.state !== 'nope'
+    const matchesRouteGroup = routeState.group === 'sold_out' ? event.availability === 'sold-out' : true
+    return matchesHidden && matchesRouteGroup && matchesSearchAndDay(event)
   })
-  const { contenders: exploreContenders, remainder: exploreRemainder } = partitionExploreContenders(visible)
+  const { active: availabilityActive, soldOut: soldOutMatches } = partitionExploreAvailability(visible)
+  const { contenders: exploreContenders, remainder: exploreRemainder } = partitionExploreContenders(availabilityActive)
   const hiddenCount = events.filter(event => event.state === 'hidden' || event.state === 'nope').length
   const hiddenMatches = events.filter(event => (event.state === 'hidden' || event.state === 'nope') && matchesSearchAndDay(event))
   const ticketedVisibleCount = visible.filter(event => event.kind === 'Ticketed play').length
@@ -4146,6 +4216,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
     if (routeState.day) setDay(routeState.day)
     if (routeState.eventType) setEventType(routeState.eventType)
     if (routeState.group) setCollapsedExploreGroups([])
+    if (routeState.group === 'sold_out') setSoldOutExpanded(true)
   }, [routeState.day, routeState.eventType, routeState.group, routeState.mode])
 
   useEffect(() => {
@@ -4155,6 +4226,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
     setDay(event.day)
     setEventType('all')
     setShowHidden(event.state === 'hidden' || event.state === 'nope')
+    if (event.availability === 'sold-out') setSoldOutExpanded(true)
     setCollapsedExploreGroups(groups => groups.filter(group => group !== event.day && group !== 'contenders'))
     setSelectedId(event.id)
     setDetailOpen(true)
@@ -4264,8 +4336,21 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
             }} onState={state => updateEvent(event.id, state)} />)}
           </section>
         })}
+        {soldOutMatches.length > 0 && <section className={`hidden-drawer sold-out-drawer ${soldOutExpanded ? 'expanded' : ''}`} aria-label="Sold out events">
+          <button type="button" className="hidden-toggle" aria-expanded={soldOutExpanded} onClick={() => setSoldOutExpanded(value => !value)}>
+            <span>Sold out</span>
+            <small>{soldOutMatches.length} matching · current registration status</small>
+            <b aria-hidden="true">⌄</b>
+          </button>
+          {soldOutExpanded && <div className="hidden-drawer-list">
+            {soldOutMatches.map(event => <ExploreEventRow key={event.id} event={event} selected={selected?.id === event.id} onPurchase={purchased => onPurchase(event.id, purchased)} onSelect={() => {
+              if (selectedId === event.id && detailOpen) { setSelectedId(null); setDetailOpen(false); return }
+              setSelectedId(event.id); setDetailOpen(true)
+            }} onState={state => updateEvent(event.id, state)} />)}
+          </div>}
+        </section>}
         {visible.length === 0 && <div className="event-empty">No events match this view. Try All or clear search.</div>}
-        {!showHidden && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
+        {!showHidden && routeState.group !== 'sold_out' && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
           <button type="button" className="hidden-toggle" onClick={() => setHiddenExpanded(value => !value)}>
             <span><EyeOffMini /> Hidden / not for me</span>
             <small>{hiddenMatches.length} matching · recoverable</small>
@@ -4483,6 +4568,7 @@ function PurchaseControl({ event, onPurchase, detail = false }: { event: Explore
     }
   }, [confirming])
   if (!canPurchaseEvent(event.price)) return null
+  if (ticketedPurchasePresentation(event) === 'sold_out') return <span className={`event-price sold-out-status ${detail ? 'purchase-control-detail' : ''}`}>Sold out</span>
   return <span ref={controlRef} className={`purchase-control ${detail ? 'purchase-control-detail' : ''} ${event.purchased ? 'is-purchased' : ''}`} onClick={click => click.stopPropagation()}>
     <button type="button" disabled={event.purchaseLocked} aria-label={event.purchaseLocked ? `${event.title} purchase permanently locked` : event.purchased ? `Undo purchase for ${event.title}` : `Mark ${event.title} purchased`} aria-pressed={Boolean(event.purchased)} title={event.purchaseLocked ? 'Purchased · permanently locked' : event.purchased ? 'Undo purchase' : 'Mark purchased'} onClick={() => event.purchased ? onPurchase(false) : setConfirming(true)}>
       <ActionIcon name="ticket" /><span>{formatEventPrice(event.price)}</span><ActionIcon name={event.purchased ? 'lock' : 'unlock'} />
@@ -6098,11 +6184,10 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
   const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
   const ticketedPlaySaleIsOpen = activityItems.some(isTicketedPlaySaleOpen)
   const ordinarySignals = homeSignals.filter(item => item.id !== featuredSale?.id)
-  const recentSignals = ordinarySignals.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'recent')
-  const earlierSignals = ordinarySignals.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'earlier')
+  const { hotNow: hotSignals, recent: recentSignals, earlier: earlierSignals } = partitionHomeSignals(ordinarySignals, now)
   const featuredAlreadyCounted = Boolean(featuredSale && homeSignals.some(item => item.id === featuredSale.id))
   const visibleSignalCount = homeSignals.length + (featuredSale && !featuredAlreadyCounted ? 1 : 0)
-  const hotCount = homeSignals.filter(item => item.severity === 'hot').length + (featuredSale?.severity === 'hot' && !featuredAlreadyCounted ? 1 : 0)
+  const hotCount = hotSignals.length + (featuredSale?.severity === 'hot' && !featuredAlreadyCounted ? 1 : 0)
   const saleUrl = featuredSale?.officialResources?.find(resource => /ticketed.play|schedule/i.test(`${resource.label} ${resource.url}`))?.url
   return <div className="home-surface">
     <div className="home-main-row">
@@ -6123,7 +6208,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
                 <span><small>ON SALE NOW</small><strong>Ticketed Play is up for sale!</strong><em>Open Ticketed Play details.</em></span>
                 <b aria-hidden="true">›</b>
               </button>)}
-          {([['Recent', recentSignals], ['Earlier', earlierSignals]] as const).map(([label, signals]) => signals.length > 0 && <section className="home-signal-age-group" key={label} aria-label={`${label} Worth Knowing items`}>
+          {([['Hot now', hotSignals], ['Recent', recentSignals], ['Earlier', earlierSignals]] as const).map(([label, signals]) => signals.length > 0 && <section className="home-signal-age-group" key={label} aria-label={`${label} Worth Knowing items`}>
             <h3>{label}</h3>
             {signals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
               <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>

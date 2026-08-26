@@ -292,11 +292,11 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 - Every row returned by `buildMonitoringCandidateRows` must carry an explicit status; the safe initial state for an unmapped candidate is `needs_review`.
 - Run the mixed-batch regression in `src/test/stageMonitoringFindings.test.ts` before rerunning the workflow.
-- Save the monitoring baseline only after staging and summarization succeed. A failed run must retain its report artifact without advancing the cache.
+- Save the monitoring baseline only after staging, summarization, and `pnpm monitor:verify-closure` succeed. A failed run must retain its report and closure-manifest artifacts without advancing the cache.
 - To recover a retained failed report, manually dispatch `Daily MagicCon surveyor` with that failed run ID in `replay_run_id`; the replay stages the retained report through current code and does not alter the watch baseline.
 - Do not repair this by weakening the database not-null constraint or by filtering out ordinary changed-source evidence.
 
-**Prevention:** the candidate builder assigns `needs_review` before specialized informational/newsletter classifications override it, the regression test covers one ordinary row mixed with one informational row, and the workflow advances monitoring state only after a fully successful run.
+**Prevention:** the candidate builder assigns `needs_review` before specialized informational/newsletter classifications override it, the regression test covers one ordinary row mixed with one informational row, and the workflow advances monitoring state only after the pure catch-to-closure validator proves one supported terminal disposition plus exact readback for every meaningful catch. Novel or blocked intake remains in the uploaded closure receipt and fails before baseline save.
 
 ## Service worker / PWA cache
 

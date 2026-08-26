@@ -28,4 +28,16 @@ describe('daily surveyor browser contract', () => {
     expect(staging).toContain('/JWT issued at future/i')
     expect(staging).toContain('global: { fetch: fetchWithClockSkewRetry }')
   })
+
+  it('verifies closure before baseline save and always uploads its receipt', () => {
+    const workflow = fs.readFileSync(path.resolve('.github/workflows/daily-surveyor.yml'), 'utf8')
+    const verify = workflow.indexOf('pnpm monitor:verify-closure')
+    const save = workflow.indexOf('- name: Save monitoring baseline')
+
+    expect(verify).toBeGreaterThan(-1)
+    expect(save).toBeGreaterThan(verify)
+    expect(workflow).toContain("if: success() && inputs.replay_run_id == ''")
+    expect(workflow).toContain('work/monitoring/closure-manifest.json')
+    expect(workflow.indexOf('if: always()', save)).toBeGreaterThan(save)
+  })
 })

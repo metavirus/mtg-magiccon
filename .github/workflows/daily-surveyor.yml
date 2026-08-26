@@ -98,6 +98,9 @@ jobs:
             }
           }
 
+      - name: Verify catch-to-closure contract
+        run: pnpm monitor:verify-closure work/monitoring/monitor-check.json work/monitoring/closure-manifest.json
+
       - name: Save monitoring baseline
         if: success() && inputs.replay_run_id == ''
         uses: actions/cache/save@v6
@@ -110,5 +113,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: daily-magiccon-surveyor
-          path: work/monitoring/monitor-check.json
+          path: |
+            work/monitoring/monitor-check.json
+            work/monitoring/closure-manifest.json
           if-no-files-found: error

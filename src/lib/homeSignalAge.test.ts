@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { homeSignalAgeBucket, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './homeSignalAge'
+import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './homeSignalAge'
 
 const now = new Date('2026-08-24T12:00:00Z').getTime()
 
@@ -14,6 +14,17 @@ describe('Home Worth Knowing age buckets', () => {
     expect(homeSignalAgeBucket('2026-08-22T12:00:00Z', now)).toBe('recent')
     expect(homeSignalAgeBucket('2026-08-20T12:00:00Z', now)).toBe('earlier')
     expect(homeSignalAgeBucket('2026-08-10T12:00:00Z', now)).toBe('earlier')
+  })
+
+  it('keeps a hot signal in Hot now for one day before releasing it to Recent', () => {
+    expect(homeSignalIsHotNow('2026-08-23T12:00:00Z', now)).toBe(true)
+    expect(homeSignalIsHotNow('2026-08-23T11:59:59Z', now)).toBe(false)
+  })
+
+  it('partitions each signal exactly once as Hot now becomes Recent', () => {
+    const signal = { severity: 'hot', checkedAtIso: '2026-08-23T12:00:00Z' }
+    expect(partitionHomeSignals([signal], now)).toEqual({ hotNow: [signal], recent: [], earlier: [] })
+    expect(partitionHomeSignals([signal], now + 1)).toEqual({ hotNow: [], recent: [signal], earlier: [] })
   })
 
   it('excludes older and invalid timestamps', () => {

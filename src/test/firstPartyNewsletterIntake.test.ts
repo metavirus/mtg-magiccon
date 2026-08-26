@@ -3,8 +3,9 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error Executable monitoring helper is an ESM script without declarations.
 import { canonicalNewsletterUrl, discoverNewsletterLinks, fetchNewsletterPages, planNewsletterFetch } from '../../scripts/lib/first_party_newsletter_intake.mjs'
-import { extractMonitoringConcepts } from '../../scripts/lib/monitoring_concept_reconciler.mjs'
+import { extractMonitoringConcepts, reconcileMonitoringObservation } from '../../scripts/lib/monitoring_concept_reconciler.mjs'
 import { buildMonitoringCandidateRows } from '../../scripts/lib/build_monitoring_candidates.mjs'
+import { monitoringConceptBaselineFromInfo, projectRegisteredFactResolution, verifyRegisteredFactReadback } from '../../scripts/lib/monitoring_info_projection.mjs'
 
 const fixture = (name: string) => readFile(path.join(process.cwd(), 'scripts', 'fixtures', 'newsletter-intake', name), 'utf8')
 const policy = {
@@ -35,6 +36,26 @@ describe('bounded first-party newsletter intake', () => {
     const baseline = await fetchNewsletterPages({ links, policy, limits, fetchImpl, observedAt: '2026-08-24T19:00:00Z', suppressObservations: true })
     expect(baseline.observations).toEqual([])
     expect(Object.keys(baseline.seen)).toEqual([links[0].url])
+  })
+
+  it('closes the actual daily report and staging shapes into maintained Info without a newsletter card', async () => {
+    const article = await fixture('operations-update.html')
+    const link = { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/2026/atlanta-operations-update.html', label: 'Atlanta operations', discoveredFrom: 'global-magiccon-news' }
+    const fetched = await fetchNewsletterPages({ links: [link], policy, limits, fetchImpl: async () => new Response(article, { status: 200, headers: { 'content-type': 'text/html' } }), observedAt: '2026-08-24T20:00:00Z' })
+    const report = { checkedAt: '2026-08-24T20:00:00Z', changes: fetched.observations }
+    const [row] = buildMonitoringCandidateRows(report)
+    const stageObservation = { fingerprint: row.fingerprint, sourceId: row.source_id, sourceLabel: row.source_label, sourceUrl: row.source_url, observedAt: row.last_seen_at, title: row.title, summary: row.evidence.semanticSummary ?? row.summary, text: [row.evidence.current?.title, row.evidence.current?.textSample].filter(Boolean).join(' '), links: row.evidence.presentation_links ?? row.evidence.linkDelta?.added ?? [] }
+    const voucher = extractMonitoringConcepts(stageObservation).find(claim => claim.concept_key === 'atlanta:on-demand-play:voucher-price')!
+    const topic = { topic_key: 'on-demand-play', updated_at: '2026-08-18T00:00:00Z', sources: [], article: { lede: 'On-Demand Play.', sections: [{ key: 'how-to-play', title: 'How to play', facts: [] }], unknowns: [], contradictions: [], recent_changes: [] } }
+    expect(monitoringConceptBaselineFromInfo(voucher, topic)).toBeNull()
+    const resolution = reconcileMonitoringObservation(stageObservation, null, voucher)
+    const closure = projectRegisteredFactResolution(resolution, stageObservation, topic)!
+    expect(closure.mutation).not.toBeNull()
+    const readback = { ...topic, article: closure.mutation!.article, sources: closure.mutation!.sources, updated_at: closure.mutation!.updated_at }
+    expect(row.status).toBe('archived')
+    expect(closure.receipt.disposition).toBe('canonical_applied')
+    expect(verifyRegisteredFactReadback(closure.receipt, readback)).toBe(true)
+    expect(readback.article.sections[0].facts).toContainEqual({ label: 'Voucher price', value: '$5 increments' })
   })
 
   it('rejects off-host, non-HTTPS, credentials and paths outside the allowlist', () => {

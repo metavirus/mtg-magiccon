@@ -32,6 +32,8 @@ The mechanical web watch set is now recorded in `monitoring/watch-set.json`. Run
 
 The cloud surveyor now stages changed-source candidates in `public.monitoring_findings` after the mechanical check. `pnpm monitor` is the canonical alias for the check, and `pnpm monitor:stage <report.json>` performs the server-side staging step. GitHub Actions must have a server-only `SUPABASE_SECRET_KEY` repository secret for canonical project `pavjsexxbueuzhzgemgy`; the staging command fails closed when it is absent. The secret must never use a publishable/browser key and must never be committed. Identical fingerprints update one finding rather than creating new inbox cards, and identical shared-navigation link deltas are collapsed across watched pages.
 
+Every changed-source catch must now finish under `scripts/lib/surveyor_closure_contract.mjs`. Staging writes `closure-manifest.json` with exactly one terminal disposition for each meaningful report change: `canonical_update`, `routed_signal`, `retained_evidence`, or `ignored_noise`. Each disposition names its existing product target and carries exact Supabase relation, match, and observed readback metadata. A novel intake kind, missing outcome, blocked disposition, or missing readback fails closed. The workflow runs `pnpm monitor:verify-closure` before saving `.monitoring-state`; it uploads the closure receipt with the monitor report even on failure. Finding or staging evidence alone is therefore not success and cannot advance the durable baseline.
+
 Only Kavi can read and manage these rows through the app. Informational source evidence uses `unread`, `read`, and `archived`; those transitions are review state, not approval, and carry no decision audit.
 
 ### Decision-to-action boundary
@@ -198,12 +200,13 @@ Do not start with:
 6. Check narrowly filtered official Wizards news only when it intersects MagicCon-relevant product/context terms.
 7. Review any manually supplied or connector-available Black Lotus Discord observations as radar. Follow official links before promoting claims; keep unsupported community chatter in Activity unless it indicates an urgent Black Lotus, ticketed-play, store, sellout, map, or vendor/exclusive lead.
 8. Classify each finding into the routing map.
-9. Complete safe allowlisted consequences, then produce a short report:
+9. For a normalized private Gmail receipt or flight candidate, run `pnpm intake:private-gmail -- -` with the JSON on stdin. Treat only `applied` as closure; carry every `not_covered` reason into the run summary and do not advance a private-source baseline for that candidate.
+10. Complete other safe allowlisted consequences, then produce a short report:
    - Home-worthy findings;
    - object annotations;
    - Activity-only observations;
    - unclear items needing a rare yes/no prompt.
-10. Do not ask the owner anything unless material ambiguity prevents the safe consequence.
+11. Do not ask the owner anything unless material ambiguity prevents the safe consequence.
 
 ## First deployable automation prompt
 

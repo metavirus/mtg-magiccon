@@ -240,6 +240,7 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
     signalCount: signals.length,
     signals,
     transitions,
+    inventory: current,
   };
 }
 

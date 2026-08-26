@@ -25,6 +25,8 @@
     "monitor:check": "node --use-system-ca scripts/monitoring_watch_check.mjs",
     "monitor:accept": "node --use-system-ca scripts/monitoring_watch_check.mjs --accept",
     "monitor:stage": "node --use-system-ca scripts/stage_monitoring_findings.mjs",
+    "monitor:verify-closure": "node scripts/verify_surveyor_closure.mjs",
+    "intake:private-gmail": "node --use-system-ca scripts/process_private_gmail_intake.mjs",
     "info:ingest": "node --use-system-ca scripts/ingest_info_articles.mjs",
     "info:seed-sql": "node scripts/build_info_article_seed_sql.mjs",
     "artist:seed-sql": "node scripts/build_artist_card_catalog_seed_sql.mjs",

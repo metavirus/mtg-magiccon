@@ -60,6 +60,20 @@ The app validates only the shape needed to avoid crashing. The monitor remains r
 
 The durable successor to file-backed preview hydration is `public.monitoring_findings`. Cloud checks may stage source evidence there using a server-only GitHub Actions secret. The table is fingerprint-deduplicated and Kavi-readable. Informational changes such as new official navigation links use `unread`, `read`, and `archived` review state with no approval or canonical mutation; their presentation links remain inside evidence. Only a finding with a distinct, explicitly named canonical consequence may enter the authorization lifecycle. Ambiguous findings remain unmapped and fail closed.
 
+## Private Gmail consequence adapter
+
+The read-only heartbeat may pass one normalized Gmail message to `pnpm intake:private-gmail -- -` on stdin. The adapter is the executable boundary for the two currently allowlisted private consequences: exact receipt-to-Wallet ingestion and the existing guarded HOGFBX flight RPC. It never queries or mutates Gmail.
+
+The adapter returns `covered` only after mailbox identity, stable Gmail message ID, canonical target identity, required facts, and all consequence guards are exact. Missing writer credentials, a noncanonical Supabase URL/key shape, an unknown attendee or event, incomplete flight legs, or any replacement ambiguity returns `not_covered` with a reason and performs no write. A successful execution returns `applied` plus a compact readback that omits original HTML and other private evidence.
+
+Operational coverage is therefore explicit:
+
+- `receipt`: covered only for Kavi-owned Gmail messages with a Kavi attendee binding and a complete artifact bundle; ticketed-play receipts additionally require every line to bind to an exact `ticketed-<source id>` event and every event ID to read back from the canonical availability projection before any receipt write.
+- `flight`: covered only for the canonical Delta HOGFBX itinerary and the guard set in `docs/FLIGHT_CHANGE_AUTO_APPLY.md`.
+- Gmail discovery, body extraction, hotel receipts assigned to another person, unknown receipt/event identities, and all other private-intake kinds remain `not_covered` until a separate bounded adapter exists.
+
+The heartbeat run summary must include the adapter status for every normalized private candidate. `not_covered` is attention-required coverage debt, not a successful catch and not permission to advance a private-source baseline.
+
 User-visible monitoring now passes through the concept reconciliation contract in `docs/MONITORING_CONCEPT_RECONCILIATION.md`. Raw findings and noise remain internal evidence. `monitoring_concepts` provides stable semantic identity, while `monitoring_concept_evidence` preserves cross-source provenance; keyed legacy alerts are transition-only fallbacks and must not create a second card when a live concept exists.
 
 ## Publication rule

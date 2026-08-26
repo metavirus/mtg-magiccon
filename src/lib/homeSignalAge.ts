@@ -32,3 +32,17 @@ export function homeSignalAgeBucket(checkedAtIso: string, now = Date.now()): Hom
   if (ageDays <= 14) return 'earlier'
   return null
 }
+
+export function homeSignalIsHotNow(checkedAtIso: string, now = Date.now()) {
+  const checkedAt = new Date(checkedAtIso).getTime()
+  return Number.isFinite(checkedAt) && now >= checkedAt && now - checkedAt <= DAY_MS
+}
+
+export function partitionHomeSignals<T extends { severity: string; checkedAtIso: string }>(items: T[], now = Date.now()) {
+  const hotNow = items.filter(item => item.severity === 'hot' && homeSignalIsHotNow(item.checkedAtIso, now))
+  return {
+    hotNow,
+    recent: items.filter(item => !hotNow.includes(item) && homeSignalAgeBucket(item.checkedAtIso, now) === 'recent'),
+    earlier: items.filter(item => homeSignalAgeBucket(item.checkedAtIso, now) === 'earlier'),
+  }
+}
