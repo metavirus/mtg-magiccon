@@ -1,5 +1,5 @@
 begin;
-select plan(32);
+select plan(34);
 select has_table('public', 'personal_notes', 'personal_notes exists');
 select row_security_active('public.personal_notes'), 'RLS is active';
 select policies_are('public', 'personal_notes', array['Authenticated users can select shared notes','owners_delete_personal_notes','owners_insert_personal_notes','owners_select_personal_notes','owners_update_personal_notes']);
@@ -16,6 +16,8 @@ select policies_are('public', 'user_selections', array['active_companions_select
 select like((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%object_kind = ''event''%', 'companion selection sharing is event-only');
 select like((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%purchased%', 'companion selection sharing includes purchases');
 select like((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%purchase_locked%', 'companion selection sharing includes permanent purchase locks');
+select like((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%owner.active%', 'shared event selections require an active owner companion');
+select unlike((select qual from pg_policies where schemaname='public' and tablename='user_selections' and policyname='active_companions_select_group_selections'), '%person_key = ANY%', 'shared event purchase visibility is not restricted to named companions');
 select table_privs_are('public', 'user_selections', 'anon', array[]::text[], 'anon has no user_selections grants');
 select table_privs_are('public', 'user_selections', 'authenticated', array['DELETE','INSERT','SELECT','UPDATE'], 'authenticated user_selections grants are explicit');
 select has_table('public', 'companion_members', 'companion_members exists');
