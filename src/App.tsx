@@ -12,10 +12,12 @@ import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
-import { loadTripFlights, previewTripFlights, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
+import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
+import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
+import { mergeHomeSoldOutEvents, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import {
@@ -543,7 +545,8 @@ function isKaviCompanion(companion?: CompanionMember) {
 
 function monitoringFindingQaRows(): MonitoringFindingRow[] {
   const qa = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
-  if (qa.includes('soldout')) return [{
+  if (qa.includes('soldout')) {
+    const primary: MonitoringFindingRow = {
     id: 'qa-ticketed-soldout', fingerprint: 'c'.repeat(64), source_id: 'atlanta-ticketed-play-inventory', source_label: 'MagicCon Atlanta Ticketed Play registration', source_url: 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10', destination: 'Home', title: '10 Ticketed Play events are sold out', summary: 'Machine-shaped source summary intentionally replaced by the presentation model.', review_question: 'Informational grouped availability signal.', evidence: { intake_kind: 'ticketed_play_inventory', transition: 'sold_out', events: [
       { day: '2026-11-13', startsAt: '11:30', title: 'Commander Sealed Draft with Commander at Home' },
       { day: '2026-11-13', startsAt: '16:30', title: 'Prismatic Pride Commander Sealed' },
@@ -556,7 +559,15 @@ function monitoringFindingQaRows(): MonitoringFindingRow[] {
       { day: '2026-11-14', startsAt: '19:00', title: '2HG – Full-Box Sealed' },
       { day: '2026-11-15', startsAt: '12:00', title: 'Team Trios – Full-Box Sealed' },
     ] }, status: 'unread', decision: null, first_seen_at: new Date().toISOString(), last_seen_at: new Date().toISOString(), occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null,
-  }]
+    }
+    if (!qa.includes('soldout-multi')) return [primary]
+    const firstEvent = (primary.evidence.events as Array<Record<string, unknown>>)[0]
+    return [
+      primary,
+      { ...primary, id: 'qa-ticketed-soldout-later', title: '2 Ticketed Play events are sold out', last_seen_at: new Date(Date.now() + 1000).toISOString(), evidence: { ...primary.evidence, events: [firstEvent, { day: '2026-11-15', startsAt: '11:30', title: 'Magic: The Menu - Brunch - with Numot the Nummy', sourceEventKey: '944127', people: ['Kavi'] }] } },
+      { ...primary, id: 'qa-ticketed-soldout-latest', title: '1 Ticketed Play event is sold out', last_seen_at: new Date(Date.now() + 2000).toISOString(), evidence: { ...primary.evidence, events: [{ day: '2026-11-14', startsAt: '12:00', title: 'All Play - Sealed - Reality Fracture', sourceEventKey: '944072', people: [] }] } },
+    ]
+  }
   if (qa.includes('factual-choice')) return [{
     id: 'qa-factual-choice', fingerprint: 'b'.repeat(64), source_id: 'atlanta-newsletter', source_label: 'MagicCon Atlanta newsletter', source_url: 'https://mcatlanta.mtgfestivals.com/', destination: 'Activity', title: 'Confirm Constructed & Draft Sunday hours', summary: 'The maintained registration-hours fact says 10 AM–3 PM. A hypothetical newer official source says 10 AM–4 PM.', review_question: 'Which Constructed & Draft Sunday registration hours should the maintained guide use?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: new Date().toISOString(), last_seen_at: new Date().toISOString(), occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null,
     action_type: 'resolve_info_topic_article_fact_conflict', action_payload: { target_kind: 'info_topic_article_fact', topic_key: 'on-demand-play', section_key: 'registration-hours', fact_label: 'Constructed & Draft · Sun', choice_options: [
@@ -1827,7 +1838,7 @@ export default function App() {
       {((message && messageTone !== 'error') || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       <>
         {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} onOpenObject={openObjectDetail} />}
@@ -2654,7 +2665,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
         <h3>Source / provenance</h3>
         <p><strong>{detail.source.label}</strong><br />{renderLinkedText(detail.source.value)}</p>
       </section>}</>}
-      <ObjectNotes
+      {!isSyntheticNoteGroupId(detail.id) && <ObjectNotes
         notes={notes}
         currentOwnerId={currentOwnerId}
         onAddNote={onAddNote}
@@ -2667,7 +2678,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
         context={`${detail.kindLabel ?? detailKindLabel(detail.kind)} · ${detail.title}`}
         backlink={detail.backlinks?.[0]?.destination ?? 'notes'}
         compact
-      />
+      />}
       {detail.reader && <InfoReaderEvidence sources={detail.reader.sources} />}
       {detail.kind !== 'artist' && (detail.actions || detail.backlinks) && <footer className="object-detail-actions">
         {detail.actions?.map(action => <button key={action.label} type="button" onClick={() => action.destination ? onNavigate(action.destination) : undefined}>{action.label}</button>)}
@@ -2781,6 +2792,7 @@ type ActivityItem = {
   reviewState: AlertReviewState
   objectDetail: ObjectDetail
   actor?: PersonName
+  actors?: PersonName[]
   monitoringFinding?: MonitoringFindingRow
   monitoringConcept?: MonitoringConceptRow
   officialResources?: MonitoringOfficialResource[]
@@ -2796,18 +2808,7 @@ function defaultAlertReviewState(alert: MonitoringAlert): AlertReviewState {
 }
 
 function contextNotesToActivity(notes: ContextNote[], selections: Record<string, string>): ActivityItem[] {
-  type NoteCluster = { id: string; author: PersonName; notes: ContextNote[] }
-  const clusters: NoteCluster[] = []
-  const ordered = [...notes].sort((a, b) => new Date(b.updatedAtIso).getTime() - new Date(a.updatedAtIso).getTime())
-  for (const note of ordered) {
-    const previous = clusters[clusters.length - 1]
-    const previousNote = previous?.notes[previous.notes.length - 1]
-    const sameBurst = previous
-      && previous.author === note.author
-      && Math.abs(new Date(previousNote.updatedAtIso).getTime() - new Date(note.updatedAtIso).getTime()) <= 10 * 60 * 1000
-    if (sameBurst) previous.notes.push(note)
-    else clusters.push({ id: note.id, author: note.author, notes: [note] })
-  }
+  const clusters = groupNotesByObject(notes)
   return clusters.map(cluster => {
     const latest = cluster.notes[0]
     const reviewSelection = selections[selectionKey(`activity-note-${cluster.id}`, 'review_state')]
@@ -2816,37 +2817,41 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
       ? reviewSelection as AlertReviewState
       : recent ? 'needs-review' : 'reviewed'
     const multi = cluster.notes.length > 1
+    const authors = [...new Set(cluster.notes.map(note => note.author))]
+    const notePreview = cluster.notes.slice(0, 2).map(note => `${note.author}: ${note.body}`).join(' · ')
+    const remainingNoteCount = cluster.notes.length - 2
     const sourceDetail = noteSourceObjectDetail(latest)
     return {
       id: `note-${cluster.id}`,
-      actor: cluster.author,
+      actor: latest.author,
+      actors: authors,
       sourceKind: 'note' as const,
       kind: 'manual' as const,
       severity: 'notice' as const,
       destination: 'Home' as const,
       attention: multi ? 'Notes added' : latest.visibility === 'shared' ? 'Shared note' : 'New note',
-      title: multi ? `${cluster.author} added ${cluster.notes.length} notes.` : `${cluster.author}: ${latest.body}`,
-      summary: multi ? cluster.notes.map(note => note.body).join(' · ') : `${latest.objectTitle} · ${latest.context}`,
-      object: multi ? `${cluster.notes.length} notes` : latest.objectTitle,
-      source: `${cluster.author} note`,
+      title: multi ? `${cluster.notes.length} notes on ${latest.objectTitle}` : `${latest.author}: ${latest.body}`,
+      summary: multi ? `${notePreview}${remainingNoteCount > 0 ? ` · +${remainingNoteCount} more` : ''}` : `${latest.objectTitle} · ${latest.context}`,
+      object: latest.objectTitle,
+      source: `${latest.author} note`,
       checkedAt: latest.updatedAt,
       checkedAtIso: latest.updatedAtIso,
       status: latest.visibility,
-      rationale: multi ? 'Notes added in one short burst are grouped to keep Home useful.' : 'A recent contextual note is useful collaboration context without being a Hot interruption.',
+      rationale: multi ? 'Notes about the same item are grouped into one conversation so Home stays compact.' : 'A recent contextual note is useful collaboration context without being a Hot interruption.',
       nextAction: 'Open the attached object for the full note and context.',
       reviewState,
       objectDetail: multi ? {
         id: `note-group-${cluster.id}`,
         kind: 'note',
         eyebrow: 'GROUPED NOTES',
-        title: `${cluster.author} added ${cluster.notes.length} notes`,
-        summary: 'Review the notes together here; open an individual note only when you want its exact source context.',
+        title: `${cluster.notes.length} notes on ${latest.objectTitle}`,
+        summary: `Conversation with ${authors.join(', ')}. Open an individual note for its exact source context.`,
         facts: cluster.notes.map(note => ({
-          label: note.objectTitle,
+          label: noteGroupFactLabel(note),
           value: note.body,
           detail: noteSourceObjectDetail(note),
         })),
-        rationale: 'These notes were added in one short burst, so Home keeps them together instead of choosing an arbitrary destination.',
+        rationale: 'These notes concern the same item, so Home keeps the conversation together.',
         backlinks: [{ label: 'Notes', destination: 'notes' as const }, ...(sourceDetail.backlinks ?? [])],
       } : sourceDetail,
     }
@@ -5200,7 +5205,7 @@ function WalletPlayTab({ receipts, openModal }: { receipts: WalletReceiptRow[]; 
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
       {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <TicketedReceiptDetail receipt={receipt} />, receiptPeople(receipt))}>
-        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>{receipt.title}</h2><p>{receipt.line_items.length} purchased {receipt.line_items.length === 1 ? 'event' : 'events'} · {receipt.vendor}</p></div><span className="receipt-people-total"><PersonBubbles people={receiptPeople(receipt)} /><strong>${Number(receipt.amount).toFixed(2)}</strong></span></div>
+        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>{receipt.title}</h2><ul className="receipt-card-lines">{receipt.line_items.map(line => <li key={line.event_id}>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</li>)}</ul><p>{receipt.line_items.length} purchased {receipt.line_items.length === 1 ? 'event' : 'events'} · {receipt.vendor}</p></div><span className="receipt-people-total"><PersonBubbles people={receiptPeople(receipt)} /><strong>${Number(receipt.amount).toFixed(2)}</strong></span></div>
       </button>) : <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>Purchased event receipts will appear here.</p></div></div>
       </article>}
@@ -5951,7 +5956,7 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, events, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ slice, events, flights, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [detail, setDetail] = useState<CalendarDetail | null>(null)
@@ -5962,6 +5967,11 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
   const toolbarStartRef = useRef(0)
   const [toolbarPinned, setToolbarPinned] = useState(false)
   const [toolbarHeight, setToolbarHeight] = useState(0)
+  const flightProjection = tripFlightCalendarProjection(flights)
+  const outboundDepartureTime = flightAirportTime(flightProjection.outbound.departure_at, flightProjection.outbound.departure_airport)
+  const outboundArrivalTime = flightAirportTime(flightProjection.outbound.arrival_at, flightProjection.outbound.arrival_airport)
+  const returnDepartureTime = flightAirportTime(flightProjection.returnLeg.departure_at, flightProjection.returnLeg.departure_airport)
+  const returnArrivalTime = flightAirportTime(flightProjection.returnLeg.arrival_at, flightProjection.returnLeg.arrival_airport)
   const candidateEvents = events
   const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
   const committedEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed'))
@@ -6055,17 +6065,20 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
         <span className="agenda-copy"><span className="agenda-kind">Completed milestone</span><strong className="agenda-title">Badges went on sale</strong><span className="agenda-summary">Official badge purchasing remains open.</span></span>
         <span className="agenda-destination external"><NavIcon name="wallet" />Official ↗</span>
       </a>
+      <a className="agenda-row agenda-action completed-row" href="https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html" target="_blank" rel="noreferrer">
+        <span className="agenda-date milestone-date-tile"><span>AUG</span><strong>4</strong><em>DONE</em></span>
+        <span className="agenda-icon"><MilestoneIcon name="ticketed-play" /></span>
+        <span className="agenda-copy"><span className="agenda-kind">Completed milestone</span><strong className="agenda-title">Ticketed Play events posted</strong><span className="agenda-summary">The official Atlanta schedule and event listings are available.</span></span>
+        <span className="agenda-destination external"><NavIcon name="calendar" />Schedule ↗</span>
+      </a>
+      <a className="agenda-row agenda-action completed-row" href="https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html" target="_blank" rel="noreferrer">
+        <span className="agenda-date milestone-date-tile"><span>AUG</span><strong>25</strong><em>10 AM PT</em></span>
+        <span className="agenda-icon"><MilestoneIcon name="ticketed-play" /></span>
+        <span className="agenda-copy"><span className="agenda-kind">Completed milestone</span><strong className="agenda-title">Ticketed Play purchasing opened</strong><span className="agenda-summary">Sales are live; purchased events now appear as locked calendar commitments.</span></span>
+        <span className="agenda-destination external"><NavIcon name="calendar" />Purchase ↗</span>
+      </a>
     </div> : <>
 
-    <div className="calendar-month"><span>AUG</span><strong>Waiting season</strong></div>
-    <button className="agenda-row agenda-action milestone-row" type="button" onClick={() => setDetail('ticketed-play')}>
-      <div className="agenda-date milestone-date-tile"><span>{milestoneForecasts[0].month}</span><strong>{milestoneForecasts[0].calendarDate}</strong><em>OFFICIAL</em></div>
-      <div className="agenda-icon"><NavIcon name="calendar" /></div>
-      <div className="agenda-copy"><div><span className="agenda-kind">Next ticketed play milestone</span><span className="soft-chip">{milestoneForecasts[0].confidence}</span></div><h2>Ticketed play purchasing opens</h2><p>{milestoneForecasts[0].window} · schedule page is already published.</p></div>
-      <span className="agenda-destination"><NavIcon name="notes" />Details</span>
-    </button>
-
-    <div className="calendar-gap"><span>quiet monitoring</span></div>
     <div className="calendar-month"><span>OCT</span><strong>Likely information drops</strong></div>
     {milestoneForecasts.slice(1).map(forecast => <button key={forecast.id} className={`agenda-row agenda-action milestone-row forecast-${forecast.id}`} type="button" onClick={() => setDetail(forecast.id)}>
       <div className="agenda-date milestone-date-tile"><span>{forecast.month}</span><strong>{forecast.calendarDate}</strong><em>FORECAST</em></div>
@@ -6078,9 +6091,9 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     <div className="calendar-month"><span>NOV</span><strong>Atlanta trip</strong></div>
 
     {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
-      <div className="agenda-date"><strong>11</strong><span>WED</span><em>7:34 PM</em></div>
+      <div className="agenda-date"><strong>11</strong><span>WED</span><em>{outboundArrivalTime}</em></div>
       <div className="agenda-icon"><NavIcon name="trip" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Flight + hotel</span><h2>Arrive ATL · Courtyard night</h2><p>DL 1521 lands 7:34 PM; Courtyard by Marriott Atlanta Downtown, one night.</p></div>
+      <div className="agenda-copy"><span className="agenda-kind">Flight + hotel</span><h2>Arrive ATL · Courtyard night</h2><p>{flightProjection.outbound.flight_number} lands {outboundArrivalTime}; Courtyard by Marriott Atlanta Downtown, one night.</p></div>
       <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
     </button>}
 
@@ -6115,15 +6128,23 @@ function CalendarSurface({ slice, events, selectionRows, companions, notes, curr
     {showConvention && <AgendaMarker time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} />}
     {showConvention && <AgendaMarker time="6:00 PM" label="Gaming closes" detail="End of Sunday convention hours" />}
 
-    {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
-      <div className="agenda-date"><strong>15</strong><span>SUN</span><em>8:35 PM</em></div>
+    {showTravel && <button className="agenda-row agenda-action travel-row airport-row" type="button" onClick={() => setDetail('airport')}>
+      <div className="agenda-date"><strong>15</strong><span>SUN</span><em>TBD</em></div>
       <div className="agenda-icon"><NavIcon name="trip" /></div>
-      <div className="agenda-copy"><span className="agenda-kind">Checkout + flight</span><h2>Omni check-out · fly home</h2><p>Omni check-out 11 AM; DL 1602 departs ATL 8:35 PM.</p></div>
+      <div className="agenda-copy"><span className="agenda-kind">Travel reminder</span><h2>Leave for ATL airport</h2><p>Keep visible before {flightProjection.returnLeg.flight_number}; set the exact time once the Sunday plan and travel buffer are final.</p></div>
+      <span className="agenda-signals"><TravelerDots people={['Kavi', 'Juan']} /></span>
+      <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
+    </button>}
+
+    {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
+      <div className="agenda-date"><strong>15</strong><span>SUN</span><em>{returnDepartureTime}</em></div>
+      <div className="agenda-icon"><NavIcon name="trip" /></div>
+      <div className="agenda-copy"><span className="agenda-kind">Checkout + flight</span><h2>Omni check-out · fly home</h2><p>Omni check-out 11 AM; {flightProjection.returnLeg.flight_number} departs ATL {returnDepartureTime}.</p></div>
       <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
     </button>}
     </>}
 
-    {detail && <CalendarDetailSheet detail={detail} slice={slice} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+    {detail && <CalendarDetailSheet detail={detail} slice={slice} flights={flights} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
     {selectedEvent && <CalendarEventDetail event={selectedEvent} receiptLine={selectedReceiptLine} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
 }
@@ -6159,12 +6180,17 @@ function CalendarEventDetail({ event, receiptLine, notes, currentOwnerId, onAddN
   </aside>
 }
 
-function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { detail: CalendarDetail; slice: TrustSlice; onClose: () => void; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarDetailSheet({ detail, slice, flights, onClose, onOpenPlan, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { detail: CalendarDetail; slice: TrustSlice; flights: TripFlight[]; onClose: () => void; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const forecast = milestoneForecasts.find(item => item.id === detail)
+  const flightProjection = tripFlightCalendarProjection(flights)
+  const outboundDepartureTime = flightAirportTime(flightProjection.outbound.departure_at, flightProjection.outbound.departure_airport)
+  const outboundArrivalTime = flightAirportTime(flightProjection.outbound.arrival_at, flightProjection.outbound.arrival_airport)
+  const returnDepartureTime = flightAirportTime(flightProjection.returnLeg.departure_at, flightProjection.returnLeg.departure_airport)
+  const returnArrivalTime = flightAirportTime(flightProjection.returnLeg.arrival_at, flightProjection.returnLeg.arrival_airport)
   const content = forecast
     ? { eyebrow: `FORECAST · ${forecast.window.toUpperCase()}`, title: forecast.title, copy: forecast.rationale }
     : detail === 'arrival'
-      ? { eyebrow: 'TRIP · NOV 11', title: 'Arrival and Courtyard night', copy: 'Kavi and Juan fly Delta 1521 from SNA to ATL, 12:20 PM-7:34 PM, confirmation HOGFBX. The first hotel anchor is Courtyard by Marriott Atlanta Downtown for Kavi, Juan, and Chris.' }
+      ? { eyebrow: 'TRIP · NOV 11', title: 'Arrival and Courtyard night', copy: `Kavi and Juan fly ${flightProjection.outbound.flight_number} from SNA to ATL, ${outboundDepartureTime}-${outboundArrivalTime}, confirmation ${flightProjection.flight.confirmation_code}. The first hotel anchor is Courtyard by Marriott Atlanta Downtown for Kavi, Juan, and Chris.` }
       : detail === 'preview'
         ? { eyebrow: 'BLACK LOTUS · NOV 12', title: 'First Look and Omni check-in', copy: 'Kavi and Chris have the Black Lotus First Look day. Courtyard ends before Omni check-in at 4 PM, so luggage handling is the only practical transition note currently worth keeping visible.' }
         : detail === 'bl-thursday'
@@ -6174,9 +6200,9 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
           : detail === 'bl-friday'
             ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 13', title: 'Friday Black Lotus schedule', copy: 'Published BL schedule: lounge opens 8:30 AM; beverage service 8:30-11; online store pre-order pickup 8:30-5; priority show-floor entry 9:45; play event with special guests 2-6 PM. The play event is explicitly under construction, so this is a meaningful watch item rather than a fully defined event.' }
           : detail === 'airport'
-            ? { eyebrow: 'TRIP · NOV 15', title: 'Leave for ATL airport', copy: 'Departure time is not set yet. It should account for the final Sunday plan, bags, airport buffer, and local travel conditions.' }
+            ? { eyebrow: 'TRIP · NOV 15', title: 'Leave for ATL airport', copy: `The reminder is restored, but its time is intentionally unset. It should account for the final Sunday plan, bags, airport buffer, and local travel conditions before ${flightProjection.returnLeg.flight_number} departs at ${returnDepartureTime}.` }
           : detail === 'sunday'
-            ? { eyebrow: 'TRIP · NOV 15', title: 'Closing day and flight home', copy: 'Omni check-out is 11 AM. Kavi and Juan fly Delta 1602 from ATL to SNA, 8:35 PM-10:29 PM, confirmation HOGFBX. Calendar should eventually derive a low-noise leave-for-airport reminder from the final Sunday plan.' }
+            ? { eyebrow: 'TRIP · NOV 15', title: 'Closing day and flight home', copy: `Omni check-out is 11 AM. Kavi and Juan fly ${flightProjection.returnLeg.flight_number} from ATL to SNA, ${returnDepartureTime}-${returnArrivalTime}, confirmation ${flightProjection.flight.confirmation_code}. The leave-for-airport reminder stays visible until its exact time is set from the final Sunday plan.` }
             : detail === 'bl-sunday'
               ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 15', title: 'Sunday Black Lotus schedule', copy: 'Published BL schedule: lounge opens 8:30 AM; beverage service 8:30-11; priority show-floor entry 9:45; Mystery Booster 2 drafts fire 1-5 PM, limited to 2 per person, with the last draft firing at 4 PM; Meet & Greet / Feedback Session with the Wizards event team is 3-4 PM; lounge closes at 6 PM.' }
             : { eyebrow: 'BLACK LOTUS · NOV 14', title: slice.occurrence.title.replace('Black Lotus ', ''), copy: '11:30 AM–3:00 PM · included Black Lotus event.' }
@@ -6207,10 +6233,68 @@ function CalendarDetailSheet({ detail, slice, onClose, onOpenPlan, onOpenTrip, o
   </aside>
 }
 
+function homeSoldOutEvents(item: ActivityItem): HomeSoldOutEvent[] {
+  const finding = item.monitoringFinding
+  if (!finding || finding.destination !== 'Home' || finding.evidence.intake_kind !== 'ticketed_play_inventory' || finding.evidence.transition !== 'sold_out' || !Array.isArray(finding.evidence.events)) return []
+  return finding.evidence.events.flatMap(raw => {
+    if (!raw || typeof raw !== 'object') return []
+    const event = raw as Record<string, unknown>
+    if (typeof event.title !== 'string' || typeof event.day !== 'string' || typeof event.startsAt !== 'string') return []
+    return [{
+      title: event.title,
+      day: event.day,
+      startsAt: event.startsAt,
+      people: Array.isArray(event.people) ? event.people.filter((person): person is string => typeof person === 'string') : [],
+      sourceEventKey: typeof event.sourceEventKey === 'string' ? event.sourceEventKey : undefined,
+      eventId: typeof event.eventId === 'string' ? event.eventId : undefined,
+    }]
+  })
+}
+
+function groupHomeSoldOutSignals(items: ActivityItem[]) {
+  const soldOutSignals = items.filter(item => homeSoldOutEvents(item).length > 0)
+  if (soldOutSignals.length <= 1) return items
+
+  const events = mergeHomeSoldOutEvents(soldOutSignals.map(homeSoldOutEvents))
+  const latest = [...soldOutSignals].sort((left, right) => new Date(right.checkedAtIso).getTime() - new Date(left.checkedAtIso).getTime())[0]
+  const eventsByDay = events.reduce<Record<string, HomeSoldOutEvent[]>>((groups, event) => {
+    groups[event.day] = [...(groups[event.day] ?? []), event]
+    return groups
+  }, {})
+  const dayFacts = Object.entries(eventsByDay).sort(([left], [right]) => left.localeCompare(right)).map(([day, dayEvents]) => ({
+    label: new Date(`${day}T12:00:00`).toLocaleDateString([], { weekday: 'long' }),
+    value: dayEvents.map(event => {
+      const [hour = '0', minute = '00'] = event.startsAt.split(':')
+      const time = new Date(2000, 0, 1, Number(hour), Number(minute)).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+      return `${time} · ${event.title}`
+    }).join('\n'),
+  }))
+  const overlap = events.some(event => event.people.length > 0)
+  const title = `${events.length} Ticketed Play ${events.length === 1 ? 'event is' : 'events are'} sold out`
+  const summary = `${events.length} events sold out across ${dayFacts.map(fact => fact.label).join(', ')}.${overlap ? ' One or more overlap saved plans.' : " None overlap anyone's saved plans."}`
+  const grouped: ActivityItem = {
+    ...latest,
+    id: 'home-ticketed-play-sold-out',
+    title,
+    summary,
+    severity: soldOutSignals.some(item => item.severity === 'hot') ? 'hot' : 'notice',
+    reviewState: soldOutSignals.some(item => item.reviewState === 'needs-review') ? 'needs-review' : latest.reviewState,
+    objectDetail: {
+      ...latest.objectDetail,
+      id: 'home-ticketed-play-sold-out-detail',
+      title,
+      summary,
+      facts: dayFacts,
+      rationale: 'Sold-out observations are merged across survey runs and deduplicated by event so Home carries one current availability signal.',
+    },
+  }
+  return [...items.filter(item => !soldOutSignals.includes(item)), grouped]
+}
+
 function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenItem, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; currentPerson: PersonName; onOpenPlan: () => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
   const now = Date.now()
-  const homeSignals = homeWorthKnowingItems(activityItems, now, currentPerson)
+  const homeSignals = groupHomeSoldOutSignals(homeWorthKnowingItems(activityItems, now, currentPerson))
   const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
   const ticketedPlaySaleIsOpen = activityItems.some(isTicketedPlaySaleOpen)
   const ordinarySignals = homeSignals.filter(item => item.id !== featuredSale?.id)
@@ -6243,7 +6327,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
             {signals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
               <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
               <div><strong>{item.title}</strong><small>{item.summary}</small></div>
-              {item.actor && <PersonBubbles people={[item.actor]} />}
+              {(item.actors?.length || item.actor) && <PersonBubbles people={item.actors ?? [item.actor!]} />}
             </button>)}
           </section>)}
           {!homeSignals.length && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
