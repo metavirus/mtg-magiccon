@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ReactNode, type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
@@ -564,8 +564,8 @@ function monitoringFindingQaRows(): MonitoringFindingRow[] {
     const firstEvent = (primary.evidence.events as Array<Record<string, unknown>>)[0]
     return [
       primary,
-      { ...primary, id: 'qa-ticketed-soldout-later', title: '2 Ticketed Play events are sold out', last_seen_at: new Date(Date.now() + 1000).toISOString(), evidence: { ...primary.evidence, events: [firstEvent, { day: '2026-11-15', startsAt: '11:30', title: 'Magic: The Menu - Brunch - with Numot the Nummy', sourceEventKey: '944127', people: ['Kavi'] }] } },
-      { ...primary, id: 'qa-ticketed-soldout-latest', title: '1 Ticketed Play event is sold out', last_seen_at: new Date(Date.now() + 2000).toISOString(), evidence: { ...primary.evidence, events: [{ day: '2026-11-14', startsAt: '12:00', title: 'All Play - Sealed - Reality Fracture', sourceEventKey: '944072', people: [] }] } },
+      { ...primary, id: 'qa-ticketed-soldout-later', fingerprint: 'd'.repeat(64), destination: 'Inbox', title: '2 selected Ticketed Play events sold out', last_seen_at: new Date(Date.now() + 1000).toISOString(), evidence: { ...primary.evidence, events: [firstEvent, { day: '2026-11-15', startsAt: '11:30', title: 'Magic: The Menu - Brunch - with Numot the Nummy', sourceEventKey: '944127', people: ['Kavi'] }] } },
+      { ...primary, id: 'qa-ticketed-soldout-latest', fingerprint: 'e'.repeat(64), title: '1 Ticketed Play event is sold out', last_seen_at: new Date(Date.now() + 2000).toISOString(), evidence: { ...primary.evidence, events: [{ day: '2026-11-14', startsAt: '12:00', title: 'All Play - Sealed - Reality Fracture', sourceEventKey: '944072', people: [] }] } },
     ]
   }
   if (qa.includes('factual-choice')) return [{
@@ -1161,6 +1161,10 @@ export default function App() {
     openDestination('Plan', 'plan')
   }
   const openActivityItem = (item: ActivityItem) => {
+    if (item.destination === 'Inbox') {
+      openObjectDetail(item.objectDetail)
+      return
+    }
     if (item.objectDetail.id.startsWith('note-group-')) {
       openObjectDetail(item.objectDetail)
       return
@@ -1802,7 +1806,7 @@ export default function App() {
               items={mentionInboxState}
               alert={saleInboxSignal}
               onOpenMention={openMentionNote}
-              onOpenAlert={() => openDestination('Activity', 'activity')}
+              onOpenAlert={() => { if (saleInboxSignal) openActivityItem(saleInboxSignal) }}
               onDismissAlert={item => setActivityReviewState(item, 'archived')}
               onRestoreAlert={item => setActivityReviewState(item, 'needs-review')}
               onDismissMention={item => { void setMentionDismissed(item.id, true) }}
@@ -6824,6 +6828,12 @@ function MentionInbox({
     <i aria-hidden="true">›</i>
   </button>
 
+  const openAlertButton = (event: MouseEvent<HTMLButtonElement>) => {
+    const root = event.currentTarget.closest('details.mention-inbox')
+    if (root instanceof HTMLDetailsElement) root.open = false
+    onOpenAlert()
+  }
+
   return <details className={`mention-inbox ${activeAlert ? 'has-urgent' : ''}`}>
     <summary aria-label={`Mentions${unread ? `, ${unread} unread` : ''}`}>
       <svg className="mention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -6839,7 +6849,7 @@ function MentionInbox({
         <strong>{unread ? `${unread} for you` : 'Nothing waiting'}</strong>
       </header>
       {activeAlert && <div className="mention-row mention-alert-row">
-        <button type="button" className="mention-item mention-alert-item" onClick={onOpenAlert}>
+        <button type="button" className="mention-item mention-alert-item" onClick={openAlertButton}>
           <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
           <span><strong>{ticketedSelloutAlert ? alert?.title : 'Ticketed Play is up for sale!'}</strong><small>{ticketedSelloutAlert ? alert?.summary : 'Sales are open now.'}</small><em>{ticketedSelloutAlert ? 'A selected event sold out. Open the alert for the retained source evidence.' : 'Open the signal for purchasing details.'}</em></span>
           <i aria-hidden="true">›</i>
@@ -6858,7 +6868,7 @@ function MentionInbox({
         <summary>Dismissed <b>{dismissedCount}</b></summary>
         <div className="mention-list">
           {alertDismissed && alert && <div className="mention-row dismissed mention-alert-row">
-            <button type="button" className="mention-item mention-alert-item" onClick={onOpenAlert}>
+            <button type="button" className="mention-item mention-alert-item" onClick={openAlertButton}>
               <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
               <span><strong>{ticketedSelloutAlert ? alert.title : 'Ticketed Play is up for sale!'}</strong><small>{ticketedSelloutAlert ? alert.summary : 'Sales are open now.'}</small><em>Dismissed alert</em></span>
               <i aria-hidden="true">›</i>
