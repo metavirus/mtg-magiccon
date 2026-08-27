@@ -927,7 +927,7 @@ html,body{max-width:100%;overflow-x:hidden}
   .artist-card-filters::-webkit-scrollbar{display:none}
   .artist-card-filters select,.artist-group-select{flex:0 0 auto}
 }
-.home-activity-lane .signal-chip-card{grid-template-columns:30px minmax(0,1fr) auto}.home-activity-lane .signal-chip-card>.person-bubbles{justify-self:end;width:auto;height:auto;padding-left:6px;border-radius:0;background:transparent;color:inherit}.home-activity-lane .signal-chip-card>.person-bubbles .person-bubble{margin-left:-6px}
+.home-activity-lane .signal-chip-card{grid-template-columns:30px minmax(0,1fr) auto}.home-activity-lane .signal-chip-card>.person-bubbles{display:inline-flex;flex-wrap:nowrap;align-items:center;justify-self:end;width:max-content;height:auto;padding-left:6px;border-radius:0;background:transparent;color:inherit}.home-activity-lane .signal-chip-card>.person-bubbles .person-bubble{flex:0 0 auto;margin-left:-6px}
 .agenda-event.owner-kavi.conflict:not(.shared){border-color:#438bd8}
 .agenda-event.owner-chris.conflict:not(.shared){border-color:#a85fbd}
 .agenda-event.owner-juan.conflict:not(.shared){border-color:#49a985}
