@@ -138,7 +138,16 @@ export function diffTicketedPlayInventory(previous = [], current = []) {
     // A fresh durable cache must surface already-explicit sellouts once. Other
     // newly discovered listings are baseline context, not availability news.
     if (!before && event.availability !== 'sold_out') return []
-    if (before?.availability === event.availability) return []
+    if (before?.availability === event.availability) {
+      const soldOutTextDisappeared = event.availability === 'sold_out'
+        && before?.availabilityEvidence?.kind === 'explicit_text'
+        && event.availabilityEvidence?.kind === 'missing_registration_control'
+      if (!soldOutTextDisappeared) return []
+      return [{
+        kind: 'availability_transition', sourceEventKey: event.sourceEventKey, eventId: event.id,
+        previousAvailability: 'sold_out', availability: 'potential_opening', event,
+      }]
+    }
     return [{
       kind: 'availability_transition',
       sourceEventKey: event.sourceEventKey,
@@ -165,18 +174,19 @@ export function routeTicketedPlayAvailabilityTransitions(transitions, { selectio
   const rows = []
   const fingerprint = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex')
   const watches = new Map(availabilityWatches.map(watch => [String(watch.sourceEventKey), watch]))
-  const reopened = transitions.filter(item => ['available', 'waitlist'].includes(item.availability) && watches.has(String(item.sourceEventKey)))
+  const reopened = transitions.filter(item => ['available', 'waitlist', 'potential_opening'].includes(item.availability) && watches.has(String(item.sourceEventKey)))
   for (const item of reopened) {
     const watch = watches.get(String(item.sourceEventKey))
     const purchaseReady = item.availability === 'available'
+    const waitlistReady = item.availability === 'waitlist'
     rows.push({
       fingerprint: fingerprint({ kind: 'ticketed_play_watched_reopened', sourceEventKey: item.sourceEventKey, availability: item.availability }),
       source_id: 'atlanta-ticketed-play-inventory',
       source_label: 'MagicCon Atlanta Ticketed Play registration',
       source_url: watch.registrationUrl || item.event.sourceUrl,
       destination: 'Inbox',
-      title: purchaseReady ? `${item.event.title} is available again` : `${item.event.title} has a waitlist`,
-      summary: purchaseReady ? 'A purchase spot appears to be open. Act quickly if Juan still wants to join.' : 'The sold-out event now offers a waitlist. Join it if Juan still wants a spot.',
+      title: purchaseReady ? `${item.event.title} is available again` : waitlistReady ? `${item.event.title} has a waitlist` : `${item.event.title} may be opening`,
+      summary: purchaseReady ? 'A purchase spot appears to be open. Act quickly if Juan still wants to join.' : waitlistReady ? 'The sold-out event now offers a waitlist. Join it if Juan still wants a spot.' : 'The SOLD OUT label disappeared, but a purchase control was not confirmed. Check the registration page now.',
       status: 'unread',
       evidence: {
         intake_kind: 'ticketed_play_inventory', transition: 'reopened', availability: item.availability,

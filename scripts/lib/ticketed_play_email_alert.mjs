@@ -1,4 +1,4 @@
-const ALERTABLE_STATES = new Set(['available', 'waitlist'])
+const ALERTABLE_STATES = new Set(['available', 'waitlist', 'potential_opening'])
 const VERIFIED_DISPOSITIONS = new Set(['canonical_update', 'routed_signal', 'retained_evidence'])
 
 export function planTicketedPlayAvailabilityEmail(report, closureManifest) {
@@ -17,7 +17,8 @@ export function planTicketedPlayAvailabilityEmail(report, closureManifest) {
       const watch = watches.get(String(transition.sourceEventKey))
       if (!watch || !ALERTABLE_STATES.has(transition.availability)) continue
       const isAvailable = transition.availability === 'available'
-      const stateLabel = isAvailable ? 'available again' : 'accepting a waitlist'
+      const isWaitlist = transition.availability === 'waitlist'
+      const stateLabel = isAvailable ? 'available again' : isWaitlist ? 'accepting a waitlist' : 'possibly opening'
       const registrationUrl = watch.registrationUrl || transition.event?.sourceUrl
       return {
         alertKey: `ticketed-play:${transition.sourceEventKey}:${transition.availability}:${report.checkedAt}`,
@@ -25,7 +26,7 @@ export function planTicketedPlayAvailabilityEmail(report, closureManifest) {
         text: [
           `${watch.title} is ${stateLabel}.`,
           '',
-          isAvailable ? 'A purchase spot appears to be open. Act quickly if Juan still wants to join.' : 'The event now offers a waitlist. Join it if Juan still wants a spot.',
+          isAvailable ? 'A purchase spot appears to be open. Act quickly if Juan still wants to join.' : isWaitlist ? 'The event now offers a waitlist. Join it if Juan still wants a spot.' : 'The SOLD OUT label disappeared, but a purchase control was not confirmed. Check the registration page now.',
           '',
           registrationUrl,
           '',

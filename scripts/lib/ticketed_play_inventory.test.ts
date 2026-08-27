@@ -103,4 +103,13 @@ describe('LEAP Ticketed Play inventory', () => {
     expect(routeTicketedPlaySoldOutTransitions(transition('unknown'), { availabilityWatches: [watch] })).toEqual([])
     expect(routeTicketedPlaySoldOutTransitions(transition('available'), { availabilityWatches: [{ sourceEventKey: 'other', emailAlert: true }] })).toEqual([])
   })
+
+  it('surfaces a watched potential opening when explicit SOLD OUT text disappears', () => {
+    const before = [{ id: 'ticketed-944127', sourceEventKey: '944127', title: 'Magic: The Menu', availability: 'sold_out', availabilityEvidence: { kind: 'explicit_text' } }]
+    const after = [{ ...before[0], availabilityEvidence: { kind: 'missing_registration_control' } }]
+    const transitions = diffTicketedPlayInventory(before, after)
+    expect(transitions).toMatchObject([{ availability: 'potential_opening', previousAvailability: 'sold_out' }])
+    const rows = routeTicketedPlaySoldOutTransitions(transitions, { availabilityWatches: [{ sourceEventKey: '944127', emailAlert: true }] })
+    expect(rows[0]).toMatchObject({ destination: 'Inbox', title: 'Magic: The Menu may be opening' })
+  })
 })

@@ -10,6 +10,8 @@ describe('ticketed play source availability', () => {
   it('requires an active purchase control before calling a listing available', () => {
     expect(inferTicketedPlayAvailability({ title: 'Mystery Sealed - $100' })).toBe('unknown')
     expect(inferTicketedPlayAvailability({ controls: [{ text: 'Buy Tickets', disabled: false }] })).toBe('available')
+    expect(inferTicketedPlayAvailability({ controls: [{ text: '+ $185.00 Required', disabled: false }] })).toBe('available')
     expect(inferTicketedPlayAvailability({ controls: [{ text: 'Register', disabled: true }] })).toBe('unavailable')
+    expect(inferTicketedPlayAvailability({ controls: [{ text: '+ $185.00 Required', disabled: true }] })).toBe('unavailable')
   })
 })

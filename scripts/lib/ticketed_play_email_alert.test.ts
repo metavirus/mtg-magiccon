@@ -22,6 +22,12 @@ describe('watched Ticketed Play availability email', () => {
     expect(alert?.text).not.toContain('purchase spot appears')
   })
 
+  it('warns when SOLD OUT disappears before a price control can be confirmed', () => {
+    const alert = planTicketedPlayAvailabilityEmail(report('potential_opening'), closure)
+    expect(alert?.subject).toContain('possibly opening')
+    expect(alert?.text).toContain('SOLD OUT label disappeared')
+  })
+
   it('stays quiet for ambiguous, unrelated, or unverified changes', () => {
     expect(planTicketedPlayAvailabilityEmail(report('unknown'), closure)).toBeNull()
     expect(planTicketedPlayAvailabilityEmail(report('available', 'other'), closure)).toBeNull()
