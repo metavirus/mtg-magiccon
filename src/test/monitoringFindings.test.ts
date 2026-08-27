@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
+import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingMayBypassConceptReadModel, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
 
 const finding = (overrides: Partial<MonitoringFindingRow> = {}): MonitoringFindingRow => ({
   id: 'finding', fingerprint: 'a'.repeat(64), source_id: 'source', source_label: 'Official source', source_url: 'https://example.com/very/long/source/url', destination: 'Home', title: 'New official links', summary: 'Summary', review_question: 'Add the links?', evidence: {}, status: 'needs_review', decision: null, first_seen_at: '2026-08-21T20:00:00.000Z', last_seen_at: '2026-08-21T20:00:00.000Z', occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null, ...overrides,
@@ -106,6 +106,19 @@ describe('monitoring finding decisions', () => {
     expect(findingIsHomeWorthy(finding({
       destination: 'Activity', status: 'completed', decision: 'yes', action_type: 'publish_official_links_alert', action_payload: { links: [] }, rollback_payload: { operation: 'remove' }, execution_status: 'completed',
     }))).toBe(false)
+  })
+
+  it('keeps raw unmapped Home deltas behind the concept read model', () => {
+    expect(findingMayBypassConceptReadModel(finding({
+      destination: 'Home',
+      title: 'Ticketed Play sales milestone changed',
+      summary: 'Page text or shared navigation changed; inspect the captured source evidence before deciding.',
+    }))).toBe(false)
+    expect(findingMayBypassConceptReadModel(finding({
+      destination: 'Home',
+      evidence: { intake_kind: 'ticketed_play_inventory' },
+    }))).toBe(true)
+    expect(findingMayBypassConceptReadModel(finding({ destination: 'Inbox' }))).toBe(true)
   })
 
   it('returns only concise labeled HTTPS official resources', () => {

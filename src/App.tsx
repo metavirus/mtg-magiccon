@@ -9,7 +9,7 @@ import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
-import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingIsInformational, findingNeedsKaviAction, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
+import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingIsInformational, findingMayBypassConceptReadModel, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import { infoTopicForFeed, loadInfoKnowledge, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
 import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
@@ -1570,11 +1570,7 @@ export default function App() {
   }})
   // Raw source-diff findings are internal evidence. Only a genuinely mapped
   // canonical action may bypass the concept read model during rollout.
-  const actionableFindingActivity = findingActivity.filter(item => item.monitoringFinding && (
-    ['Home', 'Inbox'].includes(item.monitoringFinding.destination)
-    || findingNeedsKaviAction(item.monitoringFinding)
-    || (item.monitoringFinding.status === 'deferred' && findingIsChoiceResolution(item.monitoringFinding))
-  ))
+  const actionableFindingActivity = findingActivity.filter(item => item.monitoringFinding && findingMayBypassConceptReadModel(item.monitoringFinding))
   const monitoringActivity = coalesceMonitoringConcepts(conceptActivity, [...actionableFindingActivity, ...monitorActivity])
   const activityItems = [...generatedActivity, ...noteActivity, ...monitoringActivity].filter(shouldShowActivityItem).sort((a, b) => {
     const severityRank = { hot: 0, notice: 1, quiet: 2 } as const

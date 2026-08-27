@@ -213,6 +213,13 @@ export function findingIsHomeWorthy(finding: MonitoringFindingRow) {
   return findingNeedsKaviAction(finding)
 }
 
+export function findingMayBypassConceptReadModel(finding: MonitoringFindingRow) {
+  if (finding.destination === 'Inbox') return true
+  if (finding.evidence.intake_kind === 'ticketed_play_inventory') return true
+  if (findingNeedsKaviAction(finding)) return true
+  return finding.status === 'deferred' && findingIsChoiceResolution(finding)
+}
+
 export function findingExecutionDetail(finding: MonitoringFindingRow) {
   if (finding.execution_status === 'queued') return 'Approved and queued for bounded execution.'
   if (finding.execution_status === 'executing') return 'Applying the approved change and running its checks.'
