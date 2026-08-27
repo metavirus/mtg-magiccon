@@ -17,7 +17,7 @@ import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
-import { mergeHomeSoldOutEvents, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
+import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import {
@@ -1520,22 +1520,10 @@ export default function App() {
           return [{ title: event.title, day: event.day, startsAt: event.startsAt, people: Array.isArray(event.people) ? event.people.filter(person => typeof person === 'string') : [] }]
         })
       : []
-    const ticketedEventsByDay = ticketedEvents.reduce<Record<string, typeof ticketedEvents>>((groups, event) => {
-      const day = String(event.day ?? '')
-      groups[day] = [...(groups[day] ?? []), event]
-      return groups
-    }, {})
-    const ticketedDayFacts = Object.entries(ticketedEventsByDay).sort(([left], [right]) => left.localeCompare(right)).map(([day, events]) => ({
-      label: new Date(`${day}T12:00:00`).toLocaleDateString([], { weekday: 'long' }),
-      value: events.map(event => {
-        const [hour = '0', minute = '00'] = String(event.startsAt ?? '').split(':')
-        const time = new Date(2000, 0, 1, Number(hour), Number(minute)).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-        return `${time} · ${event.title}`
-      }).join('\n'),
-    }))
+    const ticketedDayGroups = groupHomeSoldOutEventsByDay([ticketedEvents])
     const ticketedOverlap = ticketedEvents.some(event => event.people.length > 0)
     const ticketedSummary = ticketedInventory && ticketedEvents.length
-      ? `${ticketedEvents.length} events sold out across ${ticketedDayFacts.map(fact => fact.label).join(', ')}.${ticketedOverlap ? ' One or more overlap saved plans.' : " None overlap anyone's saved plans."}`
+      ? `${ticketedEvents.length} events sold out across ${ticketedDayGroups.map(group => formatTicketedDay(group.day, false)).join(', ')}.${ticketedOverlap ? ' One or more overlap saved plans.' : " None overlap anyone's saved plans."}`
       : findingDisplaySummary(finding)
     return {
     id: `finding-${finding.id}`,
@@ -1561,13 +1549,17 @@ export default function App() {
       kindLabel: ticketedInventory ? 'Sold out' : undefined,
       title: finding.title,
       summary: ticketedSummary,
-      facts: ticketedInventory ? ticketedDayFacts : [
+      facts: ticketedInventory ? [
+        { label: 'Events', value: String(ticketedEvents.length) },
+        { label: 'Days', value: ticketedDayGroups.map(group => formatTicketedDay(group.day, false)).join(', ') },
+      ] : [
         { label: informational ? 'Status' : 'Decision', value: findingReviewLabel(finding) },
         { label: 'First seen', value: new Date(finding.first_seen_at).toLocaleString() },
         { label: 'Last seen', value: new Date(finding.last_seen_at).toLocaleString() },
         { label: 'Repeated', value: `${finding.occurrence_count} observation${finding.occurrence_count === 1 ? '' : 's'}` },
         ...(finding.executed_at ? [{ label: 'Executed', value: new Date(finding.executed_at).toLocaleString() }] : []),
       ],
+      soldOutEvents: ticketedInventory ? ticketedEvents : undefined,
       source: { label: finding.source_label, value: finding.source_url },
       links: resources,
       rationale: ticketedInventory ? 'These events are no longer purchasable. The grouped list keeps the change visible without flooding Home with one alert per event.' : informational ? 'Use the labeled official resources below; no app data changes are waiting for approval.' : findingExecutionDetail(finding),
@@ -2622,6 +2614,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
     }
   }, [detail])
   if (!detail) return null
+  const soldOutListSpansDays = new Set(detail.soldOutEvents?.map(event => event.day)).size > 1
   return <div className={`object-detail-backdrop ${detail.reader ? 'info-reader-backdrop' : ''}`} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind} ${detail.reader ? 'object-detail-reader' : ''}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
       <button className={`detail-close persistent-detail-close ${detail.reader ? 'reader-close-sticky' : 'object-detail-close'}`} type="button" onClick={onClose} aria-label={detail.reader ? 'Close article' : 'Close detail'}>×</button>
@@ -2647,6 +2640,16 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, onAddNote, onDeleteN
           ? <button key={`${fact.label}-${fact.value}`} type="button" className="object-fact object-fact-link" onClick={() => onOpenObject(fact.detail!)}><span>{fact.label}</span><strong>{fact.value}</strong><b aria-hidden="true">›</b></button>
           : <div key={`${fact.label}-${fact.value}`} className="object-fact"><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div>
       </section>}
+      {detail.soldOutEvents?.length ? <section className="object-detail-section sold-out-events-section">
+        <h3>Sold-out events</h3>
+        <ol className="sold-out-event-list">
+          {detail.soldOutEvents.map(event => <li key={event.sourceEventKey || event.eventId || `${event.day}-${event.startsAt}-${event.title}`} className="sold-out-event-row">
+            <time dateTime={`${event.day}T${event.startsAt}`}>{formatTicketedTime(event.startsAt)}</time>
+            <div><strong>{event.title}</strong>{soldOutListSpansDays && <small>{formatTicketedDay(event.day, true)}</small>}</div>
+            {event.people.length > 0 && <PersonBubbles people={event.people as PersonName[]} />}
+          </li>)}
+        </ol>
+      </section> : null}
       {detail.rationale && <section className="object-detail-section">
         <h3>{detail.rationaleLabel ?? 'Why it matters'}</h3>
         <p>{renderLinkedText(detail.rationale)}</p>
@@ -2734,6 +2737,7 @@ type ObjectDetail = {
   focusedNoteId?: string
   objectAnchor?: string
   facts?: Array<{ label: string; value: string; detail?: ObjectDetail }>
+  soldOutEvents?: HomeSoldOutEvent[]
   source?: { label: string; value: string }
   links?: MonitoringOfficialResource[]
   rationale?: string
@@ -6253,42 +6257,52 @@ function homeSoldOutEvents(item: ActivityItem): HomeSoldOutEvent[] {
 
 function groupHomeSoldOutSignals(items: ActivityItem[]) {
   const soldOutSignals = items.filter(item => homeSoldOutEvents(item).length > 0)
-  if (soldOutSignals.length <= 1) return items
+  if (soldOutSignals.length === 0) return items
 
-  const events = mergeHomeSoldOutEvents(soldOutSignals.map(homeSoldOutEvents))
+  const dayGroups = groupHomeSoldOutEventsByDay(soldOutSignals.map(homeSoldOutEvents))
   const latest = [...soldOutSignals].sort((left, right) => new Date(right.checkedAtIso).getTime() - new Date(left.checkedAtIso).getTime())[0]
-  const eventsByDay = events.reduce<Record<string, HomeSoldOutEvent[]>>((groups, event) => {
-    groups[event.day] = [...(groups[event.day] ?? []), event]
-    return groups
-  }, {})
-  const dayFacts = Object.entries(eventsByDay).sort(([left], [right]) => left.localeCompare(right)).map(([day, dayEvents]) => ({
-    label: new Date(`${day}T12:00:00`).toLocaleDateString([], { weekday: 'long' }),
-    value: dayEvents.map(event => {
-      const [hour = '0', minute = '00'] = event.startsAt.split(':')
-      const time = new Date(2000, 0, 1, Number(hour), Number(minute)).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-      return `${time} · ${event.title}`
-    }).join('\n'),
-  }))
-  const overlap = events.some(event => event.people.length > 0)
-  const title = `${events.length} Ticketed Play ${events.length === 1 ? 'event is' : 'events are'} sold out`
-  const summary = `${events.length} events sold out across ${dayFacts.map(fact => fact.label).join(', ')}.${overlap ? ' One or more overlap saved plans.' : " None overlap anyone's saved plans."}`
-  const grouped: ActivityItem = {
-    ...latest,
-    id: 'home-ticketed-play-sold-out',
-    title,
-    summary,
-    severity: soldOutSignals.some(item => item.severity === 'hot') ? 'hot' : 'notice',
-    reviewState: soldOutSignals.some(item => item.reviewState === 'needs-review') ? 'needs-review' : latest.reviewState,
-    objectDetail: {
-      ...latest.objectDetail,
-      id: 'home-ticketed-play-sold-out-detail',
+  const grouped = dayGroups.map(({ day, events }) => {
+    const dayLabel = formatTicketedDay(day, false)
+    const dayLongLabel = formatTicketedDay(day, true)
+    const overlapCount = events.filter(event => event.people.length > 0).length
+    const title = `${events.length} ${dayLabel} Ticketed Play ${events.length === 1 ? 'event is' : 'events are'} sold out`
+    const timeRange = events.length === 1
+      ? formatTicketedTime(events[0].startsAt)
+      : `${formatTicketedTime(events[0].startsAt)}–${formatTicketedTime(events.at(-1)!.startsAt)}`
+    const summary = `${timeRange} · ${overlapCount ? `${overlapCount} saved ${overlapCount === 1 ? 'plan' : 'plans'} affected` : 'No saved plans affected'}`
+    return {
+      ...latest,
+      id: `home-ticketed-play-sold-out-${day}`,
       title,
       summary,
-      facts: dayFacts,
-      rationale: 'Sold-out observations are merged across survey runs and deduplicated by event so Home carries one current availability signal.',
-    },
-  }
-  return [...items.filter(item => !soldOutSignals.includes(item)), grouped]
+      severity: soldOutSignals.some(item => item.severity === 'hot') ? 'hot' as const : 'notice' as const,
+      reviewState: soldOutSignals.some(item => item.reviewState === 'needs-review') ? 'needs-review' as const : latest.reviewState,
+      objectDetail: {
+        ...latest.objectDetail,
+        id: `home-ticketed-play-sold-out-${day}-detail`,
+        title: `${dayLabel} sold-out Ticketed Play`,
+        summary: `${events.length} sold-out ${events.length === 1 ? 'event' : 'events'} on ${dayLongLabel}.`,
+        facts: [
+          { label: 'Events', value: String(events.length) },
+          { label: 'Saved plans affected', value: String(overlapCount) },
+        ],
+        soldOutEvents: events,
+        rationale: 'Sold-out observations are merged across survey runs, deduplicated by event, and grouped by convention day.',
+      },
+    }
+  })
+  return [...items.filter(item => !soldOutSignals.includes(item)), ...grouped]
+}
+
+function formatTicketedTime(startsAt: string) {
+  const [hour = '0', minute = '00'] = startsAt.split(':')
+  return new Date(2000, 0, 1, Number(hour), Number(minute)).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+}
+
+function formatTicketedDay(day: string, includeDate: boolean) {
+  return new Date(`${day}T12:00:00`).toLocaleDateString([], includeDate
+    ? { weekday: 'long', month: 'long', day: 'numeric' }
+    : { weekday: 'long' })
 }
 
 function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenItem, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; currentPerson: PersonName; onOpenPlan: () => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {

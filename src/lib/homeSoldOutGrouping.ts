@@ -18,3 +18,11 @@ export function mergeHomeSoldOutEvents(batches: HomeSoldOutEvent[][]) {
   }
   return [...events.values()].sort((left, right) => `${left.day}T${left.startsAt}`.localeCompare(`${right.day}T${right.startsAt}`))
 }
+
+export function groupHomeSoldOutEventsByDay(batches: HomeSoldOutEvent[][]) {
+  const days = new Map<string, HomeSoldOutEvent[]>()
+  for (const event of mergeHomeSoldOutEvents(batches)) {
+    days.set(event.day, [...(days.get(event.day) ?? []), event])
+  }
+  return [...days.entries()].map(([day, events]) => ({ day, events }))
+}
