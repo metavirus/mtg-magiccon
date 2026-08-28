@@ -28,6 +28,8 @@
     "monitor:verify-closure": "node scripts/verify_surveyor_closure.mjs",
     "monitor:accept-report": "node scripts/accept_monitoring_baseline.mjs",
     "intake:private-gmail": "node --use-system-ca scripts/process_private_gmail_intake.mjs",
+    "artifacts:migrate-private": "node --use-system-ca scripts/migrate_private_receipt_artifacts.mjs",
+    "artifacts:migrate-legacy-html": "node --use-system-ca scripts/migrate_legacy_receipt_html.mjs",
     "info:ingest": "node --use-system-ca scripts/ingest_info_articles.mjs",
     "info:seed-sql": "node scripts/build_info_article_seed_sql.mjs",
     "artist:seed-sql": "node scripts/build_artist_card_catalog_seed_sql.mjs",

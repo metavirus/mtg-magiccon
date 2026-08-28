@@ -1,5 +1,5 @@
 begin;
-select plan(10);
+select plan(24);
 select has_table('public', 'wallet_receipts', 'wallet_receipts exists');
 select row_security_active('public.wallet_receipts'), 'wallet_receipts RLS is active');
 select policies_are('public', 'wallet_receipts', array['owners_delete_wallet_receipts','owners_insert_wallet_receipts','owners_or_attendees_select_wallet_receipts','owners_update_wallet_receipts']);
@@ -10,5 +10,19 @@ select col_not_null('public', 'wallet_receipts', 'attendee_person_keys', 'shared
 select isnt((select with_check from pg_policies where schemaname='public' and tablename='wallet_receipts' and policyname='owners_update_wallet_receipts'), null, 'owner update has WITH CHECK');
 select col_is_unique('public', 'wallet_receipts', array['owner_id','source_system','source_message_id'], 'source messages ingest idempotently');
 select ok((select count(*) from public.wallet_receipts where receipt_type = 'ticketed_play') >= 2, 'ticketed-play receipts are hydrated');
+select has_table('public', 'receipt_artifacts', 'receipt_artifacts exists');
+select row_security_active('public.receipt_artifacts'), 'receipt_artifacts RLS is active');
+select ok((select relforcerowsecurity from pg_class where oid = 'public.receipt_artifacts'::regclass), 'receipt_artifacts RLS is forced');
+select policies_are('public', 'receipt_artifacts', array['owners_or_attendees_select_receipt_artifacts']);
+select table_privs_are('public', 'receipt_artifacts', 'anon', array[]::text[], 'anonymous users cannot access artifact manifests');
+select table_privs_are('public', 'receipt_artifacts', 'authenticated', array['SELECT'], 'authenticated users receive read-only manifest access');
+select like((select qual from pg_policies where schemaname='public' and tablename='receipt_artifacts' and policyname='owners_or_attendees_select_receipt_artifacts'), '%attendee_person_keys%', 'manifest reads are attendee-bound');
+select col_not_null('public', 'receipt_artifacts', 'sha256', 'artifact integrity hash is required');
+select col_is_unique('public', 'receipt_artifacts', array['bucket_id','object_path'], 'storage object paths are unique');
+select ok(exists(select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='authorized_receipt_artifact_downloads' and roles = '{authenticated}'), 'private object download policy is authenticated-only');
+select like((select qual from pg_policies where schemaname='storage' and tablename='objects' and policyname='authorized_receipt_artifact_downloads'), '%private-receipt-artifacts%', 'object downloads are restricted to the private receipt bucket');
+select is((select count(*) from pg_policies where schemaname='storage' and tablename='objects' and policyname like '%receipt_artifact%' and cmd <> 'SELECT'), 0::bigint, 'normal clients have no receipt artifact write policy');
+select ok(exists(select 1 from public.wallet_receipts where id = md5('magiccon:wallet_receipt:gmail_legacy_capture:1868171070359890707')::uuid and attendee_person_keys = array['kavi','chris']::text[] and original_html is null), 'Black Lotus legacy bundle has a deterministic attendee-bound receipt');
+select ok(exists(select 1 from public.wallet_receipts where id = md5('magiccon:wallet_receipt:gmail_legacy_capture:1868173301829594110')::uuid and attendee_person_keys = array['juan']::text[] and original_html is null), 'Juan legacy bundle has a deterministic attendee-bound receipt');
 select * from finish();
 rollback;
