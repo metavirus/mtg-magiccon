@@ -20,6 +20,7 @@ describe('one-time private receipt migration lane', () => {
     expect(workflow).toContain('verify_private_receipt_migration.mjs --preflight')
     expect(workflow).toContain('verify_private_receipt_migration.mjs --complete')
     expect(workflow).not.toContain('upload-artifact')
+    expect(readFileSync(join(process.cwd(), 'scripts/verify_private_receipt_migration.mjs'), 'utf8')).toContain("'application/json'")
   })
 
   it('preserves legacy HTML until downloaded checksum proof and compensates new receipt failure', () => {

@@ -4,6 +4,8 @@ import { expectedLegacyObjectPaths, LEGACY_BADGE_RECEIPTS, RECEIPT_MIGRATION_MAR
 
 const PROJECT_REF = 'pavjsexxbueuzhzgemgy'
 const BUCKET = 'private-receipt-artifacts'
+const MAX_BYTES = 10 * 1024 * 1024
+const BUCKET_MIME_TYPES = ['image/png', 'image/jpeg', 'application/pdf', 'text/html', 'application/json']
 const isMissing = error => Boolean(error) && (error.status === 404 || error.statusCode === '404' || /not found/i.test(error.message ?? ''))
 const mode = process.argv[2]
 if (!['--preflight', '--complete'].includes(mode)) throw new Error('Use --preflight or --complete.')
@@ -49,6 +51,8 @@ for (const row of manifests.data ?? []) {
 }
 
 const markerBody = Buffer.from(JSON.stringify({ migration: 'private-receipts-cd84772', completedAt: new Date().toISOString(), artifactCount: manifests.data?.length ?? 0, legacyHtmlRemaining: 0 }))
+const bucketUpdated = await client.storage.updateBucket(BUCKET, { public: false, fileSizeLimit: MAX_BYTES, allowedMimeTypes: BUCKET_MIME_TYPES })
+if (bucketUpdated.error) throw bucketUpdated.error
 const marked = await client.storage.from(BUCKET).upload(RECEIPT_MIGRATION_MARKER, markerBody, { contentType: 'application/json', upsert: false })
 if (marked.error) throw marked.error
 console.log(JSON.stringify({ status: 'complete', artifactCount: manifests.data?.length ?? 0, legacyHtmlRemaining: 0, marker: RECEIPT_MIGRATION_MARKER }))
