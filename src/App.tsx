@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { retryOnceAfterUnauthorized } from './lib/sessionRefreshRetry'
 import { NavIcon, type NavIconName } from './NavIcon'
+import { activityDestination, mobileDrawerDestinations, navigationDestination, primaryDestinations, surfaces, type Surface } from './lib/navigation'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
 import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
@@ -629,10 +630,6 @@ function isExploreState(value: unknown): value is ExploreState {
   return ['none', 'interested', 'tentative', 'committed', 'hidden', 'nope'].includes(String(value))
 }
 
-type Surface = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'info' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity'
-
-const surfaces: Surface[] = ['home', 'calendar', 'plan', 'explore', 'map', 'info', 'wallet', 'trip', 'artists', 'notes', 'activity']
-
 export function surfaceFromHash(hash: string): Surface {
   const candidate = hashPath(hash)
   return surfaces.includes(candidate as Surface) ? candidate as Surface : 'home'
@@ -641,19 +638,6 @@ export function surfaceFromHash(hash: string): Surface {
 function hashForSurface(next: Surface) {
   return next === 'home' ? '' : `#${next}`
 }
-
-const destinations = [
-  { name: 'Home', icon: 'home' as NavIconName, surface: 'home' as Surface },
-  { name: 'Explore', icon: 'explore' as NavIconName, surface: 'explore' as Surface },
-  { name: 'Plan', icon: 'plan' as NavIconName, surface: 'plan' as Surface },
-  { name: 'Calendar', icon: 'calendar' as NavIconName, surface: 'calendar' as Surface },
-  { name: 'Map', icon: 'map' as NavIconName, surface: 'map' as Surface },
-  { name: 'Info', icon: 'info' as NavIconName, surface: 'info' as Surface },
-  { name: 'Wallet', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
-  { name: 'Trip', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
-  { name: 'Artists', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
-  { name: 'Notes', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
-]
 
 export default function App() {
   const designPreview = resolveDesignPreviewMode({
@@ -1695,6 +1679,14 @@ export default function App() {
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
   const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
   const headerSubtitle = surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
+  const homeDestination = navigationDestination('home')
+  const mapDestination = navigationDestination('map')
+  const infoDestination = navigationDestination('info')
+  const mobileDrawerItems = mobileNavMenu === 'events'
+    ? mobileDrawerDestinations('events')
+    : mobileNavMenu === 'more'
+      ? mobileDrawerDestinations('more')
+      : primaryDestinations
 
   return <div className="app-shell" style={desktopRailLocked ? { display: 'block', minHeight: '100vh' } : undefined}>
     <aside className="rail" data-tour-target="main-navigation" style={desktopRailLocked ? {
@@ -1713,7 +1705,7 @@ export default function App() {
         <img src={assetUrl('magiccon-atlanta-peach.png')} alt="" />
       </button>
       <nav className="desktop-primary-nav" aria-label="Primary navigation">
-        {destinations.map(destination => <button
+        {primaryDestinations.map(destination => <button
           key={destination.name}
           type="button"
           data-tour-target={`nav-${destination.surface}`}
@@ -1724,10 +1716,10 @@ export default function App() {
         ><span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}</button>)}
       </nav>
       <nav className="mobile-primary-nav" aria-label="Mobile primary navigation">
-        <button className={surface === 'home' ? 'active' : ''} type="button" onClick={() => openDestination('Home', 'home')}><span aria-hidden="true"><NavIcon name="home" /></span>Home</button>
+        <button className={surface === homeDestination.surface ? 'active' : ''} type="button" onClick={() => openDestination(homeDestination.name, homeDestination.surface)}><span aria-hidden="true"><NavIcon name={homeDestination.icon} /></span>{homeDestination.name}</button>
         <button className={['calendar', 'plan', 'explore'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'events'} onClick={() => setMobileNavMenu(menu => menu === 'events' ? null : 'events')}><span aria-hidden="true"><NavIcon name="calendar" /></span>Events</button>
-        <button className={surface === 'map' ? 'active' : ''} type="button" data-tour-target="nav-map" onClick={() => openDestination('Map', 'map')}><span aria-hidden="true"><NavIcon name="map" /></span>Map</button>
-        <button className={surface === 'info' ? 'active' : ''} type="button" onClick={() => openDestination('Info', 'info')}><span aria-hidden="true"><NavIcon name="info" /></span>Info</button>
+        <button className={surface === mapDestination.surface ? 'active' : ''} type="button" data-tour-target="nav-map" onClick={() => openDestination(mapDestination.name, mapDestination.surface)}><span aria-hidden="true"><NavIcon name={mapDestination.icon} /></span>{mapDestination.name}</button>
+        <button className={surface === infoDestination.surface ? 'active' : ''} type="button" onClick={() => openDestination(infoDestination.name, infoDestination.surface)}><span aria-hidden="true"><NavIcon name={infoDestination.icon} /></span>{infoDestination.name}</button>
         <button className={['wallet', 'trip', 'artists', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
       </nav>
       <div className="rail-bottom">
@@ -1747,28 +1739,17 @@ export default function App() {
           </header>
           : <header><span className="eyebrow">{mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>}
         <div className={mobileNavMenu === 'main' ? 'mobile-drawer-nav mobile-drawer-nav-main' : undefined}>
-          {(mobileNavMenu === 'main' ? destinations : mobileNavMenu === 'events' ? destinations
-            .filter(destination => ['explore', 'plan', 'calendar'].includes(destination.surface))
-            .map(destination => ({
-              ...destination,
-              note: destination.surface === 'explore' ? 'Discover' : destination.surface === 'plan' ? 'Compare' : 'Agenda',
-            })) : [
-            { name: 'Wallet', note: 'Passes & Prize Tix', icon: 'wallet' as NavIconName, surface: 'wallet' as Surface },
-            { name: 'Trip', note: 'Hotels & flights', icon: 'trip' as NavIconName, surface: 'trip' as Surface },
-            { name: 'Artists', note: 'Historical seeds', icon: 'artists' as NavIconName, surface: 'artists' as Surface },
-            { name: 'Notes', note: 'In context', icon: 'notes' as NavIconName, surface: 'notes' as Surface },
-            { name: 'Activity', note: 'Signals & changes', icon: 'activity' as NavIconName, surface: 'activity' as Surface },
-          ]).map(destination => mobileNavMenu === 'main'
+          {mobileDrawerItems.map(destination => mobileNavMenu === 'main'
             ? <button key={destination.surface} type="button" data-tour-target={`mobile-nav-${destination.surface}`} className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
               <span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}
             </button>
             : <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
-              <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{(destination as { note?: string }).note ?? ''}</small><b aria-hidden="true">›</b>
+              <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{destination.mobileNote ?? ''}</small><b aria-hidden="true">›</b>
             </button>)}
         </div>
         {mobileNavMenu === 'main' && <footer className="mobile-drawer-foot">
-          <button className={`mobile-drawer-activity ${surface === 'activity' ? 'active' : ''}`} data-tour-target="mobile-nav-activity" type="button" onClick={() => openDestination('Activity', 'activity')}>
-            <span aria-hidden="true"><NavIcon name="activity" /></span>Activity
+          <button className={`mobile-drawer-activity ${surface === activityDestination.surface ? 'active' : ''}`} data-tour-target="mobile-nav-activity" type="button" onClick={() => openDestination(activityDestination.name, activityDestination.surface)}>
+            <span aria-hidden="true"><NavIcon name={activityDestination.icon} /></span>{activityDestination.name}
             {mentionUnreadCount > 0 && <b className="nav-count-badge">{mentionUnreadCount > 9 ? '9+' : mentionUnreadCount}</b>}
           </button>
           <small>Last checked<br /><strong>{lastChecked}</strong></small>
