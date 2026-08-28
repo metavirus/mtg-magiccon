@@ -143,7 +143,7 @@ Examples:
 
 The deployed preview is trustworthy enough for review:
 
-- mobile navigation is grouped into Home / Events / Map / Wallet / More;
+- mobile navigation is grouped into Home / Events / Map / Info / More, with Wallet in the compact More drawer;
 - Activity is a review inbox rather than a placeholder log;
 - Home carries rare signals without becoming noisy;
 - Plan-lite uses known Black Lotus anchors and promoted contenders;

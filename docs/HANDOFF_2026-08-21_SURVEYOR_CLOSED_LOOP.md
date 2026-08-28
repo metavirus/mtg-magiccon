@@ -2,6 +2,8 @@
 
 Updated: 2026-08-21
 
+Status: closed historical recovery record. Current agent lifecycle, delegation, integration, and publication rules live in `AGENTS.md`, `docs/REPO_OPERATING_CONTRACT.md`, and `docs/ANTI_WASTE_OPERATING_MODE.md`; any stronger imperative or next-step wording below is superseded.
+
 ## Product correction — informational findings are not actions
 
 This section supersedes the older official-links approval language below. The Magic Play link appearance is useful source evidence already visible in Activity; it must not ask Kavi to approve publishing a duplicate Activity alert. Official-link findings use `unread`, `read`, and `archived` review state, preserve labeled links in evidence, carry no action mapping or decision audit, and never mutate canonical facts. The specific official-links executor/RPC is retired. Consequence-aware authorization remains available only for future findings with a separate, real canonical effect. No baseline was accepted.
@@ -35,7 +37,7 @@ Live proof: hosted migration `20260821202823` preserved the workflow row's finge
 
 Continue from `C:\Users\kavig\Documents\Codex\mtg-magiccon`. Read `AGENTS.md`, the operating contract/gremlins/anti-waste docs, `README.md`, `docs/PROJECT_CONTEXT.md`, `CURRENT_FRONTIER.md`, and `docs/WORK_BACKLOG.md`. Treat this file as the exact recovery checkpoint for the uncommitted surveyor tranche.
 
-Before implementation, identify the bounded tranches and which are independently delegable. Every large independent tranche must go to a narrow subagent; the root chat coordinates, makes cross-tranche decisions, integrates, verifies the whole, and updates durable state. Do not load database, workflow, UI, documentation, and publication work into one chat again. Never silently downgrade a requested capability or absorb a delegable large tranche into the root chat. If delegation is unavailable, blocked by a higher-priority instruction, or unsafe because work is tightly coupled, disclose that before implementation and obtain Kavi's explicit approval before proceeding serially.
+Before implementation, identify whether one substantial, independently verifiable compartment should move early to a fresh cohesive worker to protect root context. Small or tightly coupled work stays in root without ceremony. Root preserves user/product continuity, coordinates, integrates, verifies the whole, and updates durable state; it does not duplicate a compartment it deliberately delegated. Use a narrow task packet and compact evidence-backed return. Sustained duration warns that separation may help, but is not a rigid dispatch threshold.
 
 ## User working contract
 
@@ -144,8 +146,8 @@ No monitoring baseline was accepted or modified. Do not run `pnpm monitor:accept
 1. The first handoff said `pnpm monitor`, but the repository exposed only `monitor:check`. The failed command was process-owned. Prevention: `pnpm monitor` is now a tested alias.
 2. The first database readback queried nonexistent `pg_tables.forcerowsecurity`. The corrected proof uses `pg_class.relforcerowsecurity`; schema/public state was unaffected.
 3. The two local migration filenames initially did not match hosted versions assigned by the apply tool. Prevention: filenames were renamed to hosted versions and readiness was rerun successfully.
-4. The root chat consumed excessive context despite Kavi explicitly asking for discrete dispatches. Prevention: the collaboration rule is now in `AGENTS.md`; this documentation audit itself used two narrow read-only subagents.
-5. The prevention rule is now strengthened across `AGENTS.md`, the repo operating contract, anti-waste lane selection, and the compaction gremlin: pre-identify large chunks, delegate every independent large tranche, and never silently downgrade to root execution.
+4. The root chat consumed excessive context despite Kavi explicitly asking for discrete dispatches. Prevention: the collaboration rule is now in `AGENTS.md`; anticipate context pressure and separate one substantial independently verifiable compartment early when useful.
+5. The prevention rule is now strengthened across `AGENTS.md`, the repo operating contract, anti-waste lane selection, and the compaction gremlin: use no ceremonial agents, preserve user/product continuity in root, give justified workers narrow packets, require compact evidence returns, and do not duplicate delegated work.
 
 ## Critical product correction — avoid approval purgatory
 
@@ -191,7 +193,7 @@ Dispatch this as a narrow operational task rather than doing it inline with unre
 2. Have Kavi configure `SUPABASE_SECRET_KEY` in GitHub Actions without sharing the value in chat.
 3. Run `Daily MagicCon surveyor` manually.
 4. Prove the workflow is green and stages/deduplicates a candidate. Repeating the same report must update the existing fingerprint/occurrence count, not create inbox spam.
-5. Design and implement the consequence-aware action router above in separately delegated database, execution, and UI/proof tranches; do not preserve generic Yes→stage as the final workflow.
+5. Design and implement the consequence-aware action router above as one cohesive compartment where practical; split only genuinely independent work when it materially protects context or elapsed time. Do not preserve generic Yes→stage as the final workflow.
 6. Read back the row/action audit and re-prove Kavi/non-Kavi RLS after schema/script changes.
 7. Run tests, build, monitoring/text/secret validation, readiness, advisors, and desktop/mobile Home/Activity captures.
 8. Review the complete diff. Then commit/push through the documented lane, wait for Pages, run `pnpm verify:public`, and visually inspect the deployed Kavi flow.

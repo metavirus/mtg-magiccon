@@ -1,6 +1,6 @@
 # Repo Operating Contract
 
-Updated: 2026-08-21
+Updated: 2026-08-28
 
 This is a small personal MagicCon companion app, not an enterprise deployment program. Optimize for fast useful iteration, honest state, low ceremony, and reliable public behavior.
 
@@ -20,15 +20,16 @@ Use this as the one canonical approval policy for repository work:
 - A request to answer, explain, review, diagnose, or plan authorizes relevant read-only inspection and reporting. Do not implement unless Kavi also asks for a change.
 - A request to change, build, fix, proceed, or resume authorizes the already-described, in-scope local edits and non-destructive local validation when the bounded outcome is clear. It does not imply that each intermediate iteration must be published. Commit/push/deploy when Kavi asks to ship/publish/live, needs public or iPhone review, the work inherently changes live automation/data/auth, or a durable shared checkpoint is needed. Natural language is sufficient; never require an exact command such as `PUSH X`.
 - Ask again only when the action becomes destructive, costly, materially scope-expanding, hard to reverse, or when credentials, auth, deploy safety, intended branch, or the exact contents to ship become ambiguous. An unrelated external write remains outside the direct-to-main exception.
-- Root keeps the trusted user authorization and owns narrow integration/publication: exact staged-scope review, risk-tier validation, commit, push, and required CI/Pages or public verification. Delegated workers normally return their bounded diff and evidence; do not create a publish-only worker or transfer push to an agent whose transcript lacks Kavi's request.
+- Root keeps the trusted user authorization, user/product continuity, and narrow integration/publication: exact staged-scope review, risk-tier validation, commit, push, and required CI/Pages or public verification. Delegated workers return their bounded diff and compact evidence; do not create a publish-only worker or transfer push to an agent whose transcript lacks Kavi's request.
 - Repository policy cannot suppress a platform permission dialog. If the platform requires approval for a specific tool action, use its scoped approval UI; do not ask Kavi to type a proxy phrase in chat.
 
 ## Agent lifecycle and capability fidelity
 
-- Use zero subagents by default for small or cohesive work. Crossing systems, surfaces, or proof lanes does not by itself justify decomposition.
-- Use one fresh cohesive worker for a substantial context compartment. Add parallel workers only when their tasks are genuinely independent and parallelism will materially save time. Explicit user delegation remains binding.
-- Root may coordinate and resolve bounded integration conflicts, and it owns exact staged review, risk-tier validation, commit, push, and required post-push verification. Root must not absorb a large implementation, research, browser-proof, or database tranche that it deliberately delegated.
-- Do not create agents merely to satisfy process lanes. Retire them at phase end or compaction instead of accumulating long-lived workers; reuse only when the existing context still exactly matches the next bounded task.
+- Use zero subagents by default for small or cohesive work. Do not create agents merely to satisfy process lanes; crossing systems, surfaces, or proof lanes does not by itself justify decomposition.
+- Anticipate context pressure before root accumulates the work. Expected sustained duration is an early warning, not a rigid timer; heavy investigation, diagnostic output, trial-and-error, or a distinct browser-proof campaign are stronger reasons to separate one substantial, independently verifiable compartment early.
+- Use one fresh cohesive worker for that compartment. Give it a narrow, limited-history packet with the objective, boundaries, relevant files, acceptance criteria, and required validation. Require a compact return covering decisions, changed files, checks, failures, and remaining uncertainty. Add parallel workers only when their tasks are genuinely independent and parallelism will materially save time. Explicit user delegation remains binding.
+- Root may coordinate and resolve bounded integration conflicts, and it owns product judgment, exact staged review, risk-tier validation, commit, push, and required post-push verification. Root must not duplicate or absorb a large implementation, research, browser-proof, or database tranche that it deliberately delegated.
+- Retire workers promptly at compartment end or compaction instead of accumulating long-lived workers; reuse only when the existing context still exactly matches the next bounded task.
 - The repo is durable memory. Update frontier/backlog or a focused handoff for material decisions and unfinished substantial work, not for trivial edits with no durable state change.
 
 ## Recurrence doctrine

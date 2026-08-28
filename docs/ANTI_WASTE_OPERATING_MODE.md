@@ -6,11 +6,11 @@ Known environment constraints are part of the operating model. Do not rediscover
 
 ## Proportional execution and root integration
 
-Use zero subagents for small or cohesive work. For substantial work that benefits from context separation, use one fresh cohesive worker; parallelize only independent tranches when doing so materially saves time. Do not split work merely because it crosses systems or proof surfaces.
+Use zero subagents for small or cohesive work, and never create one as process theater. Anticipate context pressure before root is loaded: expected sustained duration is an early warning rather than a mandatory timer, while heavy investigation, logs, trial-and-error, or a distinct browser-proof campaign are stronger signals. If one substantial compartment is independently verifiable and separation protects continuity, assign it early to one fresh cohesive worker. Parallelize only independent tranches when doing so materially saves time. Do not split work merely because it crosses systems or proof surfaces.
 
-Root keeps the trusted user authorization and owns exact staged review, tier-appropriate validation, commit, push, and required CI/Pages or public verification. Delegated workers implement or investigate their bounded tranche and return evidence. Do not create publish-only agents, and do not ask Kavi to restate an already-authorized bounded request as `PUSH X`.
+Root keeps the trusted user authorization and user/product continuity, and owns exact staged review, tier-appropriate validation, commit, push, and required CI/Pages or public verification. A delegated worker receives a narrow, limited-history packet with the objective, boundaries, relevant files, acceptance criteria, and required validation, then returns a compact evidence-backed summary of decisions, changed files, checks, failures, and uncertainty. Do not create publish-only agents, and do not ask Kavi to restate an already-authorized bounded request as `PUSH X`.
 
-Root must not absorb a large delegated implementation, research, browser-proof, or database tranche. Retire workers at phase end or compaction, and persist only material durable state before a substantial handoff.
+Root must not duplicate or absorb a large delegated implementation, research, browser-proof, or database tranche. Retire workers promptly when their compartment ends or their context compacts, and persist only material durable state before a substantial handoff.
 
 ## Anticipation standard
 

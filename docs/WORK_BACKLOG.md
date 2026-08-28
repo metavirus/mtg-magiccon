@@ -94,8 +94,8 @@ The venue-level destinations are also deliberately considered but deferred: Offi
 - [ ] Test priority mobile and desktop screen concepts against representative scenarios.
   - [x] Apply `docs/DESIGN_AUDIT_2026-08-02.md`; reconcile the resulting direction in `docs/DESIGN_BASELINE_2026-08-03.md`.
   - [x] Implement the accepted desktop shell and test one stable mobile navigation candidate against working behavior.
-  - [x] Replace the overflowing mobile destination strip with fixed Home / Events / Map / Wallet / More navigation; keep Explore / Plan / Calendar and Trip / Artists / Notes / Activity one compact drawer away.
-  - [ ] Harmonize the mobile drawers with the canonical desktop sidebar/navigation model. Explore / Plan / Calendar ordering and labeling should come from the same source as desktop so mobile is not a drifting facsimile with separate behavior.
+  - [x] Replace the overflowing mobile destination strip with fixed Home / Events / Map / Info / More navigation; keep Explore / Plan / Calendar and Wallet / Trip / Artists / Notes / Activity one compact drawer away.
+  - [x] Harmonize the mobile drawers with the canonical desktop sidebar/navigation model. `src/lib/navigation.ts` is now the single ordered source for desktop destinations, Events / More drawer membership, labels, icons, and compact mobile notes; `src/lib/navigation.test.ts` guards the shared model.
   - [x] Accept the implemented meaningful-date Calendar stream and Calendar-to-Plan handoff after live desktop and phone review.
   - [ ] Test bounded contextual find/jump and real backlinks across the proof-slice objects.
   - [x] Replace the Decide / Schedule split with one focused Plan workspace in `docs/PLAN_WORKSPACE_CONCEPT.md`.

@@ -12,15 +12,16 @@ Readiness rule: capabilities are task-specific. Check a capability only when the
 
 **Symptom:** after deliberately delegating a substantial implementation, research, browser-proof, or database tranche, root starts doing that same large tranche and context grows out of control.
 
-**Cause:** ownership of a substantial compartment became unclear. This does not include root's normal exact staged review, tier-appropriate validation, commit, push, or post-push verification.
+**Cause:** ownership of a substantial compartment became unclear, or its return contract was broad enough that root repeated the investigation. This does not include root's normal product judgment, exact staged review, tier-appropriate validation, commit, push, or post-push verification.
 
 **Do this:**
 
 - Stop duplicating the delegated tranche. Let its cohesive worker finish or, if that context is stale, retire it and dispatch one fresh worker.
 - Root may continue coordination, bounded integration decisions, exact staged review, tier-appropriate validation, commit, push, and required post-push verification.
 - Do not delegate small cohesive work or split one tightly coupled change among agents merely to satisfy a lane rule.
+- For a justified handoff, send only the history needed for the bounded objective, boundaries, relevant files, acceptance criteria, and validation. Require a compact evidence-backed return instead of replaying the worker's transcript in root.
 
-**Prevention:** use zero agents by default, one fresh cohesive worker for a substantial context compartment, and parallel agents only for independent work with a real time benefit. Keep root as integration/publish owner.
+**Prevention:** use zero agents by default, anticipate context-heavy work before root absorbs it, and use one fresh cohesive worker for a substantial independently verifiable compartment. Duration is a warning signal rather than a rigid trigger. Keep root as user/product continuity and integration/publish owner; use parallel agents only for independent work with a real time benefit.
 
 ## Delegated publisher asks for a magic push phrase
 
@@ -41,13 +42,13 @@ Readiness rule: capabilities are task-specific. Check a capability only when the
 
 **Symptom:** repeated context compactions cause frontier drift, retreading, opaque long-running work, or implementation to accumulate in the root chat.
 
-**Cause:** a substantial context compartment was not handed to one cohesive worker, stale agents were kept alive across phases, or meaningful state existed only in chat.
+**Cause:** a substantial context compartment was not separated early enough, stale agents were kept alive across phases, a delegated tranche was duplicated in root, or meaningful state existed only in chat.
 
 **Do this:**
 
 - Stop implementation as soon as compaction makes the active lane or completed state uncertain; do not code through compaction churn.
 - Rebuild the handoff packet from `CURRENT_FRONTIER.md`, `docs/WORK_BACKLOG.md`, `git status`, `git log`, the dirty diff, and the latest user constraints.
-- Retire stale workers. Dispatch one fresh cohesive worker for the next substantial compartment; add parallel workers only for genuinely independent work with a material time benefit.
+- Retire stale workers. If the next substantial compartment is independently verifiable, dispatch one fresh cohesive worker with a narrow, limited-history task packet and compact evidence-return contract; add parallel workers only for genuinely independent work with a material time benefit.
 - Root keeps coordination, bounded integration decisions, exact staged review, tier-appropriate validation, commit/push, and required post-push verification.
 
 **Prevention:** the repo is durable memory. Update frontier/backlog or a focused handoff for meaningful decisions and unfinished substantial work, not for trivial edits.
