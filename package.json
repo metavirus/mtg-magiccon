@@ -26,6 +26,7 @@
     "monitor:accept": "node --use-system-ca scripts/monitoring_watch_check.mjs --accept",
     "monitor:stage": "node --use-system-ca scripts/stage_monitoring_findings.mjs",
     "monitor:verify-closure": "node scripts/verify_surveyor_closure.mjs",
+    "monitor:accept-report": "node scripts/accept_monitoring_baseline.mjs",
     "intake:private-gmail": "node --use-system-ca scripts/process_private_gmail_intake.mjs",
     "info:ingest": "node --use-system-ca scripts/ingest_info_articles.mjs",
     "info:seed-sql": "node scripts/build_info_article_seed_sql.mjs",

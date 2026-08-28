@@ -109,6 +109,10 @@ jobs:
           ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
         run: node scripts/send_ticketed_availability_alert.mjs work/monitoring/monitor-check.json work/monitoring/closure-manifest.json
 
+      - name: Accept verified monitoring baseline
+        if: inputs.replay_run_id == ''
+        run: pnpm monitor:accept-report work/monitoring/monitor-check.json work/monitoring/closure-manifest.json
+
       - name: Save monitoring baseline
         if: success() && inputs.replay_run_id == ''
         uses: actions/cache/save@v6
