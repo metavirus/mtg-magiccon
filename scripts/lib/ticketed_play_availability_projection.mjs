@@ -7,5 +7,5 @@ export function ticketedPlayAvailabilityProjectionRows(inventory = []) {
     source_event_key: String(event.sourceEventKey),
     availability: ALLOWED_AVAILABILITY.has(event.availability) ? event.availability : 'unknown',
     observed_at: event.retrievedAt,
-  })).filter(row => /^ticketed-\d+$/.test(row.event_id) && /^\d+$/.test(row.source_event_key) && row.observed_at)
+  })).filter(row => row.availability !== 'unknown' && /^ticketed-\d+$/.test(row.event_id) && /^\d+$/.test(row.source_event_key) && row.observed_at)
 }

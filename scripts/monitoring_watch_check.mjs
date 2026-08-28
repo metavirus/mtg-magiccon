@@ -6,7 +6,7 @@ import process from 'node:process';
 import { promisify } from 'node:util';
 import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
 import { discoverNewsletterLinks, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
-import { diffTicketedPlayInventory, scrapeLeapTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
+import { diffTicketedPlayInventory, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -205,9 +205,10 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
     rawDateLabel: event.rawDateLabel,
     rawTimeLabel: event.rawTimeLabel,
   }));
-  const current = await scrapeLeapTicketedPlayInventory({ url: config.url, retrievedAt: checkedAt, canonicalEvents });
+  const observed = await scrapeLeapTicketedPlayInventory({ url: config.url, retrievedAt: checkedAt, canonicalEvents });
   const state = await readJson(statePath, { version: 1, accepted: [] });
   const previous = Array.isArray(state.accepted) ? state.accepted : [];
+  const current = stabilizeTicketedPlayInventory(previous, observed);
   const previousByKey = new Map(previous.map((event) => [eventKey(event), event]));
   const currentByKey = new Map(current.map((event) => [eventKey(event), event]));
   const added = current.filter((event) => !previousByKey.has(eventKey(event)));

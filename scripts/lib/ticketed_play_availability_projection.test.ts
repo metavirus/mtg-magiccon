@@ -13,4 +13,10 @@ describe('shared Ticketed Play availability projection privacy', () => {
   it('rejects noncanonical hash identities instead of title matching', () => {
     expect(ticketedPlayAvailabilityProjectionRows([{ id: 'leap-deadbeef', sourceEventKey: 'leap-deadbeef', availability: 'sold_out', retrievedAt: '2026-08-25T20:00:00Z', title: 'Same title' }])).toEqual([])
   })
+
+  it('does not overwrite canonical availability with an unknown observation', () => {
+    expect(ticketedPlayAvailabilityProjectionRows([{
+      id: 'ticketed-944027', sourceEventKey: '944027', availability: 'unknown', retrievedAt: '2026-08-28T01:30:09.731Z',
+    }])).toEqual([])
+  })
 })

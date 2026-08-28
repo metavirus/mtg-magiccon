@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
-import { diffTicketedPlayInventory, normalizeLeapInventoryCards, routeTicketedPlaySoldOutTransitions } from './ticketed_play_inventory.mjs'
+import { diffTicketedPlayInventory, normalizeLeapInventoryCards, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
 const soldOutCards = [
@@ -54,6 +54,35 @@ describe('LEAP Ticketed Play inventory', () => {
     expect(diffTicketedPlayInventory([], available)).toEqual([])
     expect(diffTicketedPlayInventory(available, soldOut)).toHaveLength(10)
     expect(diffTicketedPlayInventory(soldOut, soldOut)).toEqual([])
+  })
+
+  it('does not let an unknown observation reset a known state or reannounce the same sellout', () => {
+    const [soldOut] = normalizeLeapInventoryCards(soldOutCards.slice(0, 1), { sourceUrl })
+    const unknownObservation = {
+      ...soldOut,
+      availability: 'unknown',
+      availabilityEvidence: { kind: 'purchase_control', controls: [{ text: 'Login to add to your schedule', disabled: true }] },
+      retrievedAt: '2026-08-28T01:30:09.731Z',
+    }
+    const stabilizedUnknown = stabilizeTicketedPlayInventory([soldOut], [unknownObservation])
+    expect(stabilizedUnknown[0]).toMatchObject({
+      availability: 'sold_out',
+      availabilityEvidence: soldOut.availabilityEvidence,
+      retrievedAt: unknownObservation.retrievedAt,
+    })
+    expect(diffTicketedPlayInventory([soldOut], stabilizedUnknown)).toEqual([])
+
+    const soldOutAgain = { ...soldOut, retrievedAt: '2026-08-28T17:24:54.702Z' }
+    expect(diffTicketedPlayInventory(stabilizedUnknown, [soldOutAgain])).toEqual([])
+  })
+
+  it('still accepts a positive available or waitlist observation after a sellout', () => {
+    const [soldOut] = normalizeLeapInventoryCards(soldOutCards.slice(0, 1), { sourceUrl })
+    for (const availability of ['available', 'waitlist']) {
+      const [stabilized] = stabilizeTicketedPlayInventory([soldOut], [{ ...soldOut, availability }])
+      expect(stabilized.availability).toBe(availability)
+      expect(diffTicketedPlayInventory([soldOut], [stabilized])).toMatchObject([{ previousAvailability: 'sold_out', availability }])
+    }
   })
 
   it('groups ordinary sellouts into one Home signal', () => {

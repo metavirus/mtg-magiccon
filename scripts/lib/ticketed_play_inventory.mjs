@@ -159,6 +159,24 @@ export function diffTicketedPlayInventory(previous = [], current = []) {
   })
 }
 
+/**
+ * Unknown is an observation gap, not a new availability fact. Preserve the
+ * last known state so one partially hydrated LEAP response cannot erase the
+ * baseline and make the same sellout look new on the next healthy run.
+ */
+export function stabilizeTicketedPlayInventory(previous = [], current = []) {
+  const prior = new Map(previous.map(event => [event.sourceEventKey, event]))
+  return current.map(event => {
+    const before = prior.get(event.sourceEventKey)
+    if (event.availability !== 'unknown' || !before || before.availability === 'unknown') return event
+    return {
+      ...event,
+      availability: before.availability,
+      availabilityEvidence: before.availabilityEvidence,
+    }
+  })
+}
+
 function selectedPeopleForEvent(eventId, selectionRows, companions) {
   const relevant = selectionRows.filter(row => row.object_kind === 'event' && [eventId, `explore-${eventId}`].includes(row.object_id))
   const ownerIsActionable = new Set(relevant.filter(row =>
