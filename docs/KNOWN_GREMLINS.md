@@ -298,6 +298,16 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 **Prevention:** the candidate builder assigns `needs_review` before specialized informational/newsletter classifications override it, the regression test covers one ordinary row mixed with one informational row, and the workflow accepts the exact pending public snapshots only after the pure catch-to-closure validator proves one supported terminal disposition plus exact readback for every meaningful catch. Novel or blocked intake remains in the uploaded closure receipt and fails before baseline acceptance or save.
 
+## Zero-change surveyor stage exits with a Windows libuv assertion
+
+**Symptom:** `monitor:stage` prints a successful zero-change projection, then exits with `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` from `src/win/async.c`.
+
+**Cause:** the zero-change branch called `process.exit(0)` immediately after Supabase network work, interrupting undici/libuv handle teardown on the Windows Actions runner.
+
+**Do this:** let the zero-change branch finish naturally. Keep the change-bearing staging path in the alternate branch; do not restore an explicit process exit or add a sleep-based workaround.
+
+**Prevention:** `scripts/lib/stage_monitoring_findings_contract.test.ts` forbids a forced exit in the zero-change branch, and the two-run cloud proof requires the second run to complete with zero changed sources.
+
 ## Service worker / PWA cache
 
 **Symptom:** iPhone or installed app shows an old shell after a successful deploy.

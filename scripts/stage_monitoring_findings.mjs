@@ -56,8 +56,7 @@ if (!changes.length) {
   const manifest = completeSurveyorClosureManifest(report, new Map())
   await fs.writeFile(closurePath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
   console.log(`Monitoring findings: PASS (no source changes to stage; ${availabilityProjection.length} current Ticketed Play availability row(s) projected)`)
-  process.exit(0)
-}
+} else {
 const hasTicketedInventory = changes.some(change => change.intakeKind === 'ticketed_play_inventory')
 let routingContext = {}
 if (hasTicketedInventory) {
@@ -345,3 +344,4 @@ const closureManifest = completeSurveyorClosureManifest(report, outcomes)
 await fs.writeFile(closurePath, `${JSON.stringify(closureManifest, null, 2)}\n`, 'utf8')
 
 console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${conceptEvidenceAdded} new concept evidence link(s); ${factualChoicesStaged} factual choice${factualChoicesStaged === 1 ? '' : 's'} staged; ${infoClosuresVerified} maintained Info closure${infoClosuresVerified === 1 ? '' : 's'} read back; ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)
+}
