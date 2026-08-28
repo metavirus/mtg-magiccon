@@ -319,6 +319,7 @@ If public verification fails after a correct push, report propagation/cache lag 
 - Verify the public cache-busted URL first.
 - Then ask for refresh/reopen only if the public asset check is current.
 - Do not keep patching CSS if the device is simply serving an old bundle.
+- For a deterministic local cold-offline proof, build first and run `pnpm ui:capture -- -Route <route> -Width 390 -Height 844 -Query "previewOwner=kavi" -OfflineReopen -ExpectText "<critical text>"`. Add `-ExpectImage "<selector>"` for a rendered image or `-ExpectAssets "asset-a|asset-b"` for exact precached proof files.
 
 ## Local preview server and ports
 

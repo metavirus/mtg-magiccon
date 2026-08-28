@@ -5,6 +5,10 @@ $Port = 5173
 $Width = 1600
 $Height = 1000
 $Query = ''
+$OfflineReopen = $false
+$ExpectText = ''
+$ExpectImage = ''
+$ExpectAssets = ''
 
 $forwardedArgs = @($args | Where-Object { $_ -ne '--' })
 for ($index = 0; $index -lt $forwardedArgs.Count; $index++) {
@@ -14,6 +18,10 @@ for ($index = 0; $index -lt $forwardedArgs.Count; $index++) {
     '^-Width$' { $index++; $Width = [int]$forwardedArgs[$index]; continue }
     '^-Height$' { $index++; $Height = [int]$forwardedArgs[$index]; continue }
     '^-Query$' { $index++; $Query = $forwardedArgs[$index]; continue }
+    '^-OfflineReopen$' { $OfflineReopen = $true; continue }
+    '^-ExpectText$' { $index++; $ExpectText = $forwardedArgs[$index]; continue }
+    '^-ExpectImage$' { $index++; $ExpectImage = $forwardedArgs[$index]; continue }
+    '^-ExpectAssets$' { $index++; $ExpectAssets = $forwardedArgs[$index]; continue }
     default {
       if ($forwardedArgs[$index] -and -not $forwardedArgs[$index].StartsWith('-')) {
         $Route = $forwardedArgs[$index]
@@ -121,13 +129,18 @@ $node = Get-Command node.exe -ErrorAction SilentlyContinue
 if (-not $node) { $node = Get-Command node -ErrorAction SilentlyContinue }
 if (-not $node) { throw 'Node.js is unavailable.' }
 $captureScript = Join-Path $root 'scripts\ui_capture_playwright.mjs'
+$offlineReopenValue = if ($OfflineReopen) { 'true' } else { 'false' }
 $captureEvidence = & $node.Source $captureScript `
   --url $targetUrl `
   --screenshot $shotPath `
   --dom $domPath `
   --text $textPath `
   --width $Width `
-  --height $Height
+  --height $Height `
+  --offline-reopen $offlineReopenValue `
+  --expect-text $ExpectText `
+  --expect-image $ExpectImage `
+  --expect-assets $ExpectAssets
 if ($LASTEXITCODE -ne 0) { throw "Playwright capture failed for $targetUrl" }
 if (-not (Test-Path -LiteralPath $shotPath) -or -not (Test-Path -LiteralPath $domPath) -or -not (Test-Path -LiteralPath $textPath)) {
   throw "Playwright capture did not produce all expected artifacts for $targetUrl"
