@@ -64,11 +64,10 @@ describe('offline continuity', () => {
     expect(config).not.toMatch(/globPatterns:.*(?:json|\*\.html)/)
   })
 
-  it('precaches the bounded public Map and Wallet proof pack', () => {
+  it('precaches the public Map reference but never private Wallet proof', () => {
     const config = readFileSync(join(process.cwd(), 'vite.config.ts'), 'utf8')
     expect(config).toContain("'gwcc-campus-reference.png'")
-    expect(config).toContain("'black-lotus-order-original-page-1.png'")
-    expect(config).toContain("'black-lotus-order-original-page-5.png'")
-    expect(config).toContain("'juan-premium-order-original.html'")
+    expect(config).not.toContain('black-lotus-order')
+    expect(config).not.toContain('juan-premium-order-original')
   })
 })

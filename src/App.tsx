@@ -21,6 +21,7 @@ import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from '
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
+import { downloadReceiptArtifact, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -195,7 +196,7 @@ type UserActivityEventRow = {
   created_at: string
 }
 
-type WalletReceiptLine = { event_id: string; title: string; price: number; quantity?: number; code?: string; attendee_person_keys?: string[] }
+type WalletReceiptLine = { event_id?: string; title: string; price: number; quantity?: number; code?: string; order_code?: string; order_url?: string; attendee_person_keys?: string[] }
 type WalletReceiptRow = {
   id: string
   receipt_type: 'badge' | 'ticketed_play' | 'store' | 'travel' | 'hotel' | 'other'
@@ -207,7 +208,7 @@ type WalletReceiptRow = {
   attendee_person_key: string
   attendee_person_keys: string[]
   line_items: WalletReceiptLine[]
-  original_html: string
+  receipt_artifacts: ReceiptArtifact[]
 }
 
 function useWalletReceipts(currentOwnerId?: string) {
@@ -216,7 +217,7 @@ function useWalletReceipts(currentOwnerId?: string) {
     if (!supabase || !currentOwnerId) { setReceipts([]); return }
     let active = true
     void supabase.from('wallet_receipts')
-      .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,original_html')
+      .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
       .order('receipt_date', { ascending: false })
       .then(({ data, error }) => {
         if (!active) return
@@ -224,6 +225,7 @@ function useWalletReceipts(currentOwnerId?: string) {
         setReceipts(((data ?? []) as WalletReceiptRow[]).map(receipt => ({
           ...receipt,
           attendee_person_keys: receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key],
+          receipt_artifacts: [...(receipt.receipt_artifacts ?? [])].sort((left, right) => left.display_order - right.display_order),
         })))
       })
     return () => { active = false }
@@ -4897,11 +4899,14 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
   const receipts = useWalletReceipts(currentOwnerId)
   const playReceipts = receipts.filter(receipt => receipt.receipt_type === 'ticketed_play')
-  const chrisBlackLotusReceipt = receipts.find(receipt => receipt.receipt_type === 'badge' && receipt.attendee_person_key === 'chris') ?? null
+  const badgeReceipts = receipts.filter(receipt => receipt.receipt_type === 'badge')
+  const blackLotusReceipt = badgeReceipts.find(receipt => receipt.attendee_person_keys.includes('kavi') && receipt.attendee_person_keys.includes('chris')) ?? null
+  const chrisBlackLotusReceipt = badgeReceipts.find(receipt => receipt.attendee_person_keys.includes('chris') && !receipt.attendee_person_keys.includes('kavi')) ?? null
+  const juanPremiumReceipt = badgeReceipts.find(receipt => receipt.attendee_person_keys.includes('juan')) ?? null
   const openModal = (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => setModal({ eyebrow, title, body, people })
-  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Kavi', 'Chris'])
-  const openChrisBlackLotusProof = () => openModal('BLACK LOTUS TRANSFER', 'Chris Black Lotus badge proof', <ChrisBlackLotusTransferDetail receipt={chrisBlackLotusReceipt} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Chris'])
-  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
+  const openBlackLotusProof = () => openModal('BLACK LOTUS ORDER', 'Kavi + Chris badge proof', <BlackLotusProofDetail receipt={blackLotusReceipt} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Kavi', 'Chris'])
+  const openChrisBlackLotusProof = () => openModal('BLACK LOTUS TRANSFER', 'Chris Black Lotus badge proof', <ChrisBlackLotusTransferDetail originalReceipt={blackLotusReceipt} transferReceipt={chrisBlackLotusReceipt} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Chris'])
+  const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail receipt={juanPremiumReceipt} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
   useEffect(() => {
     const parsed = Number(prizeTixValue)
     if (Number.isFinite(parsed)) setTix(parsed)
@@ -4963,6 +4968,51 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
+function PrivateReceiptArtifacts({ receipt, roles, title }: { receipt: WalletReceiptRow | null; roles: ReceiptArtifactRole[]; title: string }) {
+  const artifacts = useMemo(
+    () => (receipt?.receipt_artifacts ?? []).filter(artifact => roles.includes(artifact.artifact_role)),
+    [receipt, roles.join('|')],
+  )
+  const [downloads, setDownloads] = useState<Array<{ artifact: ReceiptArtifact; url: string }>>([])
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+
+  useEffect(() => {
+    let active = true
+    let objectUrls: string[] = []
+    setDownloads([])
+    if (!artifacts.length) { setStatus('idle'); return }
+    setStatus('loading')
+    void Promise.all(artifacts.map(async artifact => ({ artifact, url: await downloadReceiptArtifact(artifact) })))
+      .then(items => {
+        objectUrls = items.map(item => item.url)
+        if (!active) { objectUrls.forEach(url => URL.revokeObjectURL(url)); return }
+        setDownloads(items)
+        setStatus('idle')
+      })
+      .catch(error => {
+        console.warn('Private receipt artifact could not be loaded', error)
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+      objectUrls.forEach(url => URL.revokeObjectURL(url))
+    }
+  }, [artifacts.map(artifact => artifact.id).join('|')])
+
+  if (!receipt) return <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
+  if (!artifacts.length) return <p className="original-receipt-note">This private proof has not been migrated yet.</p>
+  if (status === 'loading') return <p className="original-receipt-note">Loading private proof…</p>
+  if (status === 'error') return <p className="original-receipt-note">Private proof could not be loaded. Check your session and try again.</p>
+  return <div className="original-proof-stack full-email" aria-label={title}>
+    {downloads.map(({ artifact, url }) => <figure key={artifact.id}>
+      {artifact.mime_type.startsWith('image/')
+        ? <img src={url} alt={artifact.display_label} />
+        : <iframe title={artifact.display_label} src={url} sandbox="" />}
+      <figcaption>{artifact.display_label}</figcaption>
+    </figure>)}
+  </div>
+}
+
 function WalletHomeTab({ openBlackLotusProof, openChrisBlackLotusProof, openJuanProof, onOpenObject }: { openBlackLotusProof: () => void; openChrisBlackLotusProof: () => void; openJuanProof: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
   return <div className="wallet-home-command">
     <section className="wallet-hero-card wallet-hero-card-no-actions">
@@ -5003,11 +5053,9 @@ function WalletHomeTab({ openBlackLotusProof, openChrisBlackLotusProof, openJuan
   </div>
 }
 
-function ChrisBlackLotusTransferDetail({ receipt, notes, currentOwnerId, onAddNote, onDeleteNote }: { receipt: WalletReceiptRow | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
+function ChrisBlackLotusTransferDetail({ originalReceipt, transferReceipt, notes, currentOwnerId, onAddNote, onDeleteNote }: { originalReceipt: WalletReceiptRow | null; transferReceipt: WalletReceiptRow | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
   const [mode, setMode] = useState<'info' | 'original' | 'transfer'>('info')
-  const orderCode = '[private-receipt-value-removed]'
-  const orderUrl = '[private-receipt-value-removed]'
-  const qrUrl = '[private-receipt-value-removed]'
+  const orderProof = receiptOrderProof(transferReceipt)
 
   return <div className="proof-detail">
     <div className="proof-mode-tabs" role="tablist" aria-label="Chris Black Lotus transfer proof view">
@@ -5015,7 +5063,7 @@ function ChrisBlackLotusTransferDetail({ receipt, notes, currentOwnerId, onAddNo
       <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
       <button type="button" role="tab" aria-selected={mode === 'transfer'} className={mode === 'transfer' ? 'active' : ''} onClick={() => setMode('transfer')}>Transfer</button>
     </div>
-    {mode === 'info' ? <>
+    {mode === 'info' ? transferReceipt ? <>
       <div className="proof-status-grid">
         <span><b>1</b><small>Black Lotus VIP Early Bird badge</small></span>
         <span><b>Transferred</b><small>to Chris · Aug 25, 2026</small></span>
@@ -5025,30 +5073,25 @@ function ChrisBlackLotusTransferDetail({ receipt, notes, currentOwnerId, onAddNo
         <div><span>Order proof</span><strong>Original Black Lotus purchase receipt captured</strong></div>
         <div><span>Transfer proof</span><strong>Available under Transfer</strong></div>
         <div><span>Will Call</span><strong>Bring this confirmation email and photo ID</strong></div>
-        <div><span>Original</span><strong>{receipt ? 'Full forwarded email captured' : 'Loading captured email…'}</strong></div>
+        <div><span>Original</span><strong>{originalReceipt ? 'Private original is available' : 'Private original has not been migrated'}</strong></div>
       </div>
       <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-chris-black-lotus-transfer" objectKind="receipt" objectTitle="Chris Black Lotus transfer confirmation" context="Wallet · Chris Black Lotus transfer" backlink="wallet" compact />
-    </> : mode === 'original' ? <>
+    </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p> : mode === 'original' ? <>
       <p className="original-receipt-note">Original Black Lotus purchase email for the two-badge order.</p>
-      <div className="original-proof-stack full-email">
-        {[1, 2, 3, 4, 5].map(page => <figure key={page}><img src={`./black-lotus-order-original-page-${page}.png`} alt={`Original MagicCon Atlanta Black Lotus order confirmation email page ${page}`} /><figcaption>Original email page {page} of 5</figcaption></figure>)}
+      <PrivateReceiptArtifacts receipt={originalReceipt} roles={['original']} title="Original Black Lotus purchase email" />
+    </> : transferReceipt ? <>
+      <div className="proof-qr-card" aria-label="Showable Chris Black Lotus transfer proof">
+        <PrivateReceiptArtifacts receipt={transferReceipt} roles={['qr', 'transfer']} title="Chris Black Lotus transfer proof" />
+        {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
       </div>
-    </> : <>
-      <div className="proof-qr-card" aria-label="Showable Chris Black Lotus transfer QR">
-        <figure><img src={qrUrl} alt="QR code from Chris's transferred Black Lotus confirmation email" /><figcaption>Show this confirmation QR if staff asks for Chris's transferred badge proof.</figcaption></figure>
-        <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
-      </div>
-      {receipt
-        ? <div className="original-html-frame"><p className="original-receipt-note">Full forwarded Leap transfer confirmation captured from Gmail.</p><iframe title="Chris Black Lotus transfer confirmation original email" srcDoc={receipt.original_html} sandbox="" /></div>
-        : <p className="original-receipt-note">The captured transfer confirmation is still loading.</p>}
-    </>}
-    <div className="proof-links"><a href={orderUrl} target="_blank" rel="noreferrer">Open Chris's Leap order</a></div>
+    </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>}
+    {transferReceipt && orderProof.url && <div className="proof-links"><a href={orderProof.url} target="_blank" rel="noreferrer">Open Chris's Leap order</a></div>}
   </div>
 }
 
-function BlackLotusProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote }: { notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
+function BlackLotusProofDetail({ receipt, notes, currentOwnerId, onAddNote, onDeleteNote }: { receipt: WalletReceiptRow | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
-  const orderCode = '[private-receipt-value-removed]'
+  const orderProof = receiptOrderProof(receipt)
 
   return <div className="proof-detail">
     <div className="proof-mode-tabs" role="tablist" aria-label="Badge proof view">
@@ -5056,7 +5099,7 @@ function BlackLotusProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote 
       <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
     </div>
     {mode === 'info'
-      ? <>
+      ? receipt ? <>
         <div className="proof-status-grid">
           <span><b>2</b><small>Black Lotus VIP Early Bird badges</small></span>
           <span><b>$2,025.26</b><small>order total</small></span>
@@ -5068,49 +5111,25 @@ function BlackLotusProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote 
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
         </div>
         <div className="proof-qr-card" aria-label="Showable order QR">
-          <figure>
-            <img src="./black-lotus-order-qr.png" alt="QR code from the MagicCon Atlanta Black Lotus order confirmation email" />
-            <figcaption>Show this QR if staff needs the order proof.</figcaption>
-          </figure>
-          <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
+          <PrivateReceiptArtifacts receipt={receipt} roles={['qr']} title="Black Lotus order QR" />
+          {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
         </div>
         <p>Info is the fast-use view: extracted logistics plus the QR. Use Original when someone needs the whole receipt.</p>
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-black-lotus-order" objectKind="receipt" objectTitle="Kavi + Chris badge proof" context="Wallet · Black Lotus order" backlink="wallet" compact />
-      </>
+      </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
       : <>
         <p className="original-receipt-note">Full Gmail receipt render. This is intentionally the whole email, not a cropped proof slice.</p>
-        <div className="original-proof-stack full-email">
-          <figure>
-            <img src="./black-lotus-order-original-page-1.png" alt="Original MagicCon Atlanta order confirmation email page 1" />
-            <figcaption>Original email page 1 of 5</figcaption>
-          </figure>
-          <figure>
-            <img src="./black-lotus-order-original-page-2.png" alt="Original MagicCon Atlanta order confirmation email page 2" />
-            <figcaption>Original email page 2 of 5</figcaption>
-          </figure>
-          <figure>
-            <img src="./black-lotus-order-original-page-3.png" alt="Original MagicCon Atlanta order confirmation email page 3" />
-            <figcaption>Original email page 3 of 5</figcaption>
-          </figure>
-          <figure>
-            <img src="./black-lotus-order-original-page-4.png" alt="Original MagicCon Atlanta order confirmation email page 4" />
-            <figcaption>Original email page 4 of 5</figcaption>
-          </figure>
-          <figure>
-            <img src="./black-lotus-order-original-page-5.png" alt="Original MagicCon Atlanta order confirmation email page 5" />
-            <figcaption>Original email page 5 of 5</figcaption>
-          </figure>
-        </div>
+        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Original Black Lotus order receipt" />
       </>}
-    <div className="proof-links">
-      <a href="[private-receipt-value-removed]" target="_blank" rel="noreferrer">Open Leap order</a>
-    </div>
+    {receipt && orderProof.url && <div className="proof-links">
+      <a href={orderProof.url} target="_blank" rel="noreferrer">Open Leap order</a>
+    </div>}
   </div>
 }
 
-function JuanPremiumProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote }: { notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
+function JuanPremiumProofDetail({ receipt, notes, currentOwnerId, onAddNote, onDeleteNote }: { receipt: WalletReceiptRow | null; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
-  const orderCode = '[private-receipt-value-removed]'
+  const orderProof = receiptOrderProof(receipt)
 
   return <div className="proof-detail">
     <div className="proof-mode-tabs" role="tablist" aria-label="Badge proof view">
@@ -5118,7 +5137,7 @@ function JuanPremiumProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote
       <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
     </div>
     {mode === 'info'
-      ? <>
+      ? receipt ? <>
         <div className="proof-status-grid">
           <span><b>1</b><small>Premium Weekend Early Bird badge</small></span>
           <span><b>$191.42</b><small>order total</small></span>
@@ -5130,21 +5149,18 @@ function JuanPremiumProofDetail({ notes, currentOwnerId, onAddNote, onDeleteNote
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
         </div>
         <div className="proof-qr-card" aria-label="Showable Juan Premium order QR">
-          <figure>
-            <img src="[private-receipt-value-removed]" alt="QR code for Juan's MagicCon Atlanta Premium Weekend order proof" />
-            <figcaption>Show this with the confirmation email code if staff needs Juan's order proof.</figcaption>
-          </figure>
-          <div className="proof-code-line"><span>Order code</span><code>{orderCode}</code></div>
+          <PrivateReceiptArtifacts receipt={receipt} roles={['qr']} title="Juan Premium order QR" />
+          {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
         </div>
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-juan-premium-order" objectKind="receipt" objectTitle="Juan badge proof" context="Wallet · Juan Premium order" backlink="wallet" compact />
-      </>
+      </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
       : <div className="original-html-frame">
         <p className="original-receipt-note">Full Gmail-rendered receipt body captured from Juan's confirmation email.</p>
-        <iframe title="Juan Premium Weekend original receipt" src="./juan-premium-order-original.html" sandbox="" />
+        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Juan Premium original receipt" />
       </div>}
-    <div className="proof-links">
-      <a href="[private-receipt-value-removed]" target="_blank" rel="noreferrer">Open Leap order</a>
-    </div>
+    {receipt && orderProof.url && <div className="proof-links">
+      <a href={orderProof.url} target="_blank" rel="noreferrer">Open Leap order</a>
+    </div>}
   </div>
 }
 
@@ -5165,6 +5181,11 @@ function receiptPeople(receipt: WalletReceiptRow): PersonName[] {
   return (receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key]).map(receiptPerson)
 }
 
+function receiptOrderProof(receipt: WalletReceiptRow | null) {
+  const line = receipt?.line_items.find(item => item.order_code || item.order_url)
+  return { code: line?.order_code, url: line?.order_url }
+}
+
 function TicketedReceiptDetail({ receipt }: { receipt: WalletReceiptRow }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
   return <div className="proof-detail">
@@ -5181,7 +5202,7 @@ function TicketedReceiptDetail({ receipt }: { receipt: WalletReceiptRow }) {
       <div className="receipt-lines">{receipt.line_items.map(line => <div className="receipt-line-row" key={line.event_id}><span>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</span><b>${line.price.toFixed(2)}{line.quantity && line.quantity > 1 ? ' each' : ''}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
     </> : <>
       <p className="original-receipt-note">Full source email captured during receipt ingestion.</p>
-      <div className="original-html-frame"><iframe title={`${receipt.title} original receipt`} srcDoc={receipt.original_html} sandbox="" /></div>
+      <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${receipt.title} original receipt`} />
     </>}
   </div>
 }

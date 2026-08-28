@@ -66,7 +66,7 @@ The read-only heartbeat may pass one normalized Gmail message to `pnpm intake:pr
 
 The adapter returns `covered` only after mailbox identity, stable Gmail message ID, canonical target identity, required facts, and all consequence guards are exact. Missing writer credentials, a noncanonical Supabase URL/key shape, an unknown attendee or event, incomplete flight legs, or any replacement ambiguity returns `not_covered` with a reason and performs no write. A successful execution returns `applied` plus a compact readback that omits original HTML and other private evidence.
 
-On the native local lane, exact Ticketed Play receipts may use the ignored canonical Session Pooler URL in `.secrets/database.env` when a server API key is unavailable. That fallback stays inside the same adapter, verifies the canonical project, attendee and availability bindings, writes the receipt and purchase locks in one transaction, and returns `applied` only after lock readback. Cloud runs continue to use `SUPABASE_SECRET_KEY`; flight intake remains on its guarded RPC path.
+Receipt intake requires the canonical cloud/server-secret lane with `SUPABASE_SECRET_KEY`. The former local Session Pooler receipt fallback is retired: direct SQL cannot create or verify the required private Storage object through the Storage API, so accepting a receipt through that lane would produce an incomplete proof bundle. Without the canonical server credential the adapter returns `not_covered` with `canonical_writer_credentials_unavailable`. Flight intake remains on its guarded RPC path through the same server-secret client.
 
 Operational coverage is therefore explicit:
 

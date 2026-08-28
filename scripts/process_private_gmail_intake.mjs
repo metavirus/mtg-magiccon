@@ -1,133 +1,12 @@
 import fs from 'node:fs/promises'
-import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { planPrivateGmailIntake } from './lib/private_gmail_intake.mjs'
 
 const FLIGHT_ITINERARY = 'atlanta-2026-delta-hogfbx'
 const CANONICAL_PROJECT_REF = 'pavjsexxbueuzhzgemgy'
+const RECEIPT_ARTIFACT_BUCKET = 'private-receipt-artifacts'
 
-const sqlLiteral = value => `'${String(value).replaceAll("'", "''")}'`
-
-async function loadCanonicalDatabaseUrl() {
-  try {
-    const envFile = await fs.readFile('.secrets/database.env', 'utf8')
-    const value = envFile.split(/\r?\n/).find(line => line.startsWith('SUPABASE_DB_URL='))?.slice('SUPABASE_DB_URL='.length).trim()
-    if (!value || !value.includes(CANONICAL_PROJECT_REF) || !value.includes(':5432/') || !value.includes('sslmode=require')) return null
-    return value
-  } catch {
-    return null
-  }
-}
-
-function applyReceiptWithPsql(plan, databaseUrl) {
-  const receipt = plan.operation.receipt
-  const attendees = plan.operation.attendeePersonKeys
-  const eventIds = plan.operation.eventIds
-  const eventValues = eventIds.map(eventId => `(${sqlLiteral(eventId)})`).join(',')
-  const sql = `
-begin;
-do $guard$
-begin
-  if (select count(*) from public.companion_members where person_key = 'kavi' and active and user_id is not null) <> 1 then
-    raise exception 'canonical_owner_binding_ambiguous';
-  end if;
-  if (select count(*) from public.companion_members where person_key in (${attendees.map(sqlLiteral).join(',')}) and active and user_id is not null) <> ${attendees.length} then
-    raise exception 'canonical_attendee_binding_unavailable';
-  end if;
-  if (select count(distinct event_id) from public.ticketed_play_current_availability where event_id in (${eventIds.map(sqlLiteral).join(',')})) <> ${eventIds.length} then
-    raise exception 'canonical_event_binding_unavailable';
-  end if;
-end
-$guard$;
-
-with receipt_row as (
-  insert into public.wallet_receipts (
-    owner_id, source_system, source_message_id, source_thread_id, receipt_type, title, vendor,
-    receipt_date, amount, currency, attendee_person_key, attendee_person_keys, line_items,
-    original_html, confidence, updated_at
-  )
-  select owner.user_id, ${sqlLiteral(receipt.source_system)}, ${sqlLiteral(receipt.source_message_id)},
-    ${receipt.source_thread_id ? sqlLiteral(receipt.source_thread_id) : 'null'}, ${sqlLiteral(receipt.receipt_type)},
-    ${sqlLiteral(receipt.title)}, ${sqlLiteral(receipt.vendor)}, ${sqlLiteral(receipt.receipt_date)}::timestamptz,
-    ${Number(receipt.amount)}, ${sqlLiteral(receipt.currency)}, ${sqlLiteral(receipt.attendee_person_key)},
-    array[${receipt.attendee_person_keys.map(sqlLiteral).join(',')}]::text[],
-    ${sqlLiteral(JSON.stringify(receipt.line_items))}::jsonb, ${sqlLiteral(receipt.original_html)},
-    ${sqlLiteral(receipt.confidence)}, now()
-  from public.companion_members owner
-  where owner.person_key = 'kavi' and owner.active and owner.user_id is not null
-  on conflict (owner_id, source_system, source_message_id) do update set
-    source_thread_id = excluded.source_thread_id,
-    receipt_type = excluded.receipt_type,
-    title = excluded.title,
-    vendor = excluded.vendor,
-    receipt_date = excluded.receipt_date,
-    amount = excluded.amount,
-    currency = excluded.currency,
-    attendee_person_key = excluded.attendee_person_key,
-    attendee_person_keys = excluded.attendee_person_keys,
-    line_items = excluded.line_items,
-    original_html = excluded.original_html,
-    confidence = excluded.confidence,
-    updated_at = now()
-  returning id
-), event_ids(event_id) as (
-  values ${eventValues}
-), selection_values(selection_key, selection_value) as (
-  values ('state', 'committed'), ('purchased', 'true'), ('purchase_locked', 'true')
-)
-insert into public.user_selections (
-  owner_id, object_id, object_kind, selection_key, selection_value, metadata, updated_at
-)
-select attendee.user_id, 'explore-' || events.event_id, 'event', selections.selection_key,
-  selections.selection_value,
-  jsonb_build_object('source_system', 'gmail', 'source_message_id', ${sqlLiteral(plan.sourceMessageId)}, 'wallet_receipt_id', receipt_row.id),
-  now()
-from public.companion_members attendee
-cross join receipt_row
-cross join event_ids events
-cross join selection_values selections
-where attendee.person_key in (${attendees.map(sqlLiteral).join(',')}) and attendee.active and attendee.user_id is not null
-on conflict (owner_id, object_id, selection_key) do update set
-  selection_value = excluded.selection_value,
-  metadata = excluded.metadata,
-  updated_at = excluded.updated_at;
-
-do $readback$
-begin
-  if (
-    select count(*)
-    from public.user_selections selections
-    join public.companion_members attendee on attendee.user_id = selections.owner_id
-    where attendee.person_key in (${attendees.map(sqlLiteral).join(',')})
-      and selections.object_id in (${eventIds.map(eventId => sqlLiteral(`explore-${eventId}`)).join(',')})
-      and selections.selection_key in ('state', 'purchased', 'purchase_locked')
-  ) <> ${eventIds.length * attendees.length * 3} then
-    raise exception 'receipt_applied_without_complete_purchase_lock_readback';
-  end if;
-end
-$readback$;
-
-select json_build_object(
-  'status', 'applied',
-  'kind', 'receipt',
-  'sourceMessageId', ${sqlLiteral(plan.sourceMessageId)},
-  'receiptId', (select id from public.wallet_receipts where source_system = 'gmail' and source_message_id = ${sqlLiteral(plan.sourceMessageId)}),
-  'attendeeCount', ${attendees.length},
-  'purchaseLockCount', ${eventIds.length * attendees.length}
-)::text;
-commit;
-`
-  const result = spawnSync('psql', [databaseUrl, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'], {
-    input: sql,
-    encoding: 'utf8',
-    maxBuffer: 2 * 1024 * 1024,
-    windowsHide: true,
-  })
-  if (result.status !== 0) throw new Error(result.stderr.trim() || 'Canonical direct-database receipt intake failed.')
-  const line = result.stdout.split(/\r?\n/).map(value => value.trim()).find(value => value.startsWith('{'))
-  if (!line) throw new Error('Canonical direct-database receipt intake returned no readback.')
-  return JSON.parse(line)
-}
 const inputPath = process.argv[2]
 const raw = inputPath && inputPath !== '-'
   ? await fs.readFile(inputPath, 'utf8')
@@ -163,11 +42,6 @@ if (plan.status !== 'covered') {
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const secretKey = process.env.SUPABASE_SECRET_KEY
 if (!supabaseUrl || !secretKey) {
-  const databaseUrl = plan.kind === 'receipt' && plan.operation.eventIds.length ? await loadCanonicalDatabaseUrl() : null
-  if (databaseUrl) {
-    console.log(JSON.stringify(applyReceiptWithPsql(plan, databaseUrl)))
-    process.exit(0)
-  }
   console.log(JSON.stringify({ status: 'not_covered', kind: plan.kind, sourceMessageId: plan.sourceMessageId, reason: 'canonical_writer_credentials_unavailable' }))
   process.exit(0)
 }
@@ -200,9 +74,67 @@ if (plan.kind === 'receipt') {
     console.log(JSON.stringify({ status: 'not_covered', kind: plan.kind, sourceMessageId: plan.sourceMessageId, reason: 'canonical_attendee_binding_unavailable' }))
     process.exit(0)
   }
-  const receipt = { owner_id: ownerId, ...plan.operation.receipt }
-  const write = await client.from('wallet_receipts').upsert(receipt, { onConflict: 'owner_id,source_system,source_message_id' }).select('id,source_message_id,attendee_person_key,attendee_person_keys').single()
+  const existingReceipt = await client.from('wallet_receipts').select('id').eq('owner_id', ownerId)
+    .eq('source_system', plan.operation.receipt.source_system).eq('source_message_id', plan.operation.receipt.source_message_id).maybeSingle()
+  if (existingReceipt.error) throw existingReceipt.error
+  const { original_html: _legacyOriginal, ...receiptFacts } = plan.operation.receipt
+  const receipt = { owner_id: ownerId, ...receiptFacts }
+  const write = existingReceipt.data
+    ? await client.from('wallet_receipts').update(receiptFacts).eq('id', existingReceipt.data.id)
+      .select('id,source_message_id,attendee_person_key,attendee_person_keys').single()
+    : await client.from('wallet_receipts').insert(receipt)
+      .select('id,source_message_id,attendee_person_key,attendee_person_keys').single()
   if (write.error) throw write.error
+  const artifactBytes = Buffer.from(plan.operation.artifact.contents, 'utf8')
+  const artifactFilename = `${plan.sourceMessageId.replace(/[^a-zA-Z0-9._-]/g, '-')}.html`
+  const artifactPath = `${write.data.id}/original/${artifactFilename}`
+  const artifactHash = createHash('sha256').update(artifactBytes).digest('hex')
+  let artifactManifest
+  let uploadedNewObject = false
+  let insertedNewManifest = false
+  try {
+    const existingArtifact = await client.from('receipt_artifacts').select('id,object_path,sha256')
+      .eq('receipt_id', write.data.id).eq('artifact_role', plan.operation.artifact.role).eq('display_order', 1).maybeSingle()
+    if (existingArtifact.error) throw existingArtifact.error
+    if (existingArtifact.data && existingArtifact.data.sha256 !== artifactHash) throw new Error('Receipt original changed; retain both sources through explicit review instead of overwriting proof.')
+    artifactManifest = existingArtifact.data
+    if (!artifactManifest) {
+      const artifactUpload = await client.storage.from(RECEIPT_ARTIFACT_BUCKET).upload(artifactPath, artifactBytes, {
+        contentType: plan.operation.artifact.mimeType,
+        upsert: false,
+      })
+      if (artifactUpload.error) throw artifactUpload.error
+      uploadedNewObject = true
+      const insertedArtifact = await client.from('receipt_artifacts').insert({
+        receipt_id: write.data.id,
+        artifact_role: plan.operation.artifact.role,
+        bucket_id: RECEIPT_ARTIFACT_BUCKET,
+        object_path: artifactPath,
+        mime_type: plan.operation.artifact.mimeType,
+        byte_size: artifactBytes.byteLength,
+        sha256: artifactHash,
+        display_label: 'Original source email',
+        display_order: 1,
+        captured_at: plan.operation.artifact.capturedAt,
+      }).select('id,object_path,sha256').single()
+      if (insertedArtifact.error) throw insertedArtifact.error
+      artifactManifest = insertedArtifact.data
+      insertedNewManifest = true
+    }
+    if (artifactManifest.object_path !== artifactPath || artifactManifest.sha256 !== artifactHash) throw new Error('Receipt artifact manifest readback failed.')
+    const artifactDownload = await client.storage.from(RECEIPT_ARTIFACT_BUCKET).download(artifactManifest.object_path)
+    if (artifactDownload.error) throw artifactDownload.error
+    const storedHash = createHash('sha256').update(Buffer.from(await artifactDownload.data.arrayBuffer())).digest('hex')
+    if (storedHash !== artifactHash) throw new Error('Receipt artifact checksum readback failed.')
+    const clearedLegacy = await client.from('wallet_receipts').update({ original_html: null, updated_at: new Date().toISOString() })
+      .eq('id', write.data.id).select('id,original_html').single()
+    if (clearedLegacy.error || clearedLegacy.data.original_html !== null) throw clearedLegacy.error ?? new Error('Receipt legacy HTML clear readback failed.')
+  } catch (error) {
+    if (uploadedNewObject) await client.storage.from(RECEIPT_ARTIFACT_BUCKET).remove([artifactPath])
+    if (insertedNewManifest && existingReceipt.data) await client.from('receipt_artifacts').delete().eq('id', artifactManifest.id)
+    if (!existingReceipt.data) await client.from('wallet_receipts').delete().eq('id', write.data.id)
+    throw error
+  }
   const selections = plan.operation.attendeePersonKeys.flatMap(personKey => plan.operation.eventIds.flatMap(eventId => [
     ['state', 'committed'], ['purchased', 'true'], ['purchase_locked', 'true'],
   ].map(([selection_key, selection_value]) => ({
@@ -227,7 +159,7 @@ if (plan.kind === 'receipt') {
   if (lockReadback.error) throw lockReadback.error
   const expectedLockCount = plan.operation.eventIds.length * attendeeOwnerIds.length * 3
   if ((lockReadback.data?.length ?? 0) !== expectedLockCount) throw new Error('Receipt applied without complete purchase-lock readback.')
-  console.log(JSON.stringify({ status: 'applied', kind: 'receipt', sourceMessageId: plan.sourceMessageId, receiptId: readback.data.id, attendeeCount: attendeeOwnerIds.length, purchaseLockCount: plan.operation.eventIds.length * attendeeOwnerIds.length }))
+  console.log(JSON.stringify({ status: 'applied', kind: 'receipt', sourceMessageId: plan.sourceMessageId, receiptId: readback.data.id, artifactId: artifactManifest.id, attendeeCount: attendeeOwnerIds.length, purchaseLockCount: plan.operation.eventIds.length * attendeeOwnerIds.length }))
 } else {
   const applied = await client.rpc(plan.operation.rpc, plan.operation.args)
   if (applied.error) throw applied.error

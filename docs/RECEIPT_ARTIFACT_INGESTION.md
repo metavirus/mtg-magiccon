@@ -27,11 +27,17 @@ Each ingested receipt should have:
 - extracted `Info` payload for the fast-use view;
 - sensitivity note for anything that should later move to private storage.
 
-## Current POC storage
+## Private Storage contract
 
-For the fixture-backed GitHub Pages preview, receipt artifacts may temporarily live under `public/` so the interface can prove the retrieval experience.
+All real receipt, badge, QR, transfer, travel, and hotel proof belongs in the single private Supabase Storage bucket `private-receipt-artifacts`. No proof artifact belongs under `public/`, in the PWA precache, in a durable public URL, or in fixture preview data.
 
-This is acceptable only as a personal-app shortcut. The durable 1.5/v2 target is private Supabase Storage, with app-side access gated by the logged-in owner/session. The app should still treat the artifact bundle shape the same way so moving storage does not require redesigning Wallet.
+`public.receipt_artifacts` is the attendee-aware manifest. Each immutable row binds one Storage object to one `wallet_receipts` row and records its role (`original`, `qr`, or `transfer`), private bucket/path, MIME type, byte size, SHA-256, display label/order, and capture time. Object paths use `<receipt-id>/<role>/<filename>`. A multi-page original uses one row per page and increasing display order; one order still remains one receipt.
+
+The manifest has forced RLS. An authenticated viewer may read a manifest/object only when they own the receipt or their user id is bound to an active `companion_members` identity explicitly named in that receipt's `attendee_person_keys`. Anonymous users receive no table or object access. Authenticated browser clients receive `SELECT` only on the manifest and the corresponding `storage.objects` download policy; they receive no upload, update, or delete policy. Trusted intake using the canonical secret/service lane owns writes.
+
+The app downloads authorized objects with Supabase Storage `download()` and renders short-lived blob URLs, revoking them when the view closes. It does not call `getPublicUrl()` or keep signed URLs in durable state. Preview or unauthenticated mode retains the stable `Info` / `Original` / `Transfer` tabs but shows an honest sign-in/unmigrated message instead of substituting public proof. Private proof is not currently promised offline.
+
+`wallet_receipts.original_html` is a legacy transition field only. New intake writes the original source HTML as a private Storage artifact and stores `null` in that field. Purge legacy HTML only after every affected receipt has manifest, object, checksum, owner, and attendee readback.
 
 ## Wallet rendering contract
 
@@ -56,3 +62,16 @@ Before marking a receipt as ingested:
 - Person bubbles are small universal bubbles, not one-off pills.
 - The receipt is represented in one stable object that the UI can reuse.
 - No ordinary UI component needs to query Gmail to render the receipt.
+- The canonical project is `pavjsexxbueuzhzgemgy`, the bucket is private, and the object path starts with the exact receipt id.
+- SHA-256, byte size, MIME type, capture time, label, and display order match the uploaded bytes.
+- Owner and each explicitly bound active attendee can download; another authenticated companion and anon cannot list or download.
+- No normal authenticated client can insert, update, delete, or overwrite manifest rows or Storage objects.
+- The app uses authenticated `download()`/blob URLs and the public build contains no receipt proof filename or PWA precache entry.
+
+## Legacy migration state
+
+The 2026-08-28 migration is complete in canonical project `pavjsexxbueuzhzgemgy`: 15 proof objects have checksum-matched manifest rows, the private bucket has a non-repeatable completion marker, and zero receipts retain inline `original_html`. Kavi, Chris, Juan, and Kyle each receive only the owner/attendee subset authorized by receipt RLS. The one-shot workflow and historical-recovery scripts were removed after verified completion.
+
+The tracked public proof files and their PWA precache entries are removed from the current app. They previously existed in public Git history, so this migration prevents current serving and future bundle exposure but does not retroactively make those historical bytes secret. Rewriting repository history or rotating event credentials is a separate, explicitly authorized security operation.
+
+Keep `pnpm artifacts:migrate-private -- <ignored-manifest-path>` and `pnpm artifacts:migrate-legacy-html` only as guarded recovery tools until a later reviewed migration drops the legacy column. Every use still requires a dry run, canonical server credentials, immutable upload, downloaded checksum readback, and owner/attendee visibility proof.

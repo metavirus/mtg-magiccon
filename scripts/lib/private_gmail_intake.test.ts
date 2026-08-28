@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { planPrivateGmailIntake, summarizePrivateIntake } from './private_gmail_intake.mjs'
 
 const source = {
@@ -7,6 +9,17 @@ const source = {
 }
 
 describe('private Gmail intake', () => {
+  it('keeps receipt writes on the server-secret Storage lane with no direct SQL fallback', () => {
+    const executor = readFileSync(join(process.cwd(), 'scripts/process_private_gmail_intake.mjs'), 'utf8')
+    expect(executor).toContain('SUPABASE_SECRET_KEY')
+    expect(executor).toContain("reason: 'canonical_writer_credentials_unavailable'")
+    expect(executor).not.toContain('SUPABASE_DB_URL')
+    expect(executor).not.toContain('spawnSync')
+    expect(executor).toContain(".update(receiptFacts).eq('id', existingReceipt.data.id)")
+    expect(executor).not.toContain('upsert(receipt')
+    expect(executor.indexOf('.download(artifactManifest.object_path)')).toBeLessThan(executor.indexOf("update({ original_html: null"))
+  })
+
   it('deduplicates receipts by stable source identity and binds exact ticketed events', () => {
     const result = planPrivateGmailIntake({
       kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source,
@@ -17,6 +30,8 @@ describe('private Gmail intake', () => {
     expect(result.sourceMessageId).toBe('gmail-123')
     expect(result.operation.eventIds).toEqual(['ticketed-944015'])
     expect(result.operation.receipt.source_message_id).toBe('gmail-123')
+    expect(result.operation.receipt.original_html).toBeNull()
+    expect(result.operation.artifact).toMatchObject({ role: 'original', mimeType: 'text/html', contents: source.originalHtml })
   })
 
   it('fails closed for ambiguous receipt attendee or event binding', () => {
