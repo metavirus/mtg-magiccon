@@ -299,6 +299,21 @@ If public verification fails after a correct push, report propagation/cache lag 
 
 **Prevention:** the candidate builder assigns `needs_review` before specialized informational/newsletter classifications override it, the regression test covers one ordinary row mixed with one informational row, and the workflow accepts the exact pending public snapshots only after the pure catch-to-closure validator proves one supported terminal disposition plus exact readback for every meaningful catch. Novel or blocked intake remains in the uploaded closure receipt and fails before baseline acceptance or save.
 
+## Local heartbeat tries to use the cloud surveyor secret
+
+**Symptom:** the Codex heartbeat finds public-source changes, then local `monitor:stage` fails because `SUPABASE_SECRET_KEY` is absent—even though the GitHub Actions secret was configured previously. A fresh cloud run may report zero changes because the ignored local baseline was also stale.
+
+**Cause:** GitHub Actions secrets are write-only and cannot be retrieved into the local Codex process. The configured `SUPABASE_SECRET_KEY` belongs to the `Daily MagicCon surveyor` workflow; duplicating it into `.env.local`, `.secrets/database.env`, or a Windows user variable creates a second privileged credential lane and is not required. The accepted public-source baseline also lives in the workflow cache, so `.monitoring-state` on the workstation is not an authoritative daily-discovery baseline.
+
+**Do this:**
+
+- Do not use local `pnpm monitor:check` for heartbeat discovery or user notification. It remains a developer/diagnostic command whose ignored baseline may lag the cloud cache.
+- Inspect the latest `Daily MagicCon surveyor` run first. Reuse or wait for a successful/active run within the standing 26-hour freshness window; dispatch `daily-surveyor.yml` on `main` only when the cloud run is stale, absent, or failed.
+- Treat only the cloud workflow's successful staging, alert delivery, closure verification, and exact-report baseline acceptance as completion.
+- Never ask Kavi to copy the GitHub Actions secret into a local file merely to close a public monitoring run. Never run local `monitor:accept-report` after local staging was blocked.
+
+**Prevention:** the active heartbeat prompt names GitHub Actions as the exclusive public-source discovery and closure lane, explicitly forbids the stale local baseline and local staging/acceptance, and requires cloud-run freshness inspection before dispatch. This section is the repository-side authority if the automation is recreated.
+
 ## Zero-change surveyor stage exits with a Windows libuv assertion
 
 **Symptom:** `monitor:stage` prints a successful zero-change projection, then exits with `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` from `src/win/async.c`.

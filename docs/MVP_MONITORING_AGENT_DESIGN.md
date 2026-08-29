@@ -2,7 +2,7 @@
 
 Updated: 2026-08-28
 
-Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` may read approved public/Gmail sources and complete explicitly allowlisted, deterministic canonical actions; its first such action is the service-only HOGFBX flight schedule executor. It cannot make generic canonical writes. The GitHub Actions surveyor checks the public watch set and may stage noncanonical source evidence in `monitoring_findings`; it cannot write normalized facts, modify Gmail, send mail, create push notifications, or change canonical app state.
+Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` may inspect approved public sources and optionally discover read-only Gmail evidence when that connector is already available. It does not own or request a local copy of the cloud surveyor secret. The GitHub Actions `Daily MagicCon surveyor` owns privileged public-source staging, allowlisted deterministic public consequences, watched-event alert delivery, closure verification, and exact-report baseline acceptance through its configured `SUPABASE_SECRET_KEY`. Neither runtime has generic canonical-write authority.
 
 ## Closed-loop default
 
@@ -177,15 +177,15 @@ Prior-event store or Prize Wall fixtures are QA-only precedent. They may exercis
 
 ## Deployed runtime split
 
-The Codex heartbeat remains a deliberately simple closed-loop workflow:
+The Codex heartbeat remains a deliberately simple cloud-supervision workflow:
 
 1. Run once daily during quiet period.
-2. Search/check the approved watch set.
-3. Reconcile findings into known concepts and apply an explicitly allowlisted deterministic consequence when its confidence guard passes.
-4. Emit a compact result; a Home-worthy item is normally the notice that the update already completed.
-5. If nothing meaningful changed, record only a quiet Activity observation or no visible app update.
+2. Inspect the latest `Daily MagicCon surveyor` runs. The ignored workstation baseline is not used for daily discovery because the authoritative accepted baseline lives in the workflow cache.
+3. Reuse or wait for an active/successful cloud run within 26 hours; dispatch one on `main` only when the cloud run is absent, stale, or failed.
+4. Read the authoritative cloud summary/artifact when needed and report its staging, alert, closure, and baseline result.
+5. Optionally discover Gmail evidence only when the connector is already available; a private-intake coverage gap is reported separately and never blocks the public cloud closure lane.
 
-The GitHub Actions surveyor is separate: it runs the deterministic public check, uploads the artifact, and—once its server credential is configured—stages deduplicated review candidates in Supabase. It does not run Gmail, Discord, or LEAP browsing. Routine quiet checks create no visible app noise.
+The GitHub Actions surveyor is separate: it runs the deterministic public and LEAP checks, uploads the artifact, stages deduplicated evidence, applies only registered deterministic public consequences such as current Ticketed Play availability, sends the narrowly watched availability email when its guard fires, verifies every terminal disposition, and accepts only the exact verified report baseline. It does not run Gmail or Discord. Routine quiet checks create no visible app noise.
 
 Do not start with:
 
