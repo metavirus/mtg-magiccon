@@ -46,6 +46,18 @@ export function partitionInfoTopics(topics: InfoTopic[], quickKeys = ['hours', '
   }
 }
 
+export function orderInfoReferenceTopics(topics: InfoTopic[], preferredKeys = ['hours', 'on-demand-play', 'will-call', 'prize-tix', 'ticketed-play']) {
+  const preferredIndex = new Map(preferredKeys.map((key, index) => [key, index]))
+  return [...topics].sort((a, b) => {
+    const aIndex = preferredIndex.get(a.topic_key)
+    const bIndex = preferredIndex.get(b.topic_key)
+    if (aIndex === undefined && bIndex === undefined) return a.title.localeCompare(b.title)
+    if (aIndex === undefined) return 1
+    if (bIndex === undefined) return -1
+    return aIndex - bIndex
+  })
+}
+
 export function infoTopicForFeed(entry: InfoFeedEntry, topics: InfoTopic[]) {
   return entry.topic_key ? topics.find(topic => topic.topic_key === entry.topic_key) : undefined
 }

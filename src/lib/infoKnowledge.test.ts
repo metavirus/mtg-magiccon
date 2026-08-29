@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { infoTopicForFeed, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed } from './infoKnowledge'
+import { infoTopicForFeed, orderInfoReferenceTopics, partitionInfoTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed } from './infoKnowledge'
 
 describe('Info knowledge', () => {
   it('answers show hours immediately from maintained facts', () => {
@@ -18,5 +18,14 @@ describe('Info knowledge', () => {
   it('allows a feed-only update to open without inventing a topic', () => {
     const feedOnly = { ...previewInfoFeed[0], topic_key: null }
     expect(infoTopicForFeed(feedOnly, previewInfoTopics)).toBeUndefined()
+  })
+  it('keeps durable references in an explicit operational order', () => {
+    expect(orderInfoReferenceTopics(previewInfoTopics).map(topic => topic.topic_key)).toEqual([
+      'hours',
+      'on-demand-play',
+      'will-call',
+      'prize-tix',
+      'ticketed-play',
+    ])
   })
 })
