@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
 import { discoverNewsletterLinks, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
 import { diffTicketedPlayInventory, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
+import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acceptance.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -224,8 +225,10 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
     ? [{ kind: 'ticketed_play_sold_out_group', severity: 'worth_knowing', affectedEventIds: transitions.filter(transition => transition.availability === 'sold_out').map(transition => transition.eventId) }]
     : [];
 
+  const hasReviewableDiff = added.length > 0 || removed.length > 0 || changed.length > 0;
+  const nextState = stageTicketedPlayBaselineSnapshot(state, current, checkedAt, hasReviewableDiff);
   await mkdir(path.dirname(statePath), { recursive: true });
-  await writeFile(statePath, `${JSON.stringify({ version: 2, accepted: current, acceptedAt: checkedAt }, null, 2)}\n`, 'utf8');
+  await writeFile(statePath, `${JSON.stringify(nextState, null, 2)}\n`, 'utf8');
 
   return {
     enabled: true,
