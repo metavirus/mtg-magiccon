@@ -4886,6 +4886,15 @@ function InfoReferenceTile({ topic, onOpen }: { topic: InfoTopic; onOpen: () => 
   </button>
 }
 
+function InfoCriticalTile({ topic, onOpen }: { topic: InfoTopic; onOpen: () => void }) {
+  return <button className="info-critical-tile" type="button" onClick={onOpen}>
+    <span><strong>{topic.title}</strong><b aria-hidden="true">›</b></span>
+    <span className="info-critical-facts">
+      {topic.facts.slice(0, 4).map(fact => <span key={`${topic.topic_key}-critical-${fact.label}`}><small>{fact.label}</small><b>{fact.value}</b></span>)}
+    </span>
+  </button>
+}
+
 function InfoSurface({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed: InfoFeedEntry[]; onOpenObject: (detail: ObjectDetail) => void }) {
   const [mode, setMode] = useState<'feed' | 'reference'>('feed')
   const visibleTopics = publishedInfoTopics(topics).map(topic => topic.topic_key === 'ticketed-play' && ticketedPlaySaleHasOpened()
@@ -4901,15 +4910,22 @@ function InfoSurface({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed
     : topic)
   const visibleFeed = publishedInfoFeed(feed, topics)
   const referenceTopics = orderInfoReferenceTopics(visibleTopics)
+  const criticalTopics = ['hours', 'will-call', 'on-demand-play'].map(key => visibleTopics.find(topic => topic.topic_key === key)).filter((topic): topic is InfoTopic => Boolean(topic))
   return <section className="info-surface" aria-label="Info">
     <div className="trip-tabs" role="tablist" aria-label="Info view">
       <button type="button" role="tab" aria-selected={mode === 'feed'} className={mode === 'feed' ? 'active' : ''} onClick={() => setMode('feed')}>Info feed</button>
       <button type="button" role="tab" aria-selected={mode === 'reference'} className={mode === 'reference' ? 'active' : ''} onClick={() => setMode('reference')}>Reference</button>
     </div>
-    {mode === 'feed' && <section className="info-feed info-mode-panel" role="tabpanel">
-      <div className="info-section-head"><span className="eyebrow">INFO FEED</span><h2>What changed.</h2><p>New and updated information, newest first.</p></div>
-      <div className="info-tile-list">{visibleFeed.map(entry => { const topic = infoTopicForFeed(entry, visibleTopics); return <InfoTile key={entry.entry_key} eyebrow="Latest update" title={durableInfoFeedTitle(entry, visibleTopics)} summary={entry.summary} meta={new Date(entry.published_at).toLocaleDateString()} tone="gold" onClick={() => onOpenObject(topic && infoTopicUsesReader(topic) ? infoTopicDetail(topic, visibleFeed) : infoFeedDetail(entry, topic))} /> })}</div>
-    </section>}
+    {mode === 'feed' && <div className="info-feed-layout" role="tabpanel">
+      <section className="info-feed info-mode-panel">
+        <div className="info-section-head"><span className="eyebrow">INFO FEED</span><h2>What changed.</h2><p>New and updated information, newest first.</p></div>
+        <div className="info-tile-list">{visibleFeed.map(entry => { const topic = infoTopicForFeed(entry, visibleTopics); return <InfoTile key={entry.entry_key} eyebrow="Latest update" title={durableInfoFeedTitle(entry, visibleTopics)} summary={entry.summary} meta={new Date(entry.published_at).toLocaleDateString()} tone="gold" onClick={() => onOpenObject(topic && infoTopicUsesReader(topic) ? infoTopicDetail(topic, visibleFeed) : infoFeedDetail(entry, topic))} /> })}</div>
+      </section>
+      <aside className="info-critical info-mode-panel" aria-label="Critical information">
+        <div className="info-section-head"><span className="eyebrow">CRITICAL INFO</span><h2>Keep handy.</h2></div>
+        <div className="info-critical-list">{criticalTopics.map(topic => <InfoCriticalTile key={topic.topic_key} topic={topic} onOpen={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
+      </aside>
+    </div>}
     {mode === 'reference' && <section className="info-reference info-mode-panel" role="tabpanel">
       <div className="info-section-head"><span className="eyebrow">REFERENCE</span><h2>Solid information.</h2><p>Maintained, source-backed facts for the weekend.</p></div>
       <div className="info-reference-grid">{referenceTopics.map(topic => <InfoReferenceTile key={topic.topic_key} topic={topic} onOpen={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
