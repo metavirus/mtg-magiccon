@@ -1,6 +1,6 @@
 # MVP Monitoring Agent Design
 
-Updated: 2026-08-21
+Updated: 2026-08-28
 
 Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` may read approved public/Gmail sources and complete explicitly allowlisted, deterministic canonical actions; its first such action is the service-only HOGFBX flight schedule executor. It cannot make generic canonical writes. The GitHub Actions surveyor checks the public watch set and may stage noncanonical source evidence in `monitoring_findings`; it cannot write normalized facts, modify Gmail, send mail, create push notifications, or change canonical app state.
 
@@ -127,7 +127,9 @@ Short form:
 - Activity for source/change history.
 - Wallet for receipts, QR codes, proof, and original artifacts.
 - Trip for flights, hotels, lodging transitions, and travel changes.
-- Explore for event, artist, vendor, catalog, and opportunity discovery.
+- Explore for event, artist, vendor, and opportunity discovery.
+- Info → Guide for maintained official operating facts.
+- Info → Catalogs for real Atlanta Show Store, Black Lotus Store, and Prize Wall inventory; keep the mode hidden until at least one such inventory exists.
 - Calendar for dated milestones, deadlines, travel anchors, and committed itinerary objects.
 - Map for venue/floor/location artifacts.
 - Notes only for human-authored notes or explicitly requested agent-to-owner prompts.
@@ -143,9 +145,9 @@ Send to Home when the owner would plausibly be glad they did not have to manuall
 - the Black Lotus VIP page materially changes;
 - the Atlanta official site tree gains a new planning-relevant page;
 - official artist directory appears;
-- official show catalog appears;
+- official Show Store or Black Lotus Store catalog appears;
 - official map appears;
-- prize wall appears during event;
+- real Atlanta Prize Wall inventory appears during event;
 - event marked Interested/Tentative/Committed/Purchased changes or sells out;
 - flight/hotel change affects arrival, departure, check-in, or event timing.
 
@@ -167,7 +169,11 @@ Attach to the object when:
 - a flight update belongs to Trip;
 - a venue/map fact belongs to Map;
 - an event detail affects Explore or Plan;
+- an operational official fact affects Info → Guide;
+- a current Atlanta store or Prize Wall item affects Info → Catalogs;
 - a source fact explains why an object is trustworthy.
+
+Prior-event store or Prize Wall fixtures are QA-only precedent. They may exercise the Catalogs presentation only behind an explicit QA path, must retain their real event/year labels, and must never be routed, reported, or rendered as Atlanta inventory.
 
 ## Deployed runtime split
 
@@ -221,7 +227,7 @@ The monitoring agent is POC-ready when:
 - the app preview demonstrates landing places for representative findings;
 - this design is documented;
 - a human can run the daily prompt manually and know where every finding belongs;
-- live automation can be enabled later without redesigning Home, Activity, Notes, Wallet, Trip, Explore, Calendar, or Map.
+- live automation can be enabled later without redesigning Home, Activity, Notes, Wallet, Trip, Explore, Info, Calendar, or Map.
 
 ## Remaining activation gate
 

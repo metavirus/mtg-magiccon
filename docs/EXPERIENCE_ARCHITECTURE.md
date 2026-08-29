@@ -1,10 +1,10 @@
 # Experience Architecture
 
-## Map and Info boundary
+## Map, Info, and Activity boundary
 
-Map owns spatial orientation, venue navigation, and the future event-floor map. Info is a separate top-level destination for durable official knowledge: quick answers, a persistent Recent information feed, and browsable maintained topics with sources. Activity records app/user activity and review state; it is not the archive for official event knowledge.
+Map owns spatial orientation, venue navigation, and the future event-floor map. Info is a separate top-level destination for durable official knowledge, beginning with a Guide and later revealing Catalogs when real Atlanta inventory exists. Activity owns source/change history and app/user activity; Info does not carry a parallel Recent feed.
 
-Updated: 2026-08-03
+Updated: 2026-08-28
 Status: Core direction and first-pass surface baseline accepted; mobile navigation remains under implementation review
 
 ## Decision question
@@ -20,11 +20,12 @@ Prefer focused, directly reachable destinations over an arbitrary tab limit:
 1. **Home** — attention, milestones, meaningful changes, and the phase-aware focus.
 2. **Calendar** — the broad visual stream of meaningful dates from now through Atlanta.
 3. **Plan** — focused November 13–15 decisions, commitments, conflicts, and time contention.
-4. **Explore** — the catalog of events, artists, stores, vendors, and prizes.
+4. **Explore** — events and opportunities: programming, artists, vendors, and things the owner may choose to do.
 5. **Map** — places, spatial context, and eventually the interactive convention atlas.
-6. **Wallet** — owned, paid, claimable, showable, and reference-worthy items.
-7. **Trip** — flights, hotels, travelers, dates, and situated quality-of-life reference.
-8. **Notes** — human-authored memory across every contextual object.
+6. **Info** — the maintained Guide plus Atlanta inventory Catalogs when those inventories actually exist.
+7. **Wallet** — owned, paid, claimable, showable, and reference-worthy items.
+8. **Trip** — flights, hotels, travelers, dates, and situated quality-of-life reference.
+9. **Notes** — human-authored memory across every contextual object.
 
 Place **Activity** below a visual divider as an easily reached utility destination. It combines chronological history with top-level stream tabs such as All, Changes, Sources, and Personal. This is the natural home for monitoring history, source health, captured observations, ingestion actions, and owner activity without making source systems part of the primary product model.
 
@@ -52,6 +53,7 @@ The information architecture should not be compressed merely to fit a convention
 | Plan | What am I considering or doing, and what conflicts? | Leap clone or generic calendar |
 | Explore | What exists and might interest me? | Flat brochure or source directory |
 | Map | Where is it, what is nearby, and what matters there? | Static image viewer or promised indoor GPS |
+| Info | What are the official operating details, and what can I browse when real catalogs arrive? | News feed or fixture showroom |
 | Wallet | What do I own, need, show, claim, or reference? | Booking or accounting platform |
 | Trip | What are the useful travel and lodging facts? | Travel-management platform |
 | Notes | What did I write down, and what was it about? | Machine activity stream |
@@ -108,17 +110,28 @@ Explore owns the changing universe of things the convention offers:
 
 - events and programming;
 - artists and card-signing opportunities;
-- show store and vendor merchandise;
-- prize wall;
-- vendors and exclusives.
+- vendors, exhibitors, and their opportunities;
+- formats, meetups, and other choose-to-participate possibilities.
 
-It uses content-aware modes only when content exists. Before ticketed play or catalogs appear, absent modes do not consume visual space. Search and filters should operate across normalized objects while source detail stays behind evidence affordances.
+It uses content-aware modes only when content exists. Before ticketed play or other opportunity sets appear, absent modes do not consume visual space. Search and filters should operate across normalized objects while source detail stays behind evidence affordances.
 
 The Plan/Explore boundary is explicit:
 
-- Explore answers “what could I do?” and may show the entire available catalog.
+- Explore answers “what could I do?” and may show the full set of published events or opportunities.
 - Plan answers “how do the things I care about fit together?” and becomes the dense scheduling workspace.
 - Expressing interest, making a tentative, or owning an entitlement is the ordinary bridge from Explore into Plan.
+
+### Info
+
+Info owns maintained official reference and current-event browse inventories. It begins with one visible mode, **Guide**, for operational facts such as show hours, Will Call, Ticketed Play, On-Demand Play, and Prize Tix rules. Guide content is composed for fast retrieval rather than rendered as a feed or a wall of identical cards.
+
+The second mode, **Catalogs**, contains exactly three inventory families:
+
+- Show Store;
+- Black Lotus Store;
+- Prize Wall.
+
+Catalogs is hidden until at least one real, source-backed Atlanta inventory exists. Prior-event catalogs may be retained as explicitly labeled QA-only precedent for layout and interaction testing, but they must never appear in the ordinary Atlanta experience or masquerade as Atlanta inventory. Catalog items may backlink to Wallet receipts, purchases, Prize Tix, notes, and Map places without transferring ownership: Info owns what is offered; Wallet owns what the user owns, purchased, must show, or can claim.
 
 ### Map
 
@@ -221,20 +234,21 @@ Before the convention it can express trustworthy quiet, a waiting milestone, a c
 ### Mobile
 
 - Do not use a five-item constraint to decide which product concepts exist.
-- Home, Calendar, Plan, Explore, Map, Wallet, Trip, Notes, and Activity must remain easy to reach without deep nesting.
+- Home, Calendar, Plan, Explore, Map, Info, Wallet, Trip, Notes, and Activity must remain easy to reach without deep nesting.
 - The exact mobile navigation treatment remains a screen-design question. Candidate treatments should be tested for reachability, labeling, safe-area use, and one-handed access.
 - A contextual Now focus appears at the top of Home and may backlink into Plan, Map, Wallet, or Trip.
 - Tapping an actionable Now focus opens the relevant object or a focused layer with nearby fallback information.
 - Object cards open their details from the whole natural hit area; secondary icons perform recognizable direct actions.
-- Local modes such as Events, Artists, Store, and Prizes appear within Explore only when populated.
+- Explore modes such as Events, Artists, and Vendors appear only when populated. Info starts with Guide; Catalogs appears only when real Atlanta inventory exists.
 
 ### Desktop
 
-- Persistent left navigation presents Home, Calendar, Plan, Explore, Map, Wallet, Trip, and Notes as focused destinations.
+- Persistent left navigation presents Home, Calendar, Plan, Explore, Map, Info, Wallet, Trip, and Notes as focused destinations.
 - Activity sits below a divider as a directly accessible utility rather than being buried in settings.
 - Local modes and view controls appear in each surface header.
 - Plan may use a wide contention canvas with an adjacent detail drawer.
-- Explore may use list/map or catalog/detail compositions.
+- Explore may use list/map or opportunity/detail compositions.
+- Info uses a composed Guide and, once eligible, inventory/detail Catalogs.
 - Map may use atlas/detail or place-directory/detail compositions.
 - Evidence and notes appear in right-side drawers so the owner can retain planning context.
 
@@ -249,8 +263,9 @@ The shell does not transform between operating periods. Priority, ordering, and 
 | Home | Trustworthy quiet, milestones, rare change | Decisions, deadlines, newly available catalogs | Now entry, confirmed changes, immediate claims | Receipts, reimbursements, useful notes, archive summary |
 | Calendar | Milestones, deadlines, travel, sparse dated context | Broad agenda and convention-day summaries | Trip and convention-day chronological reference | Follow-ups and historical date retrieval |
 | Plan | Black Lotus reference with no manufactured contention | November 13–15 contention, Tentatives, and purchases | Focused day schedule and alternatives | Attended/skipped convention-plan history |
-| Explore | Available official details; absent modes collapse | Events, artists, stores, vendors | Reference-first catalogs and fresh availability | Historical browse; low prominence |
+| Explore | Available event and opportunity details; absent modes collapse | Events, artists, vendors, and other opportunities | Current opportunities and availability | Historical browse; low prominence |
 | Map | Known venue/place references | Rooms, booths, transition context | Navigation reference, nearby objects, meetup points | Archived place context; low prominence |
+| Info | Guide only; Catalogs hidden | Guide plus source-backed Atlanta catalogs as released | Fast operational guide and fresh Show Store, Black Lotus Store, and Prize Wall inventory | Durable guide and clearly historical catalog reference |
 | Wallet | Badges, orders, travel, hotel, entitlements | Purchased events, deadlines, pickup preparation | Showable artifacts, codes, receipts, Prize Tix | Receipts, reimbursement, durable proof |
 | Trip | Confirmed flights, hotels, people, useful links | Constraints and consequential changes | Quick reference and Maps/provider link-outs | Historical reference; low prominence |
 | Notes | Prior lessons and preparation notes | Decision notes attached in context | Very fast contextual capture | Primary cross-object memory and retrieval |

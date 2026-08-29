@@ -15,7 +15,7 @@ The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING
 The POC is ready when:
 
 1. The GitHub Pages phone preview opens reliably in fixture-preview mode.
-2. Home, Calendar, Explore, Map, Wallet, Trip, Notes, and Activity are reachable and not dead-end surfaces.
+2. Home, Calendar, Explore, Map, Info, Wallet, Trip, Notes, and Activity are reachable and not dead-end surfaces.
 3. New information can be represented as a reviewable observation without becoming canonical by accident.
 4. Important findings can reach Home as rare signals.
 5. Less urgent findings can settle into Activity, the affected object, or Notes without cluttering the default screen.
@@ -79,8 +79,8 @@ The app should route discoveries by usefulness, not by where they came from.
 | Specific event sells out or changes | Explore event detail and Activity → Changes | Home if user marked Interested, Tentative, Committed, or Purchased | Consequence depends on personal state |
 | Black Lotus page changes | Affected BL object + Activity → Changes | Home unless obviously cosmetic | This is a high-value watched page during quiet period |
 | Artist list appears or changes | Explore or future Artists surface | Home milestone signal at first appearance; later Activity unless personally relevant | Enables card/signature planning without becoming fanboy noise |
-| Store catalog appears | Wallet → Store, future Store surface | Home milestone signal at first appearance | Useful because the app can over-ingest and make the catalog easier than the source |
-| Prize wall list appears | Wallet / future Prize Wall surface | Home during convention, not necessarily before | Mostly useful onsite and tied to Prize Tix |
+| Show Store or Black Lotus Store catalog appears | Info → Catalogs | Home milestone signal at first appearance | Catalogs is hidden until real Atlanta inventory exists; Wallet retains purchases, receipts, and proof |
+| Prize Wall inventory appears | Info → Catalogs | Home during convention, not necessarily before | Inventory is useful onsite; Prize Tix balance and claim proof remain in Wallet |
 | Hotel, flight, or travel change email | Reconcile directly into the canonical Trip object; retain source evidence | One concise Home signal for a real schedule change | Confident routine changes complete automatically; ask one precise question only for material ambiguity |
 | Map or venue layout appears | Map → Event map | Home if first official 2026 map or known destination changes | Useful because it unlocks onsite navigation context |
 | Black Lotus Discord staff answer or official-link lead | Activity → Sources/Changes, then affected object if confirmed | Home only for urgent BL store windows, included-event/logistics changes, ticketed-play/sellout signals, or other time-sensitive owner impact | High-signal radar, but Discord chatter must not silently become publisher truth |
@@ -111,7 +111,7 @@ Use an object annotation when the fact matters in context but should not interru
 Examples:
 
 - event description adds a minor rule clarification;
-- store item has a catalog backlink;
+- Wallet receipt has a backlink to its Info Catalogs item;
 - hotel page confirms address;
 - receipt line item is assigned to Kavi, Chris, Juan, or custom text.
 

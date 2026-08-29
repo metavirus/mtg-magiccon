@@ -11,8 +11,9 @@ import { artistCardCandidates as generatedArtistCardCandidates } from './data/ar
 import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingIsInformational, findingMayBypassConceptReadModel, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
-import { infoTopicForFeed, loadInfoKnowledge, orderInfoReferenceTopics, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
-import { durableInfoFeedTitle, infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
+import { loadInfoKnowledge, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
+import { infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
+import { infoCatalogPreviewEnabled, priorEventCatalogs, type InfoCatalog, type InfoCatalogItem } from './lib/infoCatalog'
 import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
@@ -86,7 +87,7 @@ function surfaceSubtitle(surface: Surface) {
     plan: "Compare everyone's possible and committed events.",
     explore: 'Events worth comparing.',
     map: 'Omni, downtown hotels, and GWCC Building C.',
-    info: 'Official hours, play guidance, and updates.',
+    info: 'Official hours, entry, and play guidance.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
     trip: 'Every stay, address, and roommate in one shared view.',
     artists: 'Official Atlanta artists and your signing shortlist.',
@@ -4847,56 +4848,100 @@ function infoTopicDetail(topic: InfoTopic, feed: InfoFeedEntry[]): ObjectDetail 
   }
 }
 
-function infoFeedDetail(entry: InfoFeedEntry, topic?: InfoTopic): ObjectDetail {
-  const sources = entry.sources.length ? entry.sources : topic?.sources ?? []
+function infoFact(topic: InfoTopic | undefined, label: string) {
+  const normalizedLabel = label.toLowerCase()
+  return topic?.facts.find(fact => fact.label.toLowerCase() === normalizedLabel || fact.label.toLowerCase().includes(normalizedLabel))?.value
+}
+
+function infoCatalogItemDetail(catalog: InfoCatalog, item: InfoCatalogItem): ObjectDetail {
   return {
-    id: `info-feed-${entry.id}`,
+    id: `catalog-${catalog.id}-${item.id}`,
     kind: 'alert',
-    kindLabel: 'Info update',
-    eyebrow: 'RECENT INFORMATION',
-    title: entry.title,
-    summary: entry.summary,
-    facts: topic?.facts,
-    links: infoSources(sources),
-    source: { label: `Published ${new Date(entry.published_at).toLocaleDateString()}`, value: sources.map(source => `${source.label}${source.detail ? ` · ${source.detail}` : ''}`).join('\n') || 'Official information feed' },
+    kindLabel: 'Catalog item',
+    eyebrow: catalog.precedentEvent.toUpperCase(),
+    title: item.name,
+    summary: item.note ?? `${item.category} shown only to prove the future catalog layout. This is not Atlanta inventory.`,
+    facts: [
+      { label: item.value.includes('Tix') ? 'Prize Tix' : 'Price', value: item.value },
+      { label: 'Catalog', value: catalog.title },
+      { label: 'Availability', value: item.availability === 'precedent' ? 'Prior-event precedent' : 'Awaiting Atlanta' },
+    ],
+    links: [{ label: catalog.sourceLabel, url: catalog.sourceUrl }],
+    source: { label: 'QA-only precedent', value: 'This preview must never be treated as current Atlanta inventory.' },
     backlinks: [{ label: 'Info', destination: 'info' }],
   }
 }
 
-function InfoTile({ eyebrow, title, summary, meta, tone = 'blue', onClick }: { eyebrow: string; title: string; summary?: string; meta?: string; tone?: 'blue' | 'green' | 'gold'; onClick: () => void }) {
-  return <button className={`info-tile ${tone}`} type="button" onClick={onClick}>
-    <span className="info-tile-icon"><NavIcon name="info" /></span>
-    <span className="info-tile-copy"><small>{eyebrow}</small><strong>{title}</strong>{summary && <span>{summary}</span>}{meta && <time>{meta}</time>}</span>
-    <b aria-hidden="true">›</b>
-  </button>
+function InfoGuide({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed: InfoFeedEntry[]; onOpenObject: (detail: ObjectDetail) => void }) {
+  const byKey = new Map(topics.map(topic => [topic.topic_key, topic]))
+  const hours = byKey.get('hours')
+  const willCall = byKey.get('will-call')
+  const ticketedPlay = byKey.get('ticketed-play')
+  const onDemand = byKey.get('on-demand-play')
+  const prizeTix = byKey.get('prize-tix')
+  const coreKeys = new Set(['hours', 'will-call', 'ticketed-play', 'on-demand-play', 'prize-tix'])
+  const additionalTopics = topics.filter(topic => !coreKeys.has(topic.topic_key))
+  const updatedTimes = topics.map(topic => new Date(topic.updated_at).getTime()).filter(Number.isFinite)
+  const lastUpdated = updatedTimes.length ? new Date(Math.max(...updatedTimes)).toLocaleDateString() : null
+  const sourceCount = new Set(topics.flatMap(topic => topic.sources.map(source => source.url ?? `${source.label}:${source.detail ?? ''}`))).size
+  const openTopic = (topic: InfoTopic | undefined) => { if (topic) onOpenObject(infoTopicDetail(topic, feed)) }
+  const floorDays = ['Friday', 'Saturday', 'Sunday'].map(day => ({ day, value: infoFact(hours, day) })).filter((row): row is { day: string; value: string } => Boolean(row.value))
+  const magicPlayHours = infoFact(hours, 'magic play') ?? infoFact(hours, 'play area')
+
+  return <section className="info-guide" role="tabpanel" aria-label="Guide">
+    {hours && <section className="info-weekend-overview" aria-labelledby="info-weekend-heading">
+      <div className="info-guide-heading"><div><span className="eyebrow">AT A GLANCE</span><h2 id="info-weekend-heading">Weekend hours</h2></div><span>Show floor</span></div>
+      <div className="info-day-strip">{floorDays.map(row => <span key={row.day}><small>{row.day}</small><strong>{row.value}</strong></span>)}</div>
+      {magicPlayHours && <p className="info-late-hours"><NavIcon name="activity" /><span><strong>Magic Play runs later.</strong> {magicPlayHours}</span></p>}
+      <button type="button" className="info-guide-link" onClick={() => openTopic(hours)}>Open show-hours guide <span aria-hidden="true">→</span></button>
+    </section>}
+
+    <div className="info-guide-columns">
+      {willCall && <section className="info-entry-guide" aria-labelledby="info-entry-heading">
+        <div className="info-guide-heading"><div><span className="eyebrow">ARRIVAL</span><h2 id="info-entry-heading">Getting in</h2></div><span>Registration &amp; Will Call</span></div>
+        <div className="info-entry-schedule">{willCall.facts.slice(0, 4).map(fact => <span key={`${willCall.topic_key}-${fact.label}`}><small>{fact.label}</small><strong>{fact.value}</strong></span>)}</div>
+        <button type="button" className="info-guide-link" onClick={() => openTopic(willCall)}>Badge and entry details <span aria-hidden="true">→</span></button>
+      </section>}
+
+      {(ticketedPlay || onDemand || prizeTix) && <section className="info-play-guide" aria-labelledby="info-play-heading">
+        <div className="info-guide-heading"><div><span className="eyebrow">PLAYING MAGIC</span><h2 id="info-play-heading">Three useful answers</h2></div></div>
+        <div className="info-play-steps">
+          {ticketedPlay && <article><span className="info-step-number">1</span><div><h3>Ticketed Play</h3><p>{ticketedPlay.concise_answer}</p><button type="button" onClick={() => openTopic(ticketedPlay)}>Full guide</button></div><strong>{infoFact(ticketedPlay, 'sales status') ?? infoFact(ticketedPlay, 'sales open') ?? 'Schedule ahead'}</strong></article>}
+          {onDemand && <article><span className="info-step-number">2</span><div><h3>On-Demand Play</h3><p>{onDemand.concise_answer}</p><button type="button" onClick={() => openTopic(onDemand)}>How it works</button></div><strong>{[infoFact(onDemand, 'voucher increment'), infoFact(onDemand, 'maximum per visit')].filter(Boolean).join(' · ')}</strong></article>}
+          {prizeTix && <article><span className="info-step-number">3</span><div><h3>Prize Tix</h3><p>{prizeTix.concise_answer}</p><button type="button" onClick={() => openTopic(prizeTix)}>Redemption guide</button></div><strong>{infoFact(prizeTix, 'sunday deadline') ?? infoFact(prizeTix, 'sunday line cutoff') ?? infoFact(prizeTix, 'redeem at') ?? 'Prize Wall'}</strong></article>}
+        </div>
+      </section>}
+    </div>
+
+    {additionalTopics.length > 0 && <section className="info-more-guide" aria-labelledby="info-more-heading">
+      <div className="info-guide-heading"><div><span className="eyebrow">MORE TO KNOW</span><h2 id="info-more-heading">Weekend reference</h2></div></div>
+      <div>{additionalTopics.map(topic => <button type="button" key={topic.topic_key} onClick={() => openTopic(topic)}><span><strong>{topic.title}</strong><small>{topic.concise_answer}</small></span><b>Open guide</b></button>)}</div>
+    </section>}
+
+    <footer className="info-guide-provenance"><strong>Maintained from official MagicCon sources</strong><span>{lastUpdated ? `Last factual update ${lastUpdated}` : 'Source-backed reference'}{sourceCount ? ` · ${sourceCount} source${sourceCount === 1 ? '' : 's'}` : ''}</span></footer>
+  </section>
 }
 
-function InfoReferenceTile({ topic, onOpen }: { topic: InfoTopic; onOpen: () => void }) {
-  return <button className="info-reference-tile" type="button" onClick={onOpen}>
-    <span className="info-reference-lock"><ActionIcon name="lock" /> Locked reference</span>
-    <span className="info-reference-heading">
-      <span className="info-tile-icon"><NavIcon name="info" /></span>
-      <strong>{topic.title}</strong>
-    </span>
-    <span className="info-reference-answer">{topic.concise_answer}</span>
-    {topic.facts.length > 0 && <span className="info-reference-facts">
-      {topic.facts.slice(0, 4).map(fact => <span key={`${topic.topic_key}-${fact.label}`}><small>{fact.label}</small><b>{fact.value}</b></span>)}
-    </span>}
-    <span className="info-reference-foot"><time>Updated {new Date(topic.updated_at).toLocaleDateString()}</time><b>{infoTopicUsesReader(topic) ? 'Open guide' : 'Open reference'} <span aria-hidden="true">›</span></b></span>
-  </button>
-}
-
-function InfoCriticalTile({ topic, onOpen }: { topic: InfoTopic; onOpen: () => void }) {
-  return <button className="info-critical-tile" type="button" onClick={onOpen}>
-    <span><strong>{topic.title}</strong><b aria-hidden="true">›</b></span>
-    <span className="info-critical-facts">
-      {topic.facts.slice(0, 4).map(fact => <span key={`${topic.topic_key}-critical-${fact.label}`}><small>{fact.label}</small><b>{fact.value}</b></span>)}
-    </span>
-  </button>
+function InfoCatalogsPreview({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) => void }) {
+  const [catalogId, setCatalogId] = useState<InfoCatalog['id']>('show-store')
+  const catalog = priorEventCatalogs.find(item => item.id === catalogId) ?? priorEventCatalogs[0]
+  return <section className="info-catalog-preview" role="tabpanel" aria-label="Catalogs preview">
+    <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event precedent—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>
+    <div className="info-catalog-selector" role="tablist" aria-label="Catalog preview">
+      {priorEventCatalogs.map(item => <button type="button" role="tab" aria-selected={catalog.id === item.id} className={catalog.id === item.id ? 'active' : ''} key={item.id} onClick={() => setCatalogId(item.id)}>{item.id === 'black-lotus' ? 'Black Lotus' : item.title}</button>)}
+    </div>
+    <header className="info-catalog-heading"><div><span className="eyebrow">{catalog.precedentEvent.toUpperCase()}</span><h2>{catalog.title}</h2><p>{catalog.description}</p></div><a href={catalog.sourceUrl} target="_blank" rel="noreferrer">View precedent source ↗</a></header>
+    <div className={`info-catalog-grid catalog-${catalog.id}`}>{catalog.items.map(item => <button type="button" className="info-catalog-item" key={item.id} onClick={() => onOpenObject(infoCatalogItemDetail(catalog, item))}>
+      <span className="info-catalog-visual" aria-hidden="true"><b>{item.category.slice(0, 2).toUpperCase()}</b></span>
+      <span className="info-catalog-copy"><small>{item.category}</small><strong>{item.name}</strong>{item.note && <span>{item.note}</span>}</span>
+      <b>{item.value}</b>
+    </button>)}</div>
+  </section>
 }
 
 function InfoSurface({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed: InfoFeedEntry[]; onOpenObject: (detail: ObjectDetail) => void }) {
-  const [mode, setMode] = useState<'feed' | 'reference'>('feed')
+  const catalogsEnabled = infoCatalogPreviewEnabled(window.location.search)
+  const [mode, setMode] = useState<'guide' | 'catalogs'>('guide')
   const visibleTopics = publishedInfoTopics(topics).map(topic => topic.topic_key === 'ticketed-play' && ticketedPlaySaleHasOpened()
     ? {
         ...topic,
@@ -4909,27 +4954,13 @@ function InfoSurface({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed
       }
     : topic)
   const visibleFeed = publishedInfoFeed(feed, topics)
-  const referenceTopics = orderInfoReferenceTopics(visibleTopics)
-  const criticalTopics = ['hours', 'will-call', 'on-demand-play'].map(key => visibleTopics.find(topic => topic.topic_key === key)).filter((topic): topic is InfoTopic => Boolean(topic))
   return <section className="info-surface" aria-label="Info">
     <div className="trip-tabs" role="tablist" aria-label="Info view">
-      <button type="button" role="tab" aria-selected={mode === 'feed'} className={mode === 'feed' ? 'active' : ''} onClick={() => setMode('feed')}>Info feed</button>
-      <button type="button" role="tab" aria-selected={mode === 'reference'} className={mode === 'reference' ? 'active' : ''} onClick={() => setMode('reference')}>Reference</button>
+      <button type="button" role="tab" aria-selected={mode === 'guide'} className={mode === 'guide' ? 'active' : ''} onClick={() => setMode('guide')}>Guide</button>
+      {catalogsEnabled && <button type="button" role="tab" aria-selected={mode === 'catalogs'} className={mode === 'catalogs' ? 'active' : ''} onClick={() => setMode('catalogs')}>Catalogs</button>}
     </div>
-    {mode === 'feed' && <div className="info-feed-layout" role="tabpanel">
-      <section className="info-feed info-mode-panel">
-        <div className="info-section-head"><span className="eyebrow">INFO FEED</span><h2>What changed.</h2><p>New and updated information, newest first.</p></div>
-        <div className="info-tile-list">{visibleFeed.map(entry => { const topic = infoTopicForFeed(entry, visibleTopics); return <InfoTile key={entry.entry_key} eyebrow="Latest update" title={durableInfoFeedTitle(entry, visibleTopics)} summary={entry.summary} meta={new Date(entry.published_at).toLocaleDateString()} tone="gold" onClick={() => onOpenObject(topic && infoTopicUsesReader(topic) ? infoTopicDetail(topic, visibleFeed) : infoFeedDetail(entry, topic))} /> })}</div>
-      </section>
-      <aside className="info-critical info-mode-panel" aria-label="Critical information">
-        <div className="info-section-head"><span className="eyebrow">CRITICAL INFO</span><h2>Keep handy.</h2></div>
-        <div className="info-critical-list">{criticalTopics.map(topic => <InfoCriticalTile key={topic.topic_key} topic={topic} onOpen={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
-      </aside>
-    </div>}
-    {mode === 'reference' && <section className="info-reference info-mode-panel" role="tabpanel">
-      <div className="info-section-head"><span className="eyebrow">REFERENCE</span><h2>Solid information.</h2><p>Maintained, source-backed facts for the weekend.</p></div>
-      <div className="info-reference-grid">{referenceTopics.map(topic => <InfoReferenceTile key={topic.topic_key} topic={topic} onOpen={() => onOpenObject(infoTopicDetail(topic, visibleFeed))} />)}</div>
-    </section>}
+    {mode === 'guide' && <InfoGuide topics={visibleTopics} feed={visibleFeed} onOpenObject={onOpenObject} />}
+    {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview onOpenObject={onOpenObject} />}
   </section>
 }
 

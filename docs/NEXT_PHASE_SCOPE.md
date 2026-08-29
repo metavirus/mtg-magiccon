@@ -41,7 +41,8 @@ The accepted primary surfaces are:
 - **Calendar:** a scrollable stream of meaningful dates, milestones, travel, and convention-day summaries.
 - **Plan:** focused November 13–15 contention, Tentatives, commitments, and schedule consequences.
 - **Wallet:** badges, orders, entitlements, receipts, confirmations, pickup proof, and lightweight balances.
-- **Explore:** stores, prize wall, artists, vendors, and other ingested convention catalogs when they exist.
+- **Explore:** events, artists, vendors, and other opportunities the owner may choose to pursue.
+- **Info:** a maintained operational Guide plus hidden-until-real Catalogs for Show Store, Black Lotus Store, and Prize Wall inventory.
 - **Map:** rooms, zones, booths, tables, and spatial context, initially simple and eventually capable of supporting an interactive atlas.
 - **Trip:** flights, hotels, travelers, dates, and situated reference.
 - **Notes:** human-authored notes first, linked back to their context; machine activity available only as a drill-down.
@@ -96,7 +97,7 @@ Design representative flows at enough fidelity to judge product behavior. This i
 5. **Wallet item:** extracted facts plus the showable original, deliberate sensitive-detail reveal, notes, and contextual links.
 6. **Place detail and Map landing:** a quiet-period Trip-area orientation using confirmed hotel/venue facts, plus enough Event map structure to connect a room, booth, vendor, artist, exclusive item, note, and map reference later without attempting the full atlas.
 
-Explore, Prize Wall, artist matching, store catalog, receipts, and Notes should receive structural sketches sufficient to test their relationship to the shell. They do not need equally detailed prototypes in this phase.
+Explore, Info Guide/Catalogs, artist matching, receipts, and Notes should receive structural sketches sufficient to test their relationship to the shell. Catalog fixtures from prior events may be used only in explicit QA as correctly labeled precedent and must never masquerade as Atlanta inventory. These surfaces do not need equally detailed prototypes in this phase.
 
 ### Design expectations
 
