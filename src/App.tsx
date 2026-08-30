@@ -30,7 +30,8 @@ import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSo
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
-import { downloadReceiptArtifact, primeReceiptArtifactCache, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
+import { cacheDeviceAssets } from './lib/deviceAssets'
+import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -220,17 +221,34 @@ type WalletReceiptRow = {
   receipt_artifacts: ReceiptArtifact[]
 }
 
+type OfflineProofPackStatus = { expected: number; cached: number; loading: boolean }
+
 function useWalletReceipts(currentOwnerId?: string) {
   const [receipts, setReceipts] = useState<WalletReceiptRow[]>(() => {
     if (!currentOwnerId) return []
     const cached = readOfflineContinuity(currentOwnerId)?.lanes.walletReceipts
     return Array.isArray(cached) ? cached as WalletReceiptRow[] : []
   })
+  const [proofPack, setProofPack] = useState<OfflineProofPackStatus>({ expected: 0, cached: 0, loading: false })
   useEffect(() => {
-    if (!supabase || !currentOwnerId) { setReceipts([]); return }
+    if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) {
+      setReceipts([])
+      setProofPack({ expected: 0, cached: 0, loading: false })
+      return
+    }
     let active = true
     const cached = readOfflineContinuity(currentOwnerId)?.lanes.walletReceipts
-    if (Array.isArray(cached)) setReceipts(cached as WalletReceiptRow[])
+    if (Array.isArray(cached)) {
+      const cachedReceipts = cached as WalletReceiptRow[]
+      setReceipts(cachedReceipts)
+      const cachedArtifacts = cachedReceipts.flatMap(receipt => receipt.receipt_artifacts)
+      void auditReceiptArtifactCache(cachedArtifacts, currentOwnerId).then(status => {
+        if (active) setProofPack({ ...status, loading: navigator.onLine && status.cached < status.expected })
+      })
+    } else {
+      setReceipts([])
+      setProofPack({ expected: 0, cached: 0, loading: false })
+    }
     void supabase.from('wallet_receipts')
       .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
       .order('receipt_date', { ascending: false })
@@ -244,13 +262,16 @@ function useWalletReceipts(currentOwnerId?: string) {
         }))
         setReceipts(refreshed)
         try { writeOfflineContinuityLane(currentOwnerId, 'walletReceipts', refreshed) } catch { /* best-effort device continuity */ }
-        const showableProof = refreshed.flatMap(receipt => receipt.receipt_artifacts)
-          .filter(artifact => artifact.artifact_role === 'qr' || artifact.artifact_role === 'transfer')
-        void Promise.allSettled(showableProof.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId)))
+        const completeProofPack = refreshed.flatMap(receipt => receipt.receipt_artifacts)
+        setProofPack({ expected: completeProofPack.length, cached: 0, loading: completeProofPack.length > 0 })
+        void Promise.allSettled(completeProofPack.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId))).then(async () => {
+          const status = await auditReceiptArtifactCache(completeProofPack, currentOwnerId)
+          if (active) setProofPack({ ...status, loading: false })
+        })
       })
     return () => { active = false }
   }, [currentOwnerId])
-  return receipts
+  return { receipts, proofPack }
 }
 
 type CompanionMemberRow = {
@@ -738,6 +759,7 @@ export default function App() {
   const [continuityFailures, setContinuityFailures] = useState<string[]>([])
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
+  const { receipts: walletReceipts, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId)
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
   const currentCompanion = currentCompanionFromSession(effectiveSession, companionMembers)
@@ -925,6 +947,7 @@ export default function App() {
         if (lanes.notes) setContextNotesState(lanes.notes as ContextNote[])
         if (lanes.mentions) setMentionInboxState(lanes.mentions as MentionInboxItem[])
         if (lanes.activity) setUserActivityRows(lanes.activity as UserActivityEventRow[])
+        if (lanes.monitorAlerts) setMonitorAlerts(lanes.monitorAlerts as MonitoringAlert[])
         if (lanes.findings) setMonitoringFindings(lanes.findings as MonitoringFindingRow[])
         if (lanes.concepts) setMonitoringConcepts(lanes.concepts as MonitoringConceptRow[])
         if (lanes.info) {
@@ -996,6 +1019,7 @@ export default function App() {
     if (catalogResult.status === 'fulfilled') {
       setCatalogReadModel(catalogResult.value)
       cacheLane('catalog', catalogResult.value)
+      void cacheDeviceAssets(catalogResult.value.offers.map(offer => offer.presentationUrl))
     } else failures.push('catalogs')
     if (selectionsResult.status === 'fulfilled') {
       cacheLane('selections', selectionsResult.value)
@@ -1060,6 +1084,7 @@ export default function App() {
       const refreshed = await loadCatalogReadModel(supabase, 'magiccon_atlanta_2026')
       setCatalogReadModel(refreshed)
       writeOfflineContinuityLane(ownerId, 'catalog', refreshed)
+      void cacheDeviceAssets(refreshed.offers.map(item => item.presentationUrl))
     } catch (error) {
       setMessageTone('error')
       setMessage(error instanceof Error ? `Shopping list could not be updated: ${error.message}` : 'Shopping list could not be updated.')
@@ -1078,6 +1103,7 @@ export default function App() {
       const refreshed = await loadCatalogReadModel(supabase, 'magiccon_atlanta_2026')
       setCatalogReadModel(refreshed)
       writeOfflineContinuityLane(effectiveOwnerId, 'catalog', refreshed)
+      void cacheDeviceAssets(refreshed.offers.map(item => item.presentationUrl))
       setMessageTone('info')
       setMessage(`${readback.promoted_count} catalog item${readback.promoted_count === 1 ? '' : 's'} promoted with exact readback.`)
     } finally {
@@ -1086,18 +1112,39 @@ export default function App() {
   }, [canWrite, currentCompanion, effectiveOwnerId, effectiveSession])
 
   const refreshCompanions = useCallback(async (forceOnline = false) => {
-    if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || (!onlineRef.current && !forceOnline)) {
+    if (designPreview || isPreviewOwnerMode || !effectiveOwnerId) {
       setCompanionMembers(fallbackCompanionMembers)
       return
     }
-    await loadCompanionMembers().then(setCompanionMembers).catch(error => {
+    if (!onlineRef.current && !forceOnline) {
+      const cached = readOfflineContinuity(effectiveOwnerId)?.lanes.companions
+      setCompanionMembers(Array.isArray(cached) ? cached as CompanionMember[] : fallbackCompanionMembers)
+      return
+    }
+    await loadCompanionMembers().then(members => {
+      setCompanionMembers(members)
+      try { writeOfflineContinuityLane(effectiveOwnerId, 'companions', members) } catch { /* best-effort device continuity */ }
+    }).catch(error => {
       setMessageTone('error')
       setMessage(error instanceof Error ? `Companion roster could not be refreshed: ${error.message}` : 'Companion roster could not be refreshed.')
-      setCompanionMembers(fallbackCompanionMembers)
+      const cached = readOfflineContinuity(effectiveOwnerId)?.lanes.companions
+      setCompanionMembers(Array.isArray(cached) ? cached as CompanionMember[] : fallbackCompanionMembers)
     })
   }, [designPreview, isPreviewOwnerMode, effectiveOwnerId])
 
   useEffect(() => { void refreshCompanions() }, [refreshCompanions])
+
+  useEffect(() => {
+    if (!session || !effectiveOwnerId || !online || designPreview || isPreviewOwnerMode) return
+    void Promise.all([loadArtistCatalogFromSupabase(), loadArtistSigningInterestMap(effectiveOwnerId)]).then(([catalog, signingInterests]) => {
+      try { writeOfflineContinuityLane(effectiveOwnerId, 'artistCatalog', catalog) } catch { /* best-effort device continuity */ }
+      try { writeOfflineContinuityLane(effectiveOwnerId, 'artistSigningInterests', signingInterests) } catch { /* best-effort device continuity */ }
+      void cacheDeviceAssets([
+        ...catalog.artists.map(artist => artist.thumbnailUrl),
+        ...catalog.cards.flatMap(card => [card.artCropUrl, card.cardImageUrl]),
+      ])
+    }).catch(error => console.warn('Artist device pack could not be refreshed', error))
+  }, [designPreview, effectiveOwnerId, isPreviewOwnerMode, online, session])
 
   useEffect(() => {
     const reconnect = createReconnectRefresh(async () => {
@@ -1123,6 +1170,9 @@ export default function App() {
 
   useEffect(() => {
     let active = true
+    const cachedAlerts = effectiveOwnerId ? readOfflineContinuity(effectiveOwnerId)?.lanes.monitorAlerts : null
+    if (Array.isArray(cachedAlerts)) setMonitorAlerts(cachedAlerts as MonitoringAlert[])
+    if (!navigator.onLine) return () => { active = false }
     void fetch(`${import.meta.env.BASE_URL}monitoring-intake.json`, { cache: 'no-store' })
       .then(response => response.ok ? response.json() : null)
       .then(payload => {
@@ -1130,14 +1180,18 @@ export default function App() {
         const incoming = payload.alerts.filter(isMonitoringAlert)
         const mergedById = new Map(monitoringAlerts.map(alert => [alert.id, alert]))
         for (const alert of incoming) mergedById.set(alert.id, alert)
-        setMonitorAlerts([...mergedById.values()])
+        const merged = [...mergedById.values()]
+        setMonitorAlerts(merged)
+        if (effectiveOwnerId) {
+          try { writeOfflineContinuityLane(effectiveOwnerId, 'monitorAlerts', merged) } catch { /* best-effort device continuity */ }
+        }
       })
       .catch(() => {
         // The intake file is optional. If it is missing or malformed, keep the
         // built-in fixture alerts so local design review never goes blank.
       })
     return () => { active = false }
-  }, [])
+  }, [effectiveOwnerId])
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -1922,8 +1976,10 @@ export default function App() {
               email={effectiveSession?.user.email ?? 'kavigrace@gmail.com'}
               online={Boolean(session) && online}
               preview={designPreview || isPreviewOwnerMode}
+              proofPack={offlineProofPack}
               onOpenTutorial={() => setTutorialOpen(true)}
               onSignOut={() => {
+                if (effectiveOwnerId) void clearReceiptArtifactCache(effectiveOwnerId)
                 clearOfflineIdentity()
                 setOfflineIdentity(null)
                 void supabase?.auth.signOut({ scope: 'local' })
@@ -1941,11 +1997,11 @@ export default function App() {
       {((message && messageTone !== 'error') || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       <>
         {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} receipts={walletReceipts} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogBrowserQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
-        {surface === 'wallet' && <WalletSurface onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
+        {surface === 'wallet' && <WalletSurface receipts={walletReceipts} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
             const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
             if (canWrite && supabase && kaviOwnerId) {
@@ -2469,6 +2525,20 @@ type ArtistSigningInterestRow = {
   interest_status: 'not_reviewed' | ArtistSigningInterestStatus | 'skip'
 }
 
+async function loadArtistSigningInterestMap(ownerId: string): Promise<Record<string, ArtistSigningInterestStatus>> {
+  if (!supabase) return {}
+  const { data, error } = await supabase.from('artist_signing_interests')
+    .select('artist_id,card_id,printing_id,interest_status')
+    .eq('owner_id', ownerId)
+  if (error) throw error
+  const next: Record<string, ArtistSigningInterestStatus> = {}
+  for (const row of (data ?? []) as ArtistSigningInterestRow[]) {
+    if (!row.printing_id) continue
+    if (row.interest_status === 'maybe' || row.interest_status === 'want_signed') next[row.printing_id] = row.interest_status
+  }
+  return next
+}
+
 const artistSigningQaPicks: Array<{ artistName: string; cardNames: string[]; status: ArtistSigningInterestStatus }> = [
   { artistName: 'Serena Malyon', cardNames: ['Soul Immolation', 'Beyond the Quiet'], status: 'want_signed' },
   { artistName: 'Rebecca Guay', cardNames: ['Abundance', 'Seedtime'], status: 'maybe' },
@@ -2641,14 +2711,17 @@ function mapCatalogCardsToCandidates(
   })
 }
 
-async function loadArtistCatalogFromSupabase() {
-  const [artists, appearances, cards, printings, assessments] = await Promise.all([
+let artistCatalogRequest: Promise<{ artists: ArtistSeed[]; cards: ArtistCardCandidate[] }> | null = null
+
+async function loadArtistCatalogFromSupabase(): Promise<{ artists: ArtistSeed[]; cards: ArtistCardCandidate[] }> {
+  if (artistCatalogRequest) return artistCatalogRequest
+  artistCatalogRequest = Promise.all([
     loadAllSupabaseRows<ArtistCatalogRow>('artists'),
     loadAllSupabaseRows<ArtistAppearanceCatalogRow>('artist_appearances'),
     loadAllSupabaseRows<ArtistCardCatalogRow>('artist_cards'),
     loadAllSupabaseRows<ArtistPrintingCatalogRow>('artist_card_printings'),
     loadAllSupabaseRows<ArtistAssessmentCatalogRow>('artist_card_assessments'),
-  ])
+  ]).then(([artists, appearances, cards, printings, assessments]) => {
   const appearancesByArtist = new Map(appearances.map(appearance => [appearance.artist_id, appearance]))
   const appearanceArtistIds = new Set(appearances.map(appearance => appearance.artist_id))
   const appearanceSeeds = artists
@@ -2665,12 +2738,17 @@ async function loadArtistCatalogFromSupabase() {
   const scopedPrintingIds = new Set(scopedPrintings.map(printing => printing.id))
   const scopedAssessments = assessments.filter(assessment => scopedPrintingIds.has(assessment.printing_id))
 
-  return {
-    artists: appearanceSeeds.length ? appearanceSeeds : artistSeeds,
-    cards: appearanceArtistIds.size
-      ? mapCatalogCardsToCandidates(scopedPrintings, scopedCards, artists, scopedAssessments)
-      : mapCatalogCardsToCandidates(printings, cards, artists, assessments),
-  }
+    return {
+      artists: appearanceSeeds.length ? appearanceSeeds : artistSeeds,
+      cards: appearanceArtistIds.size
+        ? mapCatalogCardsToCandidates(scopedPrintings, scopedCards, artists, scopedAssessments)
+        : mapCatalogCardsToCandidates(printings, cards, artists, assessments),
+    }
+  }).catch(error => {
+    artistCatalogRequest = null
+    throw error
+  })
+  return artistCatalogRequest
 }
 
 function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
@@ -5182,14 +5260,13 @@ function InfoSurface({ topics, feed, catalogReadModel, currentOwnerId, canEditCa
   </section>
 }
 
-function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
+function WalletSurface({ receipts, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { receipts: WalletReceiptRow[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
     return Number.isFinite(parsed) ? parsed : 0
   })
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
-  const receipts = useWalletReceipts(currentOwnerId)
   const playReceipts = receipts.filter(receipt => receipt.receipt_type === 'ticketed_play')
   const badgeReceipts = receipts.filter(receipt => receipt.receipt_type === 'badge')
   const blackLotusReceipt = badgeReceipts.find(receipt => receipt.attendee_person_keys.includes('kavi') && receipt.attendee_person_keys.includes('chris')) ?? null
@@ -5729,15 +5806,26 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
   const [cardSearch, setCardSearch] = useState('')
   const [selectedArtist, setSelectedArtist] = useState<ArtistSeed | null>(null)
   const [previewCard, setPreviewCard] = useState<ArtistCardCandidate | null>(null)
-  const [signingInterest, setSigningInterest] = useState<Record<string, ArtistSigningInterestStatus>>({})
+  const [signingInterest, setSigningInterest] = useState<Record<string, ArtistSigningInterestStatus>>(() => {
+    if (!currentOwnerId) return {}
+    const cached = readOfflineContinuity(currentOwnerId)?.lanes.artistSigningInterests
+    return cached && typeof cached === 'object' ? cached as Record<string, ArtistSigningInterestStatus> : {}
+  })
   const [signingInterestError, setSigningInterestError] = useState<string | null>(null)
   const [collapsedCardGroups, setCollapsedCardGroups] = useState<Record<string, boolean>>({})
   const [catalogState, setCatalogState] = useState<{
-    source: 'fallback' | 'supabase'
+    source: 'fallback' | 'offline' | 'supabase'
     artists: ArtistSeed[]
     cards: ArtistCardCandidate[]
     error?: string
-  }>({ source: 'fallback', artists: artistSeeds, cards: artistCardCandidates })
+  }>(() => {
+    const cached = currentOwnerId ? readOfflineContinuity(currentOwnerId)?.lanes.artistCatalog : null
+    if (cached && typeof cached === 'object') {
+      const catalog = cached as { artists?: ArtistSeed[]; cards?: ArtistCardCandidate[] }
+      if (Array.isArray(catalog.artists) && Array.isArray(catalog.cards)) return { source: 'offline', artists: catalog.artists, cards: catalog.cards }
+    }
+    return { source: 'fallback', artists: artistSeeds, cards: artistCardCandidates }
+  })
   const localQaModes = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
     return new Set(
@@ -5754,14 +5842,30 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
   )
   useEffect(() => {
     let cancelled = false
+    if (!navigator.onLine) return () => { cancelled = true }
     loadArtistCatalogFromSupabase()
       .then(catalog => {
         if (!cancelled && catalog.cards.length) {
           setCatalogState({ source: 'supabase', artists: catalog.artists, cards: catalog.cards })
+          if (currentOwnerId) {
+            try { writeOfflineContinuityLane(currentOwnerId, 'artistCatalog', catalog) } catch { /* best-effort device continuity */ }
+          }
+          void cacheDeviceAssets([
+            ...catalog.artists.map(artist => artist.thumbnailUrl),
+            ...catalog.cards.flatMap(card => [card.artCropUrl, card.cardImageUrl]),
+          ])
         }
       })
       .catch(error => {
         if (!cancelled) {
+          const cached = currentOwnerId ? readOfflineContinuity(currentOwnerId)?.lanes.artistCatalog : null
+          if (cached && typeof cached === 'object') {
+            const catalog = cached as { artists?: ArtistSeed[]; cards?: ArtistCardCandidate[] }
+            if (Array.isArray(catalog.artists) && Array.isArray(catalog.cards)) {
+              setCatalogState({ source: 'offline', artists: catalog.artists, cards: catalog.cards })
+              return
+            }
+          }
           setCatalogState({
             source: 'fallback',
             artists: artistSeeds,
@@ -5769,9 +5873,9 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
             error: error instanceof Error ? error.message : 'Artist catalog could not be refreshed.',
           })
         }
-      })
+    })
     return () => { cancelled = true }
-  }, [])
+  }, [currentOwnerId])
   useEffect(() => {
     let cancelled = false
     if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) {
@@ -5779,24 +5883,20 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
       setSigningInterestError(null)
       return () => { cancelled = true }
     }
-    supabase.from('artist_signing_interests')
-      .select('artist_id,card_id,printing_id,interest_status')
-      .eq('owner_id', currentOwnerId)
-      .then(({ data, error }) => {
+    if (!navigator.onLine) {
+      const cached = readOfflineContinuity(currentOwnerId)?.lanes.artistSigningInterests
+      if (cached && typeof cached === 'object') setSigningInterest(cached as Record<string, ArtistSigningInterestStatus>)
+      return () => { cancelled = true }
+    }
+    loadArtistSigningInterestMap(currentOwnerId)
+      .then(next => {
         if (cancelled) return
-        if (error) {
-          setSigningInterestError(error.message)
-          return
-        }
-        const next: Record<string, ArtistSigningInterestStatus> = {}
-        for (const row of (data ?? []) as ArtistSigningInterestRow[]) {
-          if (!row.printing_id) continue
-          if (row.interest_status === 'maybe' || row.interest_status === 'want_signed') {
-            next[row.printing_id] = row.interest_status
-          }
-        }
         setSigningInterest(next)
+        try { writeOfflineContinuityLane(currentOwnerId, 'artistSigningInterests', next) } catch { /* best-effort device continuity */ }
         setSigningInterestError(null)
+      })
+      .catch(error => {
+        if (!cancelled) setSigningInterestError(error instanceof Error ? error.message : 'Signing interests could not be refreshed.')
       })
     return () => { cancelled = true }
   }, [currentOwnerId, previewSigningInterest])
@@ -5925,6 +6025,9 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
       const next = { ...current }
       if (nextStatus) next[key] = nextStatus
       else delete next[key]
+      if (currentOwnerId && !currentOwnerId.startsWith('preview-')) {
+        try { writeOfflineContinuityLane(currentOwnerId, 'artistSigningInterests', next) } catch { /* best-effort device continuity */ }
+      }
       return next
     })
 
@@ -5938,6 +6041,9 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
       const next = { ...current }
       if (priorStatus) next[key] = priorStatus
       else delete next[key]
+      if (currentOwnerId && !currentOwnerId.startsWith('preview-')) {
+        try { writeOfflineContinuityLane(currentOwnerId, 'artistSigningInterests', next) } catch { /* best-effort device continuity */ }
+      }
       return next
     })
 
@@ -6254,13 +6360,12 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, events, flights, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ slice, events, flights, receipts, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; receipts: WalletReceiptRow[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [detail, setDetail] = useState<CalendarDetail | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(() => purchaseQaEventId(events))
   const [selectedPeople, setSelectedPeople] = useState<PersonName[]>(() => readPeopleVisibility(currentOwnerId, currentPerson))
-  const receipts = useWalletReceipts(currentOwnerId)
   const toolbarRef = useRef<HTMLDivElement | null>(null)
   const toolbarStartRef = useRef(0)
   const [toolbarPinned, setToolbarPinned] = useState(false)
@@ -6865,7 +6970,7 @@ function AlertKindIcon({ kind }: { kind: AlertKind }) {
   return <svg className="alert-kind-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]}</svg>
 }
 
-function AccountMenu({ email, online, preview, onOpenTutorial, onSignOut }: { email: string; online: boolean; preview: boolean; onOpenTutorial: () => void; onSignOut: () => void }) {
+function AccountMenu({ email, online, preview, proofPack, onOpenTutorial, onSignOut }: { email: string; online: boolean; preview: boolean; proofPack: OfflineProofPackStatus; onOpenTutorial: () => void; onSignOut: () => void }) {
   const initial = email.trim().charAt(0).toUpperCase() || 'K'
 
   return <details className="account-menu" data-tour-target="account-chip">
@@ -6875,6 +6980,13 @@ function AccountMenu({ email, online, preview, onOpenTutorial, onSignOut }: { em
     </summary>
     <div className="account-popover">
       <span>{email}</span>
+      {!preview && <span className={`offline-pack-status ${proofPack.loading || proofPack.cached < proofPack.expected ? 'pending' : 'ready'}`}>
+        {proofPack.loading
+          ? `Saving offline proof · ${proofPack.cached}/${proofPack.expected}`
+          : proofPack.cached < proofPack.expected
+            ? `Offline proof incomplete · ${proofPack.cached}/${proofPack.expected}`
+            : `Offline proof ready · ${proofPack.cached}/${proofPack.expected}`}
+      </span>}
       <button type="button" onClick={event => {
         const menu = event.currentTarget.closest('details')
         if (menu instanceof HTMLDetailsElement) menu.open = false

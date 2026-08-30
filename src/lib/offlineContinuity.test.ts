@@ -57,6 +57,20 @@ describe('offline continuity', () => {
     expect(readOfflineContinuity('owner', storage)?.lanes.walletReceipts).toEqual(receipts)
   })
 
+  it('retains the active companion and artist read models without caching the unrelated corpus', () => {
+    const storage = memoryStorage()
+    writeOfflineContinuityLane('owner', 'companions', [{ person_key: 'kavi' }], storage)
+    writeOfflineContinuityLane('owner', 'artistCatalog', { artists: [{ id: 'atlanta-artist' }], cards: [{ id: 'active-card' }] }, storage)
+    writeOfflineContinuityLane('owner', 'artistSigningInterests', { 'atlanta-artist:active-card': 'want' }, storage)
+    writeOfflineContinuityLane('owner', 'monitorAlerts', [{ id: 'source-change' }], storage)
+    expect(readOfflineContinuity('owner', storage)?.lanes).toMatchObject({
+      companions: [{ person_key: 'kavi' }],
+      artistCatalog: { artists: [{ id: 'atlanta-artist' }], cards: [{ id: 'active-card' }] },
+      artistSigningInterests: { 'atlanta-artist:active-card': 'want' },
+      monitorAlerts: [{ id: 'source-change' }],
+    })
+  })
+
   it('contains no write queue or replay contract', () => {
     const storage = memoryStorage()
     writeOfflineContinuityLane('owner', 'activity', [], storage)

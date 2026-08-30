@@ -4,6 +4,7 @@ export type ContinuityLane =
   | 'notes' | 'mentions' | 'selections' | 'activity'
   | 'findings' | 'concepts' | 'info' | 'flights'
   | 'ticketedAvailability' | 'catalog' | 'walletReceipts'
+  | 'companions' | 'artistCatalog' | 'artistSigningInterests' | 'monitorAlerts'
 
 export type OfflineContinuitySnapshot = {
   version: 1

@@ -70,6 +70,21 @@
   white-space: nowrap;
 }
 
+.account-popover .offline-pack-status {
+  margin: 0 0 7px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #142c35;
+  color: #7dd8b3;
+  font-weight: 700;
+  white-space: normal;
+}
+
+.account-popover .offline-pack-status.pending {
+  background: #332c1b;
+  color: #f0c866;
+}
+
 .account-popover button {
   width: 100%;
   padding: 10px;

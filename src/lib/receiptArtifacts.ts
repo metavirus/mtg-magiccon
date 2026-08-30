@@ -55,6 +55,22 @@ export async function primeReceiptArtifactCache(artifact: ReceiptArtifact, owner
   await receiptArtifactBlob(artifact, ownerId)
 }
 
+export async function auditReceiptArtifactCache(artifacts: ReceiptArtifact[], ownerId: string) {
+  const unique = [...new Map(artifacts.map(artifact => [artifact.id, artifact])).values()]
+  if (!('caches' in globalThis)) return { expected: unique.length, cached: 0 }
+  const cache = await caches.open(RECEIPT_ARTIFACT_CACHE)
+  const matches = await Promise.all(unique.map(artifact => cache.match(receiptArtifactCacheKey(ownerId, artifact.id))))
+  return { expected: unique.length, cached: matches.filter(Boolean).length }
+}
+
+export async function clearReceiptArtifactCache(ownerId: string) {
+  if (!('caches' in globalThis)) return
+  const cache = await caches.open(RECEIPT_ARTIFACT_CACHE)
+  const ownerPath = `/__offline_wallet/${encodeURIComponent(ownerId)}/`
+  const keys = await cache.keys()
+  await Promise.all(keys.filter(key => new URL(key.url).pathname.includes(ownerPath)).map(key => cache.delete(key)))
+}
+
 export async function downloadReceiptArtifact(artifact: ReceiptArtifact, ownerId?: string) {
   const data = await receiptArtifactBlob(artifact, ownerId)
   if (artifact.mime_type !== 'text/html') return URL.createObjectURL(data)

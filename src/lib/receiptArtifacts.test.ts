@@ -52,6 +52,23 @@ describe('private receipt artifacts', () => {
     expect(download).not.toHaveBeenCalled()
   })
 
+  it('audits every expected private artifact instead of a selected role subset', async () => {
+    vi.stubGlobal('URL', NativeURL)
+    const match = vi.fn()
+      .mockResolvedValueOnce(new Response('original'))
+      .mockResolvedValueOnce(new Response('qr'))
+      .mockResolvedValueOnce(undefined)
+    vi.stubGlobal('caches', { open: vi.fn().mockResolvedValue({ match }) })
+    const { auditReceiptArtifactCache, RECEIPT_ARTIFACT_BUCKET } = await import('./receiptArtifacts')
+    const artifacts = [
+      { id: 'original', artifact_role: 'original' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'original.html', mime_type: 'text/html', display_label: 'Original', display_order: 1 },
+      { id: 'qr', artifact_role: 'qr' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'qr.png', mime_type: 'image/png', display_label: 'QR', display_order: 2 },
+      { id: 'transfer', artifact_role: 'transfer' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'transfer.png', mime_type: 'image/png', display_label: 'Transfer', display_order: 3 },
+    ]
+    await expect(auditReceiptArtifactCache(artifacts, 'owner-1')).resolves.toEqual({ expected: 3, cached: 2 })
+    expect(match).toHaveBeenCalledTimes(3)
+  })
+
   it('blocks remote resources when rendering preserved source HTML', async () => {
     let renderedBlob: Blob | undefined
     vi.stubGlobal('URL', { createObjectURL: vi.fn((blob: Blob) => { renderedBlob = blob; return 'blob:safe-html' }) })
@@ -87,5 +104,13 @@ describe('private receipt artifacts', () => {
     expect(trackedBundleSources).not.toContain('conventions.leapevent.tech/c/')
     expect(app).toContain('line?.order_code')
     expect(app).toContain('line?.order_url')
+  })
+
+  it('hydrates the complete proof pack after authentication without opening Wallet', () => {
+    const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8')
+    expect(app).toContain('const completeProofPack = refreshed.flatMap(receipt => receipt.receipt_artifacts)')
+    expect(app).toContain('completeProofPack.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId))')
+    expect(app).not.toMatch(/completeProofPack\s*=.*\.filter\(artifact\s*=>\s*artifact\.artifact_role/s)
+    expect(app).toContain('const { receipts: walletReceipts, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId)')
   })
 })

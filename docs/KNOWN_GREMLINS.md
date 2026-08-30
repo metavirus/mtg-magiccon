@@ -352,6 +352,10 @@ If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, t
 - Do not keep patching CSS if the device is simply serving an old bundle.
 - For a deterministic local cold-offline proof, build first and run `pnpm ui:capture -- -Route <route> -Width 390 -Height 844 -Query "previewOwner=kavi" -OfflineReopen -ExpectText "<critical text>"`. Add `-ExpectImage "<selector>"` for a rendered image or `-ExpectAssets "asset-a|asset-b"` for exact precached proof files.
 
+**Recurring completeness trap:** A route or image loading after one visit proves opportunistic cache warming, not a complete offline companion. Do not define an unapproved “critical subset.” The authenticated device hydration contract covers every user-visible production data/media lane and every permitted private receipt artifact, including originals. Public precache may exclude private data, but the authenticated device pack may not. Hidden QA/reference content, unrelated inactive corpora, first-time authentication, external destinations, and offline writes are the explicit exclusions. A partial private-proof download must remain visibly incomplete, and the contract tests must fail if artifact hydration is narrowed back to selected roles.
+
+**Manual-warm cache-name trap:** A successful `cache.put()` is not proof that an offline `<img>` request can retrieve the response. The device asset warmer and Workbox `CacheFirst` route must use the same cache name (`magiccon-remote-images-v1`); `src/lib/deviceAssets.test.ts` guards that binding.
+
 ## Local preview server and ports
 
 **Symptom:** preview/dev cannot be reached, port changes, or a local server hangs a tool call.
