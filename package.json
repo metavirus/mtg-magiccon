@@ -37,6 +37,7 @@
     "catalog:fetch-exact-image": "node --use-system-ca scripts/catalog_fetch_exact_image.mjs",
     "artist:seed-sql": "node scripts/build_artist_card_catalog_seed_sql.mjs",
     "validate:artist-catalog-db": "powershell -ExecutionPolicy Bypass -File scripts/validate_artist_card_catalog_db.ps1",
+    "validate:catalog-db": "powershell -ExecutionPolicy Bypass -File scripts/validate_catalog_database.ps1",
     "validate:artist-import": "node scripts/validate_artist_card_import.mjs",
     "validate:monitoring": "powershell -ExecutionPolicy Bypass -File scripts/validate_monitoring_intake.ps1",
     "validate:map-data": "node scripts/validate_map_data.mjs && node scripts/test_map_data_guards.mjs",
