@@ -52,12 +52,12 @@ export const priorEventCatalogs: InfoCatalog[] = [
     sourceLabel: 'Official MagicCon Amsterdam Prize Wall',
     sourceUrl: 'https://mcamsterdam.mtgfestivals.com/en-us/magic-play/prize-wall.html',
     items: [
-      { id: 'prize-play-booster', name: 'Play Boosters', category: 'Boosters', value: 'From 500 Tix', availability: 'precedent' },
-      { id: 'prize-collector-booster', name: 'Collector Boosters', category: 'Boosters', value: 'From 2,500 Tix', availability: 'precedent' },
-      { id: 'prize-commander', name: 'Commander preconstructed decks', category: 'Sealed product', value: 'From 5,000 Tix', availability: 'precedent' },
-      { id: 'prize-bundle', name: 'Bundles', category: 'Sealed product', value: 'From 6,000 Tix', availability: 'precedent' },
-      { id: 'prize-jumbo', name: 'Jumbo cards', category: 'Display pieces', value: 'From 20,000 Tix', availability: 'precedent' },
-      { id: 'prize-sheet', name: 'Uncut sheets', category: 'Display pieces', value: 'From 50,000 Tix', availability: 'precedent' },
+      { id: 'prize-play-booster', name: 'Play Boosters', category: 'Boosters', value: 'From 500 Prize Tix', availability: 'precedent' },
+      { id: 'prize-collector-booster', name: 'Collector Boosters', category: 'Boosters', value: 'From 2,500 Prize Tix', availability: 'precedent' },
+      { id: 'prize-commander', name: 'Commander preconstructed decks', category: 'Sealed product', value: 'From 5,000 Prize Tix', availability: 'precedent' },
+      { id: 'prize-bundle', name: 'Bundles', category: 'Sealed product', value: 'From 6,000 Prize Tix', availability: 'precedent' },
+      { id: 'prize-jumbo', name: 'Jumbo cards', category: 'Display pieces', value: 'From 20,000 Prize Tix', availability: 'precedent' },
+      { id: 'prize-sheet', name: 'Uncut sheets', category: 'Display pieces', value: 'From 50,000 Prize Tix', availability: 'precedent' },
     ],
   },
 ]

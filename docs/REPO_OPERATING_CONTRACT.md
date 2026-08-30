@@ -66,6 +66,7 @@ Use this as the one canonical approval policy for repository work:
 - Honest empty state is better than fake placeholder data.
 - Never render raw long URLs in user-facing cards or drawers; use a concise labeled link or paperclip/external-link affordance. Anything that visually reads clickable must be clickable; otherwise restyle or remove it.
 - UI should be compact, useful, and low-explainer.
+- For tabs, browse filters, sticky toolbars, compact rows, and icon actions, follow `docs/UI_CONTROL_DENSITY_CONTRACT.md`. Reuse an accepted peer grammar before adding new dimensions, and compare the affected viewport with at least one peer surface before calling the design complete.
 - Shared preview quality matters: if Chris saw it, it should look real and honest.
 
 ## Canonical lanes

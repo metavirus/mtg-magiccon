@@ -111,6 +111,19 @@ Readiness rule: capabilities are task-specific. Check a capability only when the
 - A passing smoke must read observable page state: URL, title, visible text, DOM, or screenshot. Generic JavaScript output is not enough.
 - If a fresh/claimed app tab still cannot be read after one reset and one retry, stop with the exact host action: close stale in-app Browser tabs, open `http://127.0.0.1:5173/` after Vite is running, or restart the Codex task. Do not continue visual work blind.
 
+## Local Vite tab shows an older PWA shell
+
+**Symptom:** `http://127.0.0.1:5173/` responds, but the user's actual tab lacks a just-built control or loads a hashed `/assets/index-*.js` bundle instead of `/@vite/client`.
+
+**Cause:** a production service worker previously registered on the local origin can continue serving its precached application shell in front of a healthy Vite server. A clean Playwright context is not proof that the user's existing tab received current code.
+
+**Do this:**
+
+- Inspect the user's exact tab. In local development its first app script must be `/@vite/client`; a hashed `/assets/index-*.js` script proves the stale PWA shell is still in control.
+- Keep the dev-only `/sw.js` middleware in `vite.config.ts`. It installs a network-only worker and removes obsolete asset caches without clearing authentication/localStorage.
+- Reload the claimed tab until `/@vite/client` is present, then verify the requested control and content in that same tab.
+- Do not report a local UI fix from a clean capture alone when the user's tab is the failing surface.
+
 ## Git writes in Codex sandbox
 
 **Symptom:** `fatal: Unable to create .git/index.lock: Permission denied`.

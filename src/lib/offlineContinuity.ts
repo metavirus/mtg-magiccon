@@ -3,7 +3,7 @@ export const OFFLINE_CONTINUITY_CACHE_PREFIX = 'magiccon:offline-continuity:v1:'
 export type ContinuityLane =
   | 'notes' | 'mentions' | 'selections' | 'activity'
   | 'findings' | 'concepts' | 'info' | 'flights'
-  | 'ticketedAvailability'
+  | 'ticketedAvailability' | 'catalog'
 
 export type OfflineContinuitySnapshot = {
   version: 1

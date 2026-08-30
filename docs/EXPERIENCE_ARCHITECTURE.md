@@ -133,6 +133,8 @@ The second mode, **Catalogs**, contains exactly three inventory families:
 
 Catalogs is hidden until at least one real, source-backed Atlanta inventory exists. Prior-event catalogs may be retained as explicitly labeled QA-only precedent for layout and interaction testing, but they must never appear in the ordinary Atlanta experience or masquerade as Atlanta inventory. Catalog items may backlink to Wallet receipts, purchases, Prize Tix, notes, and Map places without transferring ownership: Info owns what is offered; Wallet owns what the user owns, purchased, must show, or can claim.
 
+Catalog families describe acquisition paths, not mutually exclusive product identities. The same product may appear as separate offers in Show Store and Prize Wall; the store offer shows its money price, while the Prize Wall offer shows its full Prize Tix cost. Availability, limits, evidence, and user interest remain offer-specific.
+
 ### Map
 
 Map owns the spatial convention model:

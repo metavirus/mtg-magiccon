@@ -22,6 +22,8 @@ Raw source diffs stay in monitoring evidence. Info does not accept monitoring ba
 
 Catalogs contains exactly three current-event inventory families: Show Store, Black Lotus Store, and Prize Wall. A family appears only after reviewed first-party or otherwise approved evidence establishes real Atlanta inventory. Store receipts, purchases, entitlements, claimable proof, and Prize Tix balance remain in Wallet; event and participation discovery remains in Explore.
 
+A product can be offered through multiple families without becoming multiple product identities. Store and Prize Wall appearances are separate offers with separate values and availability: a Play Booster may be sold for money in Show Store and redeemed for Prize Tix at Prize Wall. Prize Wall offers never carry a money price, and the browser displays their full Prize Tix cost.
+
 Prior-event catalog fixtures may be used only in explicit QA modes as precedent for information shape, visual density, filters, and interactions. They must carry their real event and year, stay out of the default Atlanta data path, and never be labeled, implied, counted, or displayed as Atlanta inventory. An honest hidden mode is preferable to plausible placeholder merchandise.
 
 ## Maintained article contract

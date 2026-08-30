@@ -2,6 +2,9 @@
 
 Backlog intent is explicit: **planned** means “yes, do this when its dependency/window arrives”; **artifact-dependent** means “yes in principle, but the real source must shape it”; **consider later** means “possibly useful, reassess before committing.” An unchecked box alone does not communicate product intent.
 
+- [ ] **At-con experiment — catalog image recognition:** benchmark camera/image recognition only when physical merchandise and onsite captures exist. Compare it with exact-name/manual matching, measure false bindings and operator time, and keep every result candidate-only until Kavi reviews it. It is not a dependency for the first released catalog.
+- [ ] **Consider later — catalog image retrieval benchmark:** replace ad hoc exact/fuzzy searches with a measured operator-assist lane covering name variants, typos, maker/product decomposition, visual motifs, first-party domain ranking, adjacent merch pages, and exact-versus-representative classification. Include obvious controls such as Gatherers' Tavern Chatterfang ARTY Deck Box; do not claim reliable discovery until the benchmark demonstrates acceptable exact-item recall.
+
 - [x] Prevent the seven-card Info Recent recurrence: one current meaningful card per stable concept, retained superseded history, and internal-only link discovery.
 - [x] Group Home Worth Knowing items into `Recent` (past few days) and `Earlier` (past couple weeks) while allowing the surface to grow naturally rather than hiding older useful items in an internal scroll box.
 
