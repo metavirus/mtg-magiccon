@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { surfaceFromHash } from '../App'
-import { AUTH_MODE_KEY, authRedirectUrl, resolveDesignPreviewMode } from './appMode'
+import { AUTH_MODE_KEY, authRedirectUrl, resolveDesignPreviewMode, standaloneAppSearch } from './appMode'
 
 function memoryStorage(initial?: string) {
   let value = initial ?? null
@@ -36,6 +36,14 @@ describe('application mode', () => {
   it('allows an explicit return to fixture preview', () => {
     const storage = memoryStorage('authenticated')
     expect(resolveDesignPreviewMode({ search: '?preview=1', development: true, previewBuild: false, storage })).toBe(true)
+  })
+
+  it('never carries fixture or QA mode into an installed standalone app', () => {
+    const storage = memoryStorage()
+    const search = '?preview=1&previewOwner=kavi&qa=catalog-browser%2Ccatalog-import-lab&campaign=atlanta'
+    expect(standaloneAppSearch(search, true)).toBe('?campaign=atlanta')
+    expect(resolveDesignPreviewMode({ search, development: false, previewBuild: true, storage, standalone: true })).toBe(false)
+    expect(standaloneAppSearch(search, false)).toBe(search)
   })
 
   it('preserves a hosted subpath in the callback URL', () => {

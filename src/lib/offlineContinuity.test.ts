@@ -50,6 +50,13 @@ describe('offline continuity', () => {
     expect(readOfflineContinuity('owner', storage)?.lanes.flights).toEqual([{ id: 'server' }])
   })
 
+  it('retains the authenticated Wallet receipt index for offline reopen', () => {
+    const storage = memoryStorage()
+    const receipts = [{ id: 'badge-order', receipt_type: 'badge' }]
+    writeOfflineContinuityLane('owner', 'walletReceipts', receipts, storage)
+    expect(readOfflineContinuity('owner', storage)?.lanes.walletReceipts).toEqual(receipts)
+  })
+
   it('contains no write queue or replay contract', () => {
     const storage = memoryStorage()
     writeOfflineContinuityLane('owner', 'activity', [], storage)
@@ -67,6 +74,10 @@ describe('offline continuity', () => {
   it('precaches the public Map reference but never private Wallet proof', () => {
     const config = readFileSync(join(process.cwd(), 'vite.config.ts'), 'utf8')
     expect(config).toContain("'gwcc-campus-reference.png'")
+    expect(config).toContain("'artist-cynthia-sheppard.jpg'")
+    expect(config).toContain("'artist-mark-poole.jpg'")
+    expect(config).toContain("'artist-serena-malyon.jpg'")
+    expect(config).toContain("'artist-rebecca-guay.png'")
     expect(config).not.toContain('black-lotus-order')
     expect(config).not.toContain('juan-premium-order-original')
   })

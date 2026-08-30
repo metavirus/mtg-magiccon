@@ -10,7 +10,7 @@ import { activityDestination, mobileDrawerDestinations, navigationDestination, p
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
 import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
-import { authRedirectUrl, resolveDesignPreviewMode } from './lib/appMode'
+import { authRedirectUrl, resolveDesignPreviewMode, standaloneAppSearch } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingIsInformational, findingMayBypassConceptReadModel, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import { loadInfoKnowledge, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
@@ -29,7 +29,8 @@ import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from '
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
-import { downloadReceiptArtifact, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
+import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
+import { downloadReceiptArtifact, primeReceiptArtifactCache, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -220,21 +221,32 @@ type WalletReceiptRow = {
 }
 
 function useWalletReceipts(currentOwnerId?: string) {
-  const [receipts, setReceipts] = useState<WalletReceiptRow[]>([])
+  const [receipts, setReceipts] = useState<WalletReceiptRow[]>(() => {
+    if (!currentOwnerId) return []
+    const cached = readOfflineContinuity(currentOwnerId)?.lanes.walletReceipts
+    return Array.isArray(cached) ? cached as WalletReceiptRow[] : []
+  })
   useEffect(() => {
     if (!supabase || !currentOwnerId) { setReceipts([]); return }
     let active = true
+    const cached = readOfflineContinuity(currentOwnerId)?.lanes.walletReceipts
+    if (Array.isArray(cached)) setReceipts(cached as WalletReceiptRow[])
     void supabase.from('wallet_receipts')
       .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
       .order('receipt_date', { ascending: false })
       .then(({ data, error }) => {
         if (!active) return
-        if (error) { console.warn('Wallet receipts could not be loaded', error); return }
-        setReceipts(((data ?? []) as WalletReceiptRow[]).map(receipt => ({
+        if (error) { console.warn('Wallet receipts could not be loaded; using offline cache when available', error); return }
+        const refreshed = ((data ?? []) as WalletReceiptRow[]).map(receipt => ({
           ...receipt,
           attendee_person_keys: receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key],
           receipt_artifacts: [...(receipt.receipt_artifacts ?? [])].sort((left, right) => left.display_order - right.display_order),
-        })))
+        }))
+        setReceipts(refreshed)
+        try { writeOfflineContinuityLane(currentOwnerId, 'walletReceipts', refreshed) } catch { /* best-effort device continuity */ }
+        const showableProof = refreshed.flatMap(receipt => receipt.receipt_artifacts)
+          .filter(artifact => artifact.artifact_role === 'qr' || artifact.artifact_role === 'transfer')
+        void Promise.allSettled(showableProof.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId)))
       })
     return () => { active = false }
   }, [currentOwnerId])
@@ -654,14 +666,21 @@ function hashForSurface(next: Surface) {
 }
 
 export default function App() {
+  const standalone = window.matchMedia('(display-mode: standalone)').matches
+    || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
+  const appSearch = standaloneAppSearch(window.location.search, standalone)
+  if (appSearch !== window.location.search) {
+    window.history.replaceState(null, '', `${window.location.pathname}${appSearch}${window.location.hash}`)
+  }
   const designPreview = resolveDesignPreviewMode({
-    search: window.location.search,
+    search: appSearch,
     development: import.meta.env.DEV,
     previewBuild: import.meta.env.VITE_DESIGN_PREVIEW === '1',
     storage: window.localStorage,
+    standalone,
   })
-  const previewOwner = resolvePreviewOwner(window.location.search)
-  const qaFlags = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
+  const previewOwner = resolvePreviewOwner(appSearch)
+  const qaFlags = new URLSearchParams(appSearch).get('qa')?.split(',') ?? []
   const catalogBrowserQaRequested = qaFlags.includes('catalog-browser')
   const isPreviewOwnerMode = Boolean(previewOwner)
   const previewSession = useMemo(() => previewOwner
@@ -675,10 +694,14 @@ export default function App() {
     : null, [previewOwner?.displayName, previewOwner?.key])
   const [session, setSession] = useState<Session | null>(null)
   const [online, setOnline] = useState(navigator.onLine)
+  const [offlineIdentity, setOfflineIdentity] = useState(() => readOfflineIdentity())
   const onlineRef = useRef(navigator.onLine)
+  const offlineSession = useMemo(() => offlineIdentity
+    ? ({ user: { id: offlineIdentity.userId, email: offlineIdentity.email, user_metadata: { full_name: offlineIdentity.displayName } } } as unknown as Session)
+    : null, [offlineIdentity])
   const canWrite = !designPreview && !isPreviewOwnerMode && Boolean(session && supabase && online)
-  const effectiveOwnerId = (previewOwner ? `preview-${previewOwner.key}` : session?.user.id ?? undefined) as string | undefined
-  const effectiveSession = isPreviewOwnerMode ? previewSession : session
+  const effectiveSession = isPreviewOwnerMode ? previewSession : session ?? offlineSession
+  const effectiveOwnerId = (previewOwner ? `preview-${previewOwner.key}` : effectiveSession?.user.id ?? undefined) as string | undefined
   const [slice, setSlice] = useState<TrustSlice | null>(designPreview || isPreviewOwnerMode ? DESIGN_PREVIEW_SLICE : null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -807,6 +830,15 @@ export default function App() {
     }
     const applySession = (next: Session | null) => {
       setSession(next)
+      if (next) {
+        const identity = {
+          userId: next.user.id,
+          email: next.user.email,
+          displayName: next.user.user_metadata?.full_name ?? next.user.user_metadata?.name,
+        }
+        try { writeOfflineIdentity(identity) } catch { /* online auth remains authoritative */ }
+        setOfflineIdentity(identity)
+      }
       const cached = readTrustSliceCache()
       const nextCompanion = currentCompanionFromSession(next, companionMembers)
       setSlice(next && isKaviCompanion(nextCompanion) && cached?.ownerId === next.user.id ? cached : null)
@@ -1888,9 +1920,14 @@ export default function App() {
             />
             <AccountMenu
               email={effectiveSession?.user.email ?? 'kavigrace@gmail.com'}
-              online={Boolean(effectiveSession) && online}
+              online={Boolean(session) && online}
               preview={designPreview || isPreviewOwnerMode}
               onOpenTutorial={() => setTutorialOpen(true)}
+              onSignOut={() => {
+                clearOfflineIdentity()
+                setOfflineIdentity(null)
+                void supabase?.auth.signOut({ scope: 'local' })
+              }}
             />
             <span className="countdown-chip"><strong>{daysToAtlanta}</strong><span>days to Atlanta</span></span>
           </div>
@@ -2281,7 +2318,7 @@ const artistSeeds: ArtistSeed[] = [
     summary: 'Cynthia Sheppard is listed on the official MagicCon: Atlanta guest page as an Art of Magic artist appearing all days. This should become a signing-candidate row once your curated card list is available.',
     attendance: 'All days',
     bioUrl: 'https://mcatlanta.mtgfestivals.com/en-us/guests/guest-profile.html?gtID=378578&guest-name=Cynthia-Sheppard',
-    thumbnailUrl: 'https://conv-prod-app.s3.amazonaws.com/media/med/94/84/5/fd0525d0-21d8-4a06-9154-ccd9b5219448.jpg',
+    thumbnailUrl: `${import.meta.env.BASE_URL}artist-cynthia-sheppard.jpg`,
     thumbnailAlt: 'Cynthia Sheppard will be at MagicCon: Atlanta',
     thumbnailCaption: 'Official MagicCon guest photo',
     facts: [
@@ -2302,7 +2339,7 @@ const artistSeeds: ArtistSeed[] = [
     summary: 'Mark Poole is listed on the official MagicCon: Atlanta guest page as an Art of Magic artist appearing all days. This is likely a high-value signing row once the owned-card shortlist lands.',
     attendance: 'All days',
     bioUrl: 'https://mcatlanta.mtgfestivals.com/en-us/guests/guest-profile.html?gtID=378577&guest-name=Mark-Poole',
-    thumbnailUrl: 'https://conv-prod-app.s3.amazonaws.com/media/med/8/74/38/49b8c640-a5c5-4659-9f62-6d5aa6550263.jpg',
+    thumbnailUrl: `${import.meta.env.BASE_URL}artist-mark-poole.jpg`,
     thumbnailAlt: 'Mark Poole will be at MagicCon: Atlanta',
     thumbnailCaption: 'Official MagicCon guest photo',
     facts: [
@@ -2323,7 +2360,7 @@ const artistSeeds: ArtistSeed[] = [
     summary: 'Serena Malyon is listed on the official MagicCon: Atlanta guest page as an Art of Magic artist appearing all days. Keep her row ready for card matching and signature planning.',
     attendance: 'All days',
     bioUrl: 'https://mcatlanta.mtgfestivals.com/en-us/guests/guest-profile.html?gtID=378595&guest-name=Serena-Malyon',
-    thumbnailUrl: 'https://conv-prod-app.s3.amazonaws.com/media/med/57/25/17/7091b6be-239a-48b7-b760-8e2c39d2f5f3.jpg',
+    thumbnailUrl: `${import.meta.env.BASE_URL}artist-serena-malyon.jpg`,
     thumbnailAlt: 'Serena Malyon will be at MagicCon: Atlanta',
     thumbnailCaption: 'Official MagicCon guest photo',
     facts: [
@@ -2483,10 +2520,12 @@ function catalogArtistToSeed(artist: ArtistCatalogRow, appearance?: ArtistAppear
   const summary = appearance?.priority_reason
     || artist.style_description
     || `${title} is in the canonical signing catalog${confirmed ? ' and is currently listed for MagicCon: Atlanta.' : '.'}`
-  const thumbnailUrl = artist.profile_image_url || fallbackSeed?.thumbnailUrl
-  const thumbnailCaption = artist.profile_image_url
-    ? confirmed ? 'Official MagicCon guest photo' : 'Planning image; Atlanta attendance remains unconfirmed.'
-    : fallbackSeed?.thumbnailCaption || (confirmed ? 'Official MagicCon guest photo' : 'Planning image; Atlanta attendance remains unconfirmed.')
+  const thumbnailUrl = fallbackSeed?.thumbnailUrl || artist.profile_image_url || undefined
+  const thumbnailCaption = fallbackSeed?.thumbnailUrl
+    ? fallbackSeed.thumbnailCaption
+    : artist.profile_image_url
+      ? confirmed ? 'Official MagicCon guest photo' : 'Planning image; Atlanta attendance remains unconfirmed.'
+      : confirmed ? 'Official MagicCon guest photo' : 'Planning image; Atlanta attendance remains unconfirmed.'
 
   return {
     id: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
@@ -5194,7 +5233,7 @@ function WalletSurface({ onOpenObject, onOpenTrip, notes, currentOwnerId, onAddN
       </div>
     </div>
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openChrisBlackLotusProof={openChrisBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
-    {tab === 'play' && <WalletPlayTab receipts={playReceipts} openModal={openModal} />}
+    {tab === 'play' && <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} />}
     {tab === 'store' && <WalletStoreEmpty />}
     {tab === 'other' && <WalletOtherTab openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
@@ -5221,7 +5260,7 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
-function PrivateReceiptArtifacts({ receipt, roles, title }: { receipt: WalletReceiptRow | null; roles: ReceiptArtifactRole[]; title: string }) {
+function PrivateReceiptArtifacts({ receipt, roles, title, currentOwnerId }: { receipt: WalletReceiptRow | null; roles: ReceiptArtifactRole[]; title: string; currentOwnerId?: string }) {
   const artifacts = useMemo(
     () => (receipt?.receipt_artifacts ?? []).filter(artifact => roles.includes(artifact.artifact_role)),
     [receipt, roles.join('|')],
@@ -5235,7 +5274,7 @@ function PrivateReceiptArtifacts({ receipt, roles, title }: { receipt: WalletRec
     setDownloads([])
     if (!artifacts.length) { setStatus('idle'); return }
     setStatus('loading')
-    void Promise.all(artifacts.map(async artifact => ({ artifact, url: await downloadReceiptArtifact(artifact) })))
+    void Promise.all(artifacts.map(async artifact => ({ artifact, url: await downloadReceiptArtifact(artifact, currentOwnerId) })))
       .then(items => {
         objectUrls = items.map(item => item.url)
         if (!active) { objectUrls.forEach(url => URL.revokeObjectURL(url)); return }
@@ -5250,7 +5289,7 @@ function PrivateReceiptArtifacts({ receipt, roles, title }: { receipt: WalletRec
       active = false
       objectUrls.forEach(url => URL.revokeObjectURL(url))
     }
-  }, [artifacts.map(artifact => artifact.id).join('|')])
+  }, [artifacts.map(artifact => artifact.id).join('|'), currentOwnerId])
 
   if (!receipt) return <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
   if (!artifacts.length) return <p className="original-receipt-note">This private proof has not been migrated yet.</p>
@@ -5331,10 +5370,10 @@ function ChrisBlackLotusTransferDetail({ originalReceipt, transferReceipt, notes
       <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-chris-black-lotus-transfer" objectKind="receipt" objectTitle="Chris Black Lotus transfer confirmation" context="Wallet · Chris Black Lotus transfer" backlink="wallet" compact />
     </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p> : mode === 'original' ? <>
       <p className="original-receipt-note">Original Black Lotus purchase email for the two-badge order.</p>
-      <PrivateReceiptArtifacts receipt={originalReceipt} roles={['original']} title="Original Black Lotus purchase email" />
+      <PrivateReceiptArtifacts receipt={originalReceipt} roles={['original']} title="Original Black Lotus purchase email" currentOwnerId={currentOwnerId} />
     </> : transferReceipt ? <>
       <div className="proof-qr-card" aria-label="Showable Chris Black Lotus transfer proof">
-        <PrivateReceiptArtifacts receipt={transferReceipt} roles={['qr', 'transfer']} title="Chris Black Lotus transfer proof" />
+        <PrivateReceiptArtifacts receipt={transferReceipt} roles={['qr', 'transfer']} title="Chris Black Lotus transfer proof" currentOwnerId={currentOwnerId} />
         {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
       </div>
     </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>}
@@ -5364,7 +5403,7 @@ function BlackLotusProofDetail({ receipt, notes, currentOwnerId, onAddNote, onDe
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
         </div>
         <div className="proof-qr-card" aria-label="Showable order QR">
-          <PrivateReceiptArtifacts receipt={receipt} roles={['qr']} title="Black Lotus order QR" />
+          <PrivateReceiptArtifacts receipt={receipt} roles={['qr']} title="Black Lotus order QR" currentOwnerId={currentOwnerId} />
           {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
         </div>
         <p>Info is the fast-use view: extracted logistics plus the QR. Use Original when someone needs the whole receipt.</p>
@@ -5372,7 +5411,7 @@ function BlackLotusProofDetail({ receipt, notes, currentOwnerId, onAddNote, onDe
       </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
       : <>
         <p className="original-receipt-note">Full Gmail receipt render. This is intentionally the whole email, not a cropped proof slice.</p>
-        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Original Black Lotus order receipt" />
+        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Original Black Lotus order receipt" currentOwnerId={currentOwnerId} />
       </>}
     {receipt && orderProof.url && <div className="proof-links">
       <a href={orderProof.url} target="_blank" rel="noreferrer">Open Leap order</a>
@@ -5402,14 +5441,14 @@ function JuanPremiumProofDetail({ receipt, notes, currentOwnerId, onAddNote, onD
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
         </div>
         <div className="proof-qr-card" aria-label="Showable Juan Premium order QR">
-          <PrivateReceiptArtifacts receipt={receipt} roles={['qr']} title="Juan Premium order QR" />
+          <PrivateReceiptArtifacts receipt={receipt} roles={['qr']} title="Juan Premium order QR" currentOwnerId={currentOwnerId} />
           {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
         </div>
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-juan-premium-order" objectKind="receipt" objectTitle="Juan badge proof" context="Wallet · Juan Premium order" backlink="wallet" compact />
       </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
       : <div className="original-html-frame">
         <p className="original-receipt-note">Full Gmail-rendered receipt body captured from Juan's confirmation email.</p>
-        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Juan Premium original receipt" />
+        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Juan Premium original receipt" currentOwnerId={currentOwnerId} />
       </div>}
     {receipt && orderProof.url && <div className="proof-links">
       <a href={orderProof.url} target="_blank" rel="noreferrer">Open Leap order</a>
@@ -5439,7 +5478,7 @@ function receiptOrderProof(receipt: WalletReceiptRow | null) {
   return { code: line?.order_code, url: line?.order_url }
 }
 
-function TicketedReceiptDetail({ receipt }: { receipt: WalletReceiptRow }) {
+function TicketedReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletReceiptRow; currentOwnerId?: string }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
   return <div className="proof-detail">
     <div className="proof-mode-tabs" role="tablist" aria-label="Ticketed play receipt view">
@@ -5455,15 +5494,15 @@ function TicketedReceiptDetail({ receipt }: { receipt: WalletReceiptRow }) {
       <div className="receipt-lines">{receipt.line_items.map(line => <div className="receipt-line-row" key={line.event_id}><span>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</span><b>${line.price.toFixed(2)}{line.quantity && line.quantity > 1 ? ' each' : ''}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
     </> : <>
       <p className="original-receipt-note">Full source email captured during receipt ingestion.</p>
-      <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${receipt.title} original receipt`} />
+      <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${receipt.title} original receipt`} currentOwnerId={currentOwnerId} />
     </>}
   </div>
 }
 
-function WalletPlayTab({ receipts, openModal }: { receipts: WalletReceiptRow[]; openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void }) {
+function WalletPlayTab({ receipts, currentOwnerId, openModal }: { receipts: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
-      {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <TicketedReceiptDetail receipt={receipt} />, receiptPeople(receipt))}>
+      {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <TicketedReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))}>
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>{receipt.title}</h2><ul className="receipt-card-lines">{receipt.line_items.map(line => <li key={line.event_id}>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</li>)}</ul><p>{receipt.line_items.length} purchased {receipt.line_items.length === 1 ? 'event' : 'events'} · {receipt.vendor}</p></div><span className="receipt-people-total"><PersonBubbles people={receiptPeople(receipt)} /><strong>${Number(receipt.amount).toFixed(2)}</strong></span></div>
       </button>) : <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>Purchased event receipts will appear here.</p></div></div>
@@ -6826,7 +6865,7 @@ function AlertKindIcon({ kind }: { kind: AlertKind }) {
   return <svg className="alert-kind-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]}</svg>
 }
 
-function AccountMenu({ email, online, preview, onOpenTutorial }: { email: string; online: boolean; preview: boolean; onOpenTutorial: () => void }) {
+function AccountMenu({ email, online, preview, onOpenTutorial, onSignOut }: { email: string; online: boolean; preview: boolean; onOpenTutorial: () => void; onSignOut: () => void }) {
   const initial = email.trim().charAt(0).toUpperCase() || 'K'
 
   return <details className="account-menu" data-tour-target="account-chip">
@@ -6843,7 +6882,7 @@ function AccountMenu({ email, online, preview, onOpenTutorial }: { email: string
       }}>Replay quick tour</button>
       {preview
         ? <button type="button" disabled>Preview mode</button>
-        : <button type="button" onClick={() => void supabase?.auth.signOut({ scope: 'local' })}>Sign out</button>}
+        : <button type="button" onClick={onSignOut}>Sign out</button>}
     </div>
   </details>
 }

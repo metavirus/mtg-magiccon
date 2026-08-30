@@ -1,7 +1,7 @@
 # Current Frontier
 
-Updated: 2026-08-29
-Repository checkpoint: `cd84772` (`Prove critical PWA views offline`)
+Updated: 2026-08-30
+Repository checkpoint: pending publication of the authenticated iPhone offline-continuity audit
 
 ## Current product state
 
@@ -29,7 +29,7 @@ Paid events have a reversible Purchased transition that forces Committed; confir
 
 Wallet renders ticketed-play receipts with line items, totals, people bubbles, and the stable Info / Original proof grammar. Ticketed receipt lines retain exact attendee assignments and Companion event codes. A purchased event's Calendar detail shows its Companion code prominently, offers one-tap copy, and links to the official Companion app page without inventing a prefilled join URL. Black Lotus badge proof for Kavi/Chris and Juan's Premium Weekend proof remain reachable through the same reusable receipt objects; Chris's Black Lotus transfer proof has its own transfer tab.
 
-The remaining trust gap is artifact storage: some original receipt/QR assets still ship in the public preview bundle. Moving originals, QR codes, and other private proof artifacts into private Supabase Storage remains the next sensitive implementation tranche; do not mark receipt privacy complete before that migration and readback are proven.
+Receipt originals, QR codes, and transfer proof now live in the private `private-receipt-artifacts` Supabase Storage bucket rather than the public app bundle. The Wallet keeps owner-scoped receipt metadata in the read-only continuity snapshot, warms the small showable QR/transfer proofs after an authenticated refresh, and caches a full original on the device only after it is deliberately opened; cache keys include the owner id, no token is persisted, and explicit sign-out clears the offline identity used to select an owner's cache.
 
 ## Trip, Calendar, and shared activity
 
@@ -39,9 +39,9 @@ Home and Activity group notes by the attached object rather than by an arbitrary
 
 ## Offline/PWA proof
 
-The service worker auto-updates the review build, precaches the shell plus a bounded public Map/Wallet proof pack, and deliberately excludes private/live JSON from its precache. Owner-scoped continuity caches preserve already-read notes, selections and Plan overlays, Activity, mentions, monitoring findings/concepts, Info knowledge, ticketed availability, and Trip flights for read-only offline use.
+The service worker auto-updates the review build, precaches the shell plus the bounded public Map and confirmed-artist image pack, and deliberately excludes private/live JSON and private Wallet proof from its public precache. Owner-scoped continuity caches preserve already-read notes, selections and Plan overlays, Activity, mentions, monitoring findings/concepts, Info knowledge, ticketed availability, Trip flights, and the Wallet receipt index for read-only offline use. Remote card/catalog images use a bounded runtime image cache after first view.
 
-Local 390px automation now proves a cold offline reopen of the shell, the Map view and image, and the Wallet view with its bounded public proof artifacts. Owner-scoped continuity tests cover the cached read models used by Plan, Info, Trip, notes, selections, Activity, and monitoring, but those additional surfaces have not each received a cold-reopen viewport proof. This is local browser evidence, not physical-device acceptance. Installed-iPhone airplane-mode/reopen behavior and Google OAuth persistence after Safari/PWA refresh/reopen remain unresolved and must be tested on the real device.
+Local 390px automation now proves a cold offline reopen of the shell, Wallet, and Artists with all four current artist portraits rendered from the precache. Unit coverage proves that the Wallet receipt index survives offline reopen, private proof blobs reopen from an owner-scoped device cache, and installed standalone launches strip fixture/QA parameters instead of silently entering preview mode. A previously authenticated offline launch may use a token-free cached identity only to select read-only owner data; writes still require a live Supabase session and network. Physical iPhone acceptance remains open until the newly published build is installed/refreshed, Wallet has completed one online refresh, and the app is reopened in airplane mode.
 
 ## Catalog checkpoint
 
@@ -65,7 +65,6 @@ Automated online image discovery is explicitly not part of the completed checkpo
 ## Next safe lanes
 
 1. When the first Atlanta catalog releases, capture it immutably, run the documented inventory intake/review path, runtime-test and apply the prepared catalog migration plus private Storage prerequisites through the authenticated Supabase lane, and prove one non-fixture batch with exact live readback. Keep the public Catalogs tab hidden until a reviewed Atlanta inventory offer has that live readback. Historical Atlanta 2025 and Vegas 2026 items/media remain reusable reference material only; image recognition is parked for an onsite experiment.
-2. Design and implement private Supabase Storage plus retention/access rules for receipt originals, QR codes, badge proof, and other sensitive confirmation artifacts; migrate consumers without changing the stable receipt object grammar.
-3. On a physical iPhone, prove Google OAuth persistence and installed-PWA cold airplane-mode reopen across the critical cached views. Record device/browser/build evidence and any actual defect.
-4. Keep monitoring and the accepted preview stable unless a real source change or visible defect appears. Use `pnpm monitor:check` first and accept a baseline only through the documented reviewed closure lane.
-5. Keep Map parked until the official Atlanta 2026 artifact arrives, then enter through `docs/MAP_INGESTION_RUNBOOK.md`.
+2. On a physical iPhone, refresh/install the corrected production build, open each important Wallet proof once online, then prove Google OAuth persistence plus installed-PWA cold airplane-mode reopen across Wallet, Artists, Map, Trip, Plan, and Info. Record the exact proof that remains unavailable before treating it as accepted.
+3. Keep monitoring and the accepted preview stable unless a real source change or visible defect appears. Follow the cloud-surveyor routing contract; do not manufacture a local monitoring baseline.
+4. Keep Map parked until the official Atlanta 2026 artifact arrives, then enter through `docs/MAP_INGESTION_RUNBOOK.md`.

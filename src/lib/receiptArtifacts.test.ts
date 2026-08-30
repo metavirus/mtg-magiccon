@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 const download = vi.fn()
+const NativeURL = globalThis.URL
 
 vi.mock('./supabase', () => ({
   supabase: { storage: { from: vi.fn(() => ({ download })) } },
@@ -32,6 +33,22 @@ describe('private receipt artifacts', () => {
       id: 'artifact-id', artifact_role: 'qr', bucket_id: 'public-proof', object_path: 'qr.png',
       mime_type: 'image/png', display_label: 'QR', display_order: 1,
     })).rejects.toThrow('not approved')
+    expect(download).not.toHaveBeenCalled()
+  })
+
+  it('reopens an owner-scoped proof from the device cache while offline', async () => {
+    const createObjectURL = vi.fn(() => 'blob:offline-proof')
+    vi.stubGlobal('URL', Object.assign(NativeURL, { createObjectURL }))
+    vi.stubGlobal('navigator', { onLine: false })
+    const match = vi.fn().mockResolvedValue(new Response(new Blob(['cached proof'], { type: 'image/png' })))
+    vi.stubGlobal('caches', { open: vi.fn().mockResolvedValue({ match }) })
+    const { downloadReceiptArtifact, RECEIPT_ARTIFACT_BUCKET } = await import('./receiptArtifacts')
+    const result = await downloadReceiptArtifact({
+      id: 'artifact-id', artifact_role: 'qr', bucket_id: RECEIPT_ARTIFACT_BUCKET,
+      object_path: 'receipt-id/qr.png', mime_type: 'image/png', display_label: 'Order QR', display_order: 1,
+    }, 'owner-1')
+    expect(result).toBe('blob:offline-proof')
+    expect(match).toHaveBeenCalledWith(expect.stringContaining('/__offline_wallet/owner-1/artifact-id'))
     expect(download).not.toHaveBeenCalled()
   })
 

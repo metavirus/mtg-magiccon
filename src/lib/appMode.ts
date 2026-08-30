@@ -4,6 +4,7 @@ type ModeStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 export function resolveDesignPreviewMode({
   search,
+  standalone = false,
   development: _development,
   previewBuild: _previewBuild,
   storage,
@@ -12,7 +13,9 @@ export function resolveDesignPreviewMode({
   development: boolean
   previewBuild: boolean
   storage: ModeStorage
+  standalone?: boolean
 }) {
+  if (standalone) return false
   const params = new URLSearchParams(search)
 
   if (params.get('preview') === '1') {
@@ -28,6 +31,14 @@ export function resolveDesignPreviewMode({
   if (storage.getItem(AUTH_MODE_KEY) === 'authenticated') return false
 
   return false
+}
+
+export function standaloneAppSearch(search: string, standalone: boolean) {
+  if (!standalone) return search
+  const params = new URLSearchParams(search)
+  for (const key of ['preview', 'previewOwner', 'as', 'qa', 'uiQa']) params.delete(key)
+  const next = params.toString()
+  return next ? `?${next}` : ''
 }
 
 export function authRedirectUrl(location: Pick<Location, 'href'>) {

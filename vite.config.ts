@@ -68,6 +68,10 @@ export default defineConfig({
       'app-icon-1024.png',
       'magiccon-atlanta-peach.png',
       'gwcc-campus-reference.png',
+      'artist-cynthia-sheppard.jpg',
+      'artist-mark-poole.jpg',
+      'artist-serena-malyon.jpg',
+      'artist-rebecca-guay.png',
     ],
     manifest: {
       name: 'MagicCon Atlanta Companion',
@@ -85,6 +89,16 @@ export default defineConfig({
       cleanupOutdatedCaches: true,
       navigateFallback: 'index.html',
       globPatterns: ['index.html', '**/*.{js,css,svg}'],
+      maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+      runtimeCaching: [{
+        urlPattern: /^https:\/\/.*\.(?:avif|gif|jpe?g|png|webp)(?:\?.*)?$/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'magiccon-remote-images-v1',
+          cacheableResponse: { statuses: [0, 200] },
+          expiration: { maxEntries: 250, maxAgeSeconds: 60 * 60 * 24 * 45 },
+        },
+      }],
     },
   })],
   test: { environment: 'jsdom', setupFiles: './src/test/setup.ts' }
