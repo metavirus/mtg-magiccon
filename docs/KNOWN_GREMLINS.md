@@ -178,7 +178,7 @@ Readiness rule: capabilities are task-specific. Check a capability only when the
 
 If public verification fails after a correct push, report propagation/cache lag and wait briefly. Do not claim success from local sync alone.
 
-If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, the repository's Pages site is absent or disabled rather than stale. Keep `enablement: true` on the workflow's `actions/configure-pages` step so an authorized `main` deployment can restore the expected GitHub Actions Pages configuration; do not diagnose this as app, cache, or Supabase failure.
+If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, the repository's Pages site is absent or disabled rather than stale. Confirm repository visibility and plan support before changing the workflow: the workflow `GITHUB_TOKEN` cannot create a Pages site, and GitHub rejects Pages creation for a private repository when the account plan does not support private Pages. Do not diagnose this as app, cache, or Supabase failure.
 
 **Concrete proof standard before saying “propagation”:**
 
