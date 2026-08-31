@@ -22,6 +22,11 @@ export function selectReceiptArtifactsForDisplay(
   const matching = artifacts
     .filter(artifact => roles.includes(artifact.artifact_role))
     .sort((left, right) => left.display_order - right.display_order)
+  const readablePages = matching.filter(artifact =>
+    artifact.mime_type.startsWith('image/')
+    && /page\s+\d+\s+of\s+\d+/i.test(artifact.display_label),
+  )
+  if (readablePages.length) return readablePages
   const primaryProof = matching.filter(artifact =>
     artifact.display_label.toLowerCase().includes('gmail proof')
     || artifact.object_path.toLowerCase().includes('gmail-proof'),

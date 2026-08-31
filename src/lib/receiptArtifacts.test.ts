@@ -99,6 +99,16 @@ describe('private receipt artifacts', () => {
     expect(selectReceiptArtifactsForDisplay(artifacts, ['original']).map(artifact => artifact.id)).toEqual(['proof'])
   })
 
+  it('prefers a readable Gmail page set over a microscopic full-height proof', async () => {
+    const { selectReceiptArtifactsForDisplay, RECEIPT_ARTIFACT_BUCKET } = await import('./receiptArtifacts')
+    const artifacts = [
+      { id: 'proof', artifact_role: 'transfer' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/transfer/gmail-proof.png', mime_type: 'image/png', display_label: 'Gmail proof - transfer confirmation', display_order: 1 },
+      { id: 'page-1', artifact_role: 'transfer' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/transfer/page-1.png', mime_type: 'image/png', display_label: 'Transfer email page 1 of 2', display_order: 2 },
+      { id: 'page-2', artifact_role: 'transfer' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/transfer/page-2.png', mime_type: 'image/png', display_label: 'Transfer email page 2 of 2', display_order: 3 },
+    ]
+    expect(selectReceiptArtifactsForDisplay(artifacts, ['transfer']).map(artifact => artifact.id)).toEqual(['page-1', 'page-2'])
+  })
+
   it('keeps archival HTML as a last-resort display when no page images exist', async () => {
     const { selectReceiptArtifactsForDisplay, RECEIPT_ARTIFACT_BUCKET } = await import('./receiptArtifacts')
     const raw = { id: 'raw', artifact_role: 'transfer' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/transfer/email.html', mime_type: 'text/html', display_label: 'Archived source HTML', display_order: 1 }
