@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 const appSource = readFileSync(resolve(process.cwd(), 'src/App.tsx'), 'utf8')
 const densitySource = readFileSync(resolve(process.cwd(), 'src/density.css'), 'utf8')
 const companionCodeMigration = readFileSync(resolve(process.cwd(), 'supabase/migrations/20260831055541_publish_ticketed_play_companion_codes.sql'), 'utf8')
+const commanderCocktailsCodeMigration = readFileSync(resolve(process.cwd(), 'supabase/migrations/20260831175132_publish_commander_cocktails_companion_code.sql'), 'utf8')
+const historicalCodeMigration = readFileSync(resolve(process.cwd(), 'supabase/migrations/20260831175214_publish_verified_historical_companion_codes.sql'), 'utf8')
 const privateIntakeSource = readFileSync(resolve(process.cwd(), 'scripts/process_private_gmail_intake.mjs'), 'utf8')
 
 describe('paid-event detail layout contract', () => {
@@ -55,6 +57,17 @@ describe('paid-event detail layout contract', () => {
     expect(companionCodeMigration).toContain("('ticketed-944091', 'V2JYNWE')")
     expect(privateIntakeSource).toContain(".upsert({ event_id: eventId, companion_code: companionCode")
     expect(privateIntakeSource).toContain('Receipt applied without public Companion code readback.')
+  })
+
+  it('keeps every previously confirmed receipt code in the public Calendar projection', () => {
+    expect(commanderCocktailsCodeMigration).toContain("'ticketed-944111'")
+    expect(commanderCocktailsCodeMigration).toContain("'563MXW5'")
+    expect(historicalCodeMigration).toContain("('ticketed-944017', 'J2MEP2Y'")
+    expect(historicalCodeMigration).toContain("('ticketed-944032', 'XQ6E8RY'")
+    expect(historicalCodeMigration).toContain("('ticketed-944044', 'V2JYN4V'")
+    expect(historicalCodeMigration).toContain("('ticketed-944067', 'DWVNG6J'")
+    expect(historicalCodeMigration).toContain("('ticketed-944073', 'V2JYNPE'")
+    expect(historicalCodeMigration).toContain("('ticketed-944127', '2PEM445'")
   })
 
   it('refreshes newly ingested receipt evidence when an installed app returns online or foreground', () => {

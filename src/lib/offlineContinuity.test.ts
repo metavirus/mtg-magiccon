@@ -57,6 +57,19 @@ describe('offline continuity', () => {
     expect(readOfflineContinuity('owner', storage)?.lanes.walletReceipts).toEqual(receipts)
   })
 
+  it('retains public Companion codes with the ticketed-play projection for offline Calendar reopen', () => {
+    const storage = memoryStorage()
+    const availability = [{
+      event_id: 'ticketed-944111',
+      source_event_key: '944111',
+      availability: 'available',
+      observed_at: '2026-08-31T17:52:00Z',
+      companion_code: '563MXW5',
+    }]
+    writeOfflineContinuityLane('owner', 'ticketedAvailability', availability, storage)
+    expect(readOfflineContinuity('owner', storage)?.lanes.ticketedAvailability).toEqual(availability)
+  })
+
   it('retains the active companion and artist read models without caching the unrelated corpus', () => {
     const storage = memoryStorage()
     writeOfflineContinuityLane('owner', 'companions', [{ person_key: 'kavi' }], storage)
