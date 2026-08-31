@@ -51,7 +51,7 @@ jobs:
             throw 'PRIVATE_GMAIL_INTAKE_PAYLOAD is absent.'
           }
           $compressedBytes = [Convert]::FromBase64String($env:PRIVATE_GMAIL_INTAKE_PAYLOAD)
-          $compressedStream = [System.IO.MemoryStream]::new(,$compressedBytes)
+          $compressedStream = [System.IO.MemoryStream]::new([byte[]]$compressedBytes)
           $gzipStream = [System.IO.Compression.GZipStream]::new($compressedStream, [System.IO.Compression.CompressionMode]::Decompress)
           $reader = [System.IO.StreamReader]::new($gzipStream, [System.Text.Encoding]::UTF8)
           $payloadJson = $reader.ReadToEnd()
@@ -86,5 +86,5 @@ jobs:
         with:
           name: private-gmail-intake-result
           path: work/private-intake/result.json
-          if-no-files-found: error
+          if-no-files-found: ignore
           retention-days: 7
