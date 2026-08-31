@@ -94,20 +94,6 @@ if (plan.kind === 'receipt') {
     displayLabel: 'Original source email',
     displayOrder: 1,
   }]
-  if (plan.operation.artifact.qrSourceUrl) {
-    const qrResponse = await fetch(plan.operation.artifact.qrSourceUrl)
-    if (!qrResponse.ok) throw new Error(`Receipt QR download failed with HTTP ${qrResponse.status}.`)
-    const qrMimeType = qrResponse.headers.get('content-type')?.split(';')[0] || 'image/png'
-    if (!qrMimeType.startsWith('image/')) throw new Error('Receipt QR source did not return an image.')
-    artifactSpecs.push({
-      role: 'qr',
-      bytes: Buffer.from(await qrResponse.arrayBuffer()),
-      mimeType: qrMimeType,
-      filename: `${safeMessageId}-qr.${qrMimeType === 'image/jpeg' ? 'jpg' : 'png'}`,
-      displayLabel: 'Order QR',
-      displayOrder: 2,
-    })
-  }
   const artifactManifests = []
   const uploadedPaths = []
   const insertedManifestIds = []

@@ -152,4 +152,10 @@ describe('private receipt artifacts', () => {
     expect(app).not.toMatch(/completeProofPack\s*=.*\.filter\(artifact\s*=>\s*artifact\.artifact_role/s)
     expect(app).toContain('const { receipts: walletReceipts, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId)')
   })
+
+  it('renders Chris transfer as a full Gmail proof instead of shrinking it into the QR card', () => {
+    const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8')
+    expect(app).toContain('roles={[\'transfer\']} title="Showable Chris Black Lotus transfer proof"')
+    expect(app).not.toContain("roles={['qr', 'transfer']}")
+  })
 })

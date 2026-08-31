@@ -32,7 +32,7 @@ describe('private Gmail intake', () => {
     expect(result.operation.receipt.source_message_id).toBe('gmail-123')
     expect(result.operation.receipt.original_html).toBeNull()
     expect(result.operation.artifact).toMatchObject({ role: 'original', mimeType: 'text/html', contents: source.originalHtml })
-    expect(result.operation.artifact.qrSourceUrl).toBe('https://conventions.leapevent.tech/mobile/get_qr/1fadddfd-c8eb-4164-bbf9-ddea3295a593')
+    expect(result.operation.artifact).not.toHaveProperty('qrSourceUrl')
   })
 
   it('fails closed for ambiguous receipt attendee or event binding', () => {
@@ -45,12 +45,12 @@ describe('private Gmail intake', () => {
     expect(ambiguousEvent).toMatchObject({ status: 'not_covered', reason: 'ticketed_event_binding_ambiguous' })
   })
 
-  it('fails closed when a ticketed receipt lacks its offline QR source', () => {
+  it('keeps a ticketed receipt covered without manufacturing a separate QR artifact', () => {
     const result = planPrivateGmailIntake({
       kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source: { ...source, originalHtml: '<html>no qr</html>' },
       receipt: { receiptType: 'ticketed_play', title: 'Order', vendor: 'Leap', receiptDate: source.receivedAt, amount: 80, currency: 'USD', attendeePersonKeys: ['kavi'], lineItems: [{ title: 'League', eventId: 'ticketed-944091', attendeePersonKeys: ['kavi'] }] },
     })
-    expect(result).toMatchObject({ status: 'not_covered', reason: 'ticketed_receipt_qr_missing' })
+    expect(result).toMatchObject({ status: 'covered', operation: { eventIds: ['ticketed-944091'] } })
   })
 
   it('binds one shared order to multiple known attendees and preserves per-line assignments', () => {

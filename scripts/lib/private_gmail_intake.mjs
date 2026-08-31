@@ -19,7 +19,6 @@ const notCovered = (kind, sourceMessageId, reason) => ({
 const nonblank = value => typeof value === 'string' && value.trim().length > 0
 const validTimestamp = value => nonblank(value) && !Number.isNaN(Date.parse(value))
 const explicitBoolean = value => typeof value === 'boolean'
-const LEAP_QR_PATTERN = /https:\/\/conventions\.leapevent\.tech\/mobile\/get_qr\/[0-9a-f-]+/i
 
 function exactTravelerMatch(value) {
   if (!Array.isArray(value)) return false
@@ -63,8 +62,6 @@ function receiptPlan(message) {
 
   const eventIds = []
   if (receipt.receiptType === 'ticketed_play') {
-    const qrSourceUrl = source.originalHtml.match(LEAP_QR_PATTERN)?.[0] ?? null
-    if (!qrSourceUrl) return notCovered('receipt', source.messageId, 'ticketed_receipt_qr_missing')
     if (!receipt.lineItems.length) return notCovered('receipt', source.messageId, 'ticketed_receipt_has_no_lines')
     for (const item of receipt.lineItems) {
       if (!nonblank(item?.eventId) || !/^ticketed-\d+$/.test(item.eventId)) {
@@ -112,7 +109,6 @@ function receiptPlan(message) {
       mimeType: 'text/html',
       contents: source.originalHtml,
       capturedAt: source.receivedAt,
-      qrSourceUrl: receipt.receiptType === 'ticketed_play' ? source.originalHtml.match(LEAP_QR_PATTERN)?.[0] : null,
     },
     eventIds: [...new Set(eventIds)].sort(),
     attendeePersonKeys,

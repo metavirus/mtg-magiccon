@@ -5525,10 +5525,8 @@ function ChrisBlackLotusTransferDetail({ originalReceipt, transferReceipt, notes
       <p className="original-receipt-note">Original Black Lotus purchase email for the two-badge order.</p>
       <PrivateReceiptArtifacts receipt={originalReceipt} roles={['original']} title="Original Black Lotus purchase email" currentOwnerId={currentOwnerId} />
     </> : transferReceipt ? <>
-      <div className="proof-qr-card" aria-label="Showable Chris Black Lotus transfer proof">
-        <PrivateReceiptArtifacts receipt={transferReceipt} roles={['qr', 'transfer']} title="Chris Black Lotus transfer proof" currentOwnerId={currentOwnerId} />
-        {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
-      </div>
+      <PrivateReceiptArtifacts receipt={transferReceipt} roles={['transfer']} title="Showable Chris Black Lotus transfer proof" currentOwnerId={currentOwnerId} />
+      {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
     </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>}
     {transferReceipt && orderProof.url && <div className="proof-links"><a href={orderProof.url} target="_blank" rel="noreferrer">Open Chris's Leap order</a></div>}
   </div>
