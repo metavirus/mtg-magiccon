@@ -35,7 +35,9 @@ All real receipt, badge, QR, transfer, travel, and hotel proof belongs in the si
 
 The manifest has forced RLS. An authenticated viewer may read a manifest/object only when they own the receipt or their user id is bound to an active `companion_members` identity explicitly named in that receipt's `attendee_person_keys`. Anonymous users receive no table or object access. Authenticated browser clients receive `SELECT` only on the manifest and the corresponding `storage.objects` download policy; they receive no upload, update, or delete policy. Trusted intake using the canonical secret/service lane owns writes.
 
-The app downloads authorized objects with Supabase Storage `download()` and renders short-lived blob URLs, revoking them when the view closes. It does not call `getPublicUrl()` or keep signed URLs in durable state. Preview or unauthenticated mode retains the stable `Info` / `Original` / `Transfer` tabs but shows an honest sign-in/unmigrated message instead of substituting public proof. Private proof is not currently promised offline.
+The app downloads authorized objects with Supabase Storage `download()` and renders short-lived blob URLs, revoking them when the view closes. It does not call `getPublicUrl()` or keep signed URLs in durable state. After authenticated device hydration, every authorized receipt artifact is retained in the private device pack for read-only offline use. Preview or unauthenticated mode retains the stable `Info` / `Original` / `Transfer` tabs but shows an honest sign-in/unmigrated message instead of substituting public proof.
+
+For a ticketed-play receipt, preserving the source HTML is not enough when its QR is a remote image. Intake must download that QR and store it as a separate immutable `qr` artifact before reporting the receipt applied. The original HTML remains the human-readable evidence; the separate QR object makes the operational proof durable and offline-capable.
 
 `wallet_receipts.original_html` is a legacy transition field only. New intake writes the original source HTML as a private Storage artifact and stores `null` in that field. Purge legacy HTML only after every affected receipt has manifest, object, checksum, owner, and attendee readback.
 
@@ -59,6 +61,7 @@ Before marking a receipt as ingested:
 - The Info view has the useful facts, not screenshot clutter.
 - The Original view opens the full receipt artifact.
 - The QR and visible code match the original receipt when a QR/code exists.
+- Ticketed-play QR images are separate private `qr` artifacts; a remote image reference inside the original HTML does not satisfy ingestion.
 - Person bubbles are small universal bubbles, not one-off pills.
 - The receipt is represented in one stable object that the UI can reuse.
 - No ordinary UI component needs to query Gmail to render the receipt.
@@ -66,7 +69,7 @@ Before marking a receipt as ingested:
 - SHA-256, byte size, MIME type, capture time, label, and display order match the uploaded bytes.
 - Owner and each explicitly bound active attendee can download; another authenticated companion and anon cannot list or download.
 - No normal authenticated client can insert, update, delete, or overwrite manifest rows or Storage objects.
-- The app uses authenticated `download()`/blob URLs and the public build contains no receipt proof filename or PWA precache entry.
+- The app uses authenticated `download()`/blob URLs, its authenticated device pack includes every authorized artifact role, and the public build contains no receipt proof filename or public PWA precache entry.
 
 ## Legacy migration state
 

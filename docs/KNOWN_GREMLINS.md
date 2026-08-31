@@ -356,6 +356,8 @@ If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, t
 
 **Manual-warm cache-name trap:** A successful `cache.put()` is not proof that an offline `<img>` request can retrieve the response. The device asset warmer and Workbox `CacheFirst` route must use the same cache name (`magiccon-remote-images-v1`); `src/lib/deviceAssets.test.ts` guards that binding.
 
+**Remote-QR-in-original trap:** Preserving a ticketed receipt's HTML does not preserve a QR loaded from an external URL. The protected original renderer blocks remote resources, and an offline device cannot fetch them anyway. Ticketed Gmail intake must fail closed when the source has no recognized QR, download the recognized QR as a separate immutable private artifact, and verify both objects by checksum before reporting `applied`; `scripts/lib/private_gmail_intake.test.ts` guards the boundary.
+
 ## Local preview server and ports
 
 **Symptom:** preview/dev cannot be reached, port changes, or a local server hangs a tool call.

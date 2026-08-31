@@ -85,53 +85,77 @@ if (plan.kind === 'receipt') {
     : await client.from('wallet_receipts').insert(receipt)
       .select('id,source_message_id,attendee_person_key,attendee_person_keys').single()
   if (write.error) throw write.error
-  const artifactBytes = Buffer.from(plan.operation.artifact.contents, 'utf8')
-  const artifactFilename = `${plan.sourceMessageId.replace(/[^a-zA-Z0-9._-]/g, '-')}.html`
-  const artifactPath = `${write.data.id}/original/${artifactFilename}`
-  const artifactHash = createHash('sha256').update(artifactBytes).digest('hex')
-  let artifactManifest
-  let uploadedNewObject = false
-  let insertedNewManifest = false
+  const safeMessageId = plan.sourceMessageId.replace(/[^a-zA-Z0-9._-]/g, '-')
+  const artifactSpecs = [{
+    role: plan.operation.artifact.role,
+    bytes: Buffer.from(plan.operation.artifact.contents, 'utf8'),
+    mimeType: plan.operation.artifact.mimeType,
+    filename: `${safeMessageId}.html`,
+    displayLabel: 'Original source email',
+    displayOrder: 1,
+  }]
+  if (plan.operation.artifact.qrSourceUrl) {
+    const qrResponse = await fetch(plan.operation.artifact.qrSourceUrl)
+    if (!qrResponse.ok) throw new Error(`Receipt QR download failed with HTTP ${qrResponse.status}.`)
+    const qrMimeType = qrResponse.headers.get('content-type')?.split(';')[0] || 'image/png'
+    if (!qrMimeType.startsWith('image/')) throw new Error('Receipt QR source did not return an image.')
+    artifactSpecs.push({
+      role: 'qr',
+      bytes: Buffer.from(await qrResponse.arrayBuffer()),
+      mimeType: qrMimeType,
+      filename: `${safeMessageId}-qr.${qrMimeType === 'image/jpeg' ? 'jpg' : 'png'}`,
+      displayLabel: 'Order QR',
+      displayOrder: 2,
+    })
+  }
+  const artifactManifests = []
+  const uploadedPaths = []
+  const insertedManifestIds = []
   try {
-    const existingArtifact = await client.from('receipt_artifacts').select('id,object_path,sha256')
-      .eq('receipt_id', write.data.id).eq('artifact_role', plan.operation.artifact.role).eq('display_order', 1).maybeSingle()
-    if (existingArtifact.error) throw existingArtifact.error
-    if (existingArtifact.data && existingArtifact.data.sha256 !== artifactHash) throw new Error('Receipt original changed; retain both sources through explicit review instead of overwriting proof.')
-    artifactManifest = existingArtifact.data
-    if (!artifactManifest) {
-      const artifactUpload = await client.storage.from(RECEIPT_ARTIFACT_BUCKET).upload(artifactPath, artifactBytes, {
-        contentType: plan.operation.artifact.mimeType,
-        upsert: false,
-      })
-      if (artifactUpload.error) throw artifactUpload.error
-      uploadedNewObject = true
-      const insertedArtifact = await client.from('receipt_artifacts').insert({
-        receipt_id: write.data.id,
-        artifact_role: plan.operation.artifact.role,
-        bucket_id: RECEIPT_ARTIFACT_BUCKET,
-        object_path: artifactPath,
-        mime_type: plan.operation.artifact.mimeType,
-        byte_size: artifactBytes.byteLength,
-        sha256: artifactHash,
-        display_label: 'Original source email',
-        display_order: 1,
-        captured_at: plan.operation.artifact.capturedAt,
-      }).select('id,object_path,sha256').single()
-      if (insertedArtifact.error) throw insertedArtifact.error
-      artifactManifest = insertedArtifact.data
-      insertedNewManifest = true
+    for (const artifact of artifactSpecs) {
+      const artifactPath = `${write.data.id}/${artifact.role}/${artifact.filename}`
+      const artifactHash = createHash('sha256').update(artifact.bytes).digest('hex')
+      const existingArtifact = await client.from('receipt_artifacts').select('id,object_path,sha256')
+        .eq('receipt_id', write.data.id).eq('artifact_role', artifact.role).eq('display_order', artifact.displayOrder).maybeSingle()
+      if (existingArtifact.error) throw existingArtifact.error
+      if (existingArtifact.data && existingArtifact.data.sha256 !== artifactHash) throw new Error(`Receipt ${artifact.role} changed; retain both sources through explicit review instead of overwriting proof.`)
+      let artifactManifest = existingArtifact.data
+      if (!artifactManifest) {
+        const artifactUpload = await client.storage.from(RECEIPT_ARTIFACT_BUCKET).upload(artifactPath, artifact.bytes, {
+          contentType: artifact.mimeType,
+          upsert: false,
+        })
+        if (artifactUpload.error) throw artifactUpload.error
+        uploadedPaths.push(artifactPath)
+        const insertedArtifact = await client.from('receipt_artifacts').insert({
+          receipt_id: write.data.id,
+          artifact_role: artifact.role,
+          bucket_id: RECEIPT_ARTIFACT_BUCKET,
+          object_path: artifactPath,
+          mime_type: artifact.mimeType,
+          byte_size: artifact.bytes.byteLength,
+          sha256: artifactHash,
+          display_label: artifact.displayLabel,
+          display_order: artifact.displayOrder,
+          captured_at: plan.operation.artifact.capturedAt,
+        }).select('id,object_path,sha256').single()
+        if (insertedArtifact.error) throw insertedArtifact.error
+        artifactManifest = insertedArtifact.data
+        insertedManifestIds.push(artifactManifest.id)
+      }
+      if (artifactManifest.object_path !== artifactPath || artifactManifest.sha256 !== artifactHash) throw new Error('Receipt artifact manifest readback failed.')
+      const artifactDownload = await client.storage.from(RECEIPT_ARTIFACT_BUCKET).download(artifactManifest.object_path)
+      if (artifactDownload.error) throw artifactDownload.error
+      const storedHash = createHash('sha256').update(Buffer.from(await artifactDownload.data.arrayBuffer())).digest('hex')
+      if (storedHash !== artifactHash) throw new Error('Receipt artifact checksum readback failed.')
+      artifactManifests.push(artifactManifest)
     }
-    if (artifactManifest.object_path !== artifactPath || artifactManifest.sha256 !== artifactHash) throw new Error('Receipt artifact manifest readback failed.')
-    const artifactDownload = await client.storage.from(RECEIPT_ARTIFACT_BUCKET).download(artifactManifest.object_path)
-    if (artifactDownload.error) throw artifactDownload.error
-    const storedHash = createHash('sha256').update(Buffer.from(await artifactDownload.data.arrayBuffer())).digest('hex')
-    if (storedHash !== artifactHash) throw new Error('Receipt artifact checksum readback failed.')
     const clearedLegacy = await client.from('wallet_receipts').update({ original_html: null, updated_at: new Date().toISOString() })
       .eq('id', write.data.id).select('id,original_html').single()
     if (clearedLegacy.error || clearedLegacy.data.original_html !== null) throw clearedLegacy.error ?? new Error('Receipt legacy HTML clear readback failed.')
   } catch (error) {
-    if (uploadedNewObject) await client.storage.from(RECEIPT_ARTIFACT_BUCKET).remove([artifactPath])
-    if (insertedNewManifest && existingReceipt.data) await client.from('receipt_artifacts').delete().eq('id', artifactManifest.id)
+    if (uploadedPaths.length) await client.storage.from(RECEIPT_ARTIFACT_BUCKET).remove(uploadedPaths)
+    if (insertedManifestIds.length && existingReceipt.data) await client.from('receipt_artifacts').delete().in('id', insertedManifestIds)
     if (!existingReceipt.data) await client.from('wallet_receipts').delete().eq('id', write.data.id)
     throw error
   }
@@ -159,7 +183,7 @@ if (plan.kind === 'receipt') {
   if (lockReadback.error) throw lockReadback.error
   const expectedLockCount = plan.operation.eventIds.length * attendeeOwnerIds.length * 3
   if ((lockReadback.data?.length ?? 0) !== expectedLockCount) throw new Error('Receipt applied without complete purchase-lock readback.')
-  console.log(JSON.stringify({ status: 'applied', kind: 'receipt', sourceMessageId: plan.sourceMessageId, receiptId: readback.data.id, artifactId: artifactManifest.id, attendeeCount: attendeeOwnerIds.length, purchaseLockCount: plan.operation.eventIds.length * attendeeOwnerIds.length }))
+  console.log(JSON.stringify({ status: 'applied', kind: 'receipt', sourceMessageId: plan.sourceMessageId, receiptId: readback.data.id, artifactIds: artifactManifests.map(artifact => artifact.id), attendeeCount: attendeeOwnerIds.length, purchaseLockCount: plan.operation.eventIds.length * attendeeOwnerIds.length }))
 } else {
   const applied = await client.rpc(plan.operation.rpc, plan.operation.args)
   if (applied.error) throw applied.error

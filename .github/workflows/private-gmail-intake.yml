@@ -1,0 +1,82 @@
+name: Private Gmail receipt intake
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_source_message_id:
+        description: "Gmail message id expected in the encrypted one-time payload"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-gmail-receipt-intake
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      NODE_OPTIONS: --use-system-ca
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Set up pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.16.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply one encrypted private receipt payload
+        shell: pwsh
+        env:
+          PRIVATE_GMAIL_INTAKE_PAYLOAD: ${{ secrets.PRIVATE_GMAIL_INTAKE_PAYLOAD }}
+          SUPABASE_URL: https://pavjsexxbueuzhzgemgy.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          EXPECTED_SOURCE_MESSAGE_ID: ${{ inputs.expected_source_message_id }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:PRIVATE_GMAIL_INTAKE_PAYLOAD)) {
+            throw 'PRIVATE_GMAIL_INTAKE_PAYLOAD is absent.'
+          }
+          $payload = $env:PRIVATE_GMAIL_INTAKE_PAYLOAD | ConvertFrom-Json
+          if ($payload.source.messageId -ne $env:EXPECTED_SOURCE_MESSAGE_ID) {
+            throw 'Encrypted payload source message does not match the dispatch input.'
+          }
+          New-Item -ItemType Directory -Force -Path work/private-intake | Out-Null
+          $payloadPath = 'work/private-intake/payload.json'
+          $resultPath = 'work/private-intake/result.json'
+          Set-Content -LiteralPath $payloadPath -Value $env:PRIVATE_GMAIL_INTAKE_PAYLOAD -NoNewline
+          pnpm intake:private-gmail -- $payloadPath | Tee-Object -FilePath $resultPath
+          if ($LASTEXITCODE -ne 0) { throw 'Private Gmail intake command failed.' }
+          $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+          if ($result.status -ne 'applied' -or $result.sourceMessageId -ne $env:EXPECTED_SOURCE_MESSAGE_ID) {
+            throw "Private Gmail intake did not close: $($result.reason)"
+          }
+          Remove-Item -LiteralPath $payloadPath -Force
+          Add-Content $env:GITHUB_STEP_SUMMARY "## Private Gmail receipt intake"
+          Add-Content $env:GITHUB_STEP_SUMMARY ""
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Source message: ``$($result.sourceMessageId)``"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Receipt: ``$($result.receiptId)``"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Private artifacts: $($result.artifactIds.Count)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Purchase locks: $($result.purchaseLockCount)"
+
+      - name: Retain non-secret closure result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: private-gmail-intake-result
+          path: work/private-intake/result.json
+          if-no-files-found: error
+          retention-days: 7
