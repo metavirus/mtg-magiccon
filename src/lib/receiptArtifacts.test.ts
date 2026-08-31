@@ -88,6 +88,45 @@ describe('private receipt artifacts', () => {
     expect(renderedText).toContain("default-src 'none'")
   })
 
+  it('prefers one primary Gmail proof over archival HTML and legacy page slices', async () => {
+    const { selectReceiptArtifactsForDisplay, RECEIPT_ARTIFACT_BUCKET } = await import('./receiptArtifacts')
+    const artifacts = [
+      { id: 'raw', artifact_role: 'original' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/original/email.html', mime_type: 'text/html', display_label: 'Archived source HTML', display_order: 1 },
+      { id: 'page-1', artifact_role: 'original' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/original/page-1.png', mime_type: 'image/png', display_label: 'Gmail print page 1', display_order: 2 },
+      { id: 'proof', artifact_role: 'original' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/original/gmail-proof.png', mime_type: 'image/png', display_label: 'Gmail proof', display_order: 3 },
+      { id: 'qr', artifact_role: 'qr' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/qr/order.png', mime_type: 'image/png', display_label: 'Order QR', display_order: 1 },
+    ]
+    expect(selectReceiptArtifactsForDisplay(artifacts, ['original']).map(artifact => artifact.id)).toEqual(['proof'])
+  })
+
+  it('keeps archival HTML as a last-resort display when no page images exist', async () => {
+    const { selectReceiptArtifactsForDisplay, RECEIPT_ARTIFACT_BUCKET } = await import('./receiptArtifacts')
+    const raw = { id: 'raw', artifact_role: 'transfer' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'receipt/transfer/email.html', mime_type: 'text/html', display_label: 'Archived source HTML', display_order: 1 }
+    expect(selectReceiptArtifactsForDisplay([raw], ['transfer'])).toEqual([raw])
+  })
+
+  it('keeps Gmail provenance fields mandatory in the single-proof renderer', () => {
+    const renderer = readFileSync(join(process.cwd(), 'scripts/render_gmail_print_artifact.mjs'), 'utf8')
+    expect(renderer).toContain("['account', 'date', 'from', 'subject', 'to', 'html']")
+    expect(renderer).toContain('Gmail - ${escapeHtml(source.subject)}')
+    expect(renderer).toContain('To: ${escapeHtml(source.to)}')
+    expect(renderer).toContain('${escapeHtml(source.from)}')
+    expect(renderer).toContain('${escapeHtml(source.date)}')
+    expect(renderer).toContain('fullPage: true')
+    expect(renderer).not.toContain('pdftoppm')
+    expect(renderer).not.toContain('qrPaths')
+  })
+
+  it('keeps proof ingestion authenticated, operator-bound, immutable, and checksum-verified', () => {
+    const intake = readFileSync(join(process.cwd(), 'supabase/functions/receipt-proof-ingest/index.ts'), 'utf8')
+    expect(intake).toContain('admin.auth.getUser(token)')
+    expect(intake).toContain('.eq("person_key", "kavi")')
+    expect(intake).toContain('upsert: false')
+    expect(intake).toContain('artifact_checksum_invalid')
+    expect(intake).toContain('artifact_readback_mismatch')
+    expect(intake).not.toContain('getPublicUrl')
+  })
+
   it('has no public URL or embedded-original fallback in the Wallet implementation', () => {
     const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8')
     const publicText = readdirSync(join(process.cwd(), 'public'))

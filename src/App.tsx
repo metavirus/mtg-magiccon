@@ -31,7 +31,7 @@ import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
 import { cacheDeviceAssets } from './lib/deviceAssets'
-import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
+import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -2044,6 +2044,7 @@ export default function App() {
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogBrowserQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
+        {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface receipts={walletReceipts} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
             const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
@@ -5381,9 +5382,40 @@ function ProofPreview({ kind, code, note }: { kind: 'qr' | 'receipt' | 'code'; c
   </div>
 }
 
+function ReceiptProofIngestLab() {
+  const [payload, setPayload] = useState('')
+  const [status, setStatus] = useState('Ready for one receipt proof payload.')
+  const [busy, setBusy] = useState(false)
+
+  const upload = async () => {
+    if (!supabase || !payload.trim()) return
+    setBusy(true)
+    setStatus('Uploading and verifying…')
+    try {
+      const parsed = JSON.parse(payload)
+      const { data, error } = await supabase.functions.invoke('receipt-proof-ingest', { body: parsed })
+      if (error) throw error
+      if (!['applied', 'already_applied'].includes(data?.status)) throw new Error(data?.error ?? 'Receipt proof intake did not complete.')
+      setStatus(`${data.status}: ${data.objectPath}`)
+      setPayload('')
+    } catch (error) {
+      setStatus(`Upload failed: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return <section className="receipt-proof-ingest-lab" aria-label="Receipt proof ingest">
+    <strong>Receipt proof ingest</strong>
+    <textarea aria-label="Receipt proof payload" value={payload} onChange={event => setPayload(event.target.value)} />
+    <button type="button" disabled={busy || !payload.trim()} onClick={() => void upload()}>{busy ? 'Uploading…' : 'Upload proof'}</button>
+    <p role="status">{status}</p>
+  </section>
+}
+
 function PrivateReceiptArtifacts({ receipt, roles, title, currentOwnerId }: { receipt: WalletReceiptRow | null; roles: ReceiptArtifactRole[]; title: string; currentOwnerId?: string }) {
   const artifacts = useMemo(
-    () => (receipt?.receipt_artifacts ?? []).filter(artifact => roles.includes(artifact.artifact_role)),
+    () => selectReceiptArtifactsForDisplay(receipt?.receipt_artifacts ?? [], roles),
     [receipt, roles.join('|')],
   )
   const [downloads, setDownloads] = useState<Array<{ artifact: ReceiptArtifact; url: string }>>([])
@@ -5568,7 +5600,7 @@ function JuanPremiumProofDetail({ receipt, notes, currentOwnerId, onAddNote, onD
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-juan-premium-order" objectKind="receipt" objectTitle="Juan badge proof" context="Wallet · Juan Premium order" backlink="wallet" compact />
       </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
       : <div className="original-html-frame">
-        <p className="original-receipt-note">Full Gmail-rendered receipt body captured from Juan's confirmation email.</p>
+        <p className="original-receipt-note">Full Gmail print view with account, sender, recipient, timestamp, subject, and complete receipt body.</p>
         <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Juan Premium original receipt" currentOwnerId={currentOwnerId} />
       </div>}
     {receipt && orderProof.url && <div className="proof-links">

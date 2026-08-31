@@ -1187,3 +1187,4 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(max-width:380px){
   .catalog-groups.density-compact .catalog-product-card{grid-template-columns:76px minmax(0,1fr) auto;grid-template-rows:76px}
 }
+.receipt-proof-ingest-lab{display:grid;gap:8px;margin:0 0 12px;padding:12px;border:1px solid #3d5877;border-radius:12px;background:#0d1929}.receipt-proof-ingest-lab textarea{min-height:80px;padding:8px;border:1px solid #36516f;border-radius:8px;background:#081421;color:#dce8f5;font:10px/1.35 ui-monospace,monospace}.receipt-proof-ingest-lab button{min-height:36px;border:1px solid #55b894;border-radius:8px;background:#173c33;color:#a4e6ce;font-weight:800}.receipt-proof-ingest-lab p{margin:0;color:#91a4bb;font-size:9px}

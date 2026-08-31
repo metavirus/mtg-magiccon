@@ -15,6 +15,22 @@ export type ReceiptArtifact = {
   display_order: number
 }
 
+export function selectReceiptArtifactsForDisplay(
+  artifacts: ReceiptArtifact[],
+  roles: ReceiptArtifactRole[],
+) {
+  const matching = artifacts
+    .filter(artifact => roles.includes(artifact.artifact_role))
+    .sort((left, right) => left.display_order - right.display_order)
+  const primaryProof = matching.filter(artifact =>
+    artifact.display_label.toLowerCase().includes('gmail proof')
+    || artifact.object_path.toLowerCase().includes('gmail-proof'),
+  )
+  if (primaryProof.length) return primaryProof
+  const selfContainedImages = matching.filter(artifact => artifact.mime_type.startsWith('image/'))
+  return selfContainedImages.length ? selfContainedImages : matching
+}
+
 export function receiptArtifactCacheKey(ownerId: string, artifactId: string) {
   return new URL(`./__offline_wallet/${encodeURIComponent(ownerId)}/${encodeURIComponent(artifactId)}`, window.location.href).toString()
 }
