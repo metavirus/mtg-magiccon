@@ -50,14 +50,22 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($env:PRIVATE_GMAIL_INTAKE_PAYLOAD)) {
             throw 'PRIVATE_GMAIL_INTAKE_PAYLOAD is absent.'
           }
-          $payload = $env:PRIVATE_GMAIL_INTAKE_PAYLOAD | ConvertFrom-Json
+          $compressedBytes = [Convert]::FromBase64String($env:PRIVATE_GMAIL_INTAKE_PAYLOAD)
+          $compressedStream = [System.IO.MemoryStream]::new(,$compressedBytes)
+          $gzipStream = [System.IO.Compression.GZipStream]::new($compressedStream, [System.IO.Compression.CompressionMode]::Decompress)
+          $reader = [System.IO.StreamReader]::new($gzipStream, [System.Text.Encoding]::UTF8)
+          $payloadJson = $reader.ReadToEnd()
+          $reader.Dispose()
+          $gzipStream.Dispose()
+          $compressedStream.Dispose()
+          $payload = $payloadJson | ConvertFrom-Json
           if ($payload.source.messageId -ne $env:EXPECTED_SOURCE_MESSAGE_ID) {
             throw 'Encrypted payload source message does not match the dispatch input.'
           }
           New-Item -ItemType Directory -Force -Path work/private-intake | Out-Null
           $payloadPath = 'work/private-intake/payload.json'
           $resultPath = 'work/private-intake/result.json'
-          Set-Content -LiteralPath $payloadPath -Value $env:PRIVATE_GMAIL_INTAKE_PAYLOAD -NoNewline
+          Set-Content -LiteralPath $payloadPath -Value $payloadJson -NoNewline
           pnpm intake:private-gmail -- $payloadPath | Tee-Object -FilePath $resultPath
           if ($LASTEXITCODE -ne 0) { throw 'Private Gmail intake command failed.' }
           $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
