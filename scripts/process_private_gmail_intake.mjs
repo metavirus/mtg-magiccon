@@ -183,7 +183,19 @@ if (plan.kind === 'receipt') {
   if (lockReadback.error) throw lockReadback.error
   const expectedLockCount = plan.operation.eventIds.length * attendeeOwnerIds.length * 3
   if ((lockReadback.data?.length ?? 0) !== expectedLockCount) throw new Error('Receipt applied without complete purchase-lock readback.')
-  console.log(JSON.stringify({ status: 'applied', kind: 'receipt', sourceMessageId: plan.sourceMessageId, receiptId: readback.data.id, artifactIds: artifactManifests.map(artifact => artifact.id), attendeeCount: attendeeOwnerIds.length, purchaseLockCount: plan.operation.eventIds.length * attendeeOwnerIds.length }))
+  const companionCodes = new Map(plan.operation.receipt.line_items
+    .filter(line => line.event_id && line.code)
+    .map(line => [line.event_id, line.code]))
+  for (const [eventId, companionCode] of companionCodes) {
+    const publishedCode = await client.from('ticketed_play_public_companion_codes')
+      .upsert({ event_id: eventId, companion_code: companionCode, updated_at: new Date().toISOString() }, { onConflict: 'event_id' })
+      .select('event_id,companion_code')
+      .single()
+    if (publishedCode.error || publishedCode.data.companion_code !== companionCode) {
+      throw publishedCode.error ?? new Error('Receipt applied without public Companion code readback.')
+    }
+  }
+  console.log(JSON.stringify({ status: 'applied', kind: 'receipt', sourceMessageId: plan.sourceMessageId, receiptId: readback.data.id, artifactIds: artifactManifests.map(artifact => artifact.id), attendeeCount: attendeeOwnerIds.length, purchaseLockCount: plan.operation.eventIds.length * attendeeOwnerIds.length, publishedCompanionCodeCount: companionCodes.size }))
 } else {
   const applied = await client.rpc(plan.operation.rpc, plan.operation.args)
   if (applied.error) throw applied.error

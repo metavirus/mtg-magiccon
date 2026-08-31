@@ -3,6 +3,7 @@ export type TicketedPlayAvailabilityProjectionRow = {
   source_event_key: string
   availability: 'available' | 'sold_out' | 'waitlist' | 'unavailable' | 'unknown'
   observed_at: string
+  companion_code: string | null
 }
 
 type ExploreAvailability = 'open' | 'sold-out' | 'changed'
@@ -15,15 +16,21 @@ function projectAvailability(value: TicketedPlayAvailabilityProjectionRow['avail
 }
 
 /** Exact canonical IDs are the only join. Titles are intentionally ignored. */
-export function applyTicketedPlayAvailabilityProjection<T extends { id: string; availability: ExploreAvailability }>(
+export function applyTicketedPlayAvailabilityProjection<T extends { id: string; availability: ExploreAvailability; companionCode?: string }>(
   events: T[],
   rows: TicketedPlayAvailabilityProjectionRow[],
 ): T[] {
   const currentByEventId = new Map(rows.map(row => [row.event_id, row]))
   return events.map(event => {
     const current = currentByEventId.get(event.id)
-    const projected = current ? projectAvailability(current.availability) : null
-    return projected ? { ...event, availability: projected } : event
+    const projectedAvailability = current ? projectAvailability(current.availability) : null
+    const projectedCode = current?.companion_code ?? null
+    if (!projectedAvailability && !projectedCode) return event
+    return {
+      ...event,
+      ...(projectedAvailability ? { availability: projectedAvailability } : {}),
+      ...(projectedCode ? { companionCode: projectedCode } : {}),
+    }
   })
 }
 

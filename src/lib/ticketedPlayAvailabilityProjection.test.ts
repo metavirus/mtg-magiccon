@@ -4,19 +4,24 @@ import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, 
 describe('current Ticketed Play availability projection', () => {
   it('lets the current exact-ID observation override static and older state, including restock', () => {
     const events = [{ id: 'ticketed-1', title: 'One', availability: 'sold-out' as const }]
-    expect(applyTicketedPlayAvailabilityProjection(events, [{ event_id: 'ticketed-1', source_event_key: '1', availability: 'available', observed_at: '2026-08-26T00:00:00Z' }])[0].availability).toBe('open')
-    expect(applyTicketedPlayAvailabilityProjection([{ ...events[0], availability: 'open' as const }], [{ event_id: 'ticketed-1', source_event_key: '1', availability: 'sold_out', observed_at: '2026-08-26T01:00:00Z' }])[0].availability).toBe('sold-out')
+    expect(applyTicketedPlayAvailabilityProjection(events, [{ event_id: 'ticketed-1', source_event_key: '1', availability: 'available', observed_at: '2026-08-26T00:00:00Z', companion_code: null }])[0].availability).toBe('open')
+    expect(applyTicketedPlayAvailabilityProjection([{ ...events[0], availability: 'open' as const }], [{ event_id: 'ticketed-1', source_event_key: '1', availability: 'sold_out', observed_at: '2026-08-26T01:00:00Z', companion_code: null }])[0].availability).toBe('sold-out')
   })
 
   it('never falls back to a matching title', () => {
     const events = [{ id: 'ticketed-1', title: 'Same title', availability: 'open' as const }]
-    const projected = applyTicketedPlayAvailabilityProjection(events, [{ event_id: 'ticketed-2', source_event_key: '2', availability: 'sold_out', observed_at: '2026-08-26T00:00:00Z' }])
+    const projected = applyTicketedPlayAvailabilityProjection(events, [{ event_id: 'ticketed-2', source_event_key: '2', availability: 'sold_out', observed_at: '2026-08-26T00:00:00Z', companion_code: 'ABC123' }])
     expect(projected).toEqual(events)
   })
 
   it('preserves the existing state when the current source observation is unknown', () => {
     const events = [{ id: 'ticketed-1', title: 'One', availability: 'open' as const }]
-    expect(applyTicketedPlayAvailabilityProjection(events, [{ event_id: 'ticketed-1', source_event_key: '1', availability: 'unknown', observed_at: '2026-08-26T00:00:00Z' }])).toEqual(events)
+    expect(applyTicketedPlayAvailabilityProjection(events, [{ event_id: 'ticketed-1', source_event_key: '1', availability: 'unknown', observed_at: '2026-08-26T00:00:00Z', companion_code: null }])).toEqual(events)
+  })
+
+  it('projects a public Companion code by exact event id even when availability is unchanged', () => {
+    const events = [{ id: 'ticketed-1', title: 'One', availability: 'open' as const }]
+    expect(applyTicketedPlayAvailabilityProjection(events, [{ event_id: 'ticketed-1', source_event_key: '1', availability: 'unknown', observed_at: '2026-08-26T00:00:00Z', companion_code: 'V2JYNWE' }])[0]).toMatchObject({ companionCode: 'V2JYNWE' })
   })
 
   it('partitions sold-out rows without duplicates', () => {

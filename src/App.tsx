@@ -237,6 +237,7 @@ function useWalletReceipts(currentOwnerId?: string) {
       return
     }
     let active = true
+    const client = supabase
     const cached = readOfflineContinuity(currentOwnerId)?.lanes.walletReceipts
     if (Array.isArray(cached)) {
       const cachedReceipts = cached as WalletReceiptRow[]
@@ -249,10 +250,12 @@ function useWalletReceipts(currentOwnerId?: string) {
       setReceipts([])
       setProofPack({ expected: 0, cached: 0, loading: false })
     }
-    void supabase.from('wallet_receipts')
-      .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
-      .order('receipt_date', { ascending: false })
-      .then(({ data, error }) => {
+    const refreshReceipts = () => {
+      if (!navigator.onLine) return
+      void client.from('wallet_receipts')
+        .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
+        .order('receipt_date', { ascending: false })
+        .then(({ data, error }) => {
         if (!active) return
         if (error) { console.warn('Wallet receipts could not be loaded; using offline cache when available', error); return }
         const refreshed = ((data ?? []) as WalletReceiptRow[]).map(receipt => ({
@@ -269,7 +272,18 @@ function useWalletReceipts(currentOwnerId?: string) {
           if (active) setProofPack({ ...status, loading: false })
         })
       })
-    return () => { active = false }
+    }
+    const refreshVisibleReceipts = () => {
+      if (document.visibilityState === 'visible') refreshReceipts()
+    }
+    refreshReceipts()
+    window.addEventListener('online', refreshReceipts)
+    document.addEventListener('visibilitychange', refreshVisibleReceipts)
+    return () => {
+      active = false
+      window.removeEventListener('online', refreshReceipts)
+      document.removeEventListener('visibilitychange', refreshVisibleReceipts)
+    }
   }, [currentOwnerId])
   return { receipts, proofPack }
 }
@@ -514,11 +528,32 @@ async function loadMonitoringConcepts(): Promise<MonitoringConceptRow[]> {
 
 async function loadTicketedPlayAvailability(): Promise<TicketedPlayAvailabilityProjectionRow[]> {
   if (!supabase) return []
-  const result = await supabase.from('ticketed_play_current_availability')
-    .select('event_id,source_event_key,availability,observed_at')
-    .order('event_id')
-  if (result.error) throw result.error
-  return result.data as TicketedPlayAvailabilityProjectionRow[]
+  const [availabilityResult, codeResult] = await Promise.all([
+    supabase.from('ticketed_play_current_availability')
+      .select('event_id,source_event_key,availability,observed_at')
+      .order('event_id'),
+    supabase.from('ticketed_play_public_companion_codes')
+      .select('event_id,companion_code,updated_at')
+      .order('event_id'),
+  ])
+  if (availabilityResult.error && codeResult.error) throw availabilityResult.error
+  const codeByEventId = new Map((codeResult.data ?? []).map(row => [row.event_id, row]))
+  const rows = (availabilityResult.data ?? []).map(row => ({
+    ...row,
+    companion_code: codeByEventId.get(row.event_id)?.companion_code ?? null,
+  })) as TicketedPlayAvailabilityProjectionRow[]
+  const availabilityEventIds = new Set(rows.map(row => row.event_id))
+  for (const code of codeResult.data ?? []) {
+    if (availabilityEventIds.has(code.event_id)) continue
+    rows.push({
+      event_id: code.event_id,
+      source_event_key: code.event_id.replace(/^ticketed-/, ''),
+      availability: 'unknown',
+      observed_at: code.updated_at,
+      companion_code: code.companion_code,
+    })
+  }
+  return rows
 }
 
 type MentionInboxItem = {
@@ -912,8 +947,8 @@ export default function App() {
       setMonitoringFindings(isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? monitoringFindingQaRows() : [])
       setMonitoringConcepts(monitoringConceptQaRows())
       setTicketedAvailability((new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []).includes('ticketed-availability') ? [
-        { event_id: 'ticketed-944015', source_event_key: '944015', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z' },
-        { event_id: 'ticketed-944083', source_event_key: '944083', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z' },
+        { event_id: 'ticketed-944015', source_event_key: '944015', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z', companion_code: null },
+        { event_id: 'ticketed-944083', source_event_key: '944083', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z', companion_code: null },
       ] : [])
       setTripFlights(previewTripFlights)
       setCatalogReadModel(catalogBrowserQa ? catalogBrowserPreviewModel : emptyCatalogReadModel)
@@ -1160,11 +1195,19 @@ export default function App() {
       setOnline(false)
       void reconnect(false)
     }
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible' || !navigator.onLine) return
+      onlineRef.current = true
+      setOnline(true)
+      void reconnect(true)
+    }
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
+    document.addEventListener('visibilitychange', handleVisibility)
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
+      document.removeEventListener('visibilitychange', handleVisibility)
     }
   }, [refresh, refreshCompanions, refreshUserContinuity])
 
@@ -1997,7 +2040,7 @@ export default function App() {
       {((message && messageTone !== 'error') || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
       <>
         {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} receipts={walletReceipts} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogBrowserQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
@@ -3459,6 +3502,7 @@ type ExploreEvent = {
   planEffect: string
   purchased?: boolean
   purchaseLocked?: boolean
+  companionCode?: string
 }
 
 const monitoringAlerts: MonitoringAlert[] = [
@@ -6360,7 +6404,7 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, events, flights, receipts, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; receipts: WalletReceiptRow[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ slice, events, flights, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [detail, setDetail] = useState<CalendarDetail | null>(null)
@@ -6379,9 +6423,6 @@ function CalendarSurface({ slice, events, flights, receipts, selectionRows, comp
   const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
   const committedEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed'))
   const selectedEvent = candidateEvents.find(event => event.id === selectedEventId) ?? null
-  const selectedReceiptLine = selectedEvent
-    ? receipts.flatMap(receipt => receipt.line_items).find(line => line.event_id === selectedEvent.id)
-    : undefined
   const openEvent = (id: string) => {
     setDetail(null)
     if (selectedEventId === id) {
@@ -6548,15 +6589,15 @@ function CalendarSurface({ slice, events, flights, receipts, selectionRows, comp
     </>}
 
     {detail && <CalendarDetailSheet detail={detail} slice={slice} flights={flights} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-    {selectedEvent && <CalendarEventDetail event={selectedEvent} receiptLine={selectedReceiptLine} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
+    {selectedEvent && <CalendarEventDetail event={selectedEvent} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
 }
 
-function CalendarEventDetail({ event, receiptLine, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; receiptLine?: WalletReceiptLine; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
   const [copied, setCopied] = useState(false)
   const copyCode = async () => {
-    if (!receiptLine?.code) return
-    await navigator.clipboard.writeText(receiptLine.code)
+    if (!event.companionCode) return
+    await navigator.clipboard.writeText(event.companionCode)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1800)
   }
@@ -6569,8 +6610,8 @@ function CalendarEventDetail({ event, receiptLine, notes, currentOwnerId, onAddN
       <EventDetailActions event={event} onPurchase={onPurchase} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
-    {event.purchased && receiptLine?.code && <section className="companion-code-panel" aria-label="Magic Companion event code">
-      <div><span>COMPANION CODE</span><strong>{receiptLine.code}</strong><small>{copied ? 'Copied' : 'Tap to copy, then join the event in Companion.'}</small></div>
+    {event.companionCode && <section className="companion-code-panel" aria-label="Magic Companion event code">
+      <div><span>COMPANION CODE</span><strong>{event.companionCode}</strong><small>{copied ? 'Copied' : 'Tap to copy, then join the event in Companion.'}</small></div>
       <button type="button" onClick={() => void copyCode()}>{copied ? 'Copied' : 'Copy code'}</button>
       <a href="https://magic.wizards.com/products/companion-app" target="_blank" rel="noreferrer">Open Companion</a>
     </section>}

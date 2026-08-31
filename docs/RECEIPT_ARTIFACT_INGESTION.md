@@ -50,7 +50,7 @@ Every receipt detail should expose:
 
 A single order may authorize multiple active companion identities. Keep one original artifact, grant each explicitly bound attendee read access, and apply purchase locks to each attendee's exact event selections. Do not manufacture duplicate receipts merely because an order contains multiple tickets.
 
-For ticketed-play lines, retain the event's Companion code with the exact event binding. A purchaser's Calendar detail should show the code prominently, support one-tap copy, and link to the official Companion app surface. Do not invent an undocumented prefilled-join deep link.
+For ticketed-play lines, retain the event's Companion code with the exact event binding. The receipt is evidence for discovering the code, but the code itself is public event data: normalize it into `ticketed_play_public_companion_codes`, where every viewer can read it without receipt or purchaser authorization. Calendar detail shows the public event code prominently, supports one-tap copy, and links to the official Companion app surface. The receipt original, QR, attendee identity, and purchase evidence remain private. Do not invent an undocumented prefilled-join deep link.
 
 Badge pills, receipt-feed rows, Activity receipt observations, and future monitoring intake cards should all route to the same receipt object instead of each building their own proof display.
 

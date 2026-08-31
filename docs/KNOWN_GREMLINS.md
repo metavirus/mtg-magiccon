@@ -358,6 +358,8 @@ If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, t
 
 **Remote-QR-in-original trap:** Preserving a ticketed receipt's HTML does not preserve a QR loaded from an external URL. The protected original renderer blocks remote resources, and an offline device cannot fetch them anyway. Ticketed Gmail intake must fail closed when the source has no recognized QR, download the recognized QR as a separate immutable private artifact, and verify both objects by checksum before reporting `applied`; `scripts/lib/private_gmail_intake.test.ts` guards the boundary.
 
+**Companion-code privacy trap:** A Wizards Companion join code may arrive in a private receipt, but it is public event data. Never make Calendar visibility depend on the current viewer's receipt, purchaser identity, or personal purchase state. Intake publishes exact event/code pairs to `ticketed_play_public_companion_codes`; that table exposes only `event_id`, `companion_code`, and freshness, while receipt originals, QR artifacts, attendee identity, and purchase evidence remain private. `src/lib/purchaseUiContract.test.ts` guards this separation.
+
 ## Local preview server and ports
 
 **Symptom:** preview/dev cannot be reached, port changes, or a local server hangs a tool call.
