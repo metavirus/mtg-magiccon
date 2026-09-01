@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import nodemailer from 'nodemailer'
-import { planTicketedPlayAvailabilityEmail } from './lib/ticketed_play_email_alert.mjs'
+import { planTicketedPlayAvailabilityEmails } from './lib/ticketed_play_email_alert.mjs'
 
 const [reportPath, closurePath] = process.argv.slice(2)
 if (!reportPath || !closurePath) throw new Error('Usage: node scripts/send_ticketed_availability_alert.mjs <monitor-report.json> <closure-manifest.json>')
@@ -9,8 +9,8 @@ const [report, closure] = await Promise.all([
   fs.readFile(reportPath, 'utf8').then(JSON.parse),
   fs.readFile(closurePath, 'utf8').then(JSON.parse),
 ])
-const alert = planTicketedPlayAvailabilityEmail(report, closure)
-if (!alert) {
+const alerts = planTicketedPlayAvailabilityEmails(report, closure)
+if (!alerts.length) {
   console.log('Ticketed Play availability email: QUIET (no verified watched reopening)')
   process.exit(0)
 }
@@ -23,12 +23,16 @@ if (!username || !password || !to) {
 }
 
 const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: username, pass: password } })
-const result = await transporter.sendMail({
-  from: username,
-  to,
-  subject: alert.subject,
-  text: alert.text,
-  headers: { 'X-MagicCon-Alert-Key': alert.alertKey },
-})
-if (!result.messageId) throw new Error('Gmail accepted no message ID for the Ticketed Play availability alert.')
-console.log(`Ticketed Play availability email: SENT (${result.messageId})`)
+const messageIds = []
+for (const alert of alerts) {
+  const result = await transporter.sendMail({
+    from: username,
+    to,
+    subject: alert.subject,
+    text: alert.text,
+    headers: { 'X-MagicCon-Alert-Key': alert.alertKey },
+  })
+  if (!result.messageId) throw new Error(`Gmail accepted no message ID for Ticketed Play alert ${alert.alertKey}. Baseline must not advance.`)
+  messageIds.push(result.messageId)
+}
+console.log(`Ticketed Play availability email: SENT (${messageIds.length} message${messageIds.length === 1 ? '' : 's'}: ${messageIds.join(', ')})`)

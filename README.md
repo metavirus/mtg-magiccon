@@ -23,7 +23,7 @@ Run `pnpm readiness` before database or release work. See [development architect
 
 Before spending time on a recurring setup, Git, auth, cache, publish, data, browser, or responsive issue, check [Known Gremlins](docs/KNOWN_GREMLINS.md). A failure returning after it was called fixed disproves that fix: stop feature work, find why the prevention failed, add a targeted durable guardrail, and prove both the original lane and the guardrail. A successful retry alone is only recovery. Only an explicit user statement that tokens are low may defer that work.
 
-For the short operating contract that keeps this hobby app from accumulating avoidable process overhead, see [Repo Operating Contract](docs/REPO_OPERATING_CONTRACT.md).
+For the short operating contract that keeps this hobby app from accumulating avoidable process overhead, see [Repo Operating Contract](docs/REPO_OPERATING_CONTRACT.md). For the exact trigger, side effect, and proof boundary of every scheduled or automation-labelled lane, see [Automation Truth Table](docs/AUTOMATION_TRUTH_TABLE.md).
 
 ## Commands
 
@@ -31,11 +31,12 @@ For the short operating contract that keeps this hobby app from accumulating avo
 | --- | --- |
 | `pnpm dev` | Local app |
 | `pnpm check:ui` | Fast Tier 0 acceptance for ordinary UI/copy/layout changes |
-| `pnpm check:ship` | Tier 1 acceptance before pushing a public preview change |
+| `pnpm check:deploy` | Full deployment gate: build, tests, text integrity, secret scan, and workflow-verifier guard |
+| `pnpm check:ship` | Compatibility alias for `pnpm check:deploy` |
 | `pnpm preview` | Serve a built app preview using the same Vite config-loader path as build |
 | `pnpm ui:capture -- -Route explore` | Build-preview browser smoke with Playwright screenshot, DOM, and visible text readback |
 | `pnpm build` | Type-check and production build |
-| `pnpm publish:pages` | Local Pages artifact check only: run ship checks and prepare `dist/` for the GitHub Actions deploy |
+| `pnpm prepare:pages` | Run the full deployment gate and prepare the local `dist/` Pages artifact; this does not deploy |
 | `pnpm verify:public` | Compare the public GitHub Pages asset references with the local `dist/` artifact after a cache-busted fetch |
 | `pnpm test` | Unit tests |
 | `pnpm monitor` | Run the canonical watched-source change check (`monitor:check` alias) |

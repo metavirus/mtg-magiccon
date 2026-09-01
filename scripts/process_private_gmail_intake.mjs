@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
-import { planPrivateGmailIntake } from './lib/private_gmail_intake.mjs'
+import { buildManualReceiptPublicationResult, planPrivateGmailIntake } from './lib/private_gmail_intake.mjs'
 
 const FLIGHT_ITINERARY = 'atlanta-2026-delta-hogfbx'
 const CANONICAL_PROJECT_REF = 'pavjsexxbueuzhzgemgy'
@@ -91,7 +91,7 @@ if (plan.kind === 'receipt') {
     bytes: Buffer.from(plan.operation.artifact.contents, 'utf8'),
     mimeType: plan.operation.artifact.mimeType,
     filename: `${safeMessageId}.html`,
-    displayLabel: 'Original source email',
+    displayLabel: 'Archival source HTML from reviewed payload',
     displayOrder: 1,
   }]
   const artifactManifests = []
@@ -181,7 +181,15 @@ if (plan.kind === 'receipt') {
       throw publishedCode.error ?? new Error('Receipt applied without public Companion code readback.')
     }
   }
-  console.log(JSON.stringify({ status: 'applied', kind: 'receipt', sourceMessageId: plan.sourceMessageId, receiptId: readback.data.id, artifactIds: artifactManifests.map(artifact => artifact.id), attendeeCount: attendeeOwnerIds.length, purchaseLockCount: plan.operation.eventIds.length * attendeeOwnerIds.length, publishedCompanionCodeCount: companionCodes.size }))
+  console.log(JSON.stringify(buildManualReceiptPublicationResult({
+    sourceMessageId: plan.sourceMessageId,
+    receiptId: readback.data.id,
+    artifactIds: artifactManifests.map(artifact => artifact.id),
+    attendeeCount: attendeeOwnerIds.length,
+    purchaseLockCount: plan.operation.eventIds.length * attendeeOwnerIds.length,
+    publishedCompanionCodeCount: companionCodes.size,
+    proofBundleValidation: plan.operation.proofBundleValidation,
+  })))
 } else {
   const applied = await client.rpc(plan.operation.rpc, plan.operation.args)
   if (applied.error) throw applied.error

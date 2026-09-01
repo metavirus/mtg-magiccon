@@ -18,7 +18,4 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.16.0 --activate
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm test
-      - run: pnpm validate:text
-      - run: pnpm validate:secrets
+      - run: pnpm check:deploy

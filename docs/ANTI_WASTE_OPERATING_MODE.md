@@ -97,7 +97,7 @@ For this app, do not publish ordinary intermediate iterations. Once Kavi asks to
 - Keep browser scratch artifacts and one-off verification files out of the repo root. Use an ignored temp path or the system temp directory so doc/build validation does not get polluted by debugging residue.
 - For operational files (`.github/workflows/*`, publish scripts, auth config, Supabase migrations/policies, persistence wiring), change one moving part at a time unless the dependency chain is explicit and unavoidable. Do not bundle speculative cleanup with functional fixes.
 - Before changing a command, workflow, or script, inspect the existing project script/consumer first. Do not improvise a raw replacement for a scripted path that already exists.
-- `pnpm publish:pages` is a local artifact/preflight command only. It does not publish the public site by itself under the current GitHub Actions Pages model.
+- `pnpm prepare:pages` is the local deployment-gate and Pages-artifact command. It does not publish the public site; only the GitHub Actions Pages workflow deploys.
 
 ### Error visibility without ceremony
 

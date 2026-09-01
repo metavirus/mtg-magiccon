@@ -60,6 +60,27 @@ function receiptPlan(message) {
   }
   if (!Array.isArray(receipt.lineItems)) return notCovered('receipt', source.messageId, 'receipt_line_items_missing')
 
+  let proofBundleValidation = null
+  if (receipt.proofBundleValidation != null) {
+    const validation = receipt.proofBundleValidation
+    if (validation.status !== 'passed'
+      || !validTimestamp(validation.validatedAt)
+      || !nonblank(validation.validatedBy)
+      || validation.bundleComplete !== true
+      || validation.readabilityPassed !== true
+      || !['passed', 'not_applicable'].includes(validation.operationalQrStatus)) {
+      return notCovered('receipt', source.messageId, 'proof_bundle_validation_invalid')
+    }
+    proofBundleValidation = {
+      status: 'passed',
+      validatedAt: validation.validatedAt,
+      validatedBy: validation.validatedBy.trim(),
+      bundleComplete: true,
+      readabilityPassed: true,
+      operationalQrStatus: validation.operationalQrStatus,
+    }
+  }
+
   const eventIds = []
   if (receipt.receiptType === 'ticketed_play') {
     if (!receipt.lineItems.length) return notCovered('receipt', source.messageId, 'ticketed_receipt_has_no_lines')
@@ -102,7 +123,7 @@ function receiptPlan(message) {
         attendee_person_keys: Array.isArray(item.attendeePersonKeys) ? [...new Set(item.attendeePersonKeys.map(value => String(value).trim().toLowerCase()).filter(Boolean))] : attendeePersonKeys,
       })),
       original_html: null,
-      confidence: receipt.confidence ?? 'verified',
+      confidence: receipt.confidence ?? 'needs_review',
     },
     artifact: {
       role: 'original',
@@ -112,6 +133,7 @@ function receiptPlan(message) {
     },
     eventIds: [...new Set(eventIds)].sort(),
     attendeePersonKeys,
+    proofBundleValidation,
   })
 }
 
@@ -174,5 +196,40 @@ export function summarizePrivateIntake(result) {
     consequence: result.kind === 'receipt'
       ? { walletReceipt: true, attendeeCount: result.operation.attendeePersonKeys.length, purchaseLockCount: result.operation.eventIds.length * result.operation.attendeePersonKeys.length }
       : { flightExecutor: result.operation.rpc },
+  }
+}
+
+export function buildManualReceiptPublicationResult({
+  sourceMessageId,
+  receiptId,
+  artifactIds,
+  attendeeCount,
+  purchaseLockCount,
+  publishedCompanionCodeCount,
+  proofBundleValidation = null,
+}) {
+  const presentation = proofBundleValidation
+    ? { status: 'declared_validated', validation: proofBundleValidation }
+    : { status: 'not_certified', reason: 'proof_bundle_readability_and_operational_qr_validation_not_declared' }
+  return {
+    status: 'payload_published',
+    kind: 'receipt',
+    lane: 'manual_normalized_receipt_payload_recovery',
+    sourceMessageId,
+    receiptId,
+    artifactIds,
+    attendeeCount,
+    purchaseLockCount,
+    publishedCompanionCodeCount,
+    presentation,
+    completion: {
+      status: 'verification_required',
+      reason: 'database_and_storage_readback_does_not_certify_receipt_ingestion_complete',
+      requiredChecks: [
+        ...(proofBundleValidation ? [] : ['proof_bundle_readability_and_operational_qr']),
+        'authenticated_shared_download',
+        'wallet_info_and_original_rendering',
+      ],
+    },
   }
 }

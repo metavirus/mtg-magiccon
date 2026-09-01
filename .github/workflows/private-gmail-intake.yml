@@ -1,10 +1,10 @@
-name: Private Gmail receipt intake
+name: Manual receipt payload publisher (recovery)
 
 on:
   workflow_dispatch:
     inputs:
       expected_source_message_id:
-        description: "Gmail message id expected in the encrypted one-time payload"
+        description: "Source message id expected in the reviewed encrypted receipt payload"
         required: true
         type: string
 
@@ -12,11 +12,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: private-gmail-receipt-intake
+  group: manual-receipt-payload-publisher
   cancel-in-progress: false
 
 jobs:
-  ingest:
+  publish_receipt_payload:
     runs-on: windows-latest
     timeout-minutes: 10
     env:
@@ -39,18 +39,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Apply one encrypted private receipt payload
+      - name: Publish one reviewed normalized receipt payload
         shell: pwsh
         env:
-          PRIVATE_GMAIL_INTAKE_PAYLOAD: ${{ secrets.PRIVATE_GMAIL_INTAKE_PAYLOAD }}
+          NORMALIZED_RECEIPT_PAYLOAD: ${{ secrets.PRIVATE_GMAIL_INTAKE_PAYLOAD }}
           SUPABASE_URL: https://pavjsexxbueuzhzgemgy.supabase.co
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           EXPECTED_SOURCE_MESSAGE_ID: ${{ inputs.expected_source_message_id }}
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:PRIVATE_GMAIL_INTAKE_PAYLOAD)) {
-            throw 'PRIVATE_GMAIL_INTAKE_PAYLOAD is absent.'
+          if ([string]::IsNullOrWhiteSpace($env:NORMALIZED_RECEIPT_PAYLOAD)) {
+            throw 'The normalized receipt payload secret is absent.'
           }
-          $compressedBytes = [Convert]::FromBase64String($env:PRIVATE_GMAIL_INTAKE_PAYLOAD)
+          $compressedBytes = [Convert]::FromBase64String($env:NORMALIZED_RECEIPT_PAYLOAD)
           $compressedStream = [System.IO.MemoryStream]::new([byte[]]$compressedBytes)
           $gzipStream = [System.IO.Compression.GZipStream]::new($compressedStream, [System.IO.Compression.CompressionMode]::Decompress)
           $reader = [System.IO.StreamReader]::new($gzipStream, [System.Text.Encoding]::UTF8)
@@ -59,32 +59,51 @@ jobs:
           $gzipStream.Dispose()
           $compressedStream.Dispose()
           $payload = $payloadJson | ConvertFrom-Json
+          if ($payload.kind -ne 'receipt') {
+            throw 'Manual receipt publisher refuses non-receipt payloads.'
+          }
+          if ($payload.source.system -ne 'gmail') {
+            throw 'Manual receipt publisher requires an explicitly normalized Gmail source payload.'
+          }
           if ($payload.source.messageId -ne $env:EXPECTED_SOURCE_MESSAGE_ID) {
             throw 'Encrypted payload source message does not match the dispatch input.'
           }
-          New-Item -ItemType Directory -Force -Path work/private-intake | Out-Null
-          $payloadPath = 'work/private-intake/payload.json'
-          $resultPath = 'work/private-intake/result.json'
+          New-Item -ItemType Directory -Force -Path work/manual-receipt-publisher | Out-Null
+          $payloadPath = 'work/manual-receipt-publisher/payload.json'
+          $resultPath = 'work/manual-receipt-publisher/result.json'
           Set-Content -LiteralPath $payloadPath -Value $payloadJson -NoNewline
-          pnpm intake:private-gmail -- $payloadPath | Tee-Object -FilePath $resultPath
-          if ($LASTEXITCODE -ne 0) { throw 'Private Gmail intake command failed.' }
+          pnpm --silent receipts:publish-normalized-payload -- $payloadPath | Tee-Object -FilePath $resultPath
+          if ($LASTEXITCODE -ne 0) { throw 'Manual receipt payload publisher failed.' }
           $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
-          if ($result.status -ne 'applied' -or $result.sourceMessageId -ne $env:EXPECTED_SOURCE_MESSAGE_ID) {
-            throw "Private Gmail intake did not close: $($result.reason)"
+          if ($result.status -ne 'payload_published' -or $result.kind -ne 'receipt' -or $result.sourceMessageId -ne $env:EXPECTED_SOURCE_MESSAGE_ID) {
+            throw "Manual receipt payload was not published: $($result.reason)"
+          }
+          if ($result.lane -ne 'manual_normalized_receipt_payload_recovery' -or $result.completion.status -ne 'verification_required') {
+            throw 'Publisher result omitted the required incomplete-until-verified receipt status.'
+          }
+          if ($result.presentation.status -notin @('not_certified', 'declared_validated')) {
+            throw 'Publisher result omitted the required receipt presentation status.'
+          }
+          if ($result.presentation.status -eq 'declared_validated' -and $result.presentation.validation.status -ne 'passed') {
+            throw 'Publisher claimed validated presentation without a passing declaration.'
           }
           Remove-Item -LiteralPath $payloadPath -Force
-          Add-Content $env:GITHUB_STEP_SUMMARY "## Private Gmail receipt intake"
+          Add-Content $env:GITHUB_STEP_SUMMARY "## Manual receipt payload publication"
           Add-Content $env:GITHUB_STEP_SUMMARY ""
           Add-Content $env:GITHUB_STEP_SUMMARY "- Source message: ``$($result.sourceMessageId)``"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Receipt: ``$($result.receiptId)``"
-          Add-Content $env:GITHUB_STEP_SUMMARY "- Private artifacts: $($result.artifactIds.Count)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Archival private artifacts: $($result.artifactIds.Count)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Purchase locks: $($result.purchaseLockCount)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Presentation: **$($result.presentation.status)**"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Receipt completion: **verification required**"
+          Add-Content $env:GITHUB_STEP_SUMMARY ""
+          Add-Content $env:GITHUB_STEP_SUMMARY "This manual recovery run verifies its database and Storage writes only. It does not certify that the receipt has a showable original, shared authenticated download, or correct Wallet rendering."
 
-      - name: Retain non-secret closure result
+      - name: Retain non-secret publication result
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: private-gmail-intake-result
-          path: work/private-intake/result.json
+          name: manual-receipt-payload-publication-result
+          path: work/manual-receipt-publisher/result.json
           if-no-files-found: ignore
           retention-days: 7

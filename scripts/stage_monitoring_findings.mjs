@@ -5,6 +5,7 @@ import { buildMonitoringCandidateRows } from './lib/build_monitoring_candidates.
 import { CONCEPT_RULE_VERSION, extractMonitoringConcepts, factualChoiceFindingForResolution, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
 import { monitoringConceptBaselineFromInfo, projectRegisteredFactResolution, projectResolutionToInfo, verifyRegisteredFactReadback } from './lib/monitoring_info_projection.mjs'
 import { ticketedPlayAvailabilityProjectionRows } from './lib/ticketed_play_availability_projection.mjs'
+import { closeTicketedPlayTransitions } from './lib/ticketed_play_transition_closure.mjs'
 import { assertSupportedSurveyorCatches, completeSurveyorClosureManifest, pendingSurveyorClosureManifest, surveyorCatchDescriptors } from './lib/surveyor_closure_contract.mjs'
 
 const reportPath = process.argv[2]
@@ -82,7 +83,7 @@ const rows = candidateRows.map(row => ({
   occurrence_count: (existingCounts.get(row.fingerprint) ?? 0) + 1,
 }))
 const findingResult = rows.length
-  ? await client.from('monitoring_findings').upsert(rows, { onConflict: 'fingerprint' }).select('id,fingerprint,status,destination')
+  ? await client.from('monitoring_findings').upsert(rows, { onConflict: 'fingerprint' }).select('id,fingerprint,status,destination,evidence')
   : { data: [], error: null }
 if (findingResult.error) throw findingResult.error
 
@@ -319,15 +320,12 @@ for (const descriptor of surveyorCatchDescriptors(report)) {
   const matchingRows = rows.filter(row => row.source_id === descriptor.sourceId || row.evidence?.sourceIds?.includes(descriptor.sourceId))
   const proofs = matchingRows.map(row => candidateOutcomes.get(row.fingerprint)).filter(Boolean)
   if (descriptor.intakeKind === 'ticketed_play_inventory') {
-    const transitionKeys = new Set((change.transitions ?? []).map(item => String(item.eventId)))
-    const observed = availabilityReadback.filter(item => transitionKeys.has(String(item.event_id)))
-    if (observed.length !== transitionKeys.size) throw new Error(`Surveyor closure blocked: Ticketed Play availability readback covered ${observed.length} of ${transitionKeys.size} transition(s).`)
-    outcomes.set(descriptor.catchId, {
-      disposition: 'canonical_update',
-      targets: [{ kind: 'explore_availability', identifier: descriptor.sourceId }, ...proofs.flatMap(proof => proof.targets)],
-      readbacks: [{ system: 'supabase', relation: 'ticketed_play_current_availability', match: { event_ids: [...transitionKeys] }, observed }, ...proofs.flatMap(proof => proof.readbacks)],
-      rationale: 'Current availability was projected to Explore; useful selection impact was routed on existing Home and Inbox surfaces.',
-    })
+    outcomes.set(descriptor.catchId, closeTicketedPlayTransitions({
+      transitions: change.transitions ?? [],
+      availabilityReadback,
+      proofs,
+      sourceId: descriptor.sourceId,
+    }))
     continue
   }
   if (proofs.length) {

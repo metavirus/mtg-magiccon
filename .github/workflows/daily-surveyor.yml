@@ -70,15 +70,22 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ inputs.replay_run_id }}
 
-      - name: Stage deduplicated findings for Kavi review
+      - name: Stage and reconcile deterministic findings
         env:
           SUPABASE_URL: https://pavjsexxbueuzhzgemgy.supabase.co
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: pnpm monitor:stage work/monitoring/monitor-check.json
 
       - name: Summarize survey
+        if: always()
         shell: pwsh
         run: |
+          if (-not (Test-Path -LiteralPath work/monitoring/monitor-check.json)) {
+            Add-Content $env:GITHUB_STEP_SUMMARY "## Daily MagicCon surveyor"
+            Add-Content $env:GITHUB_STEP_SUMMARY ""
+            Add-Content $env:GITHUB_STEP_SUMMARY "- Report unavailable: monitoring did not produce an artifact."
+            exit 0
+          }
           $report = Get-Content work/monitoring/monitor-check.json -Raw | ConvertFrom-Json
           Add-Content $env:GITHUB_STEP_SUMMARY "## Daily MagicCon surveyor"
           Add-Content $env:GITHUB_STEP_SUMMARY ""

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { planTicketedPlayAvailabilityEmail } from './ticketed_play_email_alert.mjs'
+import { planTicketedPlayAvailabilityEmail, planTicketedPlayAvailabilityEmails } from './ticketed_play_email_alert.mjs'
 
 const watch = { sourceEventKey: '944127', title: 'Magic: The Menu - Brunch - with Numot the Nummy', registrationUrl: 'https://example.test/register', emailAlert: true }
 const report = (availability: string, sourceEventKey = '944127') => ({
@@ -32,5 +32,23 @@ describe('watched Ticketed Play availability email', () => {
     expect(planTicketedPlayAvailabilityEmail(report('unknown'), closure)).toBeNull()
     expect(planTicketedPlayAvailabilityEmail(report('available', 'other'), closure)).toBeNull()
     expect(planTicketedPlayAvailabilityEmail(report('available'), { catches: [] })).toBeNull()
+  })
+
+  it('plans every simultaneous watched reopening instead of silently dropping later alerts', () => {
+    const second = { ...watch, sourceEventKey: '944128', title: 'Second watched event' }
+    const multi = {
+      checkedAt: '2026-08-26T20:00:00Z',
+      changes: [{
+        intakeKind: 'ticketed_play_inventory', availabilityWatches: [watch, second],
+        transitions: [
+          { sourceEventKey: watch.sourceEventKey, availability: 'available', event: {} },
+          { sourceEventKey: second.sourceEventKey, availability: 'waitlist', event: {} },
+        ],
+      }],
+    }
+    expect(planTicketedPlayAvailabilityEmails(multi, closure).map(item => item.subject)).toEqual([
+      expect.stringContaining('available again'),
+      expect.stringContaining('accepting a waitlist'),
+    ])
   })
 })

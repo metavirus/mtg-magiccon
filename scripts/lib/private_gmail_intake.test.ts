@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { planPrivateGmailIntake, summarizePrivateIntake } from './private_gmail_intake.mjs'
+import { buildManualReceiptPublicationResult, planPrivateGmailIntake, summarizePrivateIntake } from './private_gmail_intake.mjs'
 
 const source = {
   system: 'gmail', messageId: 'gmail-123', threadId: 'thread-1', receivedAt: '2026-08-25T18:00:00Z',
@@ -9,6 +9,89 @@ const source = {
 }
 
 describe('private Gmail intake', () => {
+  it('does not manufacture verified confidence when a normalized receipt omits it', () => {
+    const planned = planPrivateGmailIntake({
+      kind: 'receipt',
+      mailboxOwnerPersonKey: 'kavi',
+      source,
+      receipt: { receiptType: 'other', title: 'Order', vendor: 'Vendor', receiptDate: source.receivedAt, amount: 1, currency: 'USD', attendeePersonKey: 'kavi', lineItems: [] },
+    })
+    expect(planned).toMatchObject({ status: 'covered', operation: { receipt: { confidence: 'needs_review' } } })
+  })
+
+  it('keeps the tracked workflow manual, receipt-only, and incomplete until product verification', () => {
+    const workflow = readFileSync(join(process.cwd(), '.github/workflows/private-gmail-intake.yml'), 'utf8')
+    const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
+    const monitoringContract = readFileSync(join(process.cwd(), 'docs/MONITORING_HYDRATION_CONTRACT.md'), 'utf8')
+    const monitoringDesign = readFileSync(join(process.cwd(), 'docs/MVP_MONITORING_AGENT_DESIGN.md'), 'utf8')
+    expect(workflow).toContain('name: Manual receipt payload publisher (recovery)')
+    expect(workflow).toContain('workflow_dispatch:')
+    expect(workflow).not.toMatch(/\n\s*(schedule|push|pull_request):/)
+    expect(workflow).toContain("throw 'Manual receipt publisher refuses non-receipt payloads.'")
+    expect(workflow).toContain('pnpm --silent receipts:publish-normalized-payload')
+    expect(workflow).toContain("$result.status -ne 'payload_published'")
+    expect(workflow).toContain("$result.completion.status -ne 'verification_required'")
+    expect(workflow).toContain('It does not certify that the receipt has a showable original')
+    expect(packageJson).toContain('"receipts:publish-normalized-payload"')
+    expect(monitoringContract).toContain('It is not a heartbeat, monitor, mailbox watcher, or automatic ingestion job.')
+    expect(monitoringDesign).toContain('Do not dispatch the manual receipt publisher from the daily run.')
+    expect(monitoringDesign).not.toContain('Treat only `applied` as closure')
+  })
+
+  it('reports manual receipt payload publication without claiming ingestion completion', () => {
+    const result = buildManualReceiptPublicationResult({
+      sourceMessageId: 'gmail-123', receiptId: 'receipt-1', artifactIds: ['artifact-1'],
+      attendeeCount: 2, purchaseLockCount: 3, publishedCompanionCodeCount: 1,
+    })
+    expect(result).toMatchObject({
+      status: 'payload_published',
+      kind: 'receipt',
+      lane: 'manual_normalized_receipt_payload_recovery',
+      completion: {
+        status: 'verification_required',
+        reason: 'database_and_storage_readback_does_not_certify_receipt_ingestion_complete',
+      },
+      presentation: {
+        status: 'not_certified',
+        reason: 'proof_bundle_readability_and_operational_qr_validation_not_declared',
+      },
+    })
+    expect(result.completion.requiredChecks).toEqual([
+      'proof_bundle_readability_and_operational_qr',
+      'authenticated_shared_download',
+      'wallet_info_and_original_rendering',
+    ])
+    expect(JSON.stringify(result)).not.toContain('"status":"complete"')
+    expect(JSON.stringify(result)).not.toContain('"status":"applied"')
+  })
+
+  it('accepts only a complete declared presentation validation and still requires product checks', () => {
+    const validation = {
+      status: 'passed', validatedAt: '2026-08-31T22:00:00Z', validatedBy: 'manual visual audit',
+      bundleComplete: true, readabilityPassed: true, operationalQrStatus: 'passed',
+    }
+    const planned = planPrivateGmailIntake({
+      kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source,
+      receipt: { receiptType: 'other', title: 'Order', vendor: 'Vendor', receiptDate: source.receivedAt, amount: 1, currency: 'USD', attendeePersonKey: 'kavi', lineItems: [], proofBundleValidation: validation },
+    })
+    expect(planned).toMatchObject({ status: 'covered', operation: { proofBundleValidation: validation } })
+    if (planned.status !== 'covered') return
+    const result = buildManualReceiptPublicationResult({
+      sourceMessageId: planned.sourceMessageId, receiptId: 'receipt-1', artifactIds: ['artifact-1'],
+      attendeeCount: 1, purchaseLockCount: 0, publishedCompanionCodeCount: 0,
+      proofBundleValidation: planned.operation.proofBundleValidation,
+    })
+    expect(result.presentation).toEqual({ status: 'declared_validated', validation })
+    expect(result.completion).toMatchObject({ status: 'verification_required' })
+    expect(result.completion.requiredChecks).toEqual(['authenticated_shared_download', 'wallet_info_and_original_rendering'])
+
+    const invalid = planPrivateGmailIntake({
+      kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source,
+      receipt: { receiptType: 'other', title: 'Order', vendor: 'Vendor', receiptDate: source.receivedAt, amount: 1, currency: 'USD', attendeePersonKey: 'kavi', lineItems: [], proofBundleValidation: { ...validation, readabilityPassed: false } },
+    })
+    expect(invalid).toMatchObject({ status: 'not_covered', reason: 'proof_bundle_validation_invalid' })
+  })
+
   it('keeps receipt writes on the server-secret Storage lane with no direct SQL fallback', () => {
     const executor = readFileSync(join(process.cwd(), 'scripts/process_private_gmail_intake.mjs'), 'utf8')
     expect(executor).toContain('SUPABASE_SECRET_KEY')

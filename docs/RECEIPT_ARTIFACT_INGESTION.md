@@ -13,6 +13,10 @@ After ingestion, normal interface work reads the ingested artifact and facts. Gm
 
 The canonical upload transport is the JWT-protected `receipt-proof-ingest` Edge Function. It accepts one self-contained proof from the signed-in Kavi operator, validates receipt binding, type, size, and SHA-256, uploads immutably, inserts one manifest row, and downloads the stored object for checksum readback. Agent ingestion must call this authenticated lane directly; it must never drive a visible desktop file chooser.
 
+The tracked GitHub Actions workflow is not Gmail automation and is not the normal proof-upload transport. `Manual receipt payload publisher (recovery)` is a deliberately dispatched recovery lane for one already-reviewed, normalized, encrypted receipt payload. It does not discover Gmail messages, parse a mailbox, or run on a schedule. Its archival HTML write and database readbacks prove only that the supplied payload was published. Its result must remain `payload_published` with `completion.status: verification_required`; neither a green workflow nor successful database writes certify that receipt ingestion is complete.
+
+Presentation is separately fail-closed. Without a declared passing proof-bundle review, the result must report `presentation.status: not_certified`. A passing declaration requires a review timestamp and reviewer plus explicit confirmation that the bundle is complete, the receipt is readable, and every operational QR either passed validation or is not applicable. Only that exact declaration may produce `presentation.status: declared_validated`, and even then shared authenticated download and Wallet rendering remain outstanding completion checks. Historical receipt assets must not be assumed readable or operational merely because they exist in Storage.
+
 ## Minimum artifact bundle
 
 Each ingested receipt should have:
@@ -73,6 +77,7 @@ Before marking a receipt as ingested:
 - Every active signed-in companion can download shared receipt proof; anonymous visitors cannot list or download it.
 - No normal authenticated client can insert, update, delete, or overwrite manifest rows or Storage objects.
 - The app uses authenticated `download()`/blob URLs, its authenticated device pack includes every authorized artifact role, and the public build contains no receipt proof filename or public PWA precache entry.
+- A manual normalized-payload publication has been followed by the required showable-original, authenticated shared-download, and Wallet Info/Original rendering checks. The publisher's archival HTML artifact and database readbacks alone do not satisfy this checklist.
 
 ## Legacy migration state
 
@@ -81,3 +86,5 @@ The 2026-08-28 migration is complete in canonical project `pavjsexxbueuzhzgemgy`
 The tracked public proof files and their PWA precache entries are removed from the current app. They previously existed in public Git history, so this migration prevents current serving and future bundle exposure but does not retroactively make those historical bytes secret. Rewriting repository history or rotating event credentials is a separate, explicitly authorized security operation.
 
 Keep `pnpm artifacts:migrate-private -- <ignored-manifest-path>` and `pnpm artifacts:migrate-legacy-html` only as guarded recovery tools until a later reviewed migration drops the legacy column. Every use still requires a dry run, canonical server credentials, immutable upload, downloaded checksum readback, and owner/attendee visibility proof.
+
+Keep `pnpm receipts:publish-normalized-payload -- <ignored-payload-path>` only as the manual normalized-payload recovery publisher used by the tracked workflow. The legacy `pnpm intake:private-gmail` command remains an alias for operator compatibility, not a claim that the repository reads Gmail or completes receipt ingestion automatically. A publisher result is intentionally incomplete until the three verification checks named above pass.

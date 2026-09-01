@@ -28,4 +28,4 @@ await Promise.all([
   fs.writeFile(statePath, `${JSON.stringify(accepted.state, null, 2)}\n`, 'utf8'),
   ...(ticketed.accepted ? [fs.writeFile(ticketedStatePath, `${JSON.stringify(ticketed.state, null, 2)}\n`, 'utf8')] : []),
 ])
-console.log(`Monitoring baseline acceptance: PASS (${accepted.acceptedSourceIds.length} reviewed public source${accepted.acceptedSourceIds.length === 1 ? '' : 's'} advanced${accepted.acceptedSourceIds.length ? `: ${accepted.acceptedSourceIds.join(', ')}` : ''}; Ticketed Play ${ticketed.accepted ? 'advanced' : 'unchanged'})`)
+console.log(`Monitoring baseline acceptance: PASS (${accepted.acceptedSourceIds.length} closure-verified public source${accepted.acceptedSourceIds.length === 1 ? '' : 's'} advanced${accepted.acceptedSourceIds.length ? `: ${accepted.acceptedSourceIds.join(', ')}` : ''}; Ticketed Play ${ticketed.accepted ? 'advanced' : 'unchanged'})`)
