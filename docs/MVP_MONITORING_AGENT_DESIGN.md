@@ -153,6 +153,8 @@ Send to Home when the owner would plausibly be glad they did not have to manuall
 - event marked Interested/Tentative/Committed/Purchased changes or sells out;
 - flight/hotel change affects arrival, departure, check-in, or event timing.
 
+An official announcement found only in Gmail may still become a public normal-priority Home card when it is useful and non-private. Project only the public announcement facts: never publish the raw message, recipient address, Gmail identifiers, personalized tracking links, receipt/travel/account details, or other private metadata. The heartbeat must run the ship checks, publish the bounded card change, and verify the deployed readback before reporting that Home routing succeeded; otherwise it must report the exact uncovered step.
+
 ### Activity-only
 
 Keep in Activity when:
