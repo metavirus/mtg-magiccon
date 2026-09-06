@@ -150,6 +150,10 @@ Readiness rule: capabilities are task-specific. Check a capability only when the
 - Public GitHub Pages publication is now restricted to `main` only. Feature-branch pushes must not publish the shared public site.
 - If a stale doc mentions `gh-pages`, update the doc instead of following it.
 
+## Passing Vitest does not type-check a new regression
+
+Vitest transpiles TypeScript tests without proving their types. A narrowed callback annotation in `firstPartyNewsletterIntake.test.ts` passed tests but failed `tsc` in CI. Prefer inferred callback types for typed helper results. After the final test edit, run `pnpm check:ship` for monitoring publication; an earlier build plus later targeted tests is not the final gate. No edits may be slipped into the staged checkpoint after that passing gate without rerunning the affected build/test checks.
+
 ## Vite config-loader failures
 
 **Symptom:** esbuild cannot resolve `vite.config.ts`, or tries to read broad parent directories.

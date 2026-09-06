@@ -162,7 +162,7 @@ describe('bounded first-party newsletter intake', () => {
     expect(result.inspectedNonAtlanta).toEqual([])
     expect(result.observations[0].semanticSummary).toContain('MagicCon: Atlanta')
     const rows = buildMonitoringCandidateRows({ checkedAt: '2026-09-06T10:00:00Z', changes: result.observations })
-    expect(rows.every((row: { destination: string }) => row.destination !== 'Home')).toBe(true)
+    expect(rows.every(row => row.destination !== 'Home')).toBe(true)
   })
 
   it('uses explicit initialization without rejecting articles before inspecting their body', () => {
