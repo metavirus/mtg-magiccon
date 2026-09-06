@@ -2,5 +2,11 @@
   "2165619d4d4a52f9ee0fd2aeef737a309b24fbb9b7869a3e10052a609635d948": {
     "disposition": "noise",
     "reason": "Reviewed the July 8 Amsterdam Know Before You Go article. Its operational details and guest paragraph concern the past Amsterdam event. The sole Atlanta passage is an already-known generic badge-sales promotion at the end, not new Atlanta news. Withdraw the incorrectly routed Amsterdam card."
+  },
+  "d9797c869eca8ab769a2d72e520047c97fd90c7bd02b89341c50d8be4b52b314": {
+    "disposition": "home",
+    "title": "Atlanta play guide: free play and MBC drafts",
+    "summary": "The official August 25 guide covers free Commander and free-play areas, drop-in On-Demand Events, and Mystery Booster Commander Edition On-Demand Drafts alongside scheduled events. Useful options between your booked events; this is an existing guide, not a new schedule announcement.",
+    "reason": "Reviewed the complete retained Atlanta article. Amsterdam is mentioned only as the earlier announcement location for Mystery Booster Commander Edition; the guide itself concerns Atlanta. Preserve the publication date and describe the useful unscheduled-play options rather than implying newly announced events."
   }
 }
