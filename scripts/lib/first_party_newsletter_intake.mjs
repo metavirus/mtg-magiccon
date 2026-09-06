@@ -1,8 +1,6 @@
 import { createHash } from 'node:crypto'
 
 export const DEFAULT_NEWSLETTER_LIMITS = Object.freeze({
-  maxLinks: 12,
-  maxPages: 4,
   maxBytes: 192 * 1024,
   timeoutMs: 8_000,
   maxTextChars: 48_000,
@@ -76,8 +74,7 @@ export function discoverNewsletterCoverage(pages, policy, _limits = DEFAULT_NEWS
       if (!found.has(url)) found.set(url, { url, label: label || 'Official MagicCon article', discoveredFrom: page.id })
     }
   }
-  // Discovery reads already-fetched HTML. Cap network work after prioritization,
-  // otherwise the source's first links permanently hide every later article.
+  // Inspect the entire approved index; page order must never hide an article.
   return { links: [...found.values()], unfetched: [] }
 }
 
@@ -126,13 +123,12 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
   const failures = []
   const nextSeen = { ...seen }
   const nextLastFetchedAt = { ...lastFetchedAt }
-  const pageBudget = Math.min(limits.maxLinks ?? DEFAULT_NEWSLETTER_LIMITS.maxLinks, limits.maxPages)
-  const unfetched = links.slice(pageBudget).map(link => ({ ...link, reason: 'article-page-budget' }))
+  const unfetched = []
   const inspectedNonAtlanta = []
   let uncertainCount = 0
   let attemptedCount = 0
   let fetchedCount = 0
-  for (const link of links.slice(0, pageBudget)) {
+  for (const link of links) {
     const safeUrl = canonicalNewsletterUrl(link.url, link.url, policy)
     if (!safeUrl) {
       failures.push({ url: link.url, label: link.label, error: 'URL rejected by newsletter policy' })

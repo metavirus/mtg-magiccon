@@ -2,6 +2,8 @@
 
 Updated: 2026-09-06
 
+Article coverage correction: inspect every discovered article from the approved index in the same run. There is no article-count or link-count cutoff. Retain the official-host/path allowlist, per-response byte limit, and request timeout; a failed fetch remains explicit partial coverage and holds acceptance under the failure policy. Older references below to deferred batches/rotation describe the superseded implementation, not permission to stop early. Regression coverage must include more than twelve articles completing in one run, even when legacy count settings are supplied.
+
 Useful official convention news belongs on Home even when it is not urgent. Recognized changes to guests, creators, programs, maps, catalogs, pickup, accessibility, or similar planning interests receive a normal announcement card. New links prove that a resource was linked, not that a catalog contains inventory. Source excerpts and links stay attached. Home announcements expire after seven days from first detection; routine sellouts expire after 24 quiet hours. Rechecking never renews their age.
 
 An unrecognized change is `pending_editorial`, never automatically noise. Its finding remains internal to the agent and its closure manifest names the exact fingerprint. Staging holds the baseline and uploads that manifest. The heartbeat must inspect the report and source, make the editorial judgment, and finish the work without asking Kavi to classify it.

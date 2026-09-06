@@ -22,8 +22,6 @@
     "discoverySourceIds": ["global-magiccon-news"],
     "pathPrefixes": ["/global/en-us/magiccon-news/"],
     "linkPattern": "newsletter|magiccon[ -]news|news|article",
-    "maxLinks": 12,
-    "maxPages": 4,
     "maxBytes": 196608,
     "timeoutMs": 8000,
     "maxTextChars": 48000

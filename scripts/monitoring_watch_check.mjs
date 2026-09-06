@@ -367,8 +367,6 @@ if (watchSet.newsletterIntake) {
     linkPattern: new RegExp(config.linkPattern, 'i'),
   };
   const limits = {
-    maxLinks: config.maxLinks,
-    maxPages: config.maxPages,
     maxBytes: config.maxBytes,
     timeoutMs: config.timeoutMs,
     maxTextChars: config.maxTextChars,

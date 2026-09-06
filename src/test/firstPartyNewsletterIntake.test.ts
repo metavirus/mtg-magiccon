@@ -88,23 +88,23 @@ describe('bounded first-party newsletter intake', () => {
     expect(monitorSource).toContain('missingDiscoverySourceIds.length === 0')
   })
 
-  it('reports budget omissions without advancing unseen fingerprints and rotates tracked pages', async () => {
+  it('checks every tracked article in one run even with legacy count limits', async () => {
     const links = Array.from({ length: 6 }, (_, index) => ({ url: `https://www.mtgfestivals.com/global/en-us/magiccon-news/atlanta-${index}.html`, label: `Atlanta ${index}` }))
     const seen = Object.fromEntries(links.map(link => [link.url, 'old']))
     const fetchImpl = async () => new Response('<main>Unchanged</main>', { headers: { 'content-type': 'text/html' } })
     const first = await fetchNewsletterPages({ links, seen, policy, limits, fetchImpl, observedAt: '2026-09-06T10:00:00Z' })
-    expect(first).toMatchObject({ coverageStatus: 'partial', fetchedCount: 4, attemptedCount: 4 })
-    expect(first.unfetched.map((link: { url: string }) => link.url)).toEqual(links.slice(4).map(link => link.url))
-    expect(first.seen[links[4].url]).toBe('old')
-    expect(first.lastFetchedAt[links[4].url]).toBeUndefined()
+    expect(first).toMatchObject({ coverageStatus: 'complete', fetchedCount: 6, attemptedCount: 6 })
+    expect(first.unfetched).toEqual([])
+    expect(first.seen[links[4].url]).not.toBe('old')
+    expect(first.lastFetchedAt[links[4].url]).toBe('2026-09-06T10:00:00Z')
     const next = planNewsletterFetch({ links, initialized: true, discoveredUrls: links.map(link => link.url), seen: first.seen, lastFetchedAt: first.lastFetchedAt })
-    expect(next.linksToFetch.slice(0, 2)).toEqual(links.slice(4))
+    expect(next.linksToFetch).toHaveLength(6)
     const newLink = { ...links[0], url: links[0].url.replace('atlanta-0', 'atlanta-new') }
     const prioritized = planNewsletterFetch({ links: [...links, newLink], initialized: true, discoveredUrls: links.map(link => link.url), seen: first.seen, lastFetchedAt: first.lastFetchedAt })
     expect(prioritized.linksToFetch[0]).toEqual(newLink)
   })
 
-  it('discovers beyond twelve links and rotates bounded fetches through every candidate', async () => {
+  it('discovers and fetches beyond twelve links in a single run', async () => {
     const html = Array.from({ length: 14 }, (_, index) => `<a href="/global/en-us/magiccon-news/update-${index}.html">Monthly news ${index}</a>`).join('')
     const result = discoverNewsletterCoverage([{ id: 'global-magiccon-news', url: 'https://www.mtgfestivals.com/', html }], policy, limits)
     expect(result.links).toHaveLength(14)
@@ -112,12 +112,12 @@ describe('bounded first-party newsletter intake', () => {
     let lastFetchedAt = {}
     const visited = new Set<string>()
     const fetchImpl = async (url: string) => { visited.add(url); return new Response('<main>Monthly announcement.</main>', { headers: { 'content-type': 'text/html' } }) }
-    for (let day = 1; day <= 4; day += 1) {
+    for (let day = 1; day <= 1; day += 1) {
       const plan = planNewsletterFetch({ links: result.links, initialized: true, discoveredUrls: result.links.map((link: { url: string }) => link.url), seen, lastFetchedAt })
       const fetched = await fetchNewsletterPages({ links: plan.linksToFetch, seen, lastFetchedAt, policy, limits, fetchImpl, observedAt: `2026-09-0${day}T10:00:00Z` })
-      expect(fetched.fetchedCount).toBe(4)
-      expect(fetched.coverageStatus).toBe('partial')
-      expect(fetched.unfetched).toHaveLength(10)
+      expect(fetched.fetchedCount).toBe(14)
+      expect(fetched.coverageStatus).toBe('complete')
+      expect(fetched.unfetched).toHaveLength(0)
       seen = fetched.seen
       lastFetchedAt = fetched.lastFetchedAt
     }
@@ -127,7 +127,7 @@ describe('bounded first-party newsletter intake', () => {
   })
 
   it('fetches body-only Atlanta news, excludes shared navigation, and retains uncertain generic news', async () => {
-    const links = ['september', 'october', 'november', 'december'].map(month => ({ url: `https://www.mtgfestivals.com/global/en-us/magiccon-news/${month}.html`, label: `${month} newsletter` }))
+    const links = ['september', 'october', 'november'].map(month => ({ url: `https://www.mtgfestivals.com/global/en-us/magiccon-news/${month}.html`, label: `${month} newsletter` }))
     const bodies = [
       '<nav>MagicCon Amsterdam</nav><main>MagicCon Atlanta adds a welcome party.</main>',
       '<main>MagicCon Amsterdam announces show hours.</main><footer>MagicCon Atlanta</footer>',
@@ -139,9 +139,8 @@ describe('bounded first-party newsletter intake', () => {
     expect(result.observations[1].semanticSummary).not.toContain('Atlanta')
     expect(result.inspectedNonAtlanta).toEqual([links[1]])
     expect(result.seen[links[1].url]).toBeTruthy()
-    expect(result).toMatchObject({ uncertainCount: 1, coverageStatus: 'partial' })
-    expect(result.unfetched).toEqual([{ ...links[3], reason: 'article-page-budget' }])
-    expect(result.seen[links[3].url]).toBeUndefined()
+    expect(result).toMatchObject({ uncertainCount: 1, coverageStatus: 'complete' })
+    expect(result.unfetched).toEqual([])
   })
 
   it('keeps Amsterdam articles with trailing Atlanta promotion and generic mixed-city articles uncertain', async () => {
