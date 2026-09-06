@@ -32,10 +32,14 @@ export function newsletterArticleText(html, maxChars = DEFAULT_NEWSLETTER_LIMITS
 }
 
 function newsletterRelevance(link, text) {
-  if (isAtlantaNewsletterLink(link) || /\batlanta\b/i.test(text)) return 'atlanta'
+  const mentionsAtlanta = isAtlantaNewsletterLink(link) || /\batlanta\b/i.test(text)
+  const otherLocation = /\b(amsterdam|las[ -]vegas|chicago|philadelphia|barcelona)\b/i
+  // A cross-promotion does not make the host article's guests/program Atlanta
+  // facts. Keep mixed-location content for review, including Atlanta subsections.
+  if (mentionsAtlanta && otherLocation.test(`${link.label ?? ''} ${link.url} ${text}`)) return 'uncertain'
+  if (mentionsAtlanta) return 'atlanta'
   // Only a named other location is grounds to suppress an inspected article.
   // Generic announcements remain candidates for editorial judgment.
-  const otherLocation = /\b(amsterdam|las[ -]vegas|chicago|philadelphia|barcelona)\b/i
   if (otherLocation.test(`${link.label ?? ''} ${link.url}`) || /\bMagicCon\s*[:-]?\s*(Amsterdam|Las Vegas|Chicago|Philadelphia|Barcelona)\b/i.test(text)) return 'other-location'
   return 'uncertain'
 }

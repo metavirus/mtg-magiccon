@@ -144,6 +144,27 @@ describe('bounded first-party newsletter intake', () => {
     expect(result.seen[links[3].url]).toBeUndefined()
   })
 
+  it('keeps Amsterdam articles with trailing Atlanta promotion and generic mixed-city articles uncertain', async () => {
+    const links = [
+      { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/know-before-you-go-amsterdam.html', label: 'Know Before You Go: MagicCon Amsterdam' },
+      { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/july-newsletter.html', label: 'July newsletter' },
+      { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/august-newsletter.html', label: 'August newsletter' },
+    ]
+    const bodies = [
+      '<article><h1>Know Before You Go: MagicCon Amsterdam</h1><p>Welcome newly announced guests to MagicCon Amsterdam.</p><p>Join us this November for MagicCon: Atlanta! Badges are now on sale.</p></article>',
+      '<article><p>Amsterdam welcomes newly announced guests.</p><p>Atlanta badges are now on sale.</p></article>',
+      '<article><p>MagicCon Amsterdam welcomes newly announced guests.</p><p>Join us at MagicCon Atlanta.</p></article>',
+    ]
+    const fetchImpl = async (url: string) => new Response(bodies[links.findIndex(link => link.url === url)], { headers: { 'content-type': 'text/html' } })
+    const result = await fetchNewsletterPages({ links, policy, limits, fetchImpl, observedAt: '2026-09-06T10:00:00Z' })
+    expect(result.observations).toHaveLength(3)
+    expect(result.observations.every((item: { geographicRelevance: string }) => item.geographicRelevance === 'uncertain')).toBe(true)
+    expect(result.inspectedNonAtlanta).toEqual([])
+    expect(result.observations[0].semanticSummary).toContain('MagicCon: Atlanta')
+    const rows = buildMonitoringCandidateRows({ checkedAt: '2026-09-06T10:00:00Z', changes: result.observations })
+    expect(rows.every((row: { destination: string }) => row.destination !== 'Home')).toBe(true)
+  })
+
   it('uses explicit initialization without rejecting articles before inspecting their body', () => {
     const atlanta = { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/2026/know-before-you-go-atlanta.html', label: 'Know Before You Go: Atlanta' }
     const amsterdam = { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/2026/know-before-you-go-amsterdam.html', label: 'Show hours and Atlanta preview mentioned in body only' }
