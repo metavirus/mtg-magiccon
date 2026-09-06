@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { findingIsRoutineSellout, selloutNoticeIsCurrent } from '../lib/monitoringFindings'
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingMayBypassConceptReadModel, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringFindingRow } from '../lib/monitoringFindings'
 
 const finding = (overrides: Partial<MonitoringFindingRow> = {}): MonitoringFindingRow => ({
@@ -6,6 +7,15 @@ const finding = (overrides: Partial<MonitoringFindingRow> = {}): MonitoringFindi
 })
 
 describe('monitoring finding decisions', () => {
+  it('expires sellouts exactly at 24 hours despite repeated observations', () => {
+    const start = Date.parse('2026-09-06T12:00:00Z')
+    const row = finding({ first_seen_at: new Date(start).toISOString(), last_seen_at: new Date(start + 86_400_000).toISOString(), evidence: { intake_kind: 'ticketed_play_inventory', transition: 'sold_out', monitorCheckedAt: new Date(start + 86_400_000).toISOString() } })
+    expect(findingIsRoutineSellout(row)).toBe(true)
+    expect(selloutNoticeIsCurrent(row, start + 86_400_000 - 1)).toBe(true)
+    expect(selloutNoticeIsCurrent(row, start + 86_400_000)).toBe(false)
+    expect(selloutNoticeIsCurrent({ ...row, first_seen_at: new Date(start + 86_400_000).toISOString(), evidence: { ...row.evidence, monitorCheckedAt: new Date(start).toISOString() } }, start + 86_400_000)).toBe(false)
+    expect(findingIsRoutineSellout({ evidence: { intake_kind: 'ticketed_play_inventory', transition: 'available' } })).toBe(false)
+  })
   it('renders a canonical concept once and leaves missing keys fail-safe', () => {
     const canonical = [{ id: 'concept', conceptKey: 'ticketed-play-sale' }]
     const legacy = [

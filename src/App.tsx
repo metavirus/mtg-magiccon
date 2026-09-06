@@ -27,6 +27,7 @@ import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, 
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
+import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent } from './lib/monitoringFindings'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
@@ -643,6 +644,7 @@ function monitoringFindingQaRows(): MonitoringFindingRow[] {
       { day: '2026-11-15', startsAt: '12:00', title: 'Team Trios – Full-Box Sealed' },
     ] }, status: 'unread', decision: null, first_seen_at: new Date().toISOString(), last_seen_at: new Date().toISOString(), occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null,
     }
+    if (qa.includes('soldout-expired')) return [{ ...primary, first_seen_at: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() }]
     if (!qa.includes('soldout-multi')) return [primary]
     const firstEvent = (primary.evidence.events as Array<Record<string, unknown>>)[0]
     return [
@@ -1720,6 +1722,7 @@ export default function App() {
     const resources = findingOfficialResources(finding)
     const informational = findingIsInformational(finding)
     const ticketedInventory = finding.evidence.intake_kind === 'ticketed_play_inventory'
+    const routineSellout = findingIsRoutineSellout(finding)
     const ticketedInbox = ticketedInventory && finding.destination === 'Inbox'
     const interestingAnnouncement = finding.evidence.home_signal_kind === 'interesting_announcement'
     const ticketedEvents = ticketedInventory && Array.isArray(finding.evidence.events)
@@ -1740,7 +1743,7 @@ export default function App() {
     id: `finding-${finding.id}`,
     sourceKind: 'monitor',
     kind: 'site',
-    severity: ticketedInbox || (ticketedInventory && homeSignalIsHotNow(finding.last_seen_at)) ? 'hot' : ticketedInventory || interestingAnnouncement ? 'notice' : findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
+    severity: routineSellout ? 'quiet' : ticketedInbox || (ticketedInventory && homeSignalIsHotNow(finding.last_seen_at)) ? 'hot' : ticketedInventory || interestingAnnouncement ? 'notice' : findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
     destination: finding.destination,
     attention: ticketedInbox ? 'Selected event sold out' : ticketedInventory ? 'Ticketed Play availability' : interestingAnnouncement ? 'Worth knowing' : informational ? 'New official resources' : 'Kavi decision needed',
     title: finding.title,
@@ -1748,7 +1751,7 @@ export default function App() {
     object: finding.source_label,
     source: finding.source_label,
     checkedAt: new Date(finding.last_seen_at).toLocaleString(),
-    checkedAtIso: finding.last_seen_at,
+    checkedAtIso: routineSellout ? selloutChangedAt(finding) : finding.last_seen_at,
     status: findingReviewLabel(finding),
     rationale: ticketedInventory ? 'The official registration inventory changed. Personal and shared selections were used only to route this alert; no selection was changed.' : informational ? 'These first-party links make the new play information directly useful without changing any canonical event or plan.' : 'The surveyor retained source evidence for a bounded canonical decision.',
     nextAction: ticketedInbox ? 'Review the affected selected event, then dismiss this alert when it is handled.' : ticketedInventory ? 'Review the grouped sold-out events.' : informational ? 'Open the relevant official resource, then mark this read or archive it.' : findingExecutionDetail(finding),
@@ -1896,7 +1899,7 @@ export default function App() {
   }
   const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems, Date.now(), currentCompanion?.name ?? 'Kavi') : []
   const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
-  const saleInboxSignal = activityItems.find(item => item.monitoringFinding?.destination === 'Inbox')
+  const saleInboxSignal = activityItems.find(item => item.monitoringFinding?.destination === 'Inbox' && !findingIsRoutineSellout(item.monitoringFinding))
     ?? activityItems.find(item => isFeaturedTicketedPlaySale(item, Date.now()))
   const shiverSignal = saleInboxSignal?.reviewState === 'needs-review' ? saleInboxSignal : undefined
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
@@ -3113,6 +3116,7 @@ function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentP
     .filter(item => item.reviewState === 'needs-review')
     .filter(item => {
       if (item.monitoringFinding?.destination === 'Inbox') return false
+      if (item.monitoringFinding && findingIsRoutineSellout(item.monitoringFinding)) return selloutNoticeIsCurrent(item.monitoringFinding, now)
       if (item.sourceKind === 'activity-log' && item.objectDetail.id === 'wallet-prize-tix') return false
       if (item.severity !== 'hot' && item.destination !== 'Home' && item.sourceKind !== 'note') return false
       const checkedAt = new Date(item.checkedAtIso).getTime()
@@ -6746,7 +6750,7 @@ function groupHomeSoldOutSignals(items: ActivityItem[]) {
       id: `home-ticketed-play-sold-out-${day}`,
       title,
       summary,
-      severity: soldOutSignals.some(item => item.severity === 'hot') ? 'hot' as const : 'notice' as const,
+      severity: 'quiet' as const,
       reviewState: soldOutSignals.some(item => item.reviewState === 'needs-review') ? 'needs-review' as const : latest.reviewState,
       objectDetail: {
         ...latest.objectDetail,
@@ -6778,12 +6782,21 @@ function formatTicketedDay(day: string, includeDate: boolean) {
 
 function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenItem, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; currentPerson: PersonName; onOpenPlan: () => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
+  const [, refreshClock] = useState(0)
   const now = Date.now()
+  useEffect(() => {
+    const refresh = () => refreshClock(value => value + 1)
+    const timer = window.setInterval(refresh, 30_000)
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh) }
+  }, [])
   const homeSignals = groupHomeSoldOutSignals(homeWorthKnowingItems(activityItems, now, currentPerson))
   const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
   const ticketedPlaySaleIsOpen = activityItems.some(isTicketedPlaySaleOpen)
   const ordinarySignals = homeSignals.filter(item => item.id !== featuredSale?.id)
-  const { hotNow: hotSignals, recent: recentSignals, earlier: earlierSignals } = partitionHomeSignals(ordinarySignals, now)
+  const quietSignals = ordinarySignals.filter(item => item.severity === 'quiet')
+  const { hotNow: hotSignals, recent: recentSignals, earlier: earlierSignals } = partitionHomeSignals(ordinarySignals.filter(item => item.severity !== 'quiet'), now)
   const featuredAlreadyCounted = Boolean(featuredSale && homeSignals.some(item => item.id === featuredSale.id))
   const visibleSignalCount = homeSignals.length + (featuredSale && !featuredAlreadyCounted ? 1 : 0)
   const hotCount = hotSignals.length + (featuredSale?.severity === 'hot' && !featuredAlreadyCounted ? 1 : 0)
@@ -6807,7 +6820,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
                 <span><small>ON SALE NOW</small><strong>Ticketed Play is up for sale!</strong><em>Open Ticketed Play details.</em></span>
                 <b aria-hidden="true">›</b>
               </button>)}
-          {([['Hot now', hotSignals], ['Recent', recentSignals], ['Earlier', earlierSignals]] as const).map(([label, signals]) => signals.length > 0 && <section className="home-signal-age-group" key={label} aria-label={`${label} Worth Knowing items`}>
+          {([['Hot now', hotSignals], ['Recent', recentSignals], ['Earlier', earlierSignals], ['Low priority', quietSignals]] as const).map(([label, signals]) => signals.length > 0 && <section className="home-signal-age-group" key={label} aria-label={`${label} Worth Knowing items`}>
             <h3>{label}</h3>
             {signals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
               <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>

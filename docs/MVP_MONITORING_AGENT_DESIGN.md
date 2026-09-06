@@ -150,12 +150,14 @@ Send to Home when the owner would plausibly be glad they did not have to manuall
 - official Show Store or Black Lotus Store catalog appears;
 - official map appears;
 - real Atlanta Prize Wall inventory appears during event;
-- event marked Interested/Tentative/Committed/Purchased changes or sells out;
+- event marked Interested/Tentative/Committed/Purchased changes; routine sellouts use the short-lived policy below;
 - flight/hotel change affects arrival, departure, check-in, or event timing.
 
 An official announcement found only in Gmail may still become a public normal-priority Home card when it is useful and non-private. Project only the public announcement facts: never publish the raw message, recipient address, Gmail identifiers, personalized tracking links, receipt/travel/account details, or other private metadata. The heartbeat must run the ship checks, publish the bounded card change, and verify the deployed readback before reporting that Home routing succeeded; otherwise it must report the exact uncovered step.
 
 ### Activity-only
+
+Routine sellouts (including saved or purchased events) appear only in Home's low-priority list for 24 hours from the original observation, then disappear automatically. The party has bought its events; sellouts require no acknowledgement, persistent Inbox alert, or bell. Repeat checks and grouping cannot renew the observation age. Event availability and Activity evidence remain available after the notice expires. Explicit reopening watches remain separate.
 
 Keep in Activity when:
 

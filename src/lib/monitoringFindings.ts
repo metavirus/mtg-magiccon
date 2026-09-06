@@ -1,5 +1,22 @@
 export type MonitoringFindingStatus = 'unread' | 'read' | 'archived' | 'needs_review' | 'deferred' | 'authorized' | 'staged' | 'completed' | 'dismissed'
 export type MonitoringFindingDecision = 'yes' | 'no'
+
+export function findingIsRoutineSellout(finding: Pick<MonitoringFindingRow, 'evidence'>) {
+  return finding.evidence.intake_kind === 'ticketed_play_inventory' && finding.evidence.transition === 'sold_out'
+}
+
+export function selloutChangedAt(finding: MonitoringFindingRow) {
+  // Reobserving or restaging the same notice must never renew its lifetime.
+  const times = [finding.first_seen_at, finding.evidence.monitorCheckedAt]
+    .filter((value): value is string => typeof value === 'string')
+    .map(value => Date.parse(value)).filter(Number.isFinite)
+  return times.length ? new Date(Math.min(...times)).toISOString() : ''
+}
+
+export function selloutNoticeIsCurrent(finding: MonitoringFindingRow, now = Date.now()) {
+  const changedAt = Date.parse(selloutChangedAt(finding))
+  return Number.isFinite(changedAt) && now >= changedAt && now - changedAt < 24 * 60 * 60 * 1000
+}
 export type MonitoringExecutionStatus = 'not_started' | 'queued' | 'executing' | 'completed' | 'failed' | 'blocked'
 export type MonitoringOfficialResource = { label: string; url: string }
 export type MonitoringFindingChoice = { choice_key: string; label: string; value: string }

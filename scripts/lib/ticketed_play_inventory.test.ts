@@ -94,7 +94,7 @@ describe('LEAP Ticketed Play inventory', () => {
     expect(rows[0].evidence.events).toHaveLength(10)
   })
 
-  it('adds one persistent bell Inbox alert when a companion selected an affected event', () => {
+  it('keeps selected and purchased sellouts informational without a bell', () => {
     const soldOut = normalizeLeapInventoryCards(soldOutCards.slice(0, 2), { sourceUrl })
     const chosen = soldOut[0]
     const transitions = diffTicketedPlayInventory(soldOut.map(event => ({ ...event, availability: 'available' })), soldOut)
@@ -109,10 +109,10 @@ describe('LEAP Ticketed Play inventory', () => {
         { user_id: 'chris-id', display_name: 'Chris' },
       ],
     })
-    expect(rows).toHaveLength(2)
-    expect(rows[1]).toMatchObject({ destination: 'Inbox', status: 'unread' })
-    expect(rows[1].evidence).toMatchObject({ persistent_inbox: true, bell: true })
-    expect(rows[1].summary).toContain('Chris, Kavi')
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ destination: 'Home', status: 'unread' })
+    expect(rows[0].evidence.bell).toBeUndefined()
+    expect(rows[0].evidence.events[0].people).toEqual(['Chris', 'Kavi'])
     expect(routeTicketedPlaySoldOutTransitions(diffTicketedPlayInventory(soldOut, soldOut), { selectionRows: [] })).toEqual([])
   })
 

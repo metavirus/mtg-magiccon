@@ -237,18 +237,8 @@ export function routeTicketedPlayAvailabilityTransitions(transitions, { selectio
     status: 'unread',
     evidence: { intake_kind: 'ticketed_play_inventory', transition: 'sold_out', events: material, monitorCheckedAt: checkedAt },
   })
-  const selected = material.filter(event => event.people.length)
-  if (selected.length) rows.push({
-    fingerprint: fingerprint({ kind: 'ticketed_play_selection_sold_out', events: selected.map(event => [event.sourceEventKey, event.people]).sort() }),
-    source_id: 'atlanta-ticketed-play-inventory',
-    source_label: 'MagicCon Atlanta Ticketed Play registration',
-    source_url: selected[0].sourceUrl,
-    destination: 'Inbox',
-    title: `${selected.length === 1 ? selected[0].title : `${selected.length} selected Ticketed Play events`} sold out`,
-    summary: selected.map(event => `${event.people.join(', ')} · ${event.title}`).join('; '),
-    status: 'unread',
-    evidence: { intake_kind: 'ticketed_play_inventory', transition: 'sold_out', persistent_inbox: true, bell: true, events: selected, monitorCheckedAt: checkedAt },
-  })
+  // The party has purchased its events. Routine sellouts are short-lived Home
+  // information, including selected events; they do not create a persistent bell.
   return rows
 }
 
