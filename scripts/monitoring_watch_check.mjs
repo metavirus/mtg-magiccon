@@ -5,7 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { promisify } from 'node:util';
 import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
-import { discoverNewsletterLinks, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
+import { discoverNewsletterCoverage, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
 import { diffTicketedPlayInventory, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
 import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acceptance.mjs';
 
@@ -291,7 +291,7 @@ async function fetchSource(source) {
     title: extractTitle(html),
     textHash: hashText(normalizedText),
     linkHash: hashText(linkRecords.map(compactLinkRecord).join('\n')),
-    textSample: normalizedText.slice(0, 500),
+    textSample: normalizedText.slice(0, 12000),
     linkCount: links.length,
     linkSample: linkRecords.slice(0, 40),
     links: linkRecords,
@@ -313,6 +313,7 @@ let ticketedPlay = ticketedPlayEmptyDiff;
 for (const source of watchSet.sources) {
   try {
     const current = await fetchSource(source);
+    if (!current.ok) throw new Error(`HTTP ${current.status}`);
     fetchedSourcePages.push({ id: source.id, url: source.url, html: current.rawHtml });
     delete current.rawHtml;
     const previous = state.accepted[source.id];
@@ -338,6 +339,7 @@ for (const source of watchSet.sources) {
           title: previous.title,
           textHash: previous.textHash,
           linkHash: previous.linkHash,
+          textSample: previous.textSample,
           acceptedAt: previous.acceptedAt
         },
         current: summarizeCurrent(current)
@@ -371,28 +373,51 @@ if (watchSet.newsletterIntake) {
     timeoutMs: config.timeoutMs,
     maxTextChars: config.maxTextChars,
   };
-  const links = discoverNewsletterLinks(fetchedSourcePages, policy, limits);
-  const plan = planNewsletterFetch({ links, initialized: state.newsletterIntakeInitialized === true, discoveredUrls: state.discoveredNewsletterUrls, seen: state.seenNewsletters });
-  const intake = await fetchNewsletterPages({ links: plan.linksToFetch, policy, limits, seen: state.seenNewsletters ?? {}, observedAt: checkedAt, suppressObservations: plan.initialBaseline });
+  const discovery = discoverNewsletterCoverage(fetchedSourcePages, policy, limits);
+  const links = discovery.links;
+  const missingDiscoverySourceIds = policy.discoverySourceIds.filter(id => !fetchedSourcePages.some(page => page.id === id));
+  const plan = planNewsletterFetch({ links, initialized: state.newsletterIntakeInitialized === true, discoveredUrls: state.discoveredNewsletterUrls, seen: state.seenNewsletters, lastFetchedAt: state.newsletterLastFetchedAt });
+  const intake = await fetchNewsletterPages({ links: plan.linksToFetch, policy, limits, seen: state.seenNewsletters ?? {}, lastFetchedAt: state.newsletterLastFetchedAt, observedAt: checkedAt, suppressObservations: plan.initialBaseline });
   state.seenNewsletters = intake.seen;
+  state.newsletterLastFetchedAt = intake.lastFetchedAt;
   state.discoveredNewsletterUrls = [...new Set([...(state.discoveredNewsletterUrls ?? []), ...plan.eligible.map(link => link.url)])].sort();
   const unfingerprintedBaseline = plan.initialBaseline ? plan.eligible.filter(link => !intake.seen[link.url]) : [];
-  state.newsletterIntakeInitialized = !plan.initialBaseline || unfingerprintedBaseline.length === 0;
+  state.newsletterIntakeInitialized = !plan.initialBaseline || (unfingerprintedBaseline.length === 0 && missingDiscoverySourceIds.length === 0);
   changes.push(...intake.observations);
+  failures.push(...intake.failures.map(failure => ({ ...failure, id: `newsletter:${hashText(failure.url).slice(0, 16)}` })));
+  const unfetched = [...discovery.unfetched, ...intake.unfetched];
   newsletterIntake = {
     enabled: true,
     discoveredCount: plan.eligible.length,
     fetchedCount: intake.fetchedCount,
+    attemptedCount: intake.attemptedCount,
+    coverageStatus: missingDiscoverySourceIds.length || unfetched.length || intake.failures.length ? 'partial' : 'complete',
+    missingDiscoverySourceIds,
+    unfetchedCount: unfetched.length,
+    unfetched,
     observationCount: intake.observations.length,
     rejectedNonAtlantaCount: links.length - plan.eligible.length,
     initialBaseline: plan.initialBaseline,
     baselineRemainingCount: unfingerprintedBaseline.length,
     failureCount: intake.failures.length,
-    failures: intake.failures.slice(0, 8),
+    failures: intake.failures,
   };
 }
 
 const milestoneResult = dueMonitoringMilestoneChanges(watchSet.scheduledMilestones, state.reachedMilestones, checkedAt);
+// Reviewed public synopses (including official inbox announcements) share the
+// same cloud finding and Home readback path. The cache advances only on closure.
+const editorialAnnouncements = await readJson(path.join(root, 'monitoring/editorial-announcements.json'), []);
+state.editorialAnnouncements ??= {};
+for (const item of editorialAnnouncements) {
+  if (!item.id || !item.title || !item.summary || !item.reason || !item.sourceUrl) throw new Error('Reviewed announcement requires id, title, summary, reason, and sourceUrl.');
+  const source = new URL(item.sourceUrl);
+  if (source.protocol !== 'https:' || !['www.mtgfestivals.com', 'mtgfestivals.com', 'mcatlanta.mtgfestivals.com'].includes(source.hostname) || source.search || source.username || source.password) throw new Error(`Invalid public announcement source: ${item.id}`);
+  const fingerprint = hashText(JSON.stringify(item));
+  if (state.editorialAnnouncements[item.id] === fingerprint) continue;
+  changes.push({ id: `editorial:${item.id}`, label: item.title, url: item.sourceUrl, intakeKind: 'first_party_newsletter', destination: 'Home', semanticSummary: item.summary, current: { status: 200, textHash: fingerprint, textSample: item.summary }, previous: null, linkDelta: { added: [], removed: [] }, reviewedEditorial: { disposition: 'home', title: item.title, summary: item.summary, reason: item.reason } });
+  state.editorialAnnouncements[item.id] = fingerprint;
+}
 changes.push(...milestoneResult.changes);
 state.reachedMilestones = milestoneResult.reached;
 
@@ -437,11 +462,14 @@ const output = {
   sourceCount: watchSet.sources.length,
   changeCount: changes.length,
   failureCount: failures.length,
+  coverageStatus: failures.length || newsletterIntake.coverageStatus === 'partial' ? 'partial' : 'complete',
   ticketedPlay,
   newsletterIntake,
   changes,
   failures,
-  summary: changes.length
+  summary: failures.length || newsletterIntake.coverageStatus === 'partial'
+    ? `Partial coverage: ${changes.length} confirmed change(s); ${failures.length} fetch failure(s); ${newsletterIntake.unfetchedCount ?? 0} article(s) deferred by budget; ${newsletterIntake.missingDiscoverySourceIds?.length ?? 0} discovery source(s) unavailable. Unfetched sources are not confirmed unchanged.`
+    : changes.length
     ? `${changes.length} watched source(s) changed; inspect before routing.`
     : failures.length
       ? `No confirmed changes; ${failures.length} source(s) failed to fetch.`

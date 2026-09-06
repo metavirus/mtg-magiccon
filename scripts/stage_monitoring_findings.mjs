@@ -7,6 +7,8 @@ import { monitoringConceptBaselineFromInfo, projectRegisteredFactResolution, pro
 import { ticketedPlayAvailabilityProjectionRows } from './lib/ticketed_play_availability_projection.mjs'
 import { closeTicketedPlayTransitions } from './lib/ticketed_play_transition_closure.mjs'
 import { assertSupportedSurveyorCatches, completeSurveyorClosureManifest, pendingSurveyorClosureManifest, surveyorCatchDescriptors } from './lib/surveyor_closure_contract.mjs'
+import { validateSurveyorClosureManifest } from './lib/surveyor_closure_contract.mjs'
+import { findingIsHomeWorthy, findingMayBypassConceptReadModel } from '../src/lib/monitoringFindings.ts'
 
 const reportPath = process.argv[2]
 if (!reportPath) throw new Error('Usage: pnpm monitor:stage <monitor-report.json>')
@@ -59,7 +61,7 @@ if (!changes.length) {
   console.log(`Monitoring findings: PASS (no source changes to stage; ${availabilityProjection.length} current Ticketed Play availability row(s) projected)`)
 } else {
 const hasTicketedInventory = changes.some(change => change.intakeKind === 'ticketed_play_inventory')
-let routingContext = {}
+let routingContext = { editorialDecisions: JSON.parse(await fs.readFile('monitoring/editorial-decisions.json', 'utf8')) }
 if (hasTicketedInventory) {
   const [selectionsResult, companionsResult] = await Promise.all([
     client.from('user_selections').select('owner_id,object_id,object_kind,selection_key,selection_value').eq('object_kind', 'event').in('selection_key', ['state', 'purchased', 'purchase_locked']),
@@ -67,7 +69,7 @@ if (hasTicketedInventory) {
   ])
   if (selectionsResult.error) throw selectionsResult.error
   if (companionsResult.error) throw companionsResult.error
-  routingContext = { selectionRows: selectionsResult.data ?? [], companions: companionsResult.data ?? [] }
+  routingContext = { ...routingContext, selectionRows: selectionsResult.data ?? [], companions: companionsResult.data ?? [] }
 }
 const candidateRows = buildMonitoringCandidateRows(report, routingContext)
 const fingerprints = candidateRows.map(row => row.fingerprint)
@@ -87,7 +89,7 @@ const findingResult = rows.length
   : { data: [], error: null }
 if (findingResult.error) throw findingResult.error
 
-const dispositionRank = { ignored_noise: 0, retained_evidence: 1, routed_signal: 2, canonical_update: 3 }
+const dispositionRank = { ignored_noise: 0, retained_evidence: 1, routed_signal: 2, canonical_update: 3, pending_editorial: 4 }
 const candidateOutcomes = new Map()
 function recordCandidateOutcome(fingerprint, outcome) {
   const previous = candidateOutcomes.get(fingerprint)
@@ -157,20 +159,22 @@ for (const observation of observations) {
     continue
   }
   const extractedClaims = extractedByFingerprint.get(observation.fingerprint) ?? []
-  if (!extractedClaims.length) {
+  if (!extractedClaims.length || sourceRow.evidence.editorial?.disposition === 'noise') {
+    const editorial = sourceRow.evidence.editorial
+    const pending = editorial?.disposition === 'pending'
     const retainedInformational = sourceRow.status === 'unread'
-    const targetStatus = retainedInformational ? (existingStatuses.get(observation.fingerprint) ?? 'unread') : 'archived'
+    const targetStatus = pending ? 'needs_review' : retainedInformational ? (existingStatuses.get(observation.fingerprint) ?? 'unread') : 'archived'
     const noiseWrite = await client.from('monitoring_findings').update({
       status: targetStatus,
-      evidence: { ...sourceRow.evidence, concept_resolution: 'noise', concept_keys: [], concept_rule_version: CONCEPT_RULE_VERSION, concept_rationale: 'No deterministic planning concept or material fact was extracted.' },
+      evidence: { ...sourceRow.evidence, concept_resolution: pending ? 'pending_editorial' : retainedInformational ? 'informational' : 'noise', concept_keys: [], concept_rule_version: CONCEPT_RULE_VERSION, concept_rationale: editorial?.reason ?? 'Recognized informational links retained.' },
     }).eq('id', observation.findingId).select('id,fingerprint,status,destination').single()
     if (noiseWrite.error) throw noiseWrite.error
     recordCandidateOutcome(observation.fingerprint, {
-      disposition: retainedInformational ? 'retained_evidence' : 'ignored_noise',
+      disposition: pending ? 'pending_editorial' : retainedInformational ? 'retained_evidence' : 'ignored_noise',
       final: true,
-      targets: [{ kind: retainedInformational ? 'activity' : 'noise_archive', identifier: observation.findingId }],
+      targets: [{ kind: pending ? 'agent_editorial_queue' : retainedInformational ? 'activity' : 'noise_archive', identifier: observation.findingId }],
       readbacks: [{ system: 'supabase', relation: 'monitoring_findings', match: { id: observation.findingId }, observed: noiseWrite.data }],
-      rationale: retainedInformational ? 'The official link delta remains available as concise source evidence.' : 'Deterministic concept extraction found no maintained fact or planning consequence.',
+      rationale: pending ? `Agent interpretation required: ${observation.fingerprint}. ${editorial.reason}` : editorial?.reason ?? 'Recognized informational source evidence retained.',
     })
     continue
   }
@@ -313,6 +317,23 @@ for (const observation of observations) {
   }
 }
 
+// Home routing is a separate consequence from fact extraction. A matched Info
+// fact cannot silently archive an otherwise useful announcement in the same page.
+for (const row of candidateRows.filter(row => row.evidence.home_signal_kind === 'interesting_announcement')) {
+  const status = existingStatuses.get(row.fingerprint)
+  const desiredStatus = ['read', 'archived'].includes(status) ? status : 'unread'
+  const result = await client.from('monitoring_findings').update({ status: desiredStatus, destination: 'Home', title: row.title, summary: row.summary, evidence: row.evidence }).eq('fingerprint', row.fingerprint).select('*').single()
+  if (result.error) throw result.error
+  const actual = result.data
+  if (actual.title !== row.title || actual.summary !== row.summary || actual.destination !== 'Home' || !findingMayBypassConceptReadModel(actual) || (desiredStatus === 'unread' && !findingIsHomeWorthy(actual))) throw new Error(`Home read-model verification failed: ${row.fingerprint}`)
+  recordCandidateOutcome(row.fingerprint, {
+    disposition: 'routed_signal', final: true,
+    targets: [{ kind: 'home', identifier: actual.id }],
+    readbacks: [{ system: 'supabase', relation: 'monitoring_findings', match: { fingerprint: row.fingerprint }, observed: { id: actual.id, status: actual.status, destination: actual.destination, title: actual.title, summary: actual.summary, evidence: actual.evidence, app_projection_verified: true } }],
+    rationale: 'Exact announcement content read back and passed the app Home selection rules; existing read/archive choice preserved.',
+  })
+}
+
 const outcomes = new Map()
 for (const descriptor of surveyorCatchDescriptors(report)) {
   const changeIndex = Number(descriptor.catchId.slice(0, descriptor.catchId.indexOf(':')))
@@ -338,8 +359,9 @@ for (const descriptor of surveyorCatchDescriptors(report)) {
     })
   }
 }
-const closureManifest = completeSurveyorClosureManifest(report, outcomes)
+const closureManifest = completeSurveyorClosureManifest(report, outcomes, new Date().toISOString(), false)
 await fs.writeFile(closurePath, `${JSON.stringify(closureManifest, null, 2)}\n`, 'utf8')
+validateSurveyorClosureManifest(closureManifest, report)
 
 console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${conceptEvidenceAdded} new concept evidence link(s); ${factualChoicesStaged} factual choice${factualChoicesStaged === 1 ? '' : 's'} staged; ${infoClosuresVerified} maintained Info closure${infoClosuresVerified === 1 ? '' : 's'} read back; ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)
 }

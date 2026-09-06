@@ -49,7 +49,7 @@ export function pendingSurveyorClosureManifest(report, generatedAt = new Date().
   }
 }
 
-export function completeSurveyorClosureManifest(report, outcomes, generatedAt = new Date().toISOString()) {
+export function completeSurveyorClosureManifest(report, outcomes, generatedAt = new Date().toISOString(), validate = true) {
   assertSupportedSurveyorCatches(report)
   const catches = surveyorCatchDescriptors(report).map(item => {
     const outcome = outcomes.get(item.catchId)
@@ -63,12 +63,12 @@ export function completeSurveyorClosureManifest(report, outcomes, generatedAt = 
   })
   const manifest = {
     schemaVersion: SURVEYOR_CLOSURE_SCHEMA_VERSION,
-    status: 'complete',
+    status: catches.some(item => !TERMINAL_DISPOSITION_SET.has(item.disposition)) ? 'blocked' : 'complete',
     generatedAt,
     report: { checkedAt: report?.checkedAt ?? null, changeCount: catches.length },
     catches,
   }
-  validateSurveyorClosureManifest(manifest, report)
+  if (validate) validateSurveyorClosureManifest(manifest, report)
   return manifest
 }
 
@@ -97,6 +97,10 @@ export function validateSurveyorClosureManifest(manifest, report = null) {
     if (!TERMINAL_DISPOSITION_SET.has(item.disposition)) errors.push(`${item.catchId}: disposition ${item.disposition ?? 'missing'} is blocked or unmapped`)
     if (!Array.isArray(item.targets) || item.targets.length === 0) errors.push(`${item.catchId}: at least one terminal target is required`)
     if (!Array.isArray(item.readbacks) || item.readbacks.length === 0) errors.push(`${item.catchId}: at least one exact readback is required`)
+    if (item.targets?.some(target => target.kind === 'home') && item.readbacks?.some(readback => readback.observed?.evidence?.home_signal_kind === 'interesting_announcement')) {
+      const home = item.readbacks.find(readback => readback.observed?.app_projection_verified === true)?.observed
+      if (!home || home.destination !== 'Home' || !['unread', 'read', 'archived'].includes(home.status) || !home.title || !home.summary) errors.push(`${item.catchId}: Home announcement lacks verified app projection`)
+    }
     for (const readback of item.readbacks ?? []) {
       const matchPresent = readback?.match && typeof readback.match === 'object' && Object.keys(readback.match).length > 0
       const observedPresent = Array.isArray(readback?.observed)

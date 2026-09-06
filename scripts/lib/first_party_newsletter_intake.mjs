@@ -40,6 +40,10 @@ export function canonicalNewsletterUrl(value, baseUrl, policy) {
 }
 
 export function discoverNewsletterLinks(pages, policy, limits = DEFAULT_NEWSLETTER_LIMITS) {
+  return discoverNewsletterCoverage(pages, policy, limits).links
+}
+
+export function discoverNewsletterCoverage(pages, policy, limits = DEFAULT_NEWSLETTER_LIMITS) {
   const allowedSources = new Set(policy.discoverySourceIds)
   const found = new Map()
   const anchorPattern = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi
@@ -50,22 +54,22 @@ export function discoverNewsletterLinks(pages, policy, limits = DEFAULT_NEWSLETT
       const url = canonicalNewsletterUrl(match[1], page.url, policy)
       if (!url || !policy.linkPattern.test(`${label} ${new URL(url).pathname}`)) continue
       if (!found.has(url)) found.set(url, { url, label: label || 'Official MagicCon article', discoveredFrom: page.id })
-      if (found.size >= limits.maxLinks) return [...found.values()]
     }
   }
-  return [...found.values()]
+  const all = [...found.values()]
+  return { links: all.slice(0, limits.maxLinks), unfetched: all.slice(limits.maxLinks).filter(isAtlantaNewsletterLink).map(link => ({ ...link, reason: 'discovery-link-budget' })) }
 }
 
 export function isAtlantaNewsletterLink(link) {
   return /atlanta/i.test(`${link.label ?? ''} ${link.url ?? ''}`)
 }
 
-export function planNewsletterFetch({ links, initialized, discoveredUrls = [], seen = {} }) {
+export function planNewsletterFetch({ links, initialized, discoveredUrls = [], seen = {}, lastFetchedAt = {} }) {
   const eligible = links.filter(isAtlantaNewsletterLink)
   const discovered = new Set(discoveredUrls)
   const newLinks = eligible.filter(link => !discovered.has(link.url))
   const unfingerprintedLinks = eligible.filter(link => !seen[link.url])
-  const trackedLinks = eligible.filter(link => seen[link.url])
+  const trackedLinks = eligible.filter(link => seen[link.url]).sort((a, b) => (lastFetchedAt[a.url] ?? '').localeCompare(lastFetchedAt[b.url] ?? ''))
   return {
     initialBaseline: !initialized,
     eligible,
@@ -96,13 +100,21 @@ async function readBoundedBody(response, maxBytes) {
   return new TextDecoder().decode(body)
 }
 
-export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, limits = DEFAULT_NEWSLETTER_LIMITS, seen = {}, observedAt, suppressObservations = false }) {
+export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, limits = DEFAULT_NEWSLETTER_LIMITS, seen = {}, lastFetchedAt = {}, observedAt, suppressObservations = false }) {
   const observations = []
   const failures = []
   const nextSeen = { ...seen }
+  const nextLastFetchedAt = { ...lastFetchedAt }
+  const unfetched = links.slice(limits.maxPages).map(link => ({ ...link, reason: 'article-page-budget' }))
+  let attemptedCount = 0
+  let fetchedCount = 0
   for (const link of links.slice(0, limits.maxPages)) {
     const safeUrl = canonicalNewsletterUrl(link.url, link.url, policy)
-    if (!safeUrl) continue
+    if (!safeUrl) {
+      failures.push({ url: link.url, label: link.label, error: 'URL rejected by newsletter policy' })
+      continue
+    }
+    attemptedCount += 1
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), limits.timeoutMs)
     try {
@@ -135,11 +147,13 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
         })
       }
       nextSeen[safeUrl] = fingerprint
+      nextLastFetchedAt[safeUrl] = observedAt
+      fetchedCount += 1
     } catch (error) {
       failures.push({ url: safeUrl, label: link.label, error: error.name === 'AbortError' ? `timeout after ${limits.timeoutMs}ms` : error.message })
     } finally {
       clearTimeout(timeout)
     }
   }
-  return { observations, failures, seen: nextSeen, discoveredCount: links.length, fetchedCount: Math.min(links.length, limits.maxPages), observedAt }
+  return { observations, failures, unfetched, coverageStatus: failures.length || unfetched.length ? 'partial' : 'complete', seen: nextSeen, lastFetchedAt: nextLastFetchedAt, discoveredCount: links.length, attemptedCount, fetchedCount, observedAt }
 }

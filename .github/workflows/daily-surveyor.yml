@@ -93,10 +93,17 @@ jobs:
           Add-Content $env:GITHUB_STEP_SUMMARY "- Watched sources: $($report.sourceCount)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Changed sources: $($report.changeCount)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Fetch failures: $($report.failureCount)"
-          Add-Content $env:GITHUB_STEP_SUMMARY "- First-party articles: $($report.newsletterIntake.observationCount) new/changed from $($report.newsletterIntake.fetchedCount) fetched ($($report.newsletterIntake.failureCount) isolated failures)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- First-party articles: $($report.newsletterIntake.observationCount) new/changed from $($report.newsletterIntake.fetchedCount) fetched ($($report.newsletterIntake.failureCount) failures)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Coverage: $($report.newsletterIntake.coverageStatus)"
+          foreach ($item in $report.newsletterIntake.unfetched) { Add-Content $env:GITHUB_STEP_SUMMARY "- Not checked: $($item.url) ($($item.reason))" }
           Add-Content $env:GITHUB_STEP_SUMMARY "- Ticketed play signals: $($report.ticketedPlay.signalCount) ($($report.ticketedPlay.status))"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Mode: $($report.mode)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Summary: $($report.summary)"
+          if (Test-Path -LiteralPath work/monitoring/closure-manifest.json) {
+            $closure = Get-Content work/monitoring/closure-manifest.json -Raw | ConvertFrom-Json
+            Add-Content $env:GITHUB_STEP_SUMMARY "- Consequence closure: $($closure.status)"
+            foreach ($catch in $closure.catches) { Add-Content $env:GITHUB_STEP_SUMMARY "- $($catch.sourceId): $($catch.disposition) — $($catch.rationale)" }
+          }
           if ($report.changeCount -gt 0) {
             Add-Content $env:GITHUB_STEP_SUMMARY ""
             Add-Content $env:GITHUB_STEP_SUMMARY "### Changed sources"

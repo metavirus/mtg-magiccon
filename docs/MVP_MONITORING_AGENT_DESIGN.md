@@ -153,7 +153,7 @@ Send to Home when the owner would plausibly be glad they did not have to manuall
 - event marked Interested/Tentative/Committed/Purchased changes; routine sellouts use the short-lived policy below;
 - flight/hotel change affects arrival, departure, check-in, or event timing.
 
-An official announcement found only in Gmail may still become a public normal-priority Home card when it is useful and non-private. Project only the public announcement facts: never publish the raw message, recipient address, Gmail identifiers, personalized tracking links, receipt/travel/account details, or other private metadata. The heartbeat must run the ship checks, publish the bounded card change, and verify the deployed readback before reporting that Home routing succeeded; otherwise it must report the exact uncovered step.
+An official announcement found only in Gmail may still become a public normal-priority Home card. Use the reviewed synopsis input and cloud findings path in `docs/SURVEYOR_EDITORIAL_CONTRACT.md`; never publish raw messages or private metadata. That contract also controls pending editorial work, coverage reporting, and Home consequence verification.
 
 ### Activity-only
 
@@ -189,7 +189,7 @@ The Codex heartbeat remains a deliberately simple cloud-supervision workflow:
 2. Inspect the latest `Daily MagicCon surveyor` runs. The ignored workstation baseline is not used for daily discovery because the authoritative accepted baseline lives in the workflow cache.
 3. Reuse or wait for an active/successful cloud run within 26 hours; dispatch one on `main` only when the cloud run is absent, stale, or failed.
 4. Read the authoritative cloud summary/artifact when needed and report its staging, alert, closure, and baseline result.
-5. Optionally discover Gmail evidence only when the connector is already available; a private-intake coverage gap is reported separately and never blocks the public cloud closure lane.
+5. Interpret pending editorial catches and coverage gaps under `docs/SURVEYOR_EDITORIAL_CONTRACT.md`. Gmail may use an available connector or an already signed-in read-only browser session; missing private coverage is reported separately.
 
 The GitHub Actions surveyor is separate: it runs the deterministic public and LEAP checks, uploads the artifact, stages deduplicated evidence, applies only registered deterministic public consequences such as current Ticketed Play availability, sends the narrowly watched availability email when its guard fires, verifies every terminal disposition, and accepts only the exact verified report baseline. It does not run Gmail or Discord. Routine quiet checks create no visible app noise.
 
@@ -205,7 +205,7 @@ Do not start with:
 ## Suggested daily run outline
 
 1. Confirm project identity and current watch set.
-2. Run `pnpm monitor:check`. If it reports changed watched sources, inspect those sources first and classify the change before checking broader radar.
+2. Inspect the authoritative cloud run and artifact. Never use the ignored local baseline for daily discovery. Resolve pending editorial work under `docs/SURVEYOR_EDITORIAL_CONTRACT.md`.
 3. Check official site/watch URLs for changed text, new links, or removed "coming soon" language only where the mechanical check or source strategy indicates a need.
 4. Check MagicCon news for new posts.
 5. Search Gmail using `monitoring/gmail-watch-queries.json` and a narrow date window since the last run. Do not search standalone `Wizards` or standalone `Leap`; require MagicCon/MTG Festivals context for broad vendor/operator terms.

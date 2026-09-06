@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import { classifyMonitoringFinding } from './monitoring_action_router.mjs'
 import { routeTicketedPlaySoldOutTransitions } from './ticketed_play_inventory.mjs'
+import { editorialDecision, applyEditorialDecision } from './surveyor_editorial.mjs'
 
 function summarize(change) {
   const added = change.linkDelta?.added ?? []
@@ -67,6 +68,8 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
       review_question: `Action mapping required before approving this ${change.label} change.`,
       status: 'needs_review',
       evidence: {
+        intake_kind: change.intakeKind ?? 'public_watch',
+        ...(change.reviewedEditorial ? { reviewedEditorial: change.reviewedEditorial } : {}),
         previous: change.previous,
         current: change.current,
         linkDelta: change.linkDelta,
@@ -80,6 +83,8 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
       updated_at: report.checkedAt,
     }
     const classification = classifyMonitoringFinding(row)
+    const editorial = editorialDecision(row, routingContext.editorialDecisions)
+    if (editorial.disposition !== 'pending') return applyEditorialDecision(row, editorial)
     if (change.intakeKind === 'first_party_newsletter' && isInterestingAnnouncement(change)) return {
       ...row,
       destination: 'Home',
@@ -96,9 +101,8 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
     }
     if (change.intakeKind === 'first_party_newsletter') return {
       ...row,
-      status: 'archived',
-      review_question: 'Internal source evidence; registered claims are reconciled separately.',
-      evidence: { ...row.evidence, intake_kind: change.intakeKind, discovered_from: change.discoveredFrom },
+      review_question: 'Agent editorial interpretation pending; no user approval requested.',
+      evidence: { ...row.evidence, editorial, intake_kind: change.intakeKind, discovered_from: change.discoveredFrom },
     }
     return classification.classification === 'informational_official_links'
       ? {
@@ -117,6 +121,6 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
             },
           },
         }
-      : row
+      : applyEditorialDecision(row, editorial)
   })]
 }

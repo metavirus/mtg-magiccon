@@ -27,7 +27,7 @@ import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, 
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
-import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent } from './lib/monitoringFindings'
+import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
@@ -629,6 +629,9 @@ function isKaviCompanion(companion?: CompanionMember) {
 
 function monitoringFindingQaRows(): MonitoringFindingRow[] {
   const qa = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
+  if (qa.includes('editorial')) return ['Meet guest Dana at the Friday panel.', 'Black Lotus pickup is now at the west entrance.', 'Newly linked: Atlanta floor map.'].map((summary, index) => ({
+    id: `qa-editorial-${index}`, fingerprint: String(index).repeat(64), source_id: `qa-editorial-${index}`, source_label: 'Official Atlanta update', source_url: 'https://mcatlanta.mtgfestivals.com/en-us/experience.html', destination: 'Home', title: ['Friday guest update', 'Black Lotus pickup update', 'Atlanta floor map'][index], summary, review_question: 'Useful official news; no action required.', evidence: { home_signal_kind: 'interesting_announcement', editorial: { disposition: 'home' }, presentation_links: index === 2 ? [{ label: 'Floor map', url: 'https://mcatlanta.mtgfestivals.com/content/map.pdf' }] : [] }, status: 'unread', decision: null, first_seen_at: new Date(Date.now() - (qa.includes('editorial-expired') ? 8 : 0) * 86_400_000).toISOString(), last_seen_at: new Date().toISOString(), occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null,
+  }))
   if (qa.includes('soldout')) {
     const primary: MonitoringFindingRow = {
     id: 'qa-ticketed-soldout', fingerprint: 'c'.repeat(64), source_id: 'atlanta-ticketed-play-inventory', source_label: 'MagicCon Atlanta Ticketed Play registration', source_url: 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10', destination: 'Home', title: '10 Ticketed Play events are sold out', summary: 'Machine-shaped source summary intentionally replaced by the presentation model.', review_question: 'Informational grouped availability signal.', evidence: { intake_kind: 'ticketed_play_inventory', transition: 'sold_out', events: [
@@ -1751,7 +1754,7 @@ export default function App() {
     object: finding.source_label,
     source: finding.source_label,
     checkedAt: new Date(finding.last_seen_at).toLocaleString(),
-    checkedAtIso: routineSellout ? selloutChangedAt(finding) : finding.last_seen_at,
+    checkedAtIso: routineSellout ? selloutChangedAt(finding) : interestingAnnouncement ? finding.first_seen_at : finding.last_seen_at,
     status: findingReviewLabel(finding),
     rationale: ticketedInventory ? 'The official registration inventory changed. Personal and shared selections were used only to route this alert; no selection was changed.' : informational ? 'These first-party links make the new play information directly useful without changing any canonical event or plan.' : 'The surveyor retained source evidence for a bounded canonical decision.',
     nextAction: ticketedInbox ? 'Review the affected selected event, then dismiss this alert when it is handled.' : ticketedInventory ? 'Review the grouped sold-out events.' : informational ? 'Open the relevant official resource, then mark this read or archive it.' : findingExecutionDetail(finding),
@@ -3117,6 +3120,7 @@ function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentP
     .filter(item => {
       if (item.monitoringFinding?.destination === 'Inbox') return false
       if (item.monitoringFinding && findingIsRoutineSellout(item.monitoringFinding)) return selloutNoticeIsCurrent(item.monitoringFinding, now)
+      if (item.monitoringFinding?.evidence.home_signal_kind === 'interesting_announcement') return announcementIsCurrent(item.monitoringFinding, now)
       if (item.sourceKind === 'activity-log' && item.objectDetail.id === 'wallet-prize-tix') return false
       if (item.severity !== 'hot' && item.destination !== 'Home' && item.sourceKind !== 'note') return false
       const checkedAt = new Date(item.checkedAtIso).getTime()

@@ -13,8 +13,8 @@ describe('monitoring finding action mapping', () => {
     })
     expect(row).toMatchObject({
       status: 'unread',
-      review_question: 'Mark as read or archive when this source update is no longer useful.',
-      evidence: { presentation_links: [{ label: 'Prize Wall', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html' }], presentation: { truth_class: 'source_observation', canonical_fact_mutation: false } },
+      destination: 'Home',
+      evidence: { home_signal_kind: 'interesting_announcement', presentation_links: [{ label: 'Prize Wall', url: 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html' }] },
     })
     expect(row).not.toHaveProperty('action_type')
     expect(row).not.toHaveProperty('action_payload')

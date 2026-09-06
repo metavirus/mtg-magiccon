@@ -214,6 +214,7 @@ export function findingOfficialResources(finding: MonitoringFindingRow): Monitor
 }
 
 export function findingDisplaySummary(finding: MonitoringFindingRow) {
+  if (finding.evidence.home_signal_kind === 'interesting_announcement') return finding.summary
   if (findingIsInformational(finding) && findingOfficialResources(finding).length > 0) {
     return 'Official Atlanta navigation now links to useful Magic Play resources.'
   }
@@ -231,6 +232,11 @@ export function findingIsHomeWorthy(finding: MonitoringFindingRow) {
     && finding.status === 'unread'
     && finding.evidence.home_signal_kind === 'interesting_announcement') return true
   return findingNeedsKaviAction(finding)
+}
+
+export function announcementIsCurrent(finding: MonitoringFindingRow, now = Date.now()) {
+  const changedAt = Date.parse(finding.first_seen_at)
+  return Number.isFinite(changedAt) && now - changedAt < 7 * 24 * 60 * 60 * 1000
 }
 
 export function findingMayBypassConceptReadModel(finding: MonitoringFindingRow) {

@@ -42,6 +42,27 @@
   ],
   "sources": [
     {
+      "id": "atlanta-ticketed-play-details",
+      "label": "Atlanta Ticketed Play schedule details",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html",
+      "kind": "site", "priority": "canonical", "destination": "Home",
+      "homeWorthyWhen": "schedule, event, registration, or purchasing details change", "trackLinks": true
+    },
+    {
+      "id": "atlanta-on-demand-details",
+      "label": "Atlanta On-Demand play details",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html",
+      "kind": "site", "priority": "canonical", "destination": "Home",
+      "homeWorthyWhen": "hours, formats, vouchers, or registration details change", "trackLinks": true
+    },
+    {
+      "id": "atlanta-prize-wall-details",
+      "label": "Atlanta Prize Wall details",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html",
+      "kind": "site", "priority": "canonical", "destination": "Home",
+      "homeWorthyWhen": "Prize Tix rules, hours, catalog, or real inventory appears or changes", "trackLinks": true
+    },
+    {
       "id": "atlanta-official-home",
       "label": "MagicCon Atlanta official home",
       "url": "https://mcatlanta.mtgfestivals.com/en-us.html",

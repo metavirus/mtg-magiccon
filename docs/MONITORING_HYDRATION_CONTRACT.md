@@ -6,7 +6,7 @@ Updated: 2026-08-21
 
 Two intake lanes exist. `public/monitoring_findings` is the current durable review queue for cloud-surveyor source evidence. `public/monitoring-intake.json` is retained only for deliberate fixture/preview hydration and compatibility testing; it is not the current cloud execution lane or canonical truth.
 
-During design preview, the app reads `public/monitoring-intake.json` when present. If the file is absent, empty, or malformed, the app falls back to built-in representative alerts. This keeps local review stable while giving the daily agent one small, reversible hydration target.
+The app still reads `public/monitoring-intake.json` as transitional compatibility data. New announcements must use the cloud findings lane described in `docs/SURVEYOR_EDITORIAL_CONTRACT.md`, including reviewed public synopses from official inbox announcements. The old file is not a second daily publishing path.
 
 ## Legacy fixture-preview lane
 
@@ -20,7 +20,7 @@ When a deliberate preview-fixture refresh is requested, an agent may:
 6. build the GitHub Pages preview;
 7. publish only through the normal reviewed ship lane.
 
-This is a legacy POC/QA path. The cloud surveyor must use `monitor:check` → `monitor:stage` → Kavi review instead.
+This is a legacy POC/QA path. The cloud surveyor uses discovery, agent editorial interpretation, exact consequence readback, and baseline acceptance. Kavi is asked only for a real product or factual choice, never generic source classification.
 
 ## What the daily agent must not do
 

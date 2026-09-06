@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error Executable monitoring helper is an ESM script without declarations.
-import { canonicalNewsletterUrl, discoverNewsletterLinks, fetchNewsletterPages, planNewsletterFetch } from '../../scripts/lib/first_party_newsletter_intake.mjs'
+import { canonicalNewsletterUrl, discoverNewsletterLinks, discoverNewsletterCoverage, fetchNewsletterPages, planNewsletterFetch } from '../../scripts/lib/first_party_newsletter_intake.mjs'
 import { extractMonitoringConcepts, reconcileMonitoringObservation } from '../../scripts/lib/monitoring_concept_reconciler.mjs'
 import { buildMonitoringCandidateRows } from '../../scripts/lib/build_monitoring_candidates.mjs'
 import { monitoringConceptBaselineFromInfo, projectRegisteredFactResolution, verifyRegisteredFactReadback } from '../../scripts/lib/monitoring_info_projection.mjs'
@@ -30,7 +30,7 @@ describe('bounded first-party newsletter intake', () => {
     ]))
     expect(concepts.find(item => item.concept_key === 'atlanta:hours:show-floor:sunday')?.claim.value).toBe('10 AM–7 PM')
     const [rawEvidence] = buildMonitoringCandidateRows({ checkedAt: '2026-08-24T20:00:00Z', changes: first.observations })
-    expect(rawEvidence).toMatchObject({ status: 'archived', evidence: { intake_kind: 'first_party_newsletter' } })
+    expect(rawEvidence).toMatchObject({ status: 'unread', evidence: { intake_kind: 'first_party_newsletter' } })
     const repeat = await fetchNewsletterPages({ links, policy, limits, fetchImpl, seen: first.seen, observedAt: '2026-08-24T21:00:00Z' })
     expect(repeat.observations).toEqual([])
     const baseline = await fetchNewsletterPages({ links, policy, limits, fetchImpl, observedAt: '2026-08-24T19:00:00Z', suppressObservations: true })
@@ -38,7 +38,7 @@ describe('bounded first-party newsletter intake', () => {
     expect(Object.keys(baseline.seen)).toEqual([links[0].url])
   })
 
-  it('closes the actual daily report and staging shapes into maintained Info without a newsletter card', async () => {
+  it('projects registered claims into maintained Info while retaining the article for editorial review', async () => {
     const article = await fixture('operations-update.html')
     const link = { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/2026/atlanta-operations-update.html', label: 'Atlanta operations', discoveredFrom: 'global-magiccon-news' }
     const fetched = await fetchNewsletterPages({ links: [link], policy, limits, fetchImpl: async () => new Response(article, { status: 200, headers: { 'content-type': 'text/html' } }), observedAt: '2026-08-24T20:00:00Z' })
@@ -52,7 +52,7 @@ describe('bounded first-party newsletter intake', () => {
     const closure = projectRegisteredFactResolution(resolution, stageObservation, topic)!
     expect(closure.mutation).not.toBeNull()
     const readback = { ...topic, article: closure.mutation!.article, sources: closure.mutation!.sources, updated_at: closure.mutation!.updated_at }
-    expect(row.status).toBe('archived')
+    expect(row.status).toBe('unread')
     expect(closure.receipt.disposition).toBe('canonical_applied')
     expect(verifyRegisteredFactReadback(closure.receipt, readback)).toBe(true)
     expect(readback.article.sections[0].facts).toContainEqual({ label: 'Voucher price', value: '$5 increments' })
@@ -80,8 +80,35 @@ describe('bounded first-party newsletter intake', () => {
     expect(result.observations).toHaveLength(1)
     expect(result.failures.map((item: { error: string }) => item.error)).toEqual(expect.arrayContaining(['redirect rejected (302)', expect.stringContaining('oversized response')]))
     const monitorSource = await readFile(path.join(process.cwd(), 'scripts', 'monitoring_watch_check.mjs'), 'utf8')
-    expect(monitorSource).not.toContain('failures.push(...intake.failures')
-    expect(monitorSource).toContain('failures: intake.failures.slice(0, 8)')
+    expect(result).toMatchObject({ coverageStatus: 'partial', fetchedCount: 1, attemptedCount: 3 })
+    expect(Object.keys(result.seen)).toEqual([links[2].url])
+    expect(monitorSource).toContain('failures.push(...intake.failures.map(')
+    expect(monitorSource).toContain('failures: intake.failures,')
+    expect(monitorSource).toContain('Partial coverage:')
+    expect(monitorSource).toContain('missingDiscoverySourceIds.length === 0')
+  })
+
+  it('reports budget omissions without advancing unseen fingerprints and rotates tracked pages', async () => {
+    const links = Array.from({ length: 6 }, (_, index) => ({ url: `https://www.mtgfestivals.com/global/en-us/magiccon-news/atlanta-${index}.html`, label: `Atlanta ${index}` }))
+    const seen = Object.fromEntries(links.map(link => [link.url, 'old']))
+    const fetchImpl = async () => new Response('<main>Unchanged</main>', { headers: { 'content-type': 'text/html' } })
+    const first = await fetchNewsletterPages({ links, seen, policy, limits, fetchImpl, observedAt: '2026-09-06T10:00:00Z' })
+    expect(first).toMatchObject({ coverageStatus: 'partial', fetchedCount: 4, attemptedCount: 4 })
+    expect(first.unfetched.map((link: { url: string }) => link.url)).toEqual(links.slice(4).map(link => link.url))
+    expect(first.seen[links[4].url]).toBe('old')
+    expect(first.lastFetchedAt[links[4].url]).toBeUndefined()
+    const next = planNewsletterFetch({ links, initialized: true, discoveredUrls: links.map(link => link.url), seen: first.seen, lastFetchedAt: first.lastFetchedAt })
+    expect(next.linksToFetch.slice(0, 2)).toEqual(links.slice(4))
+    const newLink = { ...links[0], url: links[0].url.replace('atlanta-0', 'atlanta-new') }
+    const prioritized = planNewsletterFetch({ links: [...links, newLink], initialized: true, discoveredUrls: links.map(link => link.url), seen: first.seen, lastFetchedAt: first.lastFetchedAt })
+    expect(prioritized.linksToFetch[0]).toEqual(newLink)
+  })
+
+  it('lists discovery-budget omissions explicitly', () => {
+    const html = Array.from({ length: 3 }, (_, index) => `<a href="/global/en-us/magiccon-news/atlanta-${index}.html">Atlanta news ${index}</a>`).join('')
+    const result = discoverNewsletterCoverage([{ id: 'global-magiccon-news', url: 'https://www.mtgfestivals.com/', html }], policy, { ...limits, maxLinks: 2 })
+    expect(result.links).toHaveLength(2)
+    expect(result.unfetched).toEqual([expect.objectContaining({ url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/atlanta-2.html', reason: 'discovery-link-budget' })])
   })
 
   it('uses explicit initialization and strict index-record Atlanta relevance', () => {
