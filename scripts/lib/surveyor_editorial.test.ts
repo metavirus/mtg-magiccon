@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildMonitoringCandidateRows } from './build_monitoring_candidates.mjs'
 import { findingIsHomeWorthy, findingMayBypassConceptReadModel, findingDisplaySummary, announcementIsCurrent, type MonitoringFindingRow } from '../../src/lib/monitoringFindings'
 import { completeSurveyorClosureManifest } from './surveyor_closure_contract.mjs'
+import { editorialAllowsFactExtraction } from './surveyor_editorial.mjs'
 
 const change = (text: string) => ({ id: 'atlanta-experience', label: 'Atlanta guests', url: 'https://mcatlanta.mtgfestivals.com/en-us/experience.html', current: { textSample: text, textHash: text }, previous: { textSample: 'Guests will be listed later.' }, linkDelta: { added: [], removed: [] } })
 const report = (value: object) => ({ checkedAt: '2026-09-06T12:00:00Z', changes: [value] })
@@ -35,5 +36,17 @@ describe('discovery to Home editorial contract', () => {
     const outcome = { disposition: 'routed_signal', targets: [{ kind: 'home', identifier: 'x' }], readbacks: [{ system: 'supabase', relation: 'monitoring_findings', match: { id: 'x' }, observed: { id: 'x', evidence: { home_signal_kind: 'interesting_announcement' } } }], rationale: 'Stored only' }
     expect(() => completeSurveyorClosureManifest(input, new Map([['0:atlanta-experience', outcome]]))).toThrow(/Home announcement lacks/)
     expect(() => completeSurveyorClosureManifest(input, new Map([['0:atlanta-experience', { ...outcome, disposition: 'pending_editorial' }]]))).toThrow(/blocked/)
+  })
+  it('does not auto-publish a generic article merely because it mentions a watched topic', () => {
+    const input = report({ ...change('Spell Slayers are coming! Meet our new guests.'), url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/september-newsletter.html', intakeKind: 'first_party_newsletter', geographicRelevance: 'uncertain' })
+    const [row] = buildMonitoringCandidateRows(input)
+    expect(row.evidence.geographicRelevance).toBe('uncertain')
+    expect(row.evidence.editorial.disposition).toBe('pending')
+    expect(row.destination).toBe('Activity')
+    expect(row.status).toBe('needs_review')
+    expect(editorialAllowsFactExtraction(row.evidence)).toBe(false)
+    const [resolved] = buildMonitoringCandidateRows(input, { editorialDecisions: { [row.fingerprint]: { disposition: 'noise', reason: 'Reviewed article: announcement refers to a different convention.' } } })
+    expect(resolved.status).toBe('archived')
+    expect(editorialAllowsFactExtraction(resolved.evidence)).toBe(false)
   })
 })

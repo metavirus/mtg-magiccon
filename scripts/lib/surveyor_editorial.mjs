@@ -4,6 +4,11 @@ const official = value => {
   try { const url = new URL(value); return url.protocol === 'https:' && ['mcatlanta.mtgfestivals.com', 'www.mtgfestivals.com', 'mtgfestivals.com'].includes(url.hostname) } catch { return false }
 }
 
+export function editorialAllowsFactExtraction(evidence = {}) {
+  if (evidence.editorial?.disposition === 'noise') return false
+  return evidence.geographicRelevance !== 'uncertain' || (evidence.editorial?.reviewed === true && evidence.editorial?.disposition === 'home')
+}
+
 export function editorialDecision(row, decisions = {}) {
   const evidence = row.evidence ?? {}
   const override = decisions[row.fingerprint] ?? evidence.reviewedEditorial
@@ -13,6 +18,7 @@ export function editorialDecision(row, decisions = {}) {
     return { ...override, reviewed: true }
   }
   if (!official(row.source_url)) return { disposition: 'pending', reason: 'Source requires agent interpretation.' }
+  if (evidence.geographicRelevance === 'uncertain') return { disposition: 'pending', reason: 'Article was inspected but Atlanta relevance is uncertain; agent must review before routing.' }
   const current = String(evidence.current?.textSample ?? evidence.semanticSummary ?? '')
   const previous = String(evidence.previous?.textSample ?? '')
   const added = evidence.linkDelta?.added ?? []

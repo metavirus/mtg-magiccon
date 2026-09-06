@@ -14,7 +14,7 @@ The first implemented private-source lane is the Atlanta Delta itinerary. Its se
 
 ## Purpose
 
-The MVP monitoring agent exists to remove the owner's need to manually check quiet-period MagicCon sources. It should notice rare meaningful changes and package them as reviewable observations that the app can display through `public/monitoring-intake.json`.
+The MVP monitoring agent exists to remove the owner's need to manually check quiet-period MagicCon sources. It should notice meaningful changes and route useful announcements through cloud findings to Home, under `docs/SURVEYOR_EDITORIAL_CONTRACT.md`. `public/monitoring-intake.json` is transitional compatibility data, not the daily publishing lane.
 
 It is not a broad crawler, a daily content farm, a travel-monitoring service, or an autonomous decision-maker.
 
@@ -28,7 +28,7 @@ During the quiet period, days or weeks may pass with no visible app change. The 
 
 The detailed watch-set strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. That research note is the authority for source priority and search-radar shape; this file defines the agent behavior and safety contract.
 
-The mechanical web watch set is now recorded in `monitoring/watch-set.json`. Run `pnpm monitor:check` at the start of each daily run before ad hoc browsing. The command compares approved public watch URLs against the accepted local baseline in `.monitoring-state/watch-state.local.json`, which is intentionally ignored by Git so routine quiet checks do not dirty the repository. Use `pnpm monitor:accept` only after a baseline or reviewed change has been accepted; do not silently accept a changed source before routing it.
+The mechanical web watch set is recorded in `monitoring/watch-set.json`. Daily discovery runs exclusively in the GitHub Actions surveyor against its cached authoritative baseline. The heartbeat inspects a fresh successful run or waits for the active run; it dispatches only when stale, absent, or failed. Never run local `monitor:check`, staging, closure, or acceptance for daily discovery: the ignored workstation baseline may be stale. The cloud accepts only its exact verified report after consequence closure.
 
 The cloud surveyor now stages changed-source candidates in `public.monitoring_findings` after the mechanical check. `pnpm monitor` is the canonical alias for the check, and `pnpm monitor:stage <report.json>` performs the server-side staging step. GitHub Actions must have a server-only `SUPABASE_SECRET_KEY` repository secret for canonical project `pavjsexxbueuzhzgemgy`; the staging command fails closed when it is absent. The secret must never use a publishable/browser key and must never be committed. Identical fingerprints update one finding rather than creating new inbox cards, and identical shared-navigation link deltas are collapsed across watched pages.
 

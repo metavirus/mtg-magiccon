@@ -24,6 +24,22 @@ export function visibleTextFromHtml(html, maxChars = DEFAULT_NEWSLETTER_LIMITS.m
     .slice(0, maxChars)
 }
 
+export function newsletterArticleText(html, maxChars = DEFAULT_NEWSLETTER_LIMITS.maxTextChars) {
+  const content = html.replace(/<(nav|footer|aside)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+  const article = content.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)
+  const main = content.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)
+  return visibleTextFromHtml(article?.[1] ?? main?.[1] ?? content.replace(/<header\b[^>]*>[\s\S]*?<\/header>/gi, ' '), maxChars)
+}
+
+function newsletterRelevance(link, text) {
+  if (isAtlantaNewsletterLink(link) || /\batlanta\b/i.test(text)) return 'atlanta'
+  // Only a named other location is grounds to suppress an inspected article.
+  // Generic announcements remain candidates for editorial judgment.
+  const otherLocation = /\b(amsterdam|las[ -]vegas|chicago|philadelphia|barcelona)\b/i
+  if (otherLocation.test(`${link.label ?? ''} ${link.url}`) || /\bMagicCon\s*[:-]?\s*(Amsterdam|Las Vegas|Chicago|Philadelphia|Barcelona)\b/i.test(text)) return 'other-location'
+  return 'uncertain'
+}
+
 export function canonicalNewsletterUrl(value, baseUrl, policy) {
   try {
     const url = new URL(value, baseUrl)
@@ -43,7 +59,7 @@ export function discoverNewsletterLinks(pages, policy, limits = DEFAULT_NEWSLETT
   return discoverNewsletterCoverage(pages, policy, limits).links
 }
 
-export function discoverNewsletterCoverage(pages, policy, limits = DEFAULT_NEWSLETTER_LIMITS) {
+export function discoverNewsletterCoverage(pages, policy, _limits = DEFAULT_NEWSLETTER_LIMITS) {
   const allowedSources = new Set(policy.discoverySourceIds)
   const found = new Map()
   const anchorPattern = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi
@@ -56,8 +72,9 @@ export function discoverNewsletterCoverage(pages, policy, limits = DEFAULT_NEWSL
       if (!found.has(url)) found.set(url, { url, label: label || 'Official MagicCon article', discoveredFrom: page.id })
     }
   }
-  const all = [...found.values()]
-  return { links: all.slice(0, limits.maxLinks), unfetched: all.slice(limits.maxLinks).filter(isAtlantaNewsletterLink).map(link => ({ ...link, reason: 'discovery-link-budget' })) }
+  // Discovery reads already-fetched HTML. Cap network work after prioritization,
+  // otherwise the source's first links permanently hide every later article.
+  return { links: [...found.values()], unfetched: [] }
 }
 
 export function isAtlantaNewsletterLink(link) {
@@ -65,7 +82,7 @@ export function isAtlantaNewsletterLink(link) {
 }
 
 export function planNewsletterFetch({ links, initialized, discoveredUrls = [], seen = {}, lastFetchedAt = {} }) {
-  const eligible = links.filter(isAtlantaNewsletterLink)
+  const eligible = [...new Map(links.map(link => [link.url, link])).values()]
   const discovered = new Set(discoveredUrls)
   const newLinks = eligible.filter(link => !discovered.has(link.url))
   const unfingerprintedLinks = eligible.filter(link => !seen[link.url])
@@ -105,10 +122,13 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
   const failures = []
   const nextSeen = { ...seen }
   const nextLastFetchedAt = { ...lastFetchedAt }
-  const unfetched = links.slice(limits.maxPages).map(link => ({ ...link, reason: 'article-page-budget' }))
+  const pageBudget = Math.min(limits.maxLinks ?? DEFAULT_NEWSLETTER_LIMITS.maxLinks, limits.maxPages)
+  const unfetched = links.slice(pageBudget).map(link => ({ ...link, reason: 'article-page-budget' }))
+  const inspectedNonAtlanta = []
+  let uncertainCount = 0
   let attemptedCount = 0
   let fetchedCount = 0
-  for (const link of links.slice(0, limits.maxPages)) {
+  for (const link of links.slice(0, pageBudget)) {
     const safeUrl = canonicalNewsletterUrl(link.url, link.url, policy)
     if (!safeUrl) {
       failures.push({ url: link.url, label: link.label, error: 'URL rejected by newsletter policy' })
@@ -128,9 +148,12 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
       const contentType = response.headers.get('content-type') ?? ''
       if (!/^text\/html\b|^application\/xhtml\+xml\b/i.test(contentType)) throw new Error(`unsupported content type (${contentType || 'missing'})`)
       const html = await readBoundedBody(response, limits.maxBytes)
-      const text = visibleTextFromHtml(html, limits.maxTextChars)
+      const text = newsletterArticleText(html, limits.maxTextChars)
+      const relevance = newsletterRelevance(link, text)
+      if (relevance === 'other-location') inspectedNonAtlanta.push({ url: safeUrl, label: link.label })
+      if (relevance === 'uncertain') uncertainCount += 1
       const fingerprint = createHash('sha256').update(text).digest('hex')
-      if (!suppressObservations && seen[safeUrl] !== fingerprint) {
+      if (relevance !== 'other-location' && !suppressObservations && seen[safeUrl] !== fingerprint) {
         observations.push({
           id: `newsletter:${createHash('sha256').update(safeUrl).digest('hex').slice(0, 16)}`,
           label: link.label || 'Official MagicCon article',
@@ -143,6 +166,7 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
           current: { status: response.status, title: link.label || '', textHash: fingerprint, linkHash: '', textSample: text },
           linkDelta: { added: [], removed: [] },
           intakeKind: 'first_party_newsletter',
+          geographicRelevance: relevance,
           discoveredFrom: link.discoveredFrom,
         })
       }
@@ -155,5 +179,5 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
       clearTimeout(timeout)
     }
   }
-  return { observations, failures, unfetched, coverageStatus: failures.length || unfetched.length ? 'partial' : 'complete', seen: nextSeen, lastFetchedAt: nextLastFetchedAt, discoveredCount: links.length, attemptedCount, fetchedCount, observedAt }
+  return { observations, failures, unfetched, inspectedNonAtlanta, uncertainCount, coverageStatus: failures.length || unfetched.length ? 'partial' : 'complete', seen: nextSeen, lastFetchedAt: nextLastFetchedAt, discoveredCount: links.length, attemptedCount, fetchedCount, observedAt }
 }

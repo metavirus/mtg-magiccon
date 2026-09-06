@@ -104,18 +104,52 @@ describe('bounded first-party newsletter intake', () => {
     expect(prioritized.linksToFetch[0]).toEqual(newLink)
   })
 
-  it('lists discovery-budget omissions explicitly', () => {
-    const html = Array.from({ length: 3 }, (_, index) => `<a href="/global/en-us/magiccon-news/atlanta-${index}.html">Atlanta news ${index}</a>`).join('')
-    const result = discoverNewsletterCoverage([{ id: 'global-magiccon-news', url: 'https://www.mtgfestivals.com/', html }], policy, { ...limits, maxLinks: 2 })
-    expect(result.links).toHaveLength(2)
-    expect(result.unfetched).toEqual([expect.objectContaining({ url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/atlanta-2.html', reason: 'discovery-link-budget' })])
+  it('discovers beyond twelve links and rotates bounded fetches through every candidate', async () => {
+    const html = Array.from({ length: 14 }, (_, index) => `<a href="/global/en-us/magiccon-news/update-${index}.html">Monthly news ${index}</a>`).join('')
+    const result = discoverNewsletterCoverage([{ id: 'global-magiccon-news', url: 'https://www.mtgfestivals.com/', html }], policy, limits)
+    expect(result.links).toHaveLength(14)
+    let seen = {}
+    let lastFetchedAt = {}
+    const visited = new Set<string>()
+    const fetchImpl = async (url: string) => { visited.add(url); return new Response('<main>Monthly announcement.</main>', { headers: { 'content-type': 'text/html' } }) }
+    for (let day = 1; day <= 4; day += 1) {
+      const plan = planNewsletterFetch({ links: result.links, initialized: true, discoveredUrls: result.links.map((link: { url: string }) => link.url), seen, lastFetchedAt })
+      const fetched = await fetchNewsletterPages({ links: plan.linksToFetch, seen, lastFetchedAt, policy, limits, fetchImpl, observedAt: `2026-09-0${day}T10:00:00Z` })
+      expect(fetched.fetchedCount).toBe(4)
+      expect(fetched.coverageStatus).toBe('partial')
+      expect(fetched.unfetched).toHaveLength(10)
+      seen = fetched.seen
+      lastFetchedAt = fetched.lastFetchedAt
+    }
+    expect(visited.size).toBe(14)
+    const newAtlanta = { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/atlanta-new.html', label: 'Atlanta news' }
+    expect(planNewsletterFetch({ links: [...result.links, newAtlanta], initialized: true, discoveredUrls: result.links.map((link: { url: string }) => link.url), seen, lastFetchedAt }).linksToFetch[0]).toEqual(newAtlanta)
   })
 
-  it('uses explicit initialization and strict index-record Atlanta relevance', () => {
+  it('fetches body-only Atlanta news, excludes shared navigation, and retains uncertain generic news', async () => {
+    const links = ['september', 'october', 'november', 'december'].map(month => ({ url: `https://www.mtgfestivals.com/global/en-us/magiccon-news/${month}.html`, label: `${month} newsletter` }))
+    const bodies = [
+      '<nav>MagicCon Amsterdam</nav><main>MagicCon Atlanta adds a welcome party.</main>',
+      '<main>MagicCon Amsterdam announces show hours.</main><footer>MagicCon Atlanta</footer>',
+      '<nav>Atlanta</nav><main>A new seasonal announcement is coming soon.</main><footer>Atlanta</footer>',
+    ]
+    const fetchImpl = async (url: string) => new Response(bodies[links.findIndex(link => link.url === url)], { headers: { 'content-type': 'text/html' } })
+    const result = await fetchNewsletterPages({ links, policy, limits: { ...limits, maxPages: 3 }, fetchImpl, observedAt: '2026-09-06T10:00:00Z' })
+    expect(result.observations.map((item: { geographicRelevance: string }) => item.geographicRelevance)).toEqual(['atlanta', 'uncertain'])
+    expect(result.observations[1].semanticSummary).not.toContain('Atlanta')
+    expect(result.inspectedNonAtlanta).toEqual([links[1]])
+    expect(result.seen[links[1].url]).toBeTruthy()
+    expect(result).toMatchObject({ uncertainCount: 1, coverageStatus: 'partial' })
+    expect(result.unfetched).toEqual([{ ...links[3], reason: 'article-page-budget' }])
+    expect(result.seen[links[3].url]).toBeUndefined()
+  })
+
+  it('uses explicit initialization without rejecting articles before inspecting their body', () => {
     const atlanta = { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/2026/know-before-you-go-atlanta.html', label: 'Know Before You Go: Atlanta' }
     const amsterdam = { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/2026/know-before-you-go-amsterdam.html', label: 'Show hours and Atlanta preview mentioned in body only' }
-    const initial = planNewsletterFetch({ links: [atlanta, { ...amsterdam, label: 'Know Before You Go: Amsterdam' }], initialized: false })
-    expect(initial).toMatchObject({ initialBaseline: true, eligible: [atlanta], linksToFetch: [atlanta] })
+    const candidates = [atlanta, { ...amsterdam, label: 'Know Before You Go: Amsterdam' }]
+    const initial = planNewsletterFetch({ links: candidates, initialized: false })
+    expect(initial).toMatchObject({ initialBaseline: true, eligible: candidates, linksToFetch: candidates })
     expect(planNewsletterFetch({ links: [atlanta], initialized: false, seen: { [atlanta.url]: 'fingerprint' } }).linksToFetch).toEqual([])
     const later = planNewsletterFetch({ links: [atlanta], initialized: true, discoveredUrls: [atlanta.url], seen: {} })
     expect(later).toMatchObject({ initialBaseline: false, linksToFetch: [atlanta] })

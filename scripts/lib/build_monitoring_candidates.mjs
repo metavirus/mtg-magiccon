@@ -69,6 +69,7 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
       status: 'needs_review',
       evidence: {
         intake_kind: change.intakeKind ?? 'public_watch',
+        ...(change.geographicRelevance ? { geographicRelevance: change.geographicRelevance } : {}),
         ...(change.reviewedEditorial ? { reviewedEditorial: change.reviewedEditorial } : {}),
         previous: change.previous,
         current: change.current,
@@ -85,7 +86,7 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
     const classification = classifyMonitoringFinding(row)
     const editorial = editorialDecision(row, routingContext.editorialDecisions)
     if (editorial.disposition !== 'pending') return applyEditorialDecision(row, editorial)
-    if (change.intakeKind === 'first_party_newsletter' && isInterestingAnnouncement(change)) return {
+    if (change.intakeKind === 'first_party_newsletter' && change.geographicRelevance !== 'uncertain' && isInterestingAnnouncement(change)) return {
       ...row,
       destination: 'Home',
       status: 'unread',

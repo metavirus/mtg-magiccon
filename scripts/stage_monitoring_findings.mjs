@@ -3,6 +3,7 @@ import path from 'node:path'
 import { createClient } from '@supabase/supabase-js'
 import { buildMonitoringCandidateRows } from './lib/build_monitoring_candidates.mjs'
 import { CONCEPT_RULE_VERSION, extractMonitoringConcepts, factualChoiceFindingForResolution, reconcileMonitoringObservation } from './lib/monitoring_concept_reconciler.mjs'
+import { editorialAllowsFactExtraction } from './lib/surveyor_editorial.mjs'
 import { monitoringConceptBaselineFromInfo, projectRegisteredFactResolution, projectResolutionToInfo, verifyRegisteredFactReadback } from './lib/monitoring_info_projection.mjs'
 import { ticketedPlayAvailabilityProjectionRows } from './lib/ticketed_play_availability_projection.mjs'
 import { closeTicketedPlayTransitions } from './lib/ticketed_play_transition_closure.mjs'
@@ -124,7 +125,7 @@ const observations = candidateRows.map(row => ({
   text: [row.evidence.current?.title, row.evidence.current?.textSample].filter(Boolean).join(' '),
   links: row.evidence.presentation_links ?? row.evidence.linkDelta?.added ?? [],
 }))
-const extractedByFingerprint = new Map(observations.map(observation => [observation.fingerprint, extractMonitoringConcepts(observation)]))
+const extractedByFingerprint = new Map(observations.map((observation, index) => [observation.fingerprint, editorialAllowsFactExtraction(candidateRows[index].evidence) ? extractMonitoringConcepts(observation) : []]))
 const allExtracted = [...extractedByFingerprint.values()].flat()
 const conceptKeys = [...new Set(allExtracted.map(concept => concept.concept_key))]
 const conceptResult = conceptKeys.length
