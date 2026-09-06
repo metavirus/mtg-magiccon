@@ -8,21 +8,6 @@
   ],
   "alerts": [
     {
-      "id": "atlanta-spell-slayers-announced-sep-4",
-      "kind": "newsletter",
-      "severity": "notice",
-      "destination": "Home",
-      "attention": "Worth knowing",
-      "title": "Spell Slayers are coming to Atlanta",
-      "summary": "The official MagicCon Atlanta newsletter announced Bosco and Irene the Alien for their first MagicCon. Juan is especially interested, so future Spell Slayers announcements are now on the watch list.",
-      "object": "Home · Guests and creators",
-      "source": "Official MagicCon Atlanta newsletter · September 4, 2026",
-      "checkedAt": "2026-09-04T20:03:00.000Z",
-      "status": "new official announcement",
-      "rationale": "Interesting first-party announcements belong on Home even when they are useful rather than urgent.",
-      "nextAction": "Keep watching official experience, guest, schedule, and newsletter sources for Spell Slayers details."
-    },
-    {
       "id": "atlanta-ticketed-play-aug-25-sale",
       "conceptKey": "atlanta:ticketed-play:sales-opening",
       "kind": "site",
