@@ -20,8 +20,14 @@ export function ticketedPlaySaleHasOpened(now = Date.now()) {
 export function isFeaturedTicketedPlaySale(item: FeatureableHomeSignal, now = Date.now()) {
   if (!isTicketedPlaySaleOpen(item)) return false
   const state = item.monitoringConcept?.current_state
-  const openedAt = new Date(String(state?.milestone_opened_at ?? '')).getTime()
-  return Number.isFinite(openedAt) && now >= openedAt && now - openedAt <= 7 * DAY_MS
+  const openedAt = new Date(String(state?.milestone_opened_at ?? TICKETED_PLAY_SALE_OPENED_AT)).getTime()
+  return Number.isFinite(openedAt) && now >= openedAt && now - openedAt < 7 * DAY_MS
+}
+
+export function ticketedPlaySaleAlertHasExpired(item: FeatureableHomeSignal, now = Date.now()) {
+  if (item.conceptKey !== 'atlanta:ticketed-play:sales-opening') return false
+  const openedAt = new Date(String(item.monitoringConcept?.current_state?.milestone_opened_at ?? TICKETED_PLAY_SALE_OPENED_AT)).getTime()
+  return Number.isFinite(openedAt) && now >= openedAt + 7 * DAY_MS
 }
 
 export function homeSignalAgeBucket(checkedAtIso: string, now = Date.now()): HomeSignalAgeBucket | null {

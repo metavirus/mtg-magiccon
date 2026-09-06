@@ -24,7 +24,7 @@ import { promoteCatalogPlan } from './lib/catalogPromotion'
 import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
-import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
+import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
@@ -1695,7 +1695,8 @@ export default function App() {
     const sourceLabel = typeof concept.current_state.source_label === 'string' ? concept.current_state.source_label : 'Official source'
     const sourceUrl = typeof concept.current_state.source_url === 'string' ? concept.current_state.source_url : ''
     const persistedReview = alertReview[`concept-${concept.concept_key}`]
-    const reviewState: AlertReviewState = persistedReview ?? (concept.review_state === 'archived' ? 'archived' : concept.review_state === 'read' ? 'reviewed' : 'needs-review')
+    const savedReview: AlertReviewState = persistedReview ?? (concept.review_state === 'archived' ? 'archived' : concept.review_state === 'read' ? 'reviewed' : 'needs-review')
+    const reviewState: AlertReviewState = savedReview === 'needs-review' && ticketedPlaySaleAlertHasExpired({ conceptKey: concept.concept_key, monitoringConcept: concept }) ? 'reviewed' : savedReview
     const needsAttention = monitoringConceptIsHomeWorthy(concept)
     return {
       id: `concept-${concept.concept_key}`,
@@ -3118,6 +3119,7 @@ function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentP
   const eligibleItems = items
     .filter(item => item.reviewState === 'needs-review')
     .filter(item => {
+      if (ticketedPlaySaleAlertHasExpired(item, now)) return false
       if (item.monitoringFinding?.destination === 'Inbox') return false
       if (item.monitoringFinding && findingIsRoutineSellout(item.monitoringFinding)) return selloutNoticeIsCurrent(item.monitoringFinding, now)
       if (item.monitoringFinding?.evidence.home_signal_kind === 'interesting_announcement') return announcementIsCurrent(item.monitoringFinding, now)

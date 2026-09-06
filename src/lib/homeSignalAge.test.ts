@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, TICKETED_PLAY_SALE_OPENED_AT } from './homeSignalAge'
+import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './homeSignalAge'
 
 const now = new Date('2026-08-24T12:00:00Z').getTime()
 
@@ -32,11 +32,19 @@ describe('Home Worth Knowing age buckets', () => {
     expect(homeSignalAgeBucket('unknown', now)).toBeNull()
   })
 
-  it('features an open ticketed-play sale for seven days, then releases it to the normal list', () => {
+  it('expires the sale alert after seven days without forgetting sales are open', () => {
     const item = { conceptKey: 'atlanta:ticketed-play:sales-opening', monitoringConcept: { current_state: { phase: 'open', milestone_opened_at: '2026-08-24T12:00:00Z' } } }
     expect(isFeaturedTicketedPlaySale(item, now)).toBe(true)
-    expect(isFeaturedTicketedPlaySale(item, now + 7 * 24 * 60 * 60 * 1000)).toBe(true)
+    expect(isFeaturedTicketedPlaySale(item, now + 7 * 24 * 60 * 60 * 1000)).toBe(false)
+    expect(ticketedPlaySaleAlertHasExpired(item, now + 7 * 24 * 60 * 60 * 1000)).toBe(true)
     expect(isFeaturedTicketedPlaySale(item, now + 7 * 24 * 60 * 60 * 1000 + 1)).toBe(false)
     expect(isTicketedPlaySaleOpen(item)).toBe(true)
+  })
+  it('does not renew an old sale alert when the source was checked today, including legacy rows', () => {
+    const today = Date.parse('2026-09-06T12:00:00Z')
+    const legacy = { conceptKey: 'atlanta:ticketed-play:sales-opening', checkedAtIso: '2026-09-06T12:00:00Z' }
+    expect(ticketedPlaySaleAlertHasExpired(legacy, today)).toBe(true)
+    expect(ticketedPlaySaleAlertHasExpired({ ...legacy, monitoringConcept: { current_state: { phase: 'open' } } }, today)).toBe(true)
+    expect(ticketedPlaySaleAlertHasExpired({ conceptKey: 'other' }, today)).toBe(false)
   })
 })
