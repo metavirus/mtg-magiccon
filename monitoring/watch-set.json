@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-24",
+  "updatedAt": "2026-09-06",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
@@ -109,6 +109,16 @@
       "priority": "canonical",
       "destination": "Activity",
       "homeWorthyWhen": "Atlanta 2026, ticketed play, Black Lotus, artist, map, app, store, prize wall, or official convention logistics news",
+      "trackLinks": true
+    },
+    {
+      "id": "atlanta-experience",
+      "label": "MagicCon Atlanta experiences and guests",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "new or changed guests, creators, programs, panels, meet-and-greets, or experiences; especially any Spell Slayers, Bosco, or Irene the Alien announcement relevant to Juan",
       "trackLinks": true
     }
   ]

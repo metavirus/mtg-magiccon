@@ -1,11 +1,27 @@
 {
-  "generatedAt": "2026-08-18T10:29:32-07:00",
+  "generatedAt": "2026-09-06T09:08:00-07:00",
   "mode": "monitoring-intake",
   "source": "quiet-period-monitor",
   "notes": [
-    "Deterministic monitor found newly linked Atlanta Magic Play surfaces on Aug 18. Gmail watch queries found no new relevant notices since Aug 17."
+    "Deterministic monitor found newly linked Atlanta Magic Play surfaces on Aug 18.",
+    "The official Sep 4 MagicCon Atlanta newsletter announced Spell Slayers; Juan is especially interested in future Spell Slayers, Bosco, and Irene the Alien updates."
   ],
   "alerts": [
+    {
+      "id": "atlanta-spell-slayers-announced-sep-4",
+      "kind": "newsletter",
+      "severity": "notice",
+      "destination": "Home",
+      "attention": "Worth knowing",
+      "title": "Spell Slayers are coming to Atlanta",
+      "summary": "The official MagicCon Atlanta newsletter announced Bosco and Irene the Alien for their first MagicCon. Juan is especially interested, so future Spell Slayers announcements are now on the watch list.",
+      "object": "Home · Guests and creators",
+      "source": "Official MagicCon Atlanta newsletter · September 4, 2026",
+      "checkedAt": "2026-09-04T20:03:00.000Z",
+      "status": "new official announcement",
+      "rationale": "Interesting first-party announcements belong on Home even when they are useful rather than urgent.",
+      "nextAction": "Keep watching official experience, guest, schedule, and newsletter sources for Spell Slayers details."
+    },
     {
       "id": "atlanta-ticketed-play-aug-25-sale",
       "conceptKey": "atlanta:ticketed-play:sales-opening",

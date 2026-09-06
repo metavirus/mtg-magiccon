@@ -21,3 +21,31 @@ describe('ticketed inventory candidate staging', () => {
     expect(rows[1]).toMatchObject({ status: 'unread', evidence: { persistent_inbox: true, bell: true } })
   })
 })
+
+describe('interesting announcement routing', () => {
+  it('routes a first-party Atlanta announcement to Home as a normal unread card', () => {
+    const rows = buildMonitoringCandidateRows({
+      checkedAt: '2026-09-06T18:00:00Z',
+      changes: [{
+        id: 'newsletter:spell-slayers',
+        label: 'Spell Slayers are coming to Atlanta',
+        url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/atlanta-spell-slayers.html',
+        priority: 'canonical',
+        destination: 'Activity',
+        intakeKind: 'first_party_newsletter',
+        discoveredFrom: 'global-magiccon-news',
+        semanticSummary: 'Bosco and Irene the Alien are coming to MagicCon Atlanta.',
+        current: { status: 200, title: 'Spell Slayers are coming to Atlanta', textHash: 'new', linkHash: '', textSample: 'Bosco and Irene the Alien are coming to MagicCon Atlanta.' },
+        previous: null,
+        linkDelta: { added: [], removed: [] },
+      }],
+    })
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({
+      destination: 'Home',
+      status: 'unread',
+      title: 'Spell Slayers are coming to Atlanta',
+      evidence: { home_signal_kind: 'interesting_announcement', intake_kind: 'first_party_newsletter' },
+    })
+  })
+})

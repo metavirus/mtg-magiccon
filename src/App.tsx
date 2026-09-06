@@ -1721,6 +1721,7 @@ export default function App() {
     const informational = findingIsInformational(finding)
     const ticketedInventory = finding.evidence.intake_kind === 'ticketed_play_inventory'
     const ticketedInbox = ticketedInventory && finding.destination === 'Inbox'
+    const interestingAnnouncement = finding.evidence.home_signal_kind === 'interesting_announcement'
     const ticketedEvents = ticketedInventory && Array.isArray(finding.evidence.events)
       ? finding.evidence.events.flatMap(raw => {
           if (!raw || typeof raw !== 'object') return []
@@ -1739,9 +1740,9 @@ export default function App() {
     id: `finding-${finding.id}`,
     sourceKind: 'monitor',
     kind: 'site',
-    severity: ticketedInbox || (ticketedInventory && homeSignalIsHotNow(finding.last_seen_at)) ? 'hot' : ticketedInventory ? 'notice' : findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
+    severity: ticketedInbox || (ticketedInventory && homeSignalIsHotNow(finding.last_seen_at)) ? 'hot' : ticketedInventory || interestingAnnouncement ? 'notice' : findingIsHomeWorthy(finding) || finding.destination === 'Home' ? 'hot' : 'notice',
     destination: finding.destination,
-    attention: ticketedInbox ? 'Selected event sold out' : ticketedInventory ? 'Ticketed Play availability' : informational ? 'New official resources' : 'Kavi decision needed',
+    attention: ticketedInbox ? 'Selected event sold out' : ticketedInventory ? 'Ticketed Play availability' : interestingAnnouncement ? 'Worth knowing' : informational ? 'New official resources' : 'Kavi decision needed',
     title: finding.title,
     summary: ticketedSummary,
     object: finding.source_label,

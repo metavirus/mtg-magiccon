@@ -12,6 +12,11 @@ function summarize(change) {
   return parts.join(' ')
 }
 
+function isInterestingAnnouncement(change) {
+  const text = `${change.label ?? ''} ${change.semanticSummary ?? ''} ${change.current?.title ?? ''} ${change.current?.textSample ?? ''}`
+  return /spell slayers|\bbosco\b|irene the alien|newly announced|(?:guest|creator|artist|panel|meet[- ]and[- ]greet|program)\w*.{0,30}(?:is|are) (?:coming|joining|appearing|announced|added)|(?:announc|introduc|welcome)\w*.{0,40}(?:guest|creator|artist|panel|program)/i.test(text)
+}
+
 export function buildMonitoringCandidateRows(report, routingContext = {}) {
   const ticketedRows = (Array.isArray(report.changes) ? report.changes : [])
     .filter(change => change.intakeKind === 'ticketed_play_inventory')
@@ -75,6 +80,20 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
       updated_at: report.checkedAt,
     }
     const classification = classifyMonitoringFinding(row)
+    if (change.intakeKind === 'first_party_newsletter' && isInterestingAnnouncement(change)) return {
+      ...row,
+      destination: 'Home',
+      status: 'unread',
+      title: change.label || 'New official MagicCon announcement',
+      summary: change.semanticSummary || row.summary,
+      review_question: 'Worth knowing; mark as read or archive after reviewing the announcement.',
+      evidence: {
+        ...row.evidence,
+        intake_kind: change.intakeKind,
+        home_signal_kind: 'interesting_announcement',
+        discovered_from: change.discoveredFrom,
+      },
+    }
     if (change.intakeKind === 'first_party_newsletter') return {
       ...row,
       status: 'archived',

@@ -123,7 +123,7 @@ Use `docs/POC_FINISH_GLIDE_PATH.md` as the routing authority.
 
 Short form:
 
-- Home only for rare consequential signals.
+- Home for consequential signals and new first-party Atlanta announcements that are genuinely useful to know; urgency controls emphasis, not visibility.
 - Activity for source/change history.
 - Wallet for receipts, QR codes, proof, and original artifacts.
 - Trip for flights, hotels, lodging transitions, and travel changes.
@@ -145,6 +145,8 @@ Send to Home when the owner would plausibly be glad they did not have to manuall
 - the Black Lotus VIP page materially changes;
 - the Atlanta official site tree gains a new planning-relevant page;
 - official artist directory appears;
+- an official Atlanta guest, creator, program, panel, meet-and-greet, experience, or similarly useful announcement appears; route it as a normal-priority “Worth knowing” card unless it is also urgent;
+- any official Spell Slayers, Bosco, or Irene the Alien announcement appears, because Juan is especially interested;
 - official Show Store or Black Lotus Store catalog appears;
 - official map appears;
 - real Atlanta Prize Wall inventory appears during event;

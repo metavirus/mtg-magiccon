@@ -108,6 +108,20 @@ describe('monitoring finding decisions', () => {
     }))).toBe(false)
   })
 
+  it('keeps a normal-priority interesting announcement visible on Home', () => {
+    const announcement = finding({
+      destination: 'Home',
+      status: 'unread',
+      action_type: null,
+      action_payload: null,
+      rollback_payload: null,
+      evidence: { intake_kind: 'first_party_newsletter', home_signal_kind: 'interesting_announcement' },
+    })
+    expect(findingIsHomeWorthy(announcement)).toBe(true)
+    expect(findingMayBypassConceptReadModel(announcement)).toBe(true)
+    expect(findingCanAuthorize(announcement)).toBe(false)
+  })
+
   it('keeps raw unmapped Home deltas behind the concept read model', () => {
     expect(findingMayBypassConceptReadModel(finding({
       destination: 'Home',

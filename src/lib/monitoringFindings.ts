@@ -210,12 +210,16 @@ export function findingNeedsKaviAction(finding: MonitoringFindingRow) {
 }
 
 export function findingIsHomeWorthy(finding: MonitoringFindingRow) {
+  if (finding.destination === 'Home'
+    && finding.status === 'unread'
+    && finding.evidence.home_signal_kind === 'interesting_announcement') return true
   return findingNeedsKaviAction(finding)
 }
 
 export function findingMayBypassConceptReadModel(finding: MonitoringFindingRow) {
   if (finding.destination === 'Inbox') return true
   if (finding.evidence.intake_kind === 'ticketed_play_inventory') return true
+  if (finding.evidence.home_signal_kind === 'interesting_announcement') return true
   if (findingNeedsKaviAction(finding)) return true
   return finding.status === 'deferred' && findingIsChoiceResolution(finding)
 }
