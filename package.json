@@ -39,6 +39,7 @@
     "catalog:photo-test": ".\\.codex-local\\catalog-python\\Scripts\\python.exe scripts/test_catalog_photo_intake.py",
     "catalog:fetch-exact-image": "node --use-system-ca scripts/catalog_fetch_exact_image.mjs",
     "artist:seed-sql": "node scripts/build_artist_card_catalog_seed_sql.mjs",
+    "artist:review-import": "node scripts/review_artist_card_import.mjs",
     "validate:artist-catalog-db": "powershell -ExecutionPolicy Bypass -File scripts/validate_artist_card_catalog_db.ps1",
     "validate:catalog-db": "powershell -ExecutionPolicy Bypass -File scripts/validate_catalog_database.ps1",
     "validate:artist-import": "node scripts/validate_artist_card_import.mjs",
