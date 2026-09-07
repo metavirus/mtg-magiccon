@@ -16,6 +16,24 @@ function requestForAsset(url: string) {
     : { mode: 'no-cors', credentials: 'omit' })
 }
 
+/** Inspect existing bytes, including offline; a prior successful download is not proof against eviction. */
+export async function auditDeviceAssets(urls: Array<string | null | undefined>): Promise<DeviceAssetCacheResult> {
+  const unique = [...new Set(urls.filter((url): url is string => Boolean(url)))]
+  const failures: string[] = []
+  let cached = 0
+  try {
+    if (!('caches' in globalThis)) throw new Error('Cache storage unavailable')
+    const cache = await caches.open(DEVICE_ASSET_CACHE)
+    for (const url of unique) {
+      try {
+        if (await cache.match(requestForAsset(url))) cached += 1
+        else failures.push(url)
+      } catch { failures.push(url) }
+    }
+  } catch { return { expected: unique.length, cached: 0, failures: unique } }
+  return { expected: unique.length, cached, failures }
+}
+
 export async function cacheDeviceAssets(urls: Array<string | null | undefined>): Promise<DeviceAssetCacheResult> {
   const unique = [...new Set(urls.filter((url): url is string => Boolean(url)))]
   if (!unique.length) return { expected: 0, cached: 0, failures: [] }

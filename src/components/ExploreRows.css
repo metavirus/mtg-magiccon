@@ -1,0 +1,27 @@
+/* Title and purchase are sibling controls: never nest a purchase button. */
+.explore-event .explore-event-main{grid-template-columns:minmax(0,1fr) auto}
+.explore-event-open{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:10px;min-width:0;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.explore-event .event-title-block strong{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
+@media(max-width:650px){
+  .explore-event .explore-event-main{grid-template-columns:minmax(0,1fr);gap:6px}
+  .explore-event-open{grid-template-columns:28px minmax(0,1fr);gap:8px}
+  .explore-event .event-scan{display:flex;justify-content:flex-start;justify-items:start;margin-left:36px;min-width:0}
+}
+
+/* Browse rows show identity/value/state; secondary context lives in detail. */
+.compact-explore-row{min-height:84px;align-content:center;padding:10px 12px;gap:0}
+.compact-explore-row .explore-event-main{grid-template-columns:minmax(0,1fr) auto;padding-right:48px;gap:8px}
+.compact-explore-row .event-title-block strong{font-size:14px;line-height:1.25}
+.explore-quick-action{position:absolute;right:10px;top:50%;transform:translateY(-50%)}
+.explore-quick-action button{display:grid;place-items:center;width:40px;height:40px;min-height:40px;padding:0;border:1px solid #365475;border-radius:10px;background:#0d1a2b;color:#b8c8da;cursor:pointer}
+.explore-quick-action button[aria-pressed=true]{border-color:#6e9bd7;background:#173559;color:#eaf3ff}
+.explore-quick-action button:hover,.explore-quick-action button:focus-visible{outline:2px solid #83b4ff;outline-offset:2px}
+.event-row-state{font-size:10px;color:#aebed0}
+.event-detail-tags{display:flex;flex-wrap:wrap;gap:6px;color:#9fb0c6;font-size:11px}
+.event-detail-tags span{border:1px solid #2f4260;border-radius:8px;padding:3px 6px}
+@media(max-width:650px){
+  .compact-explore-row .explore-event-main{grid-template-columns:minmax(0,1fr);gap:4px}
+  .compact-explore-row .event-scan{margin-left:36px;gap:8px;flex-wrap:wrap}
+  .compact-explore-row .event-title-block strong{font-size:13px}
+  .compact-explore-row .event-source-mark{bottom:10px}
+}

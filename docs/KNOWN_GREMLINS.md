@@ -461,7 +461,11 @@ If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, t
 - After two visual misses, stop patching and look for duplicated components, stale public bundle, or cascade conflict.
 - For navigation, person bubbles, notes, receipt proof, and object drawers, prefer one source of truth over separate mobile and desktop implementations.
 
+**September 6 recurrence: screenshots existed but visual judgment failed.** The artist popup's sticky close button consumed a desktop grid cell, leaving a blank column and pushing details below. Successful clicks and captured screenshots had been incorrectly treated as visual acceptance. For each affected task, explicitly judge principal content/action visibility, wasted space, alignment, phone wrapping, scrolling, and dismissal in the actual screenshot. Record a concrete pass/fail criterion, not merely "screenshot checked." Keep functional tests separate from visual acceptance. The popup repair must also guard the close/art/details geometry; its current failure is open in `docs/VISUAL_USABILITY_AUDIT_2026-09-06.md`.
+
 ### Browser or viewport inspection treated as unavailable
+
+Card-popup prevention checkpoint (September 6): remove generic `persistent-detail-close` from the card close control, explicitly place art/copy in grid row 1, and keep desktop signing actions in content flow. `artistSigningSafety.test.tsx` guards those contracts plus Escape/focus return. The original desktop and phone views were inspected after repair; do not reintroduce the shared sticky class as a convenience refactor.
 
 **Symptom:** visual work is claimed complete after build/public verification, but no real viewport was inspected because browser control returned no useful state.
 

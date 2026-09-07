@@ -12,6 +12,7 @@ import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode, standaloneAppSearch } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
+import { useHashNavigation } from './lib/useHashNavigation'
 import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, findingChoices, findingDisplaySummary, findingExecutionDetail, findingIsChoiceResolution, findingIsHomeWorthy, findingIsInformational, findingMayBypassConceptReadModel, findingOfficialResources, findingReviewLabel, monitoringConceptIsHomeWorthy, monitoringConceptIsUserFacing, monitoringConceptResources, monitoringDecisionPatch, monitoringDeferPatch, type MonitoringConceptRow, type MonitoringFindingDecision, type MonitoringFindingRow, type MonitoringOfficialResource } from './lib/monitoringFindings'
 import { loadInfoKnowledge, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
 import { infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
@@ -22,9 +23,13 @@ import { catalogImportPreviewBatch } from './lib/catalogImportPreview'
 import type { CatalogPromotionPlan } from './lib/catalogImport'
 import { promoteCatalogPlan } from './lib/catalogPromotion'
 import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
+import { shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
+
+export { CalendarSurface, PlanSurface }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
+import { monitoringNoticeSeverity } from './lib/monitoringNoticeLifecycle'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
@@ -33,6 +38,10 @@ import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLa
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
 import { cacheDeviceAssets } from './lib/deviceAssets'
 import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
+import { ReceiptPages } from './components/ReceiptPages'
+import { ArtistAssetStatus } from './components/ArtistAssetStatus'
+import './components/ExploreRows.css'
+import './components/ActivityClarity.css'
 import {
   formatOccurrenceTime,
   readTrustSliceCache,
@@ -772,7 +781,6 @@ export default function App() {
   const [exploreRouteState, setExploreRouteState] = useState<ExploreRouteState>(() => parseExploreRouteState(window.location.hash))
   const [exploreFocusRequest, setExploreFocusRequest] = useState<{ eventId: string; noteId?: string; nonce: number } | null>(null)
   const [planFocusRequest, setPlanFocusRequest] = useState<{ eventId: string; nonce: number } | null>(null)
-  const [previousSurface, setPreviousSurface] = useState<Surface | null>(null)
   const [mobileNavMenu, setMobileNavMenu] = useState<'main' | 'events' | 'more' | null>(null)
   const [desktopRailLocked, setDesktopRailLocked] = useState(() => window.innerWidth >= 901)
   const [navNotice, setNavNotice] = useState('')
@@ -1176,7 +1184,7 @@ export default function App() {
 
   useEffect(() => {
     if (!session || !effectiveOwnerId || !online || designPreview || isPreviewOwnerMode) return
-    void Promise.all([loadArtistCatalogFromSupabase(), loadArtistSigningInterestMap(effectiveOwnerId)]).then(([catalog, signingInterests]) => {
+    void Promise.all([loadArtistCatalogFromSupabase(effectiveOwnerId), loadArtistSigningInterestMap(effectiveOwnerId)]).then(([catalog, signingInterests]) => {
       try { writeOfflineContinuityLane(effectiveOwnerId, 'artistCatalog', catalog) } catch { /* best-effort device continuity */ }
       try { writeOfflineContinuityLane(effectiveOwnerId, 'artistSigningInterests', signingInterests) } catch { /* best-effort device continuity */ }
       void cacheDeviceAssets([
@@ -1241,22 +1249,15 @@ export default function App() {
     return () => { active = false }
   }, [effectiveOwnerId])
 
-  useEffect(() => {
-    const handleLocationChange = () => {
+  const { navigate, goBack, canGoBack } = useHashNavigation(hash => {
       setMobileNavMenu(null)
       setNavNotice('')
-      const nextSurface = surfaceFromHash(window.location.hash)
+      setObjectDetail(null)
+      const nextSurface = surfaceFromHash(hash)
       if (nextSurface !== 'explore') setExploreFocusRequest(null)
       setSurface(nextSurface)
-      setExploreRouteState(parseExploreRouteState(window.location.hash))
-    }
-    window.addEventListener('hashchange', handleLocationChange)
-    window.addEventListener('popstate', handleLocationChange)
-    return () => {
-      window.removeEventListener('hashchange', handleLocationChange)
-      window.removeEventListener('popstate', handleLocationChange)
-    }
-  }, [])
+      setExploreRouteState(parseExploreRouteState(hash))
+  })
 
   async function signInWithGoogle() {
     if (!supabase) return
@@ -1343,27 +1344,11 @@ export default function App() {
   const openDestination = (name: string, next?: Surface) => {
     setMobileNavMenu(null)
     if (next) {
-      if (next !== 'explore') setExploreFocusRequest(null)
-      if (next !== surface) setPreviousSurface(surface)
-      setSurface(next)
-      setNavNotice('')
-      const nextHash = hashForSurface(next)
-      if (window.location.hash !== nextHash) window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`)
+      navigate(hashForSurface(next))
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
     setNavNotice(`${name} is mapped into the shell; its working surface comes in a later review tranche.`)
-  }
-  const goBack = () => {
-    if (!previousSurface) return
-    const destination = previousSurface
-    if (destination !== 'explore') setExploreFocusRequest(null)
-    setPreviousSurface(surface)
-    setSurface(destination)
-    setNavNotice('')
-    const nextHash = hashForSurface(destination)
-    if (window.location.hash !== nextHash) window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const openObjectDetail = (detail: ObjectDetail) => setObjectDetail(detail)
   const openPlanEventContext = (eventId: string) => {
@@ -1767,6 +1752,7 @@ export default function App() {
       kindLabel: ticketedInventory ? 'Sold out' : undefined,
       title: finding.title,
       summary: ticketedSummary,
+      monitoringMetadata: !ticketedInventory,
       facts: ticketedInventory ? [
         { label: 'Events', value: String(ticketedEvents.length) },
         { label: 'Days', value: ticketedDayGroups.map(group => formatTicketedDay(group.day, false)).join(', ') },
@@ -1790,6 +1776,7 @@ export default function App() {
   // canonical action may bypass the concept read model during rollout.
   const actionableFindingActivity = findingActivity.filter(item => item.monitoringFinding && findingMayBypassConceptReadModel(item.monitoringFinding))
   const monitoringActivity = coalesceMonitoringConcepts(conceptActivity, [...actionableFindingActivity, ...monitorActivity])
+    .map(item => ({ ...item, severity: monitoringNoticeSeverity(item) }))
   const activityItems = [...generatedActivity, ...noteActivity, ...monitoringActivity].filter(shouldShowActivityItem).sort((a, b) => {
     const severityRank = { hot: 0, notice: 1, quiet: 2 } as const
     const reviewRank = { 'needs-review': 0, reviewed: 1, archived: 2 } as const
@@ -1997,7 +1984,7 @@ export default function App() {
       <header className={`hero ${['explore', 'plan', 'calendar'].includes(surface) ? 'hero-has-funnel' : ''} ${['map', 'trip', 'artists'].includes(surface) ? 'hero-has-view-switch' : ''}`}>
         <div>
           <div className="hero-context">
-            <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!previousSurface} aria-label="Back to previous view"><span aria-hidden="true">‹</span></button>
+            <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!canGoBack} aria-label="Back to previous view"><span aria-hidden="true">‹</span></button>
             <button className="back-caret mobile-menu-caret" data-tour-target="mobile-menu" type="button" onClick={() => setMobileNavMenu('main')} aria-label="Open main navigation" aria-expanded={mobileNavMenu === 'main'}><span aria-hidden="true">☰</span></button>
             <span className="kicker">{headerLabel}</span>
           </div>
@@ -2053,7 +2040,7 @@ export default function App() {
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
         {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogBrowserQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
-        {surface === 'wallet' && <WalletSurface receipts={walletReceipts} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
+        {surface === 'wallet' && <WalletSurface flights={tripFlights} receipts={walletReceipts} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
             const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
             if (canWrite && supabase && kaviOwnerId) {
@@ -2522,6 +2509,7 @@ type ArtistCatalogRow = {
 }
 
 type ArtistAppearanceCatalogRow = {
+  event_key: string
   artist_id: string
   attending_status: 'confirmed' | 'unconfirmed' | 'unknown' | 'not_attending'
   appearance_days: string | null
@@ -2614,12 +2602,14 @@ function buildPreviewSigningInterest(cards: ArtistCardCandidate[]): Record<strin
   return next
 }
 
-async function loadAllSupabaseRows<T>(table: string, select = '*', pageSize = 1000): Promise<T[]> {
+async function loadAllSupabaseRows<T>(table: string, select = '*', pageSize = 1000, filters: Record<string, string> = {}): Promise<T[]> {
   if (!supabase) throw new Error('Supabase is not configured.')
   const rows: T[] = []
   for (let from = 0; ; from += pageSize) {
     const to = from + pageSize - 1
-    const result = await supabase.from(table).select(select).range(from, to)
+    let query = supabase.from(table).select(select)
+    for (const [key, value] of Object.entries(filters)) query = query.eq(key, value)
+    const result = await query.order('id').range(from, to)
     if (result.error) throw result.error
     rows.push(...((result.data ?? []) as T[]))
     if (!result.data || result.data.length < pageSize) break
@@ -2672,7 +2662,7 @@ function catalogArtistToSeed(artist: ArtistCatalogRow, appearance?: ArtistAppear
   }
 }
 
-function mapCatalogCardsToCandidates(
+export function mapCatalogCardsToCandidates(
   printings: ArtistPrintingCatalogRow[],
   cards: ArtistCardCatalogRow[],
   artists: ArtistCatalogRow[],
@@ -2698,7 +2688,6 @@ function mapCatalogCardsToCandidates(
       assessmentsByCard.set(printing.card_id, assessment)
     }
   })
-  const seenCardIds = new Set<string>()
   const priceValue = (printing: ArtistPrintingCatalogRow) => {
     const market = typeof printing.market_price_usd === 'number'
       ? printing.market_price_usd
@@ -2709,8 +2698,7 @@ function mapCatalogCardsToCandidates(
 
   return orderedPrintings.flatMap(printing => {
     const card = cardsById.get(printing.card_id)
-    if (!card || seenCardIds.has(card.id)) return []
-    seenCardIds.add(card.id)
+    if (!card) return []
     const artist = artistsById.get(card.artist_id)
     const assessment = assessmentsByPrinting.get(printing.id) ?? assessmentsByCard.get(card.id)
     const artistName = artist?.display_name || artist?.canonical_name || 'Unknown artist'
@@ -2763,19 +2751,23 @@ function mapCatalogCardsToCandidates(
   })
 }
 
-let artistCatalogRequest: Promise<{ artists: ArtistSeed[]; cards: ArtistCardCandidate[] }> | null = null
+const artistCatalogRequests = new Map<string, Promise<{ artists: ArtistSeed[]; cards: ArtistCardCandidate[] }>>()
+const artistConventionKey = 'magiccon_atlanta_2026'
 
-async function loadArtistCatalogFromSupabase(): Promise<{ artists: ArtistSeed[]; cards: ArtistCardCandidate[] }> {
-  if (artistCatalogRequest) return artistCatalogRequest
-  artistCatalogRequest = Promise.all([
+export function loadArtistCatalogFromSupabase(ownerId = 'anonymous'): Promise<{ artists: ArtistSeed[]; cards: ArtistCardCandidate[] }> {
+  const requestKey = `${ownerId}:${artistConventionKey}`
+  const pending = artistCatalogRequests.get(requestKey)
+  if (pending) return pending
+  const request = Promise.all([
     loadAllSupabaseRows<ArtistCatalogRow>('artists'),
-    loadAllSupabaseRows<ArtistAppearanceCatalogRow>('artist_appearances'),
+    loadAllSupabaseRows<ArtistAppearanceCatalogRow>('artist_appearances', '*', 1000, { event_key: artistConventionKey }),
     loadAllSupabaseRows<ArtistCardCatalogRow>('artist_cards'),
     loadAllSupabaseRows<ArtistPrintingCatalogRow>('artist_card_printings'),
     loadAllSupabaseRows<ArtistAssessmentCatalogRow>('artist_card_assessments'),
   ]).then(([artists, appearances, cards, printings, assessments]) => {
-  const appearancesByArtist = new Map(appearances.map(appearance => [appearance.artist_id, appearance]))
-  const appearanceArtistIds = new Set(appearances.map(appearance => appearance.artist_id))
+  const eventAppearances = appearances.filter(appearance => appearance.event_key === artistConventionKey)
+  const appearancesByArtist = new Map(eventAppearances.map(appearance => [appearance.artist_id, appearance]))
+  const appearanceArtistIds = new Set(eventAppearances.map(appearance => appearance.artist_id))
   const appearanceSeeds = artists
     .filter(artist => appearanceArtistIds.has(artist.id))
     .sort((a, b) => {
@@ -2791,16 +2783,12 @@ async function loadArtistCatalogFromSupabase(): Promise<{ artists: ArtistSeed[];
   const scopedAssessments = assessments.filter(assessment => scopedPrintingIds.has(assessment.printing_id))
 
     return {
-      artists: appearanceSeeds.length ? appearanceSeeds : artistSeeds,
-      cards: appearanceArtistIds.size
-        ? mapCatalogCardsToCandidates(scopedPrintings, scopedCards, artists, scopedAssessments)
-        : mapCatalogCardsToCandidates(printings, cards, artists, assessments),
+      artists: appearanceSeeds,
+      cards: mapCatalogCardsToCandidates(scopedPrintings, scopedCards, artists, scopedAssessments),
     }
-  }).catch(error => {
-    artistCatalogRequest = null
-    throw error
-  })
-  return artistCatalogRequest
+  }).finally(() => { artistCatalogRequests.delete(requestKey) })
+  artistCatalogRequests.set(requestKey, request)
+  return request
 }
 
 function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
@@ -2845,6 +2833,25 @@ function InfoReaderEvidence({ sources }: { sources: InfoSource[] }) {
 }
 
 function ObjectDetailLayer({ detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+  const isOpen = Boolean(detail)
+  useEffect(() => {
+    if (!isOpen) return
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    closeButtonRef.current?.focus({ preventScroll: true })
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      event.preventDefault()
+      closeRef.current()
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true })
+    }
+  }, [isOpen])
   useEffect(() => {
     if (!detail) return
     const previousBodyOverflow = document.body.style.overflow
@@ -2863,7 +2870,7 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, catalogOwnerId, cata
   const soldOutListSpansDays = new Set(detail.soldOutEvents?.map(event => event.day)).size > 1
   return <div className={`object-detail-backdrop ${detail.reader ? 'info-reader-backdrop' : ''}`} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind} ${detail.reader ? 'object-detail-reader' : ''}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
-      <button className={`detail-close persistent-detail-close ${detail.reader ? 'reader-close-sticky' : 'object-detail-close'}`} type="button" onClick={onClose} aria-label={detail.reader ? 'Close article' : 'Close detail'}>×</button>
+      <button ref={closeButtonRef} className={`detail-close persistent-detail-close ${detail.reader ? 'reader-close-sticky' : 'object-detail-close'}`} type="button" onClick={onClose} aria-label={detail.reader ? 'Close article' : 'Close detail'}>×</button>
       <header className="object-detail-head">
         <div className="object-detail-topline">
           <span className="eyebrow">{detail.eyebrow}</span>
@@ -2876,21 +2883,22 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, catalogOwnerId, cata
         <h2 id="object-detail-title">{detail.title}</h2>
         <p>{detail.summary}</p>
       </header>
+      {detail.monitoringMetadata && detail.source && /^https?:\/\//i.test(detail.source.value) && <nav className="object-resource-links" aria-label="Article source"><a href={detail.source.value} target="_blank" rel="noreferrer">Read original source ↗</a></nav>}
       {detail.reader ? <InfoReaderContent detail={detail.reader} /> : <>{detail.image && <section className="object-detail-section object-detail-image-section">
         <div className={`object-detail-image-card${detail.image.tone === 'product' ? ' product-image-card' : ''}`}>
           <img src={detail.image.src} alt={detail.image.alt} loading="lazy" />
           {detail.image.caption && <span>{detail.image.caption}</span>}
         </div>
       </section>}
-      {detail.facts && <section className="object-detail-section">
-        <h3>Key facts</h3>
+      {detail.facts && <details className="object-detail-section" open={detail.monitoringMetadata ? undefined : true}>
+        <summary>{detail.monitoringMetadata ? 'Monitoring details' : 'Key facts'}</summary>
         <div className="object-fact-grid">{detail.facts.map(fact => {
           const value = fact.label === 'Your list' && catalogOffer ? (catalogInterest ? 'Saved' : 'Not saved') : fact.value
           return fact.detail
             ? <button key={`${fact.label}-${fact.value}`} type="button" className="object-fact object-fact-link" onClick={() => onOpenObject(fact.detail!)}><span>{fact.label}</span><strong>{value}</strong><b aria-hidden="true">›</b></button>
             : <div key={`${fact.label}-${fact.value}`} className="object-fact"><span>{fact.label}</span><strong>{value}</strong></div>
         })}</div>
-      </section>}
+      </details>}
       {detail.soldOutEvents?.length ? <section className="object-detail-section sold-out-events-section">
         <h3>Sold-out events</h3>
         <ol className="sold-out-event-list">
@@ -2971,6 +2979,7 @@ type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'art
 type NotePersonFilter = 'all' | PersonName
 type NoteTypeFilter = 'all' | 'wallet' | 'trip' | 'events' | 'other'
 type ObjectDetail = {
+  monitoringMetadata?: boolean
   id: string
   kind: ObjectDetailKind
   kindLabel?: string
@@ -3385,7 +3394,7 @@ function eventSelectionActivityFromCluster(
     status: items.length === 1 ? items[0].state : 'grouped',
     rationale: items.length === 1 ? focusEvent.fit : 'Rapid event-pick updates are grouped by person, with only the newest state for each event retained.',
     nextAction: committedCount > 0
-      ? 'Keep committed items hot until they are explicitly read or dismissed.'
+      ? 'Review the committed picks in Explore or Plan.'
       : 'Expand in Explore or Plan if the burst changed the contender set in a meaningful way.',
     reviewState,
     objectDetail: items.length === 1
@@ -4212,7 +4221,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   const agendaOperatingBoundary = activeDay === 'Fri' || activeDay === 'Sat'
     ? { opens: '10:00 AM', closes: '11:59 PM' }
     : activeDay === 'Sun' ? { opens: '10:00 AM', closes: '6:00 PM' } : null
-  const conflictPairs = agendaPlacements.flatMap((first, index) => agendaPlacements.slice(index + 1).filter(second => planEventsOverlap(first.event, second.event)).map(second => [first.event.id, second.event.id] as const))
+  const conflictPairs = agendaPlacements.flatMap((first, index) => agendaPlacements.slice(index + 1).filter(second => planEventsOverlap(first.event, second.event) && shareIncludedParticipant(participantMap.get(first.event.id) ?? [], participantMap.get(second.event.id) ?? [], selectedPeople)).map(second => [first.event.id, second.event.id] as const))
   const conflictIds = new Set(conflictPairs.flat())
   const sharedCount = dayEvents.filter(event => (participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person)).length > 1).length
   const togglePlanGroup = (key: string) => setCollapsedPlanGroups(groups => groups.includes(key) ? groups.filter(item => item !== key) : [...groups, key])
@@ -4502,8 +4511,8 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
   }
 
   useEffect(() => {
-    if (routeState.day) setDay(routeState.day)
-    if (routeState.eventType) setEventType(routeState.eventType)
+    setDay(routeState.day ?? 'all')
+    setEventType(routeState.eventType ?? 'all')
     if (routeState.group) setCollapsedExploreGroups([])
     if (routeState.group === 'sold_out') setSoldOutExpanded(true)
   }, [routeState.day, routeState.eventType, routeState.group, routeState.mode])
@@ -4580,6 +4589,13 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
               ['other', 'Other'],
             ] as const).filter(([value]) => value !== 'other' || hasOtherEvents).map(([value, label]) => <button key={value} type="button" className={eventType === value ? 'active' : ''} onClick={() => setEventType(current => current === value && value !== 'all' ? 'all' : value)}>{label}</button>)}
           </div>
+          <select className="explore-type-select" aria-label="Event type" value={eventType} onChange={event => setEventType(event.target.value as typeof eventType)}>
+            <option value="all">All types</option>
+            <option value="play">Play</option>
+            <option value="info">Info</option>
+            <option value="social">Social</option>
+            {hasOtherEvents && <option value="other">Other</option>}
+          </select>
           <button className={`explore-hidden-pill ${showHidden ? 'active' : ''}`} type="button" aria-pressed={showHidden} onClick={() => setShowHidden(value => !value)}><EyeOffMini /> Hidden{hiddenCount > 0 ? ` ${hiddenCount}` : ''}</button>
         </div>
       </div>
@@ -4589,7 +4605,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
     <div className={`explore-layout ${selected ? 'has-detail' : ''}`}>
       <div ref={eventListRef} className="event-list" aria-label="Event results">
         <div className="event-list-summary"><strong>{visible.length}</strong><span>events in view</span></div>
-        {routeGroupLabel && <div className="explore-route-chip"><span>{routeGroupLabel}</span></div>}
+        {routeGroupLabel && <div className="explore-route-chip"><span>{routeGroupLabel}</span><a href="#explore" aria-label="Clear group filter">Clear</a></div>}
         {exploreContenders.length > 0 && <section className="explore-row-group explore-contender-group">
           <button className="funnel-group-header" type="button" aria-expanded={!collapsedExploreGroups.includes('contenders')} onClick={() => toggleExploreGroup('contenders')}>
             <span><strong>Your contenders</strong><small>Interested and tentative</small></span>
@@ -4666,42 +4682,30 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
   </section>
 }
 
-function ExploreEventRow({ event, selected, onSelect, onState, onPurchase }: { event: ExploreEvent; selected: boolean; onSelect: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void }) {
+export function ExploreEventRow({ event, selected, onSelect, onState, onPurchase }: { event: ExploreEvent; selected: boolean; onSelect: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void }) {
   const kindIcon: EventKindIconName = event.type === 'play' ? 'play' : event.type === 'info' ? 'info' : event.type === 'social' ? 'social' : event.kind === 'Competitive' ? 'competitive' : 'ticketed'
   const blackLotus = event.kind === 'Black Lotus'
   const priceTone = getPriceTone(event.price)
-  const [showCommitHint, setShowCommitHint] = useState(false)
-  useEffect(() => {
-    if (!showCommitHint) return
-    const timer = window.setTimeout(() => setShowCommitHint(false), 2200)
-    return () => window.clearTimeout(timer)
-  }, [showCommitHint])
-  return <article className={`explore-event ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-event-id={event.id} data-availability={event.availability} onClick={clickEvent => {
+  return <article className={`explore-event compact-explore-row ${selected ? 'selected' : ''} state-${event.state} type-${event.type} complexity-${event.complexity}`} data-event-id={event.id} data-availability={event.availability} onClick={clickEvent => {
     if ((clickEvent.target as HTMLElement).closest('button, a, input, textarea, select')) return
     onSelect()
   }}>
-    <button className="explore-event-main" type="button" onClick={onSelect}>
+    <div className="explore-event-main">
+    <button className="explore-event-open" type="button" onClick={onSelect}>
       <span className="event-type-icon" aria-label={`${event.type} event`} data-kind-label={`${event.type} event`}><EventKindIcon name={kindIcon} /></span>
       <span className="event-title-block">
         <strong>{displayEventTitle(event)}</strong>
         <small>{event.day} · {event.time}</small>
       </span>
+    </button>
       <span className="event-scan">
         {canPurchaseEvent(event.price) ? <PurchaseControl event={event} onPurchase={onPurchase} /> : <span className={`event-price price-${priceTone}`}><EventPriceLabel event={event} icon /></span>}
+        {event.state !== 'none' && <small className="event-row-state">{event.purchased ? 'Purchased' : eventStageLabel(event.state)}</small>}
       </span>
-    </button>
-    <div className="explore-hide-action"><IconAction label="Hide from this list" icon="eyeOff" pressed={event.state === 'hidden'} onClick={() => onState('hidden')} /></div>
-    {blackLotus && <span className="event-source-mark" title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
-    <div className="explore-event-meta">
-      <span>{event.format}</span>
-      {event.tags.slice(0, 3).map(tag => <span key={tag}>{tag}</span>)}
     </div>
-    <p>{event.fit}</p>
-    <div className="explore-actions" aria-label={`${event.title} actions`}>
-      <IconAction label="Interested" icon="bookmark" pressed={event.state === 'interested'} onClick={() => onState('interested')} />
-      <IconAction label="Tentative" icon="diamond" pressed={event.state === 'tentative'} onClick={() => onState('tentative')} />
-      <IconAction label={event.state === 'committed' ? 'Committed — manage in Plan' : 'Commit from Plan'} icon="check" pressed={event.state === 'committed'} onClick={() => setShowCommitHint(true)} />
-      {showCommitHint && <span className="commit-route-hint" role="status">{event.state === 'committed' ? 'This event is committed. Manage it in Plan.' : 'Choose Interested or Tentative first, then commit it in Plan.'}</span>}
+    {blackLotus && <span className="event-source-mark" title="Black Lotus" aria-label="Black Lotus"><EventKindIcon name="lotus" /></span>}
+    <div className="explore-quick-action" aria-label={`${event.title} actions`}>
+      <IconAction label={event.state === 'none' || event.state === 'hidden' || event.state === 'nope' ? 'Interested' : 'Review saved event'} icon="bookmark" pressed={['interested', 'tentative', 'committed'].includes(event.state)} onClick={() => event.state === 'none' || event.state === 'hidden' || event.state === 'nope' ? onState('interested') : onSelect()} />
     </div>
   </article>
 }
@@ -4749,12 +4753,15 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
       </div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
       <EventStateRail event={event} context="explore" onState={onState} />
+      <button type="button" className="detail-plan-link" onClick={() => onState('hidden')}>Hide from Explore</button>
     </header>
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(event.detail)}</p></div>
     <section className="detail-section decision-section">
       <div className="format-heading"><strong>{event.format}</strong>{event.formatHelp && <details className="format-help"><summary aria-label={`Explain ${event.format}`}>?</summary><p>{event.formatHelp}</p></details>}</div>
       {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
       <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {event.complexityWhy}</p>
+      {event.fit && <p>{event.fit}</p>}
+      <div className="event-detail-tags">{[...new Set(event.tags)].map(tag => <span key={tag}>{tag}</span>)}</div>
     </section>
     <section className="detail-section plan-summary">
       <strong>Plan effect</strong>
@@ -5316,7 +5323,7 @@ function InfoSurface({ topics, feed, catalogReadModel, currentOwnerId, canEditCa
   </section>
 }
 
-function WalletSurface({ receipts, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { receipts: WalletReceiptRow[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
+function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { receipts: WalletReceiptRow[]; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
@@ -5368,7 +5375,7 @@ function WalletSurface({ receipts, onOpenObject, onOpenTrip, notes, currentOwner
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openChrisBlackLotusProof={openChrisBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} />}
     {tab === 'store' && <WalletStoreEmpty />}
-    {tab === 'other' && <WalletOtherTab openModal={openModal} onOpenTrip={onOpenTrip} />}
+    {tab === 'other' && <WalletOtherTab flights={flights} openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
   </section>
 }
@@ -5459,14 +5466,7 @@ function PrivateReceiptArtifacts({ receipt, roles, title, currentOwnerId }: { re
   if (!artifacts.length) return <p className="original-receipt-note">This private proof has not been migrated yet.</p>
   if (status === 'loading') return <p className="original-receipt-note">Loading private proof…</p>
   if (status === 'error') return <p className="original-receipt-note">Private proof could not be loaded. Check your session and try again.</p>
-  return <div className="original-proof-stack full-email" aria-label={title}>
-    {downloads.map(({ artifact, url }) => <figure key={artifact.id}>
-      {artifact.mime_type.startsWith('image/')
-        ? <img src={url} alt={artifact.display_label} />
-        : <iframe title={artifact.display_label} src={url} sandbox="" />}
-      <figcaption>{artifact.display_label}</figcaption>
-    </figure>)}
-  </div>
+  return <ReceiptPages title={title} pages={downloads.map(({ artifact, url }) => ({ url, label: artifact.display_label, mimeType: artifact.mime_type }))} />
 }
 
 function WalletHomeTab({ openBlackLotusProof, openChrisBlackLotusProof, openJuanProof, onOpenObject }: { openBlackLotusProof: () => void; openChrisBlackLotusProof: () => void; openJuanProof: () => void; onOpenObject: (detail: ObjectDetail) => void }) {
@@ -5683,12 +5683,18 @@ function WalletStoreEmpty() {
   </div>
 }
 
-function WalletOtherTab({ openModal, onOpenTrip }: { openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void }) {
+export function WalletOtherTab({ flights, openModal, onOpenTrip }: { flights: TripFlight[]; openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void }) {
+  const { flight } = tripFlightCalendarProjection(flights)
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Other wallet references">
       <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">DELTA RECEIPT</span><h2>Flights · Kavi + Juan</h2><p>Confirmation HOGFBX · SNA ⇄ ATL</p></div><PersonBubbles people={['Kavi', 'Juan']} /></div>
-        <div className="receipt-lines"><button type="button" onClick={() => openModal('FLIGHT DETAIL', 'DL 1521', <p>SNA to ATL · Nov 11 · 12:20 PM–7:34 PM · confirmation HOGFBX.</p>)}><span>DL 1521 · Nov 11 · SNA to ATL</span><b>7:34 PM</b></button><button type="button" onClick={() => openModal('FLIGHT DETAIL', 'DL 1602', <p>ATL to SNA · Nov 15 · 8:35 PM–10:29 PM · confirmation HOGFBX.</p>)}><span>DL 1602 · Nov 15 · ATL to SNA</span><b>8:35 PM</b></button></div>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">CURRENT ITINERARY</span><h2>Flights · Kavi + Juan</h2><p>Confirmation {flight.confirmation_code} · SNA ⇄ ATL</p></div><PersonBubbles people={['Kavi', 'Juan']} /></div>
+        <div className="receipt-lines">{flight.legs.map(leg => {
+          const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: leg.departure_airport === 'ATL' ? 'America/New_York' : 'America/Los_Angeles' }).format(new Date(leg.departure_at))
+          const departure = flightAirportTime(leg.departure_at, leg.departure_airport)
+          const arrival = flightAirportTime(leg.arrival_at, leg.arrival_airport)
+          return <button key={leg.leg_key} type="button" onClick={() => openModal('CURRENT FLIGHT', leg.flight_number, <p>{leg.departure_airport} to {leg.arrival_airport} · {date} · {departure}–{arrival} (local airport times) · confirmation {flight.confirmation_code}.</p>)}><span>{leg.flight_number} · {date} · {leg.departure_airport} to {leg.arrival_airport}</span><b>Departs {departure}</b></button>
+        })}</div>
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
       <article className="receipt-card">
@@ -5854,7 +5860,7 @@ function flightDateParts(leg: TripFlightLeg) {
 }
 
 function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
-  const flight = flights[0] ?? previewTripFlights[0]
+  const { flight } = tripFlightCalendarProjection(flights)
   return <div className="flight-grid" aria-label="Flight details">
     <section className="flight-card">
       <div className="flight-card-head">
@@ -5882,7 +5888,7 @@ function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
   </div>
 }
 
-function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity }: { currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity }: { currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
   const [view, setView] = useState<'artists' | 'cards'>('artists')
   const [artistFilter, setArtistFilter] = useState<'all' | string>('all')
   const [styleFilter, setStyleFilter] = useState<string>('all')
@@ -5891,12 +5897,41 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
   const [cardSearch, setCardSearch] = useState('')
   const [selectedArtist, setSelectedArtist] = useState<ArtistSeed | null>(null)
   const [previewCard, setPreviewCard] = useState<ArtistCardCandidate | null>(null)
+  const cardPreviewRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!previewCard) return
+    const opener = document.activeElement as HTMLElement | null
+    const panel = cardPreviewRef.current
+    panel?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true })
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        event.stopPropagation()
+        setPreviewCard(null)
+      }
+      if (event.key === 'Tab' && panel) {
+        const controls = Array.from(panel.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]'))
+          .filter(element => !element.closest('fieldset[disabled]'))
+        const first = controls[0], last = controls[controls.length - 1]
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }
+    }
+    document.addEventListener('keydown', handleKey, true)
+    return () => {
+      document.removeEventListener('keydown', handleKey, true)
+      if (opener?.isConnected) opener.focus({ preventScroll: true })
+    }
+  }, [previewCard])
   const [signingInterest, setSigningInterest] = useState<Record<string, ArtistSigningInterestStatus>>(() => {
     if (!currentOwnerId) return {}
     const cached = readOfflineContinuity(currentOwnerId)?.lanes.artistSigningInterests
     return cached && typeof cached === 'object' ? cached as Record<string, ArtistSigningInterestStatus> : {}
   })
   const [signingInterestError, setSigningInterestError] = useState<string | null>(null)
+  const [signingSaving, setSigningSaving] = useState(false)
+  const [catalogRefresh, setCatalogRefresh] = useState(0)
+  const signingSavePending = useRef(false)
   const [collapsedCardGroups, setCollapsedCardGroups] = useState<Record<string, boolean>>({})
   const [catalogState, setCatalogState] = useState<{
     source: 'fallback' | 'offline' | 'supabase'
@@ -5928,9 +5963,9 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
   useEffect(() => {
     let cancelled = false
     if (!navigator.onLine) return () => { cancelled = true }
-    loadArtistCatalogFromSupabase()
+    loadArtistCatalogFromSupabase(currentOwnerId)
       .then(catalog => {
-        if (!cancelled && catalog.cards.length) {
+        if (!cancelled) {
           setCatalogState({ source: 'supabase', artists: catalog.artists, cards: catalog.cards })
           if (currentOwnerId) {
             try { writeOfflineContinuityLane(currentOwnerId, 'artistCatalog', catalog) } catch { /* best-effort device continuity */ }
@@ -5947,7 +5982,7 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
           if (cached && typeof cached === 'object') {
             const catalog = cached as { artists?: ArtistSeed[]; cards?: ArtistCardCandidate[] }
             if (Array.isArray(catalog.artists) && Array.isArray(catalog.cards)) {
-              setCatalogState({ source: 'offline', artists: catalog.artists, cards: catalog.cards })
+              setCatalogState({ source: 'offline', artists: catalog.artists, cards: catalog.cards, error: error instanceof Error ? error.message : 'Refresh failed.' })
               return
             }
           }
@@ -5960,7 +5995,7 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
         }
     })
     return () => { cancelled = true }
-  }, [currentOwnerId])
+  }, [currentOwnerId, canWrite, catalogRefresh])
   useEffect(() => {
     let cancelled = false
     if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) {
@@ -5992,6 +6027,8 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
   const confirmedArtistCount = officialArtistSeeds.length
   const watchlistArtistCount = pocArtistSeeds.length - confirmedArtistCount
   const canUseCards = currentPerson === 'Kavi'
+  const signingPreview = Boolean(currentOwnerId?.startsWith('preview-'))
+  const signingReadOnly = !signingPreview && (!canWrite || !navigator.onLine || !currentOwnerId || !supabase)
   const canonicalCardStyle = (style: string) => {
     const normalized = style.trim().replace(/\s+/g, ' ')
     if (!normalized) return 'Other / unclear'
@@ -6102,11 +6139,16 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
     if (card) setPreviewCard(card)
   }
   const toggleSigningInterest = async (card: ArtistCardCandidate, status: ArtistSigningInterestStatus) => {
-    if (!canUseCards) return
+    if (!canUseCards || signingSavePending.current) return
+    if (signingReadOnly) return
+    if (!signingPreview && (!card.artistId || !card.cardId || !card.printingId)) {
+      setSigningInterestError('This card is missing canonical catalog ids, so the signing pick was not saved.')
+      return
+    }
     const key = signingKeyForCard(card)
     const priorStatus = signingInterest[key]
     const nextStatus = priorStatus === status ? undefined : status
-    setSigningInterest(current => {
+    const commitChoice = () => setSigningInterest(current => {
       const next = { ...current }
       if (nextStatus) next[key] = nextStatus
       else delete next[key]
@@ -6116,22 +6158,12 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
       return next
     })
 
-    if (!canWrite || !supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) return
-    if (!card.artistId || !card.cardId || !card.printingId) {
-      setSigningInterestError('This card is missing canonical catalog ids, so the signing pick was not saved.')
-      return
-    }
-
-    const restorePrior = () => setSigningInterest(current => {
-      const next = { ...current }
-      if (priorStatus) next[key] = priorStatus
-      else delete next[key]
-      if (currentOwnerId && !currentOwnerId.startsWith('preview-')) {
-        try { writeOfflineContinuityLane(currentOwnerId, 'artistSigningInterests', next) } catch { /* best-effort device continuity */ }
-      }
-      return next
-    })
-
+    if (signingPreview) { commitChoice(); return }
+    if (!supabase || !currentOwnerId) return
+    signingSavePending.current = true
+    setSigningSaving(true)
+    setSigningInterestError(null)
+    try {
     if (!nextStatus) {
       const { error } = await supabase
         .from('artist_signing_interests')
@@ -6139,9 +6171,9 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
         .eq('owner_id', currentOwnerId)
         .eq('printing_id', card.printingId)
       if (error) {
-        restorePrior()
         setSigningInterestError(error.message)
       } else {
+        commitChoice()
         setSigningInterestError(null)
       }
       return
@@ -6155,7 +6187,6 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
       .eq('printing_id', card.printingId)
       .select('id')
     if (updateResult.error) {
-      restorePrior()
       setSigningInterestError(updateResult.error.message)
       return
     }
@@ -6169,12 +6200,18 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
         updated_at: now,
       })
       if (insertResult.error) {
-        restorePrior()
         setSigningInterestError(insertResult.error.message)
         return
       }
     }
+    commitChoice()
     setSigningInterestError(null)
+    } catch (error) {
+      setSigningInterestError(error instanceof Error ? error.message : 'Signing choice could not be saved.')
+    } finally {
+      signingSavePending.current = false
+      setSigningSaving(false)
+    }
   }
   const groupedVisibleCards = visibleCards.reduce<Array<{ label: string; cards: ArtistCardCandidate[] }>>((groups, card) => {
     const label = cardGroupLabel(card)
@@ -6188,6 +6225,13 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
     <button type="button" className={view === 'cards' ? 'active' : ''} onClick={() => setView('cards')}>Cards</button>
   </div>
   return <section className="artists-surface" aria-label="Artists">
+    {catalogState.source === 'fallback' && <p className="artist-card-sync-error">Reference catalog · not current server data.{catalogState.error ? ` Refresh failed: ${catalogState.error}` : ''}</p>}
+    {catalogState.source === 'offline' && <p className="original-receipt-note">Saved device catalog · {catalogState.error ? 'refresh failed; showing saved data' : navigator.onLine ? 'refreshing when available' : 'offline, read-only'}.</p>}
+    {catalogState.source !== 'fallback' && <ArtistAssetStatus
+      urls={[...catalogState.artists.map(artist => artist.thumbnailUrl ?? ''), ...catalogState.cards.flatMap(card => [card.artCropUrl, card.cardImageUrl])]}
+      missingImages={catalogState.cards.filter(card => !card.cardImageUrl).length}
+      online={navigator.onLine} revision={catalogRefresh}
+    />}
     {canUseCards && <div className="artist-top-tools">
       <div className="surface-view-tabs-desktop">{viewTabs()}</div>
       <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>
@@ -6202,9 +6246,10 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
       <div>
         <span className="eyebrow">ATLANTA 2026</span>
         <h2>{confirmedArtistCount} confirmed Art of Magic artists{watchlistArtistCount ? ` + ${watchlistArtistCount} watchlist seed` : ''}.</h2>
-        <p>The official guest page now lists Cynthia Sheppard, Mark Poole, and Serena Malyon for all days. Rebecca Guay is included as an unconfirmed planning seed, not as an Atlanta-confirmed guest.</p>
+        <p>{officialArtistSeeds.length ? `Confirmed: ${officialArtistSeeds.map(artist => artist.title).join(', ')}.` : 'No confirmed artists in the current catalog.'} Attendance details belong to each artist; watchlist entries are not confirmed guests.</p>
       </div>
       <div className="artist-status-actions">
+        <button type="button" disabled={!navigator.onLine} onClick={() => setCatalogRefresh(value => value + 1)}>Refresh artists</button>
         <a href="https://mcatlanta.mtgfestivals.com/en-us/guests.html" target="_blank" rel="noreferrer">Official guests ↗</a>
         <button type="button" onClick={onOpenActivity}>Open Activity</button>
       </div>
@@ -6342,8 +6387,8 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
     {canUseCards && previewCard && <div className="artist-card-popover-backdrop" role="dialog" aria-modal="true" aria-label={`${previewCard.cardName} card art preview`} onMouseDown={event => {
       if (event.target === event.currentTarget) setPreviewCard(null)
     }}>
-      <div className="artist-card-popover">
-        <button type="button" className="detail-close persistent-detail-close artist-card-popover-close" aria-label="Close card preview" onClick={() => setPreviewCard(null)}>×</button>
+      <div className="artist-card-popover" ref={cardPreviewRef}>
+        <button type="button" className="detail-close artist-card-popover-close" aria-label="Close card preview" onClick={() => setPreviewCard(null)}>×</button>
         <div className="artist-card-popover-art">
           <img src={previewCard.cardImageUrl} alt={`${previewCard.cardName} card art by ${previewCard.artistName}`} />
         </div>
@@ -6372,14 +6417,16 @@ function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject,
           <p>{previewCard.styleNotes}</p>
           <small>{previewCard.priceAsOf}</small>
           {signingInterestError && <small className="artist-card-sync-error">Signing pick could not be saved: {signingInterestError}</small>}
-          <span className="artist-signing-actions" aria-label="Signing interest">
+          {signingReadOnly && <small>Read-only · reconnect to change signing choices.</small>}
+          {signingSaving && <small role="status">Saving signing choice…</small>}
+          <fieldset className="artist-signing-actions" aria-label="Signing interest" disabled={signingReadOnly || signingSaving} style={{ border: 0, padding: 0, margin: 0 }}>
             <button type="button" className="maybe" aria-label="Heart for possible signing" title="Heart" aria-pressed={signingInterest[signingKeyForCard(previewCard)] === 'maybe'} onClick={() => void toggleSigningInterest(previewCard, 'maybe')}>
               <ActionIcon name="heart" />
             </button>
             <button type="button" className="sure" aria-label="For sure for signing" title="For sure" aria-pressed={signingInterest[signingKeyForCard(previewCard)] === 'want_signed'} onClick={() => void toggleSigningInterest(previewCard, 'want_signed')}>
               <ActionIcon name="sign" />
             </button>
-          </span>
+          </fieldset>
         </div>
       </div>
     </div>}
@@ -6448,8 +6495,20 @@ function AgendaMarker({
 function CalendarSurface({ slice, events, flights, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
-  const [detail, setDetail] = useState<CalendarDetail | null>(null)
+  const [detail, setCalendarDetail] = useState<CalendarDetail | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(() => purchaseQaEventId(events))
+  const setDetail = (next: CalendarDetail | null) => {
+    setSelectedEventId(null)
+    setCalendarDetail(next)
+  }
+  useEffect(() => {
+    if (!detail && !selectedEventId) return
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setSelectedEventId(null); setCalendarDetail(null) }
+    }
+    window.addEventListener('keydown', dismiss)
+    return () => window.removeEventListener('keydown', dismiss)
+  }, [detail, selectedEventId])
   const [selectedPeople, setSelectedPeople] = useState<PersonName[]>(() => readPeopleVisibility(currentOwnerId, currentPerson))
   const toolbarRef = useRef<HTMLDivElement | null>(null)
   const toolbarStartRef = useRef(0)
@@ -6462,7 +6521,7 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
   const returnArrivalTime = flightAirportTime(flightProjection.returnLeg.arrival_at, flightProjection.returnLeg.arrival_airport)
   const candidateEvents = events
   const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
-  const committedEvents = candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed'))
+  const committedEvents = sortScheduledEvents(candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed')))
   const selectedEvent = candidateEvents.find(event => event.id === selectedEventId) ?? null
   const openEvent = (id: string) => {
     setDetail(null)
@@ -6534,10 +6593,10 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
         <button type="button" className={mode === 'past' ? 'active' : ''} onClick={() => { setMode('past'); setDetail(null) }}>Past</button>
       </div>
       {mode === 'upcoming' && <div className="calendar-filter" aria-label="Calendar type filter">
-        {(['all', 'convention', 'travel'] as CalendarFilter[]).map(value => <button key={value} type="button" className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{value === 'all' ? 'All' : value === 'convention' ? 'Convention' : 'Travel'}</button>)}
+        {(['all', 'convention', 'travel'] as CalendarFilter[]).map(value => <button key={value} type="button" className={filter === value ? 'active' : ''} onClick={() => { setFilter(value); setDetail(null) }}>{value === 'all' ? 'All' : value === 'convention' ? 'Convention' : 'Travel'}</button>)}
       </div>}
       {mode === 'upcoming' && <div className="plan-people-filter calendar-people-filter" aria-label="People included in Calendar">
-        {planPeople.map(person => <button key={person} type="button" className={selectedPeople.includes(person) ? `active ${person.toLowerCase()}` : person.toLowerCase()} aria-pressed={selectedPeople.includes(person)} title={person} onClick={() => togglePerson(person)}><span className="person-bubble">{person === 'Kavi' ? 'Ka' : person === 'Kyle' ? 'Ky' : person[0]}</span><span className="person-filter-name">{person}</span></button>)}
+        {planPeople.map(person => <button key={person} type="button" className={selectedPeople.includes(person) ? `active ${person.toLowerCase()}` : person.toLowerCase()} aria-pressed={selectedPeople.includes(person)} title={person} onClick={() => { togglePerson(person); setDetail(null) }}><span className="person-bubble">{person === 'Kavi' ? 'Ka' : person === 'Kyle' ? 'Ky' : person[0]}</span><span className="person-filter-name">{person}</span></button>)}
       </div>}
     </div>
     {toolbarPinned && <div className="workbar-spacer" style={{ height: toolbarHeight }} aria-hidden="true" />}
@@ -6564,15 +6623,15 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
       </a>
     </div> : <>
 
-    <div className="calendar-month"><span>OCT</span><strong>Likely information drops</strong></div>
-    {milestoneForecasts.slice(1).map(forecast => <button key={forecast.id} className={`agenda-row agenda-action milestone-row forecast-${forecast.id}`} type="button" onClick={() => setDetail(forecast.id)}>
-      <div className="agenda-date milestone-date-tile"><span>{forecast.month}</span><strong>{forecast.calendarDate}</strong><em>FORECAST</em></div>
+    {showConvention && <><div className="calendar-month"><span>OCT</span><strong>Likely information drops</strong></div>
+    {milestoneForecasts.slice(1).sort((a, b) => Number.parseInt(a.calendarDate) - Number.parseInt(b.calendarDate)).map(forecast => <button key={forecast.id} className={`agenda-row agenda-action milestone-row forecast-${forecast.id}`} type="button" onClick={() => setDetail(forecast.id)}>
+      <div className="agenda-date milestone-date-tile forecast-date-tile"><strong>{forecast.window.toUpperCase().split(/–(?=[A-Z])/).map((part, index) => <span key={part}>{index > 0 ? '– ' : ''}{part}</span>)}</strong><em>FORECAST</em></div>
       <div className="agenda-icon forecast-symbol" aria-hidden="true"><MilestoneIcon name={forecast.icon} /></div>
       <div className="agenda-copy"><div><span className="agenda-kind">Milestone forecast</span><span className="soft-chip">{forecast.confidence}</span></div><h2>{forecast.title}</h2><p>{forecast.window} · based on recent MagicCon timing.</p></div>
       <span className="agenda-destination"><NavIcon name="notes" />Details</span>
-    </button>)}
+    </button>)}</>}
 
-    <div className="calendar-gap"><span>then travel</span></div>
+    {showTravel && showConvention && <div className="calendar-gap"><span>then travel</span></div>}
     <div className="calendar-month"><span>NOV</span><strong>Atlanta trip</strong></div>
 
     {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
@@ -6909,7 +6968,7 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote, refresh
         {contextItems.map(note => <article key={note.id} className="note-index-row">
           <button type="button" className="note-index-open" onClick={() => onOpenNote(note)}>
             <PersonBubbles people={[note.author]} />
-            <span><strong>{note.body}</strong><small>{note.title} · {note.objectTitle}</small><em>{note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</em></span>
+            <span><strong>{note.body}</strong><em>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</em></span>
             <b aria-hidden="true">›</b>
           </button>
           {note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note ${note.title}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
@@ -6954,14 +7013,15 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
   const visibleNotes = stream === 'personal' ? notes : []
 
   return <section className="activity-surface" aria-label="Activity and alert intake">
-    <section className="activity-inbox-head">
+    {stream === 'hot' && hotCount > 0 && <section className="activity-inbox-head">
       <div>
         <span className="eyebrow">REVIEW INBOX</span>
         <h2>{hotCount ? `${hotCount} hot finding${hotCount === 1 ? '' : 's'}` : 'Nothing hot right now.'}</h2>
         <p>Hot is the default lane for signals worth attention. Changes, sources, notes, and the full history stay one tap away.</p>
       </div>
       <span className={hotCount ? 'review-count active hot' : 'review-count'}>{hotCount}</span>
-    </section>
+    </section>}
+    <label className="activity-mobile-filter">View <select aria-label="Activity view" value={stream} onChange={event => setStream(event.target.value as ActivityStream)}>{streamDefs.map(item => <option key={item.value} value={item.value}>{item.label} · {item.count}</option>)}</select></label>
     <div className="activity-tabs" aria-label="Activity stream filters">
       {streamDefs.map(item => <button key={item.value} type="button" aria-pressed={stream === item.value} className={stream === item.value ? 'active' : ''} onClick={() => setStream(item.value)}>
         <span className="activity-tab-icon">{item.icon}</span>

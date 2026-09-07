@@ -1,9 +1,23 @@
 # Current Frontier
 
-Updated: 2026-08-30
-Repository checkpoint: pending publication of the authenticated iPhone offline-continuity audit
+Updated: 2026-09-06
+Repository checkpoint: local correctness/navigation batch pending publication; see `docs/CLICK_THROUGH_AUDIT_2026-09-06.md` for verified scope and remaining work.
+
+## Current local work
+
+Latest local visual repair: compact Explore rows now show four complete initial phone results, retain title/time/cost/state, and move secondary material into detail. Desktop/390px screenshots were judged; saved-event opening preserved Tentative, and long desktop titles/prices were checked. Build and two focused tests pass. Receipt Show proof flow is next. Findings 1–3 previously passed their bounded checks (card popup, filters, date labels). All UI work remains local and unpublished; the failed-audit paragraph below records the original checkpoint.
+
+Visual acceptance is currently failed, not complete: `docs/VISUAL_USABILITY_AUDIT_2026-09-06.md` records the artist popup grid/close failure, hidden mobile filters, ambiguous cross-month dates, oversized Explore rows, and thumbnail-first receipt proof. Earlier functional checks did not establish usable layouts. Next local repair is the popup, filters, and date presentation; ownership migration is not the active next step. This audit changed documentation only.
+
+The September 6 live click-through audit found stale hardcoded Wallet flights, participant-blind Plan conflicts, stale Explore route filters, looping app Back, and Calendar/global drawer lifecycle problems. The first local batch removes those causes, sorts Calendar events/forecasts, and applies the Travel filter to forecasts. The second adds fullscreen original-receipt viewing with zoom/page navigation, readable mobile event titles with separate purchase controls, and a 24-hour Hot lifetime for informational monitoring notices without clearing history or real action items. Both batches remain local, not deployed. Artist/card architecture is the requested subsequent review. Details and validation are in the audit document; older sections below describe the established foundations, not a claim that every audit finding is resolved.
 
 ## Current product state
+
+Artist asset completeness is now visible locally, with retry and an actual offline cache-entry audit (62/62 URLs observed in the authenticated local session). Reference and saved-data fallback labels are explicit. Ownership/provenance migration remains planned, not applied; the audit records the required inventory/assessment split and removal of personal production fallback data before any privacy claim.
+
+Second artist correction checkpoint is also local: fresh owner/convention-scoped reads, explicit refresh, honest empty catalogs, and no attendance mutation from card imports. Next substantive audit items are artist/card asset completeness and the ownership/provenance boundary. Hosted quantities still await a deliberately scoped repair; do not run the full importer as an incidental UI validation.
+
+Artist/card architecture audit and first local correction completed September 6: `docs/ARTIST_CARD_ARCHITECTURE_AUDIT_2026-09-06.md`. The local code preserves printing-specific variants, prevents offline cache-only signing writes, and aggregates duplicate inventory quantities. The corrected importer has not been applied to hosted data. Refresh/event scope, attendance import isolation, asset completeness, and ownership/provenance remain findings for subsequent work; live policy state has not been verified. Nothing from these local batches is published yet.
 
 The Atlanta companion is an authenticated, mobile-first React PWA backed by canonical Supabase project `pavjsexxbueuzhzgemgy`. Home, Explore, Plan, Calendar, Map, Info, Wallet, Trip, Artists, Notes, and Activity are URL-addressable surfaces. Desktop and mobile navigation now derive from one ordered destination model: phone keeps Home / Events / Map / Info / More immediately reachable, with Explore / Plan / Calendar and Wallet / Trip / Artists / Notes / Activity in compact drawers. The main drawer is narrow, visually aligned with the desktop rail, and its ordering/labels can no longer drift independently.
 

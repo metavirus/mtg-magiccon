@@ -156,6 +156,8 @@ html,body{max-width:100%;overflow-x:hidden}
 .funnel-group-header[aria-expanded=true] b{transform:rotate(180deg)}
 .explore-route-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border:1px solid #334b6a;border-radius:999px;background:rgba(20,38,61,.72);color:#a9bdd6}
 .explore-route-chip span{color:#dbeaff;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.explore-route-chip a{color:#a8ccff;font-size:11px;padding:6px;text-underline-offset:3px}
+.explore-route-chip a:focus-visible{outline:2px solid #82b6fa;outline-offset:2px;border-radius:4px}
 .explore-route-chip small{color:#8195ae;font-size:10px;text-align:right}
 .explore-event-main{grid-template-columns:30px minmax(0,1fr) auto}
 .event-mini-track{display:none}
@@ -173,6 +175,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .explore-event::before{top:1px;bottom:1px;left:1px;border-radius:10px}
 .explore-list-head{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:center}
 .explore-list-filters{display:grid;grid-template-columns:max-content max-content max-content;align-items:center;gap:10px;min-width:0}
+.explore-type-select{display:none}
 .explore-days,.explore-type-tabs{display:flex;flex-wrap:nowrap;gap:0;max-width:100%;overflow-x:auto;padding:2px;border:1px solid #293c56;border-radius:999px;background:#0b1625;scrollbar-width:none}
 .explore-days::-webkit-scrollbar,.explore-type-tabs::-webkit-scrollbar{display:none}
 .explore-days{justify-self:start;width:max-content;flex:0 0 auto}
@@ -716,6 +719,23 @@ html,body{max-width:100%;overflow-x:hidden}
 .agenda-event>.plan-participants{align-self:end;justify-self:start;padding-bottom:5px}
 @media(max-width:620px){.plan-control-row{display:flex;justify-content:flex-start}.plan-view-toggle.map-tabs button{width:auto;min-width:54px;padding:0 9px}.agenda-timeline{grid-template-columns:46px minmax(760px,1fr)}}
 
+/* Keep every mobile planning/filter choice visible without an undiscoverable swipe. */
+@media(max-width:620px){
+  .plan-control-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px;overflow:visible}
+  .plan-control-row .plan-day-tabs{justify-self:end;min-width:0}
+  .plan-control-row .plan-day-tabs button{min-width:36px;padding:0 6px}
+  .plan-control-right{grid-column:1/-1;justify-content:stretch}
+  .plan-control-right .plan-people-filter{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%}
+  .plan-control-right .plan-people-filter button{width:auto;min-width:0;gap:4px;padding:0 4px}
+  .plan-control-right .plan-people-filter .person-filter-name{display:inline;font-size:10px}
+  .explore-list-filters{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;overflow:visible}
+  .explore-list-filters .explore-days{grid-column:1/-1;display:flex;width:100%;min-width:0}
+  .explore-list-filters .explore-days button{flex:1;padding:0 6px;min-height:30px}
+  .explore-list-filters .explore-type-tabs{display:none}
+  .explore-type-select{display:block;width:100%;min-width:0;height:34px;padding:0 10px;border:1px solid #293c56;border-radius:999px;background:#0b1625;color:#dce7f5;font:inherit;font-size:11px}
+  .explore-list-filters .explore-hidden-pill{min-height:34px}
+}
+
 /* Agenda identity is carried by compact owner color, not commitment-colored borders. */
 .plan-participant.is-current .person-bubble{outline:0}
 .plan-participant.is-current::after{content:none}
@@ -987,6 +1007,9 @@ html,body{max-width:100%;overflow-x:hidden}
 /* Travel and dated milestones share the warm calendar category language. */
 .agenda-row.travel-row{border-left-color:#dfb865;background:#171a22}
 .milestone-date-tile{align-content:center}.agenda-date.milestone-date-tile span{order:1;color:#9fb3ce;font-size:8px}.agenda-date.milestone-date-tile strong{order:2;margin:2px 0 0;font-size:24px}.agenda-date.milestone-date-tile em{order:3;margin-top:0;color:#7f90a8;font-size:8px;letter-spacing:.1em}
+.agenda-date.forecast-date-tile strong{display:grid;gap:3px;margin:0 0 3px;font-family:inherit;line-height:1.2}
+.agenda-date.forecast-date-tile strong span{color:#e2ebf6;font-size:11px;letter-spacing:0;white-space:nowrap}
+@media(max-width:620px){.milestone-row{grid-template-columns:66px 29px minmax(0,1fr) auto}}
 
 /* Explore and Plan share one event-category rail; Black Lotus remains a source badge. */
 .plan-row-main{grid-template-columns:52px 74px minmax(150px,1fr) auto;padding:0 10px 0 0}
@@ -1078,12 +1101,12 @@ html,body{max-width:100%;overflow-x:hidden}
 .artist-card-popover-backdrop{align-items:center;justify-items:center;overflow:hidden}
 .artist-card-popover{grid-template-columns:minmax(0,292px) minmax(0,320px);align-items:start;width:min(680px,calc(100vw - 32px));max-width:680px;max-height:min(88dvh,820px);padding:14px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
 .artist-card-popover-art,.artist-card-popover-copy,.artist-card-detail-grid,.artist-card-detail-grid>*{min-width:0}
-.artist-card-popover-art{min-height:0;max-height:calc(88dvh - 28px);align-self:start}
+.artist-card-popover-art{grid-column:1;grid-row:1;min-height:0;max-height:calc(88dvh - 28px);align-self:start}
 .artist-card-popover-art img{width:100%;height:auto;max-height:calc(88dvh - 28px);object-fit:contain}
-.artist-card-popover-copy{align-self:start;padding:4px 34px 0 0;overflow-wrap:anywhere}
+.artist-card-popover-copy{grid-column:2;grid-row:1;align-self:start;padding:38px 0 0;overflow-wrap:anywhere}
 .artist-card-popover-copy h3{font-size:22px}
 .artist-card-detail-grid dd{overflow-wrap:anywhere}
-.artist-card-popover-copy>.artist-signing-actions{position:absolute;right:14px;bottom:14px;z-index:2;justify-content:flex-end;margin:0;padding:0;background:none}
+.artist-card-popover-copy>.artist-signing-actions{position:static;align-self:end;z-index:2;justify-content:flex-end;margin:0;padding:0;background:none}
 @media(max-width:700px){
   .artist-card-popover-backdrop{align-items:end;justify-items:stretch;padding:0}
   .artist-card-popover{grid-template-columns:minmax(0,1fr);gap:12px;width:100%;max-width:none;max-height:92dvh;margin:0;padding:12px 12px calc(10px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0}

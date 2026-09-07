@@ -1,0 +1,2 @@
+.artist-asset-status{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 10px;color:#9fb2c9;font-size:11px}
+.artist-asset-status button{padding:6px 10px;min-height:32px;border:1px solid #425d7b;border-radius:8px;background:#14283e;color:#d6e7fa;cursor:pointer}

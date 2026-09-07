@@ -1,0 +1,7 @@
+.activity-mobile-filter{display:none}
+.object-detail-section>summary{color:#b8c8da;font-size:12px;cursor:pointer;padding:6px 0}
+@media(max-width:650px){
+ .activity-surface .activity-tabs{display:none!important}
+ .activity-mobile-filter{display:flex;align-items:center;gap:8px;font-size:12px;color:#b8c8da;margin-bottom:10px}
+ .activity-mobile-filter select{flex:1;min-height:36px;border:1px solid #365475;border-radius:8px;background:#0d1a2b;color:#eaf3ff;padding:6px 10px;font:inherit}
+}

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { cacheDeviceAssets, DEVICE_ASSET_CACHE } from './deviceAssets'
+import { auditDeviceAssets, cacheDeviceAssets, DEVICE_ASSET_CACHE } from './deviceAssets'
 
 describe('device asset pack', () => {
   beforeEach(() => {
@@ -32,5 +32,12 @@ describe('device asset pack', () => {
     vi.stubGlobal('caches', { open: vi.fn(async () => ({ match: vi.fn(), put: vi.fn() })) })
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('network') }))
     expect(await cacheDeviceAssets(['/missing.jpg'])).toEqual({ expected: 1, cached: 0, failures: ['/missing.jpg'] })
+  })
+  it('checks existing cache entries offline without fetching and detects eviction', async () => {
+    vi.stubGlobal('navigator', { onLine: false })
+    vi.stubGlobal('fetch', vi.fn())
+    vi.stubGlobal('caches', { open: vi.fn(async () => ({ match: vi.fn(async (request: Request) => request.url.endsWith('/saved.jpg') ? new Response('image') : undefined) })) })
+    expect(await auditDeviceAssets(['/saved.jpg', '/evicted.jpg'])).toEqual({ expected: 2, cached: 1, failures: ['/evicted.jpg'] })
+    expect(fetch).not.toHaveBeenCalled()
   })
 })
