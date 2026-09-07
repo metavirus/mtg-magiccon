@@ -7,6 +7,7 @@ import { readOfflineContinuity, writeOfflineContinuityLane } from './offlineCont
 
 const db = vi.hoisted(() => ({ from: vi.fn() }))
 vi.mock('./supabase', () => ({ supabase: db }))
+const sampleArtists = [{ id: 'cynthia-sheppard', title: 'Cynthia Sheppard', signal: 'Confirmed artist', status: 'Confirmed', attendance: 'All days', facts: [], signatureTargets: [] }]
 afterEach(() => { cleanup(); localStorage.clear(); vi.restoreAllMocks() })
 
 describe('printing identity and signing safety', () => {
@@ -19,6 +20,7 @@ describe('printing identity and signing safety', () => {
   it('isolates the card close control from generic sticky layout and restores focus on Escape', () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
     window.history.replaceState(null, '', '/#artists')
+    writeOfflineContinuityLane('owner', 'artistCatalog', { artists: sampleArtists, cards: [...artistCardCandidates] })
     render(<ArtistsSurface currentPerson="Kavi" currentOwnerId="owner" canWrite={false} onOpenObject={() => {}} onOpenActivity={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: 'Cards' }))
     const opener = screen.getByRole('button', { name: new RegExp(`^${artistCardCandidates[0].cardName} art by`) })
@@ -45,6 +47,7 @@ describe('printing identity and signing safety', () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
     window.history.replaceState(null, '', '/#artists')
     const card = artistCardCandidates[0]
+    writeOfflineContinuityLane('owner', 'artistCatalog', { artists: sampleArtists, cards: [card] })
     writeOfflineContinuityLane('owner', 'artistSigningInterests', { [card.id]: 'maybe' })
     render(<ArtistsSurface currentPerson="Kavi" currentOwnerId="owner" canWrite={false} onOpenObject={() => {}} onOpenActivity={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: 'Cards' }))

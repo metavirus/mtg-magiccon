@@ -11,6 +11,7 @@ export type OfflineContinuitySnapshot = {
   ownerId: string
   savedAt: string
   lanes: Partial<Record<ContinuityLane, unknown>>
+  artistCatalogVersion?: 2
 }
 
 function cacheKey(ownerId: string) {
@@ -26,6 +27,9 @@ export function readOfflineContinuity(
     if (!raw) return null
     const parsed = JSON.parse(raw) as OfflineContinuitySnapshot
     if (parsed.version !== 1 || parsed.ownerId !== ownerId || !parsed.savedAt || !parsed.lanes || typeof parsed.lanes !== 'object') return null
+    // Legacy catalogs were fetched from shared holdings. Never replay them as
+    // private inventory; keep unrelated Wallet/notes and signing choices intact.
+    if (parsed.artistCatalogVersion !== 2) delete parsed.lanes.artistCatalog
     return parsed
   } catch {
     return null
@@ -45,6 +49,7 @@ export function writeOfflineContinuityLane(
     ownerId,
     savedAt,
     lanes: { ...(current?.lanes ?? {}), [lane]: value },
+    artistCatalogVersion: lane === 'artistCatalog' ? 2 : current?.artistCatalogVersion,
   }
   storage.setItem(cacheKey(ownerId), JSON.stringify(snapshot))
 }

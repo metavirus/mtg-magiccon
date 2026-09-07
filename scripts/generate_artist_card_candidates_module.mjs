@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url'
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const normalizedPath = path.join(repoRoot, 'local-assets', 'artist-card-working', 'artist_card_candidates.normalized.csv')
 const pricePath = path.join(repoRoot, 'local-assets', 'artist-card-working', 'cards with price.csv')
-const outputPath = path.join(repoRoot, 'src', 'data', 'artistCardCandidates.ts')
+// Private analysis output must never overwrite the public synthetic preview.
+const outputPath = path.join(repoRoot, 'local-assets', 'artist-card-working', 'artistCardCandidates.private.ts')
 
 const pocArtists = new Set(['Cynthia Sheppard', 'Mark Poole', 'Serena Malyon', 'Rebecca Guay'])
 

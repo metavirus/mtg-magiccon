@@ -7,6 +7,7 @@ vi.mock('./supabase', () => ({ supabase: mock }))
 let tables: Record<string, unknown[]>
 let filters: Array<[string, string, string]>
 beforeEach(() => {
+  mock.from.mockClear()
   filters = []
   tables = { artists: [{ id: 'artist', display_name: 'Test Artist', canonical_name: 'Test Artist' }], artist_appearances: [{ artist_id: 'artist', event_key: 'magiccon_atlanta_2026', attending_status: 'confirmed', appearance_days: 'Friday' }], artist_cards: [], artist_card_printings: [], artist_card_assessments: [] }
   mock.from.mockImplementation((table: string) => {
@@ -19,13 +20,24 @@ beforeEach(() => {
 })
 
 describe('artist catalog refresh boundaries', () => {
+  it('uses only the requested owner holdings, never shared quantities or other owners', async () => {
+    tables.artist_cards = [{ id: 'card', artist_id: 'artist', card_name: 'Example' }]
+    tables.artist_card_printings = [{ id: 'printing', card_id: 'card', quantity: 999 }, { id: 'other', card_id: 'card', quantity: 888 }]
+    tables.artist_collection_inventory = [{ owner_id: 'owner', printing_id: 'printing', quantity: 3 }, { owner_id: 'stranger', printing_id: 'other', quantity: 9 }]
+    const result = await loadArtistCatalogFromSupabase('owner')
+    expect(result.cards.map(card => [card.printingId, card.quantity])).toEqual([['printing', 3]])
+    expect(filters).toContainEqual(['artist_collection_inventory', 'owner_id', 'owner'])
+    expect(filters).toContainEqual(['artist_card_assessments', 'owner_id', 'owner'])
+    tables.artist_collection_inventory = []
+    expect((await loadArtistCatalogFromSupabase('owner')).cards).toEqual([])
+  })
   it('coalesces only concurrent reads and fetches again after success', async () => {
     const first = loadArtistCatalogFromSupabase('owner')
     expect(loadArtistCatalogFromSupabase('owner')).toBe(first)
     expect((await first).artists[0].attendance).toBe('Friday')
     tables.artist_appearances = [{ artist_id: 'artist', event_key: 'magiccon_atlanta_2026', attending_status: 'confirmed', appearance_days: 'Sunday' }]
     expect((await loadArtistCatalogFromSupabase('owner')).artists[0].attendance).toBe('Sunday')
-    expect(mock.from).toHaveBeenCalledTimes(10)
+    expect(mock.from).toHaveBeenCalledTimes(12)
   })
   it('queries Atlanta and rejects unrelated convention rows even in a mixed response', async () => {
     tables.artist_appearances.push({ artist_id: 'artist', event_key: 'other_convention', attending_status: 'not_attending', appearance_days: 'Never' })

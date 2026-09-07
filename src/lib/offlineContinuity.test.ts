@@ -9,6 +9,13 @@ function memoryStorage() {
 }
 
 describe('offline continuity', () => {
+  it('invalidates pre-ownership artist snapshots without discarding Wallet or signing choices', () => {
+    const storage = memoryStorage()
+    storage.setItem('magiccon:offline-continuity:v1:owner', JSON.stringify({ version: 1, ownerId: 'owner', savedAt: '2026-09-06', lanes: { artistCatalog: { cards: ['legacy private data'] }, walletReceipts: ['receipt'], artistSigningInterests: { printing: 'maybe' } } }))
+    expect(readOfflineContinuity('owner', storage)?.lanes).toEqual({ walletReceipts: ['receipt'], artistSigningInterests: { printing: 'maybe' } })
+    writeOfflineContinuityLane('owner', 'artistCatalog', { cards: ['owner-only'] }, storage)
+    expect(readOfflineContinuity('owner', storage)?.lanes.artistCatalog).toEqual({ cards: ['owner-only'] })
+  })
   it('refreshes once per reconnect edge and deduplicates repeated online events', async () => {
     let release!: () => void
     const run = vi.fn(() => new Promise<void>(resolve => { release = resolve }))

@@ -1,5 +1,7 @@
 # Artist/card architecture audit
 
+Implementation follow-through: `docs/ARTIST_OWNERSHIP_CUTOVER_2026-09-06.md` is the current ownership/provenance checkpoint. The earlier local UI/safety batch was published as `f773b64` and accepted by Kavi; older local/unpublished status below is historical.
+
 Date: 2026-09-06. Read-only application/schema/import audit. No live database reads or writes, ingestion, signing-state changes, or publication.
 
 ## Judgment

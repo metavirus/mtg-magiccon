@@ -2542,6 +2542,12 @@ type ArtistPrintingCatalogRow = {
   special_treatments: string[] | null
 }
 
+type ArtistInventoryCatalogRow = {
+  owner_id: string
+  printing_id: string
+  quantity: number
+}
+
 type ArtistAssessmentCatalogRow = {
   printing_id: string
   card_art_category: string | null
@@ -2763,8 +2769,9 @@ export function loadArtistCatalogFromSupabase(ownerId = 'anonymous'): Promise<{ 
     loadAllSupabaseRows<ArtistAppearanceCatalogRow>('artist_appearances', '*', 1000, { event_key: artistConventionKey }),
     loadAllSupabaseRows<ArtistCardCatalogRow>('artist_cards'),
     loadAllSupabaseRows<ArtistPrintingCatalogRow>('artist_card_printings'),
-    loadAllSupabaseRows<ArtistAssessmentCatalogRow>('artist_card_assessments'),
-  ]).then(([artists, appearances, cards, printings, assessments]) => {
+    loadAllSupabaseRows<ArtistAssessmentCatalogRow>('artist_card_assessments', '*', 1000, { owner_id: ownerId }),
+    loadAllSupabaseRows<ArtistInventoryCatalogRow>('artist_collection_inventory', 'id,owner_id,printing_id,quantity', 1000, { owner_id: ownerId }),
+  ]).then(([artists, appearances, cards, printings, assessments, inventory]) => {
   const eventAppearances = appearances.filter(appearance => appearance.event_key === artistConventionKey)
   const appearancesByArtist = new Map(eventAppearances.map(appearance => [appearance.artist_id, appearance]))
   const appearanceArtistIds = new Set(eventAppearances.map(appearance => appearance.artist_id))
@@ -2778,7 +2785,9 @@ export function loadArtistCatalogFromSupabase(ownerId = 'anonymous'): Promise<{ 
     .map(artist => catalogArtistToSeed(artist, appearancesByArtist.get(artist.id)))
   const scopedCards = cards.filter(card => appearanceArtistIds.has(card.artist_id))
   const scopedCardIds = new Set(scopedCards.map(card => card.id))
-  const scopedPrintings = printings.filter(printing => scopedCardIds.has(printing.card_id))
+  const holdings = new Map(inventory.filter(row => row.owner_id === ownerId && row.quantity > 0).map(row => [row.printing_id, row.quantity]))
+  const scopedPrintings = printings.filter(printing => scopedCardIds.has(printing.card_id) && holdings.has(printing.id))
+    .map(printing => ({ ...printing, quantity: holdings.get(printing.id)! }))
   const scopedPrintingIds = new Set(scopedPrintings.map(printing => printing.id))
   const scopedAssessments = assessments.filter(assessment => scopedPrintingIds.has(assessment.printing_id))
 
@@ -5944,7 +5953,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
       const catalog = cached as { artists?: ArtistSeed[]; cards?: ArtistCardCandidate[] }
       if (Array.isArray(catalog.artists) && Array.isArray(catalog.cards)) return { source: 'offline', artists: catalog.artists, cards: catalog.cards }
     }
-    return { source: 'fallback', artists: artistSeeds, cards: artistCardCandidates }
+    return { source: 'fallback', artists: artistSeeds, cards: currentOwnerId?.startsWith('preview-') ? artistCardCandidates : [] }
   })
   const localQaModes = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
@@ -5989,7 +5998,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
           setCatalogState({
             source: 'fallback',
             artists: artistSeeds,
-            cards: artistCardCandidates,
+            cards: currentOwnerId?.startsWith('preview-') ? artistCardCandidates : [],
             error: error instanceof Error ? error.message : 'Artist catalog could not be refreshed.',
           })
         }

@@ -1,9 +1,11 @@
 # Current Frontier
 
 Updated: 2026-09-06
-Repository checkpoint: local correctness/navigation batch pending publication; see `docs/CLICK_THROUGH_AUDIT_2026-09-06.md` for verified scope and remaining work.
 
-## Current local work
+Active checkpoint: artist ownership cutover. `docs/ARTIST_OWNERSHIP_CUTOVER_2026-09-06.md` is authoritative. Owner-scoped holdings/assessments/manifests are live; guarded reconciliation restored 6,307 copies across the same 5,451 printing UUIDs and five signing choices. App/importer cutover and public fixture removal are locally validated, awaiting deployment then removal of preserved legacy shared fields. UI batch `f773b64` was accepted by Kavi on device. The local/unpublished and next-step paragraphs below are historical, not active tasks.
+Repository checkpoint: correctness/navigation and visual UI batch published as `f773b6454615ea811ab314e6d1608e8830a0c46f`. CI 34071047162 and Pages 34071047140 succeeded; public freshness verification passed and the deployed phone Activity selector was visually checked and exercised. Full release gate: 348 tests. The local close-style regression was corrected to exclude the artist grid from generic sticky placement. A transient esbuild temp-file lock interrupted public-verifier preparation once; the same command passed on retry. Physical iPhone/offline acceptance remains next. Map is an intentional placeholder; artist importer/schema work was not applied to hosted data. Older local checkpoint paragraphs below are historical.
+
+## Historical local work before the published UI checkpoint
 
 Latest local visual repair: compact Explore rows now show four complete initial phone results, retain title/time/cost/state, and move secondary material into detail. Desktop/390px screenshots were judged; saved-event opening preserved Tentative, and long desktop titles/prices were checked. Build and two focused tests pass. Receipt Show proof flow is next. Findings 1–3 previously passed their bounded checks (card popup, filters, date labels). All UI work remains local and unpublished; the failed-audit paragraph below records the original checkpoint.
 

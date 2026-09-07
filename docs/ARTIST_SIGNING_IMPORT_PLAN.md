@@ -1,6 +1,8 @@
 # Artist signing import plan
 
-Updated: 2026-08-20
+Updated: 2026-09-06
+
+Current authority: `docs/ARTIST_OWNERSHIP_CUTOVER_2026-09-06.md`. Owner inventory and assessments replace the original shared personal-data shape below. Use `pnpm artist:seed-sql --owner <UUID>`; generated SQL is reviewed before application. Never replay the old ownerless importer or publish generated collection fixtures. Historical schema descriptions below are superseded where they conflict with the cutover contract.
 
 This is the artist/card-signing data contract for Kavi's personal signing workflow. The working CSVs are now import evidence only; the canonical app data belongs in the normalized Supabase catalog created by migration `20260820173320_artist_card_canonical_catalog.sql`.
 
