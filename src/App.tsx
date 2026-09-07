@@ -24,6 +24,7 @@ import type { CatalogPromotionPlan } from './lib/catalogImport'
 import { promoteCatalogPlan } from './lib/catalogPromotion'
 import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
+import { ArtistBringList } from './components/ArtistBringList'
 
 export { CalendarSurface, PlanSurface }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
@@ -1438,6 +1439,7 @@ export default function App() {
   const closeObjectDetail = () => setObjectDetail(null)
   const upsertUserSelection = async (objectId: string, objectKind: SelectionObjectKind, key: string, value: string) => {
     const mapKey = selectionKey(objectId, key)
+    const previous = userSelections[mapKey]
     setUserSelections(current => ({ ...current, [mapKey]: value }))
     if (!canWrite || !supabase || !effectiveOwnerId) return
     const ownerId = effectiveOwnerId
@@ -1453,8 +1455,26 @@ export default function App() {
     if (error) {
       setMessageTone('error')
       setMessage(error.message)
+      setUserSelections(current => {
+        if (current[mapKey] !== value) return current
+        const restored = { ...current }
+        if (previous === undefined) delete restored[mapKey]
+        else restored[mapKey] = previous
+        return restored
+      })
       void refreshUserContinuity()
+      return false
     }
+    // Cache only acknowledged state so an immediate offline reopen sees the check.
+    try {
+      const cached = readOfflineContinuity(ownerId)?.lanes.selections
+      const rows = Array.isArray(cached) ? cached as UserSelectionRow[] : []
+      writeOfflineContinuityLane(ownerId, 'selections', [
+        ...rows.filter(row => !(row.owner_id === ownerId && row.object_id === objectId && row.selection_key === key)),
+        { owner_id: ownerId, object_id: objectId, object_kind: objectKind, selection_key: key, selection_value: value, updated_at: now },
+      ])
+    } catch { /* best-effort device continuity after server acknowledgement */ }
+    return true
   }
 
   const recordUserActivity = async (input: {
@@ -2062,7 +2082,7 @@ export default function App() {
           })
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
-        {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
+        {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} selections={userSelections} onBringChange={async (id, key, value) => { if (await upsertUserSelection(id, 'artist', key, value) === false) throw new Error('Checklist save failed') }} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} refreshFailed={continuityFailures.includes('notes')} onRetry={() => void refreshUserContinuity()} />}
         {surface === 'plan' && <PlanSurface events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
@@ -5897,7 +5917,7 @@ function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
   </div>
 }
 
-export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity }: { currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity, selections = {}, onBringChange }: { currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void; selections?: Record<string, string>; onBringChange?: (id: string, key: 'packed' | 'signed', value: string) => Promise<void> }) {
   const [view, setView] = useState<'artists' | 'cards'>('artists')
   const [artistFilter, setArtistFilter] = useState<'all' | string>('all')
   const [styleFilter, setStyleFilter] = useState<string>('all')
@@ -5964,10 +5984,12 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
         .filter(Boolean),
     )
   }, [])
-  const shouldSeedSigningQa = localQaModes.has('artist-signing') || localQaModes.has('signed-artists')
+  const shouldSeedSigningQa = localQaModes.has('artist-signing') || localQaModes.has('signed-artists') || localQaModes.has('artist-bring')
   const previewSigningInterest = useMemo(
-    () => shouldSeedSigningQa ? buildPreviewSigningInterest(catalogState.cards) : {},
-    [catalogState.cards, shouldSeedSigningQa],
+    () => localQaModes.has('artist-bring') && catalogState.cards[0]
+      ? { [signingKeyForCard(catalogState.cards[0])]: 'want_signed' as const }
+      : shouldSeedSigningQa ? buildPreviewSigningInterest(catalogState.cards) : {},
+    [catalogState.cards, shouldSeedSigningQa, localQaModes],
   )
   useEffect(() => {
     let cancelled = false
@@ -6060,7 +6082,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
   }
   const cardStyleFilterOptions = Array.from(new Set(activeArtistCardCandidates.map(styleGroupForCard))).sort((a, b) => a.localeCompare(b))
   const normalizedCardSearch = cardSearch.trim().toLowerCase()
-  const signingKeyForCard = (card: ArtistCardCandidate) => card.printingId ?? card.id
+  function signingKeyForCard(card: ArtistCardCandidate) { return card.printingId ?? card.id }
   const visibleArtistSeeds = pocArtistSeeds.filter(seed => {
     if (!normalizedCardSearch) return true
     const searchable = [
@@ -6250,6 +6272,12 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
         {cardSearch && <button type="button" className="artist-card-search-clear" aria-label="Clear card search" onClick={() => setCardSearch('')}>×</button>}
       </label>
     </div>}
+    {canUseCards && view === 'artists' && <ArtistBringList
+      cards={activeArtistCardCandidates.filter(card => signingInterest[signingKeyForCard(card)] === 'want_signed').map(card => ({ key: signingKeyForCard(card), name: card.cardName, artist: card.artistName, image: card.cardImageUrl, printing: `${card.setCode} #${card.collectorNumber} · ${card.foil}` }))}
+      selections={selections} readOnly={!onBringChange || signingReadOnly || !navigator.onLine}
+      onChange={onBringChange ?? (async () => {})}
+      onOpen={key => setPreviewCard(activeArtistCardCandidates.find(card => signingKeyForCard(card) === key) ?? null)}
+    />}
     {(view === 'artists' || !canUseCards) && <section className="artists-status-card">
       <div className="artist-status-icon" aria-hidden="true"><NavIcon name="artists" /></div>
       <div>

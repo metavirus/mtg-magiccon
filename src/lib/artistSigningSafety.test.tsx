@@ -11,6 +11,26 @@ const sampleArtists = [{ id: 'cynthia-sheppard', title: 'Cynthia Sheppard', sign
 afterEach(() => { cleanup(); localStorage.clear(); vi.restoreAllMocks() })
 
 describe('printing identity and signing safety', () => {
+  it('renders the bring preview without initialization errors', async () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    window.history.replaceState(null, '', '/?qa=artist-bring#artists')
+    render(<ArtistsSurface currentPerson="Kavi" currentOwnerId="preview-kavi" canWrite={false} onOpenObject={() => {}} onOpenActivity={() => {}} />)
+    await waitFor(() => expect(screen.getByLabelText(/Packed:/)).toBeVisible())
+  })
+  it('uses only for-sure picks and displays saved packed/signed state read-only offline', () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    window.history.replaceState(null, '', '/#artists')
+    const card = artistCardCandidates[0]
+    const key = card.id
+    writeOfflineContinuityLane('owner', 'artistCatalog', { artists: sampleArtists, cards: [card, { ...card, id: 'maybe', printingId: 'maybe', cardName: 'Not yet decided' }] })
+    writeOfflineContinuityLane('owner', 'artistSigningInterests', { [key]: 'want_signed', maybe: 'maybe' })
+    render(<ArtistsSurface currentPerson="Kavi" currentOwnerId="owner" canWrite={false} onOpenObject={() => {}} onOpenActivity={() => {}}
+      selections={{ [`artist-bring:${key}::packed`]: 'true' }} onBringChange={vi.fn()} />)
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2)
+    expect(screen.getByLabelText(/Packed:/)).toBeChecked()
+    expect(screen.getByLabelText(/Packed:/)).toBeDisabled()
+    expect(screen.getByLabelText(/Signed:/)).not.toBeChecked()
+  })
   it('pins desktop art and copy to the same grid row and keeps actions in content flow', () => {
     const css = readFileSync('src/density.css', 'utf8')
     expect(css).toContain('.artist-card-popover-art{grid-column:1;grid-row:1;')
