@@ -295,7 +295,7 @@ Goal: resume Plan only when there is real scheduling pressure.
 
 ## Current status after the original execution plan
 
-The cloud surveyor credential, staged-finding dedupe, deterministic closure, exact-report baseline acceptance, authenticated offline hydration, private receipt proof, and the Ticketed Play vertical slice are now active. Daily public discovery is authoritative only in the GitHub Actions surveyor workflow. Remaining work is artifact- or device-driven: physical installed-iPhone cold-offline proof, the first real Atlanta catalog, the official Atlanta map, and a future production Plan contention engine only if representative purchased/locked conflicts make it useful.
+The cloud surveyor credential, staged-finding dedupe, deterministic closure, exact-report baseline acceptance, authenticated offline hydration, private receipt proof, and the Ticketed Play vertical slice are now active. Kavi has accepted the installed-iPhone offline behavior. Daily public discovery is authoritative only in the GitHub Actions surveyor workflow. Remaining work is artifact-driven: the first real Atlanta catalog, the official Atlanta map, and a future production Plan contention engine only if representative purchased/locked conflicts make it useful.
 
 ## Explicitly deferred
 

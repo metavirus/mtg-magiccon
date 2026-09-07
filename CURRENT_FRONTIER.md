@@ -4,7 +4,7 @@ Updated: 2026-09-07
 
 ## Current checkpoint
 
-The public app is current through `139439c50d16aa4e9ecd8b4ab001a295c7acd61f`. The latest shipped feature is the compact Artist **Cards to bring** checklist: it derives from **For sure** signing picks, groups cards by artist, and persists independent Packed/Signed checks through owner-scoped Supabase selections. CI, Pages, public freshness, authenticated save/reload, and the deployed 390px layout passed. Automated offline-state tests pass; a physical installed-iPhone cold airplane-mode reopen remains the only open device proof.
+The public app is current through `139439c50d16aa4e9ecd8b4ab001a295c7acd61f`. The latest shipped feature is the compact Artist **Cards to bring** checklist: it derives from **For sure** signing picks, groups cards by artist, and persists independent Packed/Signed checks through owner-scoped Supabase selections. CI, Pages, public freshness, authenticated save/reload, and the deployed 390px layout passed. Automated offline-state tests pass, and Kavi accepted the installed-iPhone offline behavior.
 
 The Atlanta companion is an authenticated mobile-first React PWA backed by canonical Supabase project `pavjsexxbueuzhzgemgy`. Supabase is truth for meaningful authenticated state. Browser storage is limited to UI/auth convenience and owner-scoped read-only offline continuity; offline mode never queues writes or replaces newer server data.
 
@@ -26,5 +26,4 @@ Future artist collection refresh tooling is prepared locally and intentionally u
 1. When a new artist collection export arrives, use `docs/ARTIST_IMPORT_REFRESH.md`; review the delta before any authenticated database write.
 2. When the first Atlanta catalog releases, preserve the source and use the reviewed catalog intake/promotion path. Keep Catalogs hidden until a real reviewed Atlanta offer passes exact live readback.
 3. When the official Atlanta map arrives, begin with `docs/MAP_INGESTION_RUNBOOK.md`; do not activate speculative spatial data.
-4. At a convenient point, complete the remaining physical-iPhone cold airplane-mode proof across Wallet originals, Artists, Trip, Plan, Info, and the current shell.
-5. Otherwise keep the accepted app and cloud surveyor stable until real source data or a visible defect creates a concrete next task.
+4. Otherwise keep the accepted app and cloud surveyor stable until real source data or a visible defect creates a concrete next task.
