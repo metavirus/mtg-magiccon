@@ -293,14 +293,9 @@ Goal: resume Plan only when there is real scheduling pressure.
 - Flexible league-style events can remain visible without hard-blocking.
 - Calendar and Plan hand off cleanly.
 
-## Recommended execution order from here
+## Current status after the original execution plan
 
-1. **Configure the cloud surveyor credential and prove staged-finding dedupe end to end.**
-2. **Low-friction offline proof and private artifact proof for badge/travel/receipt originals.**
-3. **One real ticketed-play vertical slice when Atlanta data appears.**
-4. **Production Plan only after representative contention exists.**
-
-The first five chunks are accepted, and Chunk 6 is implemented in the app/live database but not yet activated in the pushed cloud workflow. Finish that operational gate before moving on; keep Plan-lite until purchases/locked commitments create real conflicts.
+The cloud surveyor credential, staged-finding dedupe, deterministic closure, exact-report baseline acceptance, authenticated offline hydration, private receipt proof, and the Ticketed Play vertical slice are now active. Daily public discovery is authoritative only in the GitHub Actions surveyor workflow. Remaining work is artifact- or device-driven: physical installed-iPhone cold-offline proof, the first real Atlanta catalog, the official Atlanta map, and a future production Plan contention engine only if representative purchased/locked conflicts make it useful.
 
 ## Explicitly deferred
 

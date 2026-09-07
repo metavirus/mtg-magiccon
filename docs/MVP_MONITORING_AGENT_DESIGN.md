@@ -2,7 +2,7 @@
 
 Updated: 2026-08-28
 
-Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` may inspect approved public sources and optionally discover read-only Gmail evidence when that connector is already available. It does not own or request a local copy of the cloud surveyor secret. The GitHub Actions `Daily MagicCon surveyor` owns privileged public-source staging, allowlisted deterministic public consequences, watched-event alert delivery, closure verification, and exact-report baseline acceptance through its configured `SUPABASE_SECRET_KEY`. Neither runtime has generic canonical-write authority.
+Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` supervises the authoritative GitHub Actions run and may optionally discover read-only Gmail evidence when that connector is already available. It does not perform daily public-source discovery or own/request a local copy of the cloud surveyor secret. The GitHub Actions `Daily MagicCon surveyor` exclusively owns public-source discovery, privileged staging, allowlisted deterministic public consequences, watched-event alert delivery, closure verification, and exact-report baseline acceptance through its configured `SUPABASE_SECRET_KEY`. Neither runtime has generic canonical-write authority.
 
 ## Closed-loop default
 
@@ -115,7 +115,7 @@ For MagicCon Atlanta, the initial Discord watch-map candidate is:
 | MagicCon Black Lotus VIP | `#deckbuilding-and-theorycrafting` | event prep texture | deck/product clues for included events or Mystery Booster-like formats | Explore/Activity |
 | MagicCon Black Lotus VIP | `#trades` | low-priority community surface | possible meetups/trades only if Kavi later cares | ignored by default |
 
-The agent may replace `public/monitoring-intake.json` with these observations when there is something useful to show in the GitHub Pages preview. The agent must never silently normalize, overwrite, hide, commit, purchase, or notify external systems.
+`public/monitoring-intake.json` is a transitional fixture/QA surface only. It may be updated deliberately for a bounded preview test, but it is not the daily monitoring output or an alternative to cloud staging and closure. The agent must never silently normalize, overwrite, hide, commit, purchase, or notify external systems.
 
 ## Routing rules
 

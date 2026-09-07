@@ -2,7 +2,7 @@
 
 This is a personal hobby application for one to three trusted users. Development uses the hosted Supabase project directly; readiness should protect identity, secrets, schema discipline, and deployable code without reproducing the hosted platform locally.
 
-Run `pnpm readiness` before Tier 2 data/auth/database/research/monitoring work and before any change where repository, branch, remote, or Supabase identity matters. Do not make it a tax on every small CSS or copy adjustment. A pass proves:
+Run `pnpm readiness` before live Supabase/database writes, authenticated operational changes, or when repository, branch, remote, or Supabase identity is genuinely uncertain. Research, local-only monitoring/tooling work, documentation, and ordinary UI work do not require it unless they will cross one of those boundaries. A pass proves:
 
 - the exact repository path, GitHub `origin`, and an allowed branch;
 - GitHub CLI is authenticated to `github.com` as `metavirus` and uses HTTPS for Git operations;
@@ -34,7 +34,7 @@ pnpm validate:secrets
 
 Current local note, August 12, 2026: the native Windows host is the default lane. Node 24, Corepack-managed pnpm, Git, GitHub CLI, PostgreSQL tools, Python/uv, and Playwright are available. Do not use WSL, Docker, admin installs, or global pnpm reinstalls unless a concrete dependency requires them.
 
-Git push auth, host-shell GitHub CLI auth, and Codex repo-lane GitHub CLI auth are separate lanes. `pnpm readiness` must pass before relying on GitHub Actions or deployment inspection through `gh`; if it fails, run `pnpm gh:auth-local`, complete the browser login, and rerun readiness. Do not use raw host/elevated `gh auth login` as proof for Codex readiness; the repo-local lane stores its token under ignored `.codex-local\gh`.
+Git push auth, host-shell GitHub CLI auth, and Codex repo-lane GitHub CLI auth are separate lanes. Ordinary public UI publication needs proof of the repository/branch and a working repo-local `gh` lane, not the database portions of full readiness. When broader repository or Supabase identity is genuinely uncertain, run `pnpm readiness`; if the repo-local GitHub check fails, run `pnpm gh:auth-local`, complete the browser login, and rerun readiness. Do not use raw host/elevated `gh auth login` as proof for Codex readiness; the repo-local lane stores its token under ignored `.codex-local\gh`.
 
 pnpm is Corepack-managed. Use normal `pnpm` or `corepack pnpm`; if pnpm acts strange, first run `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version`. A non-admin `corepack enable` failure while writing shims under Program Files is not a product blocker.
 

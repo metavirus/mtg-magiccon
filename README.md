@@ -19,7 +19,7 @@ Private, mobile-first planning and personal-intelligence app for MagicCon Atlant
 
 Use native Windows. pnpm is Corepack-managed; do not reinstall pnpm globally with npm. If pnpm acts strange, first run `where.exe pnpm`, `pnpm --version`, and `corepack pnpm --version` before diagnosing app code.
 
-Run `pnpm readiness` before database or release work. See [development architecture](docs/DEVELOPMENT_ARCHITECTURE.md), [environment readiness](docs/ENVIRONMENT_READINESS.md), [project context](docs/PROJECT_CONTEXT.md), and [current frontier](CURRENT_FRONTIER.md).
+Run `pnpm readiness` before live Supabase/database writes, authenticated operational changes, or when repository/branch/remote identity is genuinely uncertain. Ordinary local UI and documentation work uses the proportional lanes in [the operating contract](docs/REPO_OPERATING_CONTRACT.md). See [development architecture](docs/DEVELOPMENT_ARCHITECTURE.md), [environment readiness](docs/ENVIRONMENT_READINESS.md), [project context](docs/PROJECT_CONTEXT.md), and [current frontier](CURRENT_FRONTIER.md).
 
 Before spending time on a recurring setup, Git, auth, cache, publish, data, browser, or responsive issue, check [Known Gremlins](docs/KNOWN_GREMLINS.md). A failure returning after it was called fixed disproves that fix: stop feature work, find why the prevention failed, add a targeted durable guardrail, and prove both the original lane and the guardrail. A successful retry alone is only recovery. Only an explicit user statement that tokens are low may defer that work.
 

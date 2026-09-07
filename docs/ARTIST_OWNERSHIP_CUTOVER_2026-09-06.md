@@ -23,6 +23,8 @@
 
 ## Operating commands
 
+For future exports, use the review-first workflow in `ARTIST_IMPORT_REFRESH.md`. It compares explicit source snapshots and generates a batched proposal locally; it does not automatically apply a refresh or reconcile absent holdings.
+
 `pnpm artist:seed-sql --owner <UUID>` generates the owner-aware full import SQL; it does not apply it. Explicit source names/paths are required when calling the exported builder directly. Attendance is never changed by this importer.
 
 `pnpm artist:seed-sql --reconcile-only --owner <UUID>` generates the one-time, original-snapshot-guarded repair. It deliberately fails against an already-corrected or otherwise changed quantity digest instead of guessing. Source SQL stays ignored in `local-assets/artist-card-working/`.
@@ -39,4 +41,4 @@ Cleanup migration `20260907011723_remove_shared_artist_collection_fields.sql` is
 
 Full importer SQL was also exercised twice with a synthetic fixture inside a rolled-back transaction: five copies remained five on replay; no fixture rows were retained. Unit/release gate: 358 tests passed. A source-linked owner snapshot must be refreshed online once after this update; Wallet and saved signing choices are not invalidated by the artist-cache version change.
 
-Out of scope: inventory editing UI, absent-from-next-snapshot deletion/reconciliation policy, signing completion/checklist, and redesign of card-art assessments. Existing git history/previously downloaded bundles cannot be retroactively made private by replacing the current bundle.
+Out of scope for this cutover: inventory editing UI, absent-from-next-snapshot deletion/reconciliation policy, signing completion/checklist, and redesign of card-art assessments. The signing checklist was subsequently implemented in `139439c50d16aa4e9ecd8b4ab001a295c7acd61f`; the other boundaries remain. Existing git history/previously downloaded bundles cannot be retroactively made private by replacing the current bundle.

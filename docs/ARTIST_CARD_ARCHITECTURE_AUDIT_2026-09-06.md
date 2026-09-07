@@ -61,7 +61,7 @@ Target relationships:
 - Owner signing choice → owned variant, optionally convention; never a price-selected representative.
 - Assessment → explicit subject and source, distinct from objective identity/attendance.
 
-Later product work: a bring checklist and signed/completed status may be useful, but require a separate product decision. Current “for sure” means intent, not completed signing; avoid UI labels that call it “signed.”
+Superseding implementation note (2026-09-07): commit `139439c50d16aa4e9ecd8b4ab001a295c7acd61f` shipped a compact **Cards to bring** checklist derived from “for sure” picks, with independent Packed and Signed checks. “For sure” still means signing intent and is not itself labeled or treated as completion.
 
 ## Documentation and validation debt
 

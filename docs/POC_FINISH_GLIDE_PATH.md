@@ -179,7 +179,7 @@ Magic link was intentionally parked after Supabase email quota became a design/t
 Use the tiered handoff checks in `docs/ANTI_WASTE_OPERATING_MODE.md`:
 
 - Tier 0 UI/copy/layout: `pnpm check:ui` plus viewport verification when visual.
-- Tier 1 public preview: `pnpm check:ship`, commit/push the source branch, wait for the GitHub Actions Pages deploy, then `pnpm verify:public`.
+- Tier 1 public preview: use `pnpm build` for one tightly bounded UI/routing fix or `pnpm check:ship` for broader/multi-surface work, visually inspect the affected viewport, commit/push `main`, wait for the GitHub Actions Pages deploy, then run `pnpm verify:public` and check the deployed flow.
 - Tier 2 data/auth/database/research/monitoring: full readiness, tests, validation, and proportional live verification.
 
 ## Explicitly not POC

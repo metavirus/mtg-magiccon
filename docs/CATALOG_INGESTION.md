@@ -1,6 +1,6 @@
 # Catalog ingestion
 
-Status: historical photo proof, fail-closed promotion planner, Kavi-only local operator UI, atomic promotion RPC/client boundary, canonical read path, shopping-interest path, and companion browse UI implemented locally; migration review/apply and live readback remain pending
+Status: historical photo proof, fail-closed promotion planner, Kavi-only local operator UI, atomic promotion RPC/client boundary, canonical read path, shopping-interest path, companion browse UI, canonical migration, and live schema/RLS validation are complete. No real Atlanta catalog has been promoted; first-source capture, review, promotion, and exact live offer readback remain pending until that catalog releases.
 
 ## Product boundary
 

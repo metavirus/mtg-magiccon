@@ -113,7 +113,7 @@ For browser-dependent visual work, use `pnpm ui:capture -- -Route <route>` after
 
 ### Monitoring
 
-Run `pnpm monitor:check` first. Use `pnpm monitor:accept` only after a baseline or changed source has been reviewed and accepted. Do not invent parallel monitoring verifiers.
+For scheduled/daily public-source discovery, inspect the authoritative **Daily MagicCon surveyor** GitHub Actions run first. Its cache is the only authoritative accepted baseline. Do not run local `monitor:check`, staging, closure, alert, or acceptance commands for daily discovery; the ignored local baseline can be stale and manufacture false changes. Privileged reconciliation, routing, delivery, closure verification, and exact-report acceptance belong to that cloud workflow. Local monitoring commands are development/test tools only and must not be presented as operational survey results. Follow `docs/MVP_MONITORING_AGENT_DESIGN.md`, `docs/MONITORING_HYDRATION_CONTRACT.md`, and the cloud-surveyor section of `docs/KNOWN_GREMLINS.md`.
 
 ### PowerShell and scripts
 
