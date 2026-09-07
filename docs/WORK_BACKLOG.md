@@ -86,7 +86,7 @@ The venue-level destinations are also deliberately considered but deferred: Offi
 - [x] Historical POC phase: disable client auth for fixture-backed review so local, GitHub Pages, and installed mobile review could not be blocked by Supabase magic-link quota. Superseded by the Google OAuth live-auth path.
 - [x] **v1.5:** Reintroduce low-friction authenticated continuity deliberately after the POC stopped fighting mobile review. Google OAuth is now the normal auth-first path; `?preview=1` is the deliberate fixture bypass and magic-link UI is parked.
 - [x] **v1.5:** Complete Google/Supabase dashboard configuration and prove Google OAuth on desktop Pages with refresh persistence. Use `docs/GOOGLE_OAUTH_SETUP.md` as the checklist.
-- [ ] **v1.5:** Confirm Google OAuth persistence on iPhone Safari/PWA after refresh/reopen. Also verify that an installed standalone launch cannot inherit `preview`, `previewOwner`, or QA query parameters and that an offline launch uses the prior authenticated owner's read-only cache instead of returning to Sign In.
+- [x] **v1.5:** Confirm Google OAuth and offline continuity on the installed iPhone. Kavi accepted the device behavior on 2026-09-07; automated guards strip `preview`, `previewOwner`, and QA parameters from standalone launches and constrain cached identity to read-only offline data.
 - [x] **v1.5/publish:** Retire the local `tmp/gh-pages` publishing path and use GitHub Actions Pages deployment from the source branch.
 - [x] Synthesize pre-ticketed-play usefulness and interface behavior.
 - [x] Explore ticketed-play planning usefulness and interface behavior.
@@ -94,13 +94,13 @@ The venue-level destinations are also deliberately considered but deferred: Offi
 - [x] Scope the next design and trust-slice tranche without committing broad UI or schema.
 - [x] Accept the persistent surface-map direction, phase-aware Now, Activity framing, and dark visual language in `docs/EXPERIENCE_ARCHITECTURE.md`; defer exact mobile navigation treatment to screen design.
 - [x] Approve planning states, Tentative synthesis, time semantics, conflict hierarchy, preference intelligence, and source-state presentation in `docs/PLANNING_INTELLIGENCE_MODEL.md`.
-- [ ] Test priority mobile and desktop screen concepts against representative scenarios.
+- [x] Test priority mobile and desktop screen concepts against representative scenarios.
   - [x] Apply `docs/DESIGN_AUDIT_2026-08-02.md`; reconcile the resulting direction in `docs/DESIGN_BASELINE_2026-08-03.md`.
   - [x] Implement the accepted desktop shell and test one stable mobile navigation candidate against working behavior.
   - [x] Replace the overflowing mobile destination strip with fixed Home / Events / Map / Info / More navigation; keep Explore / Plan / Calendar and Wallet / Trip / Artists / Notes / Activity one compact drawer away.
   - [x] Harmonize the mobile drawers with the canonical desktop sidebar/navigation model. `src/lib/navigation.ts` is now the single ordered source for desktop destinations, Events / More drawer membership, labels, icons, and compact mobile notes; `src/lib/navigation.test.ts` guards the shared model.
   - [x] Accept the implemented meaningful-date Calendar stream and Calendar-to-Plan handoff after live desktop and phone review.
-  - [ ] Test bounded contextual find/jump and real backlinks across the proof-slice objects.
+  - [x] Test bounded contextual find/jump and real backlinks across the proof-slice objects. Destination-aware Activity, note, event, Wallet proof, Trip/place, and artist/card paths now open their real context rather than dead intermediate surfaces.
   - [x] Replace the Decide / Schedule split with one focused Plan workspace in `docs/PLAN_WORKSPACE_CONCEPT.md`.
   - [x] Review the scrollable meaningful-date Calendar density and Calendar-to-Plan context shift in `docs/CALENDAR_SURFACE_CONCEPT.md`.
   - [x] Audit accepted design state and prototype limitations in `docs/DESIGN_STATE_ASSESSMENT.md`.
@@ -123,7 +123,7 @@ The venue-level destinations are also deliberately considered but deferred: Offi
 - [x] Supersede the former umbrella approximate-position item with `MAP-NOW-10`, `MAP-ON-02`, `MAP-ON-03`, and later experiments. Manual origin, visible uncertainty, user confirmation, and no reliable-turn-by-turn promise remain mandatory.
 - [ ] Expand `research/FORMAT_COMPLEXITY_EXPLORATION.md` into a reviewed all-format registry when Atlanta event ingest begins; refresh derived assessments only from captured source changes.
 - [x] Derive and implement the minimal Black Lotus trust-slice contract from the accepted baseline.
-- [ ] Complete trust proof on device. Pure reconciliation now requires a new explicitly superseding observation, retains the prior observation, and preserves personal decision/itinerary state; live reviewed write/readback and real-iPhone offline reopening remain.
+- [ ] **Artifact-dependent — trust reconciliation:** when a genuinely superseding observation arrives, prove the live reviewed write/readback retains the prior observation and preserves personal decision/itinerary state. Device offline proof is already accepted and is not part of this remaining item.
 - [x] Record the updated cohesion-first v1.5 path in `docs/V1_5_PATH.md`, ordered by intelligent chunks: shared object-detail grammar, Home command center, Activity inbox/backlinks, Wallet mobile retrieval, trust/auth/storage, reviewed monitoring hydration, ticketed-play vertical slice, and production Plan only after real contention exists.
 - [x] **v1.5:** Establish the shared object-detail drawer/sheet pattern before continuing destination-specific polish.
 - [x] **v1.5:** Refine Home into a true command center that answers whether anything needs attention, rather than a general dashboard of collected facts.
