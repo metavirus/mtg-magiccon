@@ -1,5 +1,9 @@
 # Visual usability audit — September 6, 2026
 
+## Superseding recheck — September 7, 2026
+
+A fresh 390×844 built-app inspection found no actionable mobile Calendar/event-detail defect remaining from this audit. The event header keeps core logistics and state controls in the first viewport; Close remains reachable and Escape dismissal is covered; simultaneous agenda rows are distinct and chronological; Past is compact; all four people filters fit; and the representative purchased state is clearly attributed and locked. `scheduleSurfaces.test.tsx` passed 9/9. Do not schedule “tighten the mobile event header” or “dense Calendar repair” from the historical findings below unless a new concrete screenshot reproduces a defect.
+
 ## Verdict and evidence boundary
 
 ### Local repair checkpoint
