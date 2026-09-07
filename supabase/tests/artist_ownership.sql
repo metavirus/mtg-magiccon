@@ -23,6 +23,10 @@ do $$ begin
 end $$;
 select set_config('request.jwt.claim.sub', current_setting('test.artist_other'), true);
 do $$ begin
+  if exists(select 1 from information_schema.columns where table_schema='public'
+    and ((table_name='artist_card_printings' and column_name in ('quantity','local_image_filename','local_image_found'))
+      or (table_name='artists' and column_name in ('collection_card_count','unique_collection_printings')))) then
+    raise exception 'Personal collection fields remain in shared API tables'; end if;
   if exists(select 1 from public.artist_collection_inventory where owner_id = current_setting('test.artist_owner')::uuid)
     or exists(select 1 from public.artist_collection_profiles where owner_id = current_setting('test.artist_owner')::uuid)
     or exists(select 1 from public.artist_card_assessments where owner_id = current_setting('test.artist_owner')::uuid)

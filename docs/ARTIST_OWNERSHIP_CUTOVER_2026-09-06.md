@@ -33,6 +33,10 @@ The old fixture generator writes only ignored `artistCardCandidates.private.ts`,
 
 ## Release sequencing
 
-Additive owner tables and source reconciliation are applied. Deploy the new app read path before removing legacy shared quantity/local-image/profile-count columns. The reviewed cleanup SQL is in `.codex-local/artist_shared_cleanup.sql`; it refuses to proceed without private preservation. Full privacy completion requires that cleanup and deployed bundle verification, not merely hiding the Cards tab.
+App cutover published as `ea24e1b5e176a84e6ea9aa01a575b95d7e9e4aa1`; CI 34072355902 and Pages 34072355995 succeeded. Public bundle SHA/freshness and authenticated 32-card/five-pick readback passed before cleanup.
+
+Cleanup migration `20260907011723_remove_shared_artist_collection_fields.sql` is applied: shared quantity/local-image/profile-count columns were removed only after private preservation passed. No collection records or source files were deleted. The canonical `pnpm validate:artist-catalog-db` now runs actual owner/nonowner access assertions, including absence of personal columns in the shared API.
+
+Full importer SQL was also exercised twice with a synthetic fixture inside a rolled-back transaction: five copies remained five on replay; no fixture rows were retained. Unit/release gate: 358 tests passed. A source-linked owner snapshot must be refreshed online once after this update; Wallet and saved signing choices are not invalidated by the artist-cache version change.
 
 Out of scope: inventory editing UI, absent-from-next-snapshot deletion/reconciliation policy, signing completion/checklist, and redesign of card-art assessments. Existing git history/previously downloaded bundles cannot be retroactively made private by replacing the current bundle.

@@ -11,6 +11,9 @@ if (-not $dbLine) {
 }
 
 $dbUrl = $dbLine.Substring('SUPABASE_DB_URL='.Length)
+if ($dbUrl -notmatch 'pavjsexxbueuzhzgemgy' -or $dbUrl -notmatch ':5432/') {
+  throw 'Artist validation requires the canonical Session Pooler on port 5432.'
+}
 
 $sql = @"
 with target_tables(table_name) as (
@@ -21,6 +24,8 @@ with target_tables(table_name) as (
     ('artist_cards'),
     ('artist_card_printings'),
     ('artist_card_assessments'),
+    ('artist_collection_inventory'),
+    ('artist_collection_profiles'),
     ('artist_signing_interests')
 )
 select concat_ws('|',
@@ -89,4 +94,6 @@ if ($artistCount -lt 4 -or $appearanceCount -lt 4 -or $cardCount -lt 1 -or $prin
   throw "Artist catalog counts look under-hydrated: artists=$artistCount appearances=$appearanceCount cards=$cardCount printings=$printingCount assessments=$assessmentCount batches=$batchCount."
 }
 
-Write-Host "Artist catalog DB validation: PASS ($artistCount artists; $appearanceCount appearances; $cardCount cards; $printingCount printings; $assessmentCount assessments; $batchCount import batches; $policyCount policies; anon grants $anonGrants)."
+& psql $dbUrl -v ON_ERROR_STOP=1 -f (Join-Path $PSScriptRoot '../supabase/tests/artist_ownership.sql')
+if ($LASTEXITCODE -ne 0) { throw 'Artist owner/nonowner behavioral assertions failed.' }
+Write-Host "Artist catalog DB validation: PASS ($artistCount artists; $appearanceCount appearances; $cardCount cards; $printingCount printings; $assessmentCount assessments; $batchCount import batches; owner/nonowner access verified; anon grants $anonGrants)."
