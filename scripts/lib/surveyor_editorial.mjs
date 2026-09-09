@@ -1,5 +1,5 @@
 const TOPICS = /spell slayers|\bbosco\b|irene the alien|\bguest\b|\bcreator\b|artist|panel|meet.and.greet|floor.?map|floor.?plan|catalog|prize wall|black lotus|pickup|pick.up|registration hours|will.call|accessibility|mobile app/i
-const RESOURCE = /artist|guest|experience|panel|map|floor.?plan|catalog|store|prize.wall|mobile.app/i
+const RESOURCE = /artist|guest|experience|panel|map|floor.?plan|catalog|store|prize.wall|mobile.app|application|portfolio.review|cosplay/i
 const official = value => {
   try { const url = new URL(value); return url.protocol === 'https:' && ['mcatlanta.mtgfestivals.com', 'www.mtgfestivals.com', 'mtgfestivals.com'].includes(url.hostname) } catch { return false }
 }
@@ -22,15 +22,21 @@ export function editorialDecision(row, decisions = {}) {
   const current = String(evidence.current?.textSample ?? evidence.semanticSummary ?? '')
   const previous = String(evidence.previous?.textSample ?? '')
   const added = evidence.linkDelta?.added ?? []
-  const links = added.flatMap(value => {
+  const parseLink = value => {
     const separator = value.lastIndexOf(' -> ')
-    if (separator < 0) return []
+    if (separator < 0) return null
     const label = value.slice(0, separator).trim(), url = value.slice(separator + 4)
-    return official(url) && RESOURCE.test(`${label} ${url}`) ? [{ label, url }] : []
-  })
+    return official(url) ? { label, url } : null
+  }
+  const links = added.map(parseLink).filter(link => link && RESOURCE.test(`${link.label} ${link.url}`))
   if (links.length) return {
-    disposition: 'home', title: `${row.source_label}: new official resources`,
-    summary: `Newly linked: ${links.map(link => link.label).join('; ')}.`,
+    disposition: 'home', title: links.length === 1 ? links[0].label : `${row.source_label}: new official resources`,
+    summary: [
+      `New on the official Atlanta site: ${links.map(link => link.label).join('; ')}.`,
+      ...(evidence.linkDelta?.removed?.length
+        ? [`Also removed: ${evidence.linkDelta.removed.map(value => parseLink(value)?.label ?? value).join('; ')}.`]
+        : []),
+    ].join(' '),
     links, reason: 'New official resource links match convention interests; link publication is distinct from inventory availability.',
   }
   const changedPassages = current.split(/(?<=[.!?])\s+|[\r\n]+/).map(text => text.trim()).filter(text => text && !previous.includes(text))

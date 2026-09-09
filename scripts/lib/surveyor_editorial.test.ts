@@ -22,6 +22,26 @@ describe('discovery to Home editorial contract', () => {
     expect(row.evidence.presentation_links[0].url).toContain('map.pdf')
     expect(findingDisplaySummary(row as MonitoringFindingRow)).toContain('Atlanta floor map')
   })
+  it('summarizes application link changes without dumping the full homepage text', () => {
+    const [row] = buildMonitoringCandidateRows(report({
+      ...change('MagicCon: Atlanta Open MTG Festivals MagicCon: Amsterdam Global Navigation Guests Applications Industry Artist directory and many other navigation labels.'),
+      id: 'atlanta-official-home',
+      label: 'MagicCon Atlanta official home',
+      url: 'https://mcatlanta.mtgfestivals.com/en-us.html',
+      previous: { textSample: 'MagicCon: Atlanta Open MTG Festivals MagicCon: Amsterdam Global Navigation.' },
+      linkDelta: {
+        added: ['Portfolio Review Application Deadline: September 13, 2026 -> https://mcatlanta.mtgfestivals.com/en-us/applications/portfolio-review.html'],
+        removed: ['Cosplay Contest Application Deadline: September 6, 2026 -> https://mcatlanta.mtgfestivals.com/en-us/applications/cosplay-contest.html'],
+      },
+    }))
+    expect(row).toMatchObject({
+      destination: 'Home',
+      status: 'unread',
+      title: 'Portfolio Review Application Deadline: September 13, 2026',
+    })
+    expect(row.summary).toBe('New on the official Atlanta site: Portfolio Review Application Deadline: September 13, 2026. Also removed: Cosplay Contest Application Deadline: September 6, 2026.')
+    expect(row.summary).not.toContain('Global Navigation')
+  })
   it('holds unfamiliar material for agent interpretation and accepts a fingerprint-specific decision', () => {
     const input = report(change('A new surprise awaits on Saturday.'))
     const [row] = buildMonitoringCandidateRows(input)
