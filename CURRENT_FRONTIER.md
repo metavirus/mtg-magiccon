@@ -1,10 +1,10 @@
 # Current Frontier
 
-Updated: 2026-09-07
+Updated: 2026-09-11
 
 ## Current checkpoint
 
-The public app is current through `139439c50d16aa4e9ecd8b4ab001a295c7acd61f`. The latest shipped feature is the compact Artist **Cards to bring** checklist: it derives from **For sure** signing picks, groups cards by artist, and persists independent Packed/Signed checks through owner-scoped Supabase selections. CI, Pages, public freshness, authenticated save/reload, and the deployed 390px layout passed. Automated offline-state tests pass, and Kavi accepted the installed-iPhone offline behavior.
+The public app and live automation are current through `fa73eb81d90b227962c5c2711e3846eac8b00d6e`. The accepted UI checkpoint includes the compact Artist **Cards to bring** checklist: it derives from **For sure** signing picks, groups cards by artist, and persists independent Packed/Signed checks through owner-scoped Supabase selections. CI, Pages, public freshness, authenticated save/reload, the deployed 390px layout, and installed-iPhone offline behavior passed. Later shipped checkpoints added the reviewed artist collection-refresh tooling and corrected surveyor summaries for official resource-link changes.
 
 The Atlanta companion is an authenticated mobile-first React PWA backed by canonical Supabase project `pavjsexxbueuzhzgemgy`. Supabase is truth for meaningful authenticated state. Browser storage is limited to UI/auth convenience and owner-scoped read-only offline continuity; offline mode never queues writes or replaces newer server data.
 
@@ -17,9 +17,11 @@ The accepted public surfaces are Home, Explore, Plan, Calendar, Map, Info, Walle
 - Authenticated device hydration covers the user-visible production read model and permitted receipt/media artifacts. External destinations and first-time authentication are necessarily online-only.
 - The private catalog operator UI and canonical schema are ready, but no real Atlanta catalog has been promoted. Historical items and media are reference material only. Image recognition and automated exact-product search remain parked.
 
-## Parked local work
+## Planning-season decision
 
-Future artist collection refresh tooling is prepared locally and intentionally unpublished. It adds explicit before/after CSV review plus batched, replay-safe SQL generation; see `docs/ARTIST_IMPORT_REFRESH.md`. Its targeted tests, full-source generation, and isolated PostgreSQL replay passed. It has not changed hosted collection data. Missing holdings are review flags, never automatic deletions.
+Atlanta 2026 session planning is effectively complete: the companion group has obtained its sessions. Plan-lite remains the accepted planning surface, but shared-selection summaries, voting, contention solving, drag/drop scenarios, and AI schedule recomputation are not active work for this event. Revisit planning architecture only for a demonstrated onsite problem or when planning a future convention.
+
+The reviewed artist collection-refresh tooling is published and ready for a future export. It provides explicit before/after CSV review plus batched, replay-safe SQL generation; see `docs/ARTIST_IMPORT_REFRESH.md`. Its targeted tests, full-source generation, and isolated PostgreSQL replay passed. Publishing the tooling did not change hosted collection data. Missing holdings remain review flags, never automatic deletions.
 
 ## Next safe lanes
 
