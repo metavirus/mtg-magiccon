@@ -9,6 +9,7 @@ import { discoverNewsletterCoverage, fetchNewsletterPages, planNewsletterFetch }
 import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, reconcileTicketedPlayIdentity, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
 import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acceptance.mjs';
 import { newRelevantDetailCoverageGaps, retainedDetailCoverageGaps } from './lib/monitoring_detail_coverage.mjs';
+import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -80,14 +81,16 @@ function diffLinkRecords(previousLinks = [], currentLinks = []) {
 }
 
 function summarizeLinkDelta(previous, current) {
-  if (!previous.links || !current.links) {
+  const previousLinks = previous.contentLinks ?? previous.links;
+  const currentLinks = current.contentLinks ?? current.links;
+  if (!previousLinks || !currentLinks) {
     return {
       added: [],
       removed: [],
       note: 'Accepted baseline predates labeled-link tracking; accept a reviewed baseline before interpreting link/menu deltas.'
     };
   }
-  const delta = diffLinkRecords(previous.links, current.links);
+  const delta = diffLinkRecords(previousLinks, currentLinks);
   return {
     added: delta.added.slice(0, 25),
     removed: delta.removed.slice(0, 25),
@@ -96,10 +99,12 @@ function summarizeLinkDelta(previous, current) {
 }
 
 function summarizeCurrent(current) {
-  const { links, ...summary } = current;
+  const { links, contentLinks, ...summary } = current;
   return {
     ...summary,
-    linkSample: current.linkSample.slice(0, 12)
+    rawTextSample: current.textSample,
+    textSample: current.contentSample,
+    linkSample: current.contentLinks.slice(0, 12)
   };
 }
 
@@ -283,6 +288,7 @@ async function fetchSource(source) {
     }
   }
   const normalizedText = normalizeHtml(html);
+  const content = pageContentFingerprint(html, source.url);
   const linkRecords = source.trackLinks ? extractLinkRecords(html, source.url) : [];
   const links = linkRecords.map((link) => link.url);
 
@@ -294,6 +300,7 @@ async function fetchSource(source) {
     ok,
     title: extractTitle(html),
     textHash: hashText(normalizedText),
+    ...content,
     linkHash: hashText(linkRecords.map(compactLinkRecord).join('\n')),
     textSample: normalizedText.slice(0, 12000),
     linkCount: links.length,
@@ -323,16 +330,16 @@ for (const source of watchSet.sources) {
     fetchedSourcePages.push({ id: source.id, url: source.url, html: current.rawHtml });
     delete current.rawHtml;
     const previous = state.accepted[source.id];
-    if (source.trackLinks && previous?.links) discoveredDetailGaps.push(...newRelevantDetailCoverageGaps(previous.links, current.links, watchedUrls, source.id));
-    const changed = Boolean(
-      previous &&
-      (previous.textHash !== current.textHash || previous.linkHash !== current.linkHash || previous.status !== current.status)
-    );
+    const newDetailGaps = source.trackLinks && previous?.links ? newRelevantDetailCoverageGaps(previous.links, current.links, watchedUrls, source.id) : [];
+    discoveredDetailGaps.push(...newDetailGaps);
+    const changed = watchedPageChanged(previous, current) || newDetailGaps.length > 0;
 
     results.push({ ...current, changed });
 
     if (!previous || accept) {
       state.accepted[source.id] = { ...current, acceptedAt: checkedAt };
+    } else if (!changed) {
+      state.accepted[source.id] = upgradeUnchangedPageBaseline(previous, current);
     } else if (changed) {
       changes.push({
         id: source.id,
@@ -346,7 +353,8 @@ for (const source of watchSet.sources) {
           title: previous.title,
           textHash: previous.textHash,
           linkHash: previous.linkHash,
-          textSample: previous.textSample,
+          textSample: previous.contentSample ?? previous.textSample,
+          rawTextSample: previous.textSample,
           acceptedAt: previous.acceptedAt
         },
         current: summarizeCurrent(current)
