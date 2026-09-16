@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
-import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
+import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
 const soldOutCards = [
@@ -17,6 +17,31 @@ const soldOutCards = [
 ].map(([title, day, time]) => ({ title, day, time, soldOut: true, controls: [] }))
 
 describe('LEAP Ticketed Play inventory', () => {
+  it('uses exact public checkout products, not the anonymous login button, for availability', () => {
+    const schedule = normalizeLeapInventoryCards([
+      { title: 'Commander and Cocktails League with Brian David-Marshall', day: 'Saturday November 14th', time: '7:00pm - 10:25pm', controls: [{ text: 'Login to add to your schedule', disabled: true }] },
+      { title: '2HG - Collector Booster Sealed - Magic: The Gathering | Star Trek', day: 'Friday November 13th', time: '11:00am - 2:59pm', controls: [{ text: 'Login to add to your schedule', disabled: true }] },
+      { title: 'Standard Cup - MagicCon: Atlanta - Top 8', day: 'Saturday November 14th', time: '1:00pm - 2:00pm', controls: [{ text: 'Login to add to your schedule', disabled: true }] },
+    ], { sourceUrl })
+    const checkout = [
+      { productId: '481832', title: 'Sat 7:00PM - Commander and Cocktails League with Brian David-Marshall - 563MXW5', control: 'SOLD OUT', purchasable: false },
+      { productId: '481732', title: 'Fri 11:00AM - 2HG - Collector Booster Sealed - Magic: The Gathering | Star Trek - 4ZJMXZ5', control: '12 Left', purchasable: true },
+    ]
+    const merged = mergeLeapCheckoutAvailability(schedule, checkout, 'https://checkout.conventions.leapevent.tech/eh/htwhdatl26shdl10')
+    expect(merged.map(event => event.availability)).toEqual(['available', 'unknown', 'sold_out'])
+    expect(ticketedPlayAvailabilityCoverage(merged)).toMatchObject({ status: 'complete', knownCount: 2, unknownCount: 0, notApplicableCount: 1 })
+    expect(diffTicketedPlayInventory(schedule, merged)).toEqual([])
+    expect(diffTicketedPlayInventory(merged.map(event => ({ ...event, availability: event.availability === 'available' ? 'sold_out' : event.availability })), merged)).toMatchObject([{ availability: 'available' }])
+  })
+
+  it('fails closed on an unmatched checkout product and retains an unresolved schedule slot', () => {
+    const schedule = normalizeLeapInventoryCards([{ title: 'Draft - Mystery Booster Commander Edition', day: 'Friday November 13th', time: '4:00pm - 5:00pm', controls: [{ text: 'Login to add to your schedule', disabled: true }] }], { sourceUrl })
+    const checkout = [{ productId: '1', title: 'Fri 4:30PM - Draft - Mystery Booster Commander Edition - ABC1234', control: '2 Left', purchasable: true }]
+    expect(() => mergeLeapCheckoutAvailability(schedule, checkout)).toThrow(/checkout mismatch/)
+    const unresolved = mergeLeapCheckoutAvailability(schedule, [])
+    expect(ticketedPlayAvailabilityCoverage(unresolved)).toMatchObject({ status: 'partial', unknownCount: 1 })
+    expect(ticketedPlayAvailabilityCoverage(unresolved).notCovered[0].reason).toBe('no_exact_checkout_product_match')
+  })
   it('reports anonymous login-gated registration states as not covered rather than available', () => {
     const observed = normalizeLeapInventoryCards([
       { ...soldOutCards[0], soldOut: false, controls: [{ text: 'Login to add to your schedule', disabled: true }] },

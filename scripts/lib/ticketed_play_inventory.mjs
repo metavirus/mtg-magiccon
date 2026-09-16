@@ -99,19 +99,105 @@ export function assertTicketedPlayInventoryComplete(current = [], reference = []
 }
 
 export function ticketedPlayAvailabilityCoverage(observed = []) {
-  const notCovered = observed.filter(event => event.availability === 'unknown').map(event => ({
+  const notApplicable = observed.filter(event => event.availabilityScope === 'advancement_only')
+  const notCovered = observed.filter(event => event.availability === 'unknown' && event.availabilityScope !== 'advancement_only').map(event => ({
     eventId: event.id,
     sourceEventKey: event.sourceEventKey,
     title: event.title,
-    reason: event.availabilityEvidence?.controls?.some(control => /login to add to your schedule/i.test(control.text ?? ''))
+    reason: event.availabilityEvidence?.kind === 'checkout_unmatched' ? 'no_exact_checkout_product_match'
+      : event.availabilityEvidence?.controls?.some(control => /login to add to your schedule/i.test(control.text ?? ''))
       ? 'anonymous_login_required_for_registration_state'
       : 'no_explicit_registration_state',
   }))
   return {
-    knownCount: observed.length - notCovered.length,
+    knownCount: observed.length - notCovered.length - notApplicable.length,
     unknownCount: notCovered.length,
+    notApplicableCount: notApplicable.length,
     status: notCovered.length ? 'partial' : 'complete',
     notCovered,
+  }
+}
+
+const CHECKOUT_TITLE = /^(Fri|Sat|Sun)\s+(\d{1,2}):(\d{2})(AM|PM)\s+-\s+(.*?)\s+-\s+[A-Z0-9]{7}$/i
+const DAY_BY_LABEL = { fri: '2026-11-13', sat: '2026-11-14', sun: '2026-11-15' }
+const CHECKOUT_ALIASES = new Map([
+  ['savvy pin traders - sealed league - reality fracture with veggie wagon featuring a special pin!', 'savvy pin traders - deluxe sealed league - reality fracture with veggie wagon featuring a special pin!'],
+  ['friday night magic - pick-two draft - magic: the gathering | star trek draft night', 'friday night magic - pick-two draft - magic: the gathering | star trek'],
+])
+
+function checkoutIdentity({ title, day, startsAt }) {
+  return `${day}|${startsAt}|${compact(title).toLowerCase().replace(/[^a-z0-9]/g, '')}`
+}
+
+export function normalizeLeapCheckoutProducts(products = []) {
+  return products.map(product => {
+    const match = compact(product.title).match(CHECKOUT_TITLE)
+    if (!match) throw new Error(`Ticketed Play checkout title not parseable: ${product.title}`)
+    const [, label, hour, minute, meridiem, rawTitle] = match
+    const startsAt = `${String(Number(hour) % 12 + (meridiem.toUpperCase() === 'PM' ? 12 : 0)).padStart(2, '0')}:${minute}`
+    const title = CHECKOUT_ALIASES.get(rawTitle.toLowerCase()) ?? rawTitle
+    const control = compact(product.control)
+    const availability = /sold\s*out/i.test(control) ? 'sold_out'
+      : /unavailable|registration\s+closed/i.test(control) ? 'unavailable'
+      : product.purchasable ? 'available' : 'unknown'
+    return { ...product, title, day: DAY_BY_LABEL[label.toLowerCase()], startsAt, availability, control }
+  })
+}
+
+/** Checkout's public product controls are stronger purchase evidence than the
+ * anonymous schedule's disabled login control. Match only unique exact slots
+ * and reviewed label aliases; advancement rounds are not checkout products. */
+export function mergeLeapCheckoutAvailability(schedule = [], products = [], checkoutUrl = '') {
+  const byIdentity = new Map()
+  for (const product of normalizeLeapCheckoutProducts(products)) {
+    const key = checkoutIdentity(product)
+    byIdentity.set(key, [...(byIdentity.get(key) ?? []), product])
+  }
+  const used = new Set()
+  const merged = schedule.map(event => {
+    const matches = byIdentity.get(checkoutIdentity(event)) ?? []
+    if (matches.length > 1) throw new Error(`Ambiguous checkout products for ${event.day} ${event.startsAt} ${event.title}`)
+    const product = matches[0]
+    if (product) {
+      used.add(product.productId)
+      return { ...event, availability: product.availability, availabilityScope: 'checkout_product', availabilityEvidence: {
+        kind: 'first_party_checkout', sourceUrl: checkoutUrl, productId: product.productId,
+        text: product.control, purchasable: product.purchasable,
+      } }
+    }
+    if (/\btop\s+(?:\d+|eight|sixteen|thirty-two|sixty-four)\b/i.test(event.title)) {
+      return { ...event, availabilityScope: 'advancement_only', availabilityEvidence: {
+        kind: 'advancement_round', text: 'Bracket advancement round, not a separately sold checkout product',
+      } }
+    }
+    return { ...event, availability: 'unknown', availabilityEvidence: {
+      kind: 'checkout_unmatched', sourceUrl: checkoutUrl, text: 'No unique exact public checkout product match',
+    } }
+  })
+  const unmatched = products.filter(product => !used.has(product.productId))
+  if (unmatched.length) throw new Error(`Ticketed Play checkout mismatch: ${unmatched.length} public products not matched to schedule (${unmatched.slice(0, 3).map(product => product.title).join('; ')})`)
+  return merged
+}
+
+export async function scrapeLeapTicketedPlayCheckout({ url }) {
+  const { chromium } = await import('playwright')
+  const browser = await chromium.launch()
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1200 } })
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
+    await page.waitForSelector('#product_list_56868 .product_item', { state: 'attached', timeout: 30000 })
+    const products = await page.locator('#product_list_56868 .product_item').evaluateAll(nodes => nodes.map(node => ({
+      productId: node.className.match(/\bproduct_(\d+)\b/)?.[1] ?? '',
+      title: node.querySelector('.product_title span')?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+      control: node.querySelector('.product_control')?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+      purchasable: Array.from(node.querySelectorAll('.product_control select option')).some(option => Number(option.value) > 0),
+    })))
+    if (products.length < 100 || products.some(product => !product.productId || !product.title)) {
+      throw new Error(`Ticketed Play checkout incomplete: ${products.length} products or missing identities`)
+    }
+    return products
+  } finally {
+    await browser.close()
   }
 }
 
@@ -218,6 +304,11 @@ export function diffTicketedPlayInventory(previous = [], current = []) {
     // A fresh durable cache must surface already-explicit sellouts once. Other
     // newly discovered listings are baseline context, not availability news.
     if (!before && event.availability !== 'sold_out') return []
+    // The first checkout-backed observation corrects ambiguous anonymous
+    // schedule states. It is not evidence that a sale changed since yesterday.
+    if (before && event.availabilityEvidence?.kind === 'first_party_checkout'
+      && before.availabilityEvidence?.kind !== 'first_party_checkout'
+      && before.availabilityEvidence?.kind !== 'explicit_text') return []
     if (before?.availability === event.availability) {
       const soldOutTextDisappeared = event.availability === 'sold_out'
         && before?.availabilityEvidence?.kind === 'explicit_text'
