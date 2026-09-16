@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
-import { assertTicketedPlayIdentityStable, diffTicketedPlayInventory, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory } from './ticketed_play_inventory.mjs'
+import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
 const soldOutCards = [
@@ -17,6 +17,24 @@ const soldOutCards = [
 ].map(([title, day, time]) => ({ title, day, time, soldOut: true, controls: [] }))
 
 describe('LEAP Ticketed Play inventory', () => {
+  it('rejects a partially hydrated day even when the total remains plausible', () => {
+    const reference = ['2026-11-13', '2026-11-14', '2026-11-15'].flatMap(day =>
+      Array.from({ length: 20 }, (_, index) => ({ day, sourceEventKey: `${day}-${index}` })))
+    expect(() => assertTicketedPlayInventoryComplete(reference, reference)).not.toThrow()
+    const partial = reference.filter(event => event.day !== '2026-11-15' || Number(event.sourceEventKey.split('-').at(-1)) < 10)
+    expect(partial).toHaveLength(50)
+    expect(() => assertTicketedPlayInventoryComplete(partial, reference)).toThrow(/2026-11-15 has 10 cards/)
+  })
+
+  it('rejects missing days, large total drops, and duplicate event keys', () => {
+    const reference = ['2026-11-13', '2026-11-14', '2026-11-15'].flatMap(day =>
+      Array.from({ length: 20 }, (_, index) => ({ day, sourceEventKey: `${day}-${index}` })))
+    expect(() => assertTicketedPlayInventoryComplete(reference.slice(0, 40), reference)).toThrow(/only 2 populated day/)
+    const sparse = reference.filter((_, index) => index % 2 === 0)
+    expect(() => assertTicketedPlayInventoryComplete(sparse, reference)).toThrow(/30 cards versus 60/)
+    expect(() => assertTicketedPlayInventoryComplete([...reference.slice(0, -1), reference[0]], reference)).toThrow(/duplicate event keys/)
+  })
+
   it('ignores a changed availability prefix in event identity and canonical matching', () => {
     const card = { ...soldOutCards[0], soldOut: false, controls: [{ text: 'Add' }] }
     const [before] = normalizeLeapInventoryCards([card], { sourceUrl })

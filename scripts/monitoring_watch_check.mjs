@@ -6,7 +6,7 @@ import process from 'node:process';
 import { promisify } from 'node:util';
 import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
 import { discoverNewsletterCoverage, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
-import { assertTicketedPlayIdentityStable, diffTicketedPlayInventory, reconcileTicketedPlayIdentity, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
+import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, reconcileTicketedPlayIdentity, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
 import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acceptance.mjs';
 
 const root = process.cwd();
@@ -209,6 +209,7 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
   const observed = await scrapeLeapTicketedPlayInventory({ url: config.url, retrievedAt: checkedAt, canonicalEvents });
   const state = await readJson(statePath, { version: 1, accepted: [] });
   const accepted = Array.isArray(state.accepted) ? state.accepted : [];
+  assertTicketedPlayInventoryComplete(observed, accepted.length ? accepted : canonicalEvents.map(event => ({ ...event, title: event.rawTitle, day: event.rawDateLabel })));
   const previous = reconcileTicketedPlayIdentity(accepted, observed);
   assertTicketedPlayIdentityStable(previous, observed);
   const current = stabilizeTicketedPlayInventory(previous, observed);

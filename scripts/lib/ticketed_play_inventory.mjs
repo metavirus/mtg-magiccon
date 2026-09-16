@@ -67,6 +67,37 @@ export function assertTicketedPlayIdentityStable(previous, current) {
   }
 }
 
+/** A rendered schedule shell is not proof that its cards finished hydrating.
+ * Compare against the last accepted inventory (or the reviewed seed on the
+ * first run) and fail closed before staging an incomplete availability view. */
+export function assertTicketedPlayInventoryComplete(current = [], reference = []) {
+  const keys = current.map(event => String(event.sourceEventKey ?? ''))
+  if (keys.some(key => !key) || new Set(keys).size !== keys.length) {
+    throw new Error('Ticketed Play inventory incomplete: missing or duplicate event keys; hold the baseline')
+  }
+  const countByDay = events => events.reduce((counts, event) => {
+    const day = event.day ? cleanDay(event.day) : ''
+    counts.set(day, (counts.get(day) ?? 0) + 1)
+    return counts
+  }, new Map())
+  const observedDays = countByDay(current)
+  if (observedDays.size < 3 || observedDays.has('')) {
+    throw new Error(`Ticketed Play inventory incomplete: only ${observedDays.size} populated day(s); hold the baseline`)
+  }
+  if (!reference.length) return
+  const expectedDays = countByDay(reference)
+  const minimumTotal = Math.ceil(reference.length * .8)
+  if (current.length < minimumTotal) {
+    throw new Error(`Ticketed Play inventory incomplete: ${current.length} cards versus ${reference.length} accepted/reviewed (${minimumTotal} minimum); hold the baseline`)
+  }
+  for (const [day, expected] of expectedDays) {
+    const observed = observedDays.get(day) ?? 0
+    if (observed < Math.ceil(expected * .7)) {
+      throw new Error(`Ticketed Play inventory incomplete: ${day} has ${observed} cards versus ${expected} accepted/reviewed; hold the baseline`)
+    }
+  }
+}
+
 export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, canonicalEvents = [] } = {}) {
   const canonicalByIdentity = new Map(canonicalEvents.map(event => [leapEventIdentity({
     title: event.rawTitle ?? event.title,
