@@ -6,7 +6,7 @@ import process from 'node:process';
 import { promisify } from 'node:util';
 import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
 import { discoverNewsletterCoverage, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
-import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, reconcileTicketedPlayIdentity, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory } from './lib/ticketed_play_inventory.mjs';
+import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, reconcileTicketedPlayIdentity, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './lib/ticketed_play_inventory.mjs';
 import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acceptance.mjs';
 import { newRelevantDetailCoverageGaps, retainedDetailCoverageGaps } from './lib/monitoring_detail_coverage.mjs';
 import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
@@ -24,7 +24,8 @@ const ticketedPlayEmptyDiff = {
   removedCount: 0,
   changedCount: 0,
   signalCount: 0,
-  signals: []
+  signals: [],
+  availabilityCoverage: { knownCount: 0, unknownCount: 0, status: 'not_checked', notCovered: [] }
 };
 
 function hashText(text) {
@@ -213,6 +214,7 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
     rawTimeLabel: event.rawTimeLabel,
   }));
   const observed = await scrapeLeapTicketedPlayInventory({ url: config.url, retrievedAt: checkedAt, canonicalEvents });
+  const availabilityCoverage = ticketedPlayAvailabilityCoverage(observed);
   const state = await readJson(statePath, { version: 1, accepted: [] });
   const accepted = Array.isArray(state.accepted) ? state.accepted : [];
   assertTicketedPlayInventoryComplete(observed, accepted.length ? accepted : canonicalEvents.map(event => ({ ...event, title: event.rawTitle, day: event.rawDateLabel })));
@@ -251,6 +253,7 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
     changedCount: changed.length,
     transitionCount: transitions.length,
     signalCount: signals.length,
+    availabilityCoverage,
     signals,
     transitions,
     inventory: current,
@@ -479,13 +482,13 @@ const output = {
   detailPageCoverage: { gapCount: state.detailCoverageGaps.length, gaps: state.detailCoverageGaps, scope: 'configured watched pages and discovered official news-index articles' },
   changeCount: changes.length,
   failureCount: failures.length,
-  coverageStatus: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length ? 'partial' : 'complete',
+  coverageStatus: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length || ticketedPlay.availabilityCoverage?.status === 'partial' ? 'partial' : 'complete',
   ticketedPlay,
   newsletterIntake,
   changes,
   failures,
-  summary: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length
-    ? `Partial coverage: ${changes.length} confirmed change(s); ${failures.length} fetch failure(s); ${newsletterIntake.unfetchedCount ?? 0} article(s) deferred by budget; ${newsletterIntake.missingDiscoverySourceIds?.length ?? 0} discovery source(s) unavailable; ${state.detailCoverageGaps.length} newly linked official detail page(s) not watched. Unchecked pages are not confirmed unchanged.`
+  summary: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length || ticketedPlay.availabilityCoverage?.status === 'partial'
+    ? `Partial coverage: ${changes.length} confirmed change(s); ${failures.length} fetch failure(s); ${newsletterIntake.unfetchedCount ?? 0} article(s) deferred by budget; ${newsletterIntake.missingDiscoverySourceIds?.length ?? 0} discovery source(s) unavailable; ${state.detailCoverageGaps.length} newly linked official detail page(s) not watched; ${ticketedPlay.availabilityCoverage?.unknownCount ?? 0} LEAP registration state(s) not observable anonymously. Unchecked or unknown state is not confirmed unchanged.`
     : changes.length
     ? `${changes.length} watched source(s) changed; inspect before routing.`
     : failures.length

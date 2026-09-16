@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
-import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory } from './ticketed_play_inventory.mjs'
+import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
 const soldOutCards = [
@@ -17,6 +17,16 @@ const soldOutCards = [
 ].map(([title, day, time]) => ({ title, day, time, soldOut: true, controls: [] }))
 
 describe('LEAP Ticketed Play inventory', () => {
+  it('reports anonymous login-gated registration states as not covered rather than available', () => {
+    const observed = normalizeLeapInventoryCards([
+      { ...soldOutCards[0], soldOut: false, controls: [{ text: 'Login to add to your schedule', disabled: true }] },
+      soldOutCards[1],
+    ], { sourceUrl })
+    const coverage = ticketedPlayAvailabilityCoverage(observed)
+    expect(coverage).toMatchObject({ status: 'partial', knownCount: 1, unknownCount: 1 })
+    expect(coverage.notCovered[0].reason).toBe('anonymous_login_required_for_registration_state')
+  })
+
   it('rejects a partially hydrated day even when the total remains plausible', () => {
     const reference = ['2026-11-13', '2026-11-14', '2026-11-15'].flatMap(day =>
       Array.from({ length: 20 }, (_, index) => ({ day, sourceEventKey: `${day}-${index}` })))

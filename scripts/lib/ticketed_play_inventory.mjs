@@ -98,6 +98,23 @@ export function assertTicketedPlayInventoryComplete(current = [], reference = []
   }
 }
 
+export function ticketedPlayAvailabilityCoverage(observed = []) {
+  const notCovered = observed.filter(event => event.availability === 'unknown').map(event => ({
+    eventId: event.id,
+    sourceEventKey: event.sourceEventKey,
+    title: event.title,
+    reason: event.availabilityEvidence?.controls?.some(control => /login to add to your schedule/i.test(control.text ?? ''))
+      ? 'anonymous_login_required_for_registration_state'
+      : 'no_explicit_registration_state',
+  }))
+  return {
+    knownCount: observed.length - notCovered.length,
+    unknownCount: notCovered.length,
+    status: notCovered.length ? 'partial' : 'complete',
+    notCovered,
+  }
+}
+
 export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, canonicalEvents = [] } = {}) {
   const canonicalByIdentity = new Map(canonicalEvents.map(event => [leapEventIdentity({
     title: event.rawTitle ?? event.title,
