@@ -6,7 +6,7 @@ import process from 'node:process';
 import { promisify } from 'node:util';
 import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milestones.mjs';
 import { discoverNewsletterCoverage, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
-import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, reconcileTicketedPlayIdentity, scrapeLeapTicketedPlayCheckout, scrapeLeapTicketedPlayInventory, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './lib/ticketed_play_inventory.mjs';
+import { assertOfficialTicketedPlayIdentityCoverage, assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, reconcileTicketedPlayIdentity, scrapeLeapTicketedPlayCheckout, scrapeLeapTicketedPlayInventory, scrapeOfficialTicketedPlayIdentities, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './lib/ticketed_play_inventory.mjs';
 import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acceptance.mjs';
 import { newRelevantDetailCoverageGaps, retainedDetailCoverageGaps } from './lib/monitoring_detail_coverage.mjs';
 import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
@@ -206,14 +206,18 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
   const canonicalSnapshot = config.canonicalSnapshotFile
     ? await readJson(path.join(root, config.canonicalSnapshotFile), { events: [] })
     : { events: [] };
-  const canonicalEvents = (canonicalSnapshot.events || []).map(event => ({
+  const seedCanonicalEvents = (canonicalSnapshot.events || []).map(event => ({
     sourceEventKey: event.sourceEventKey,
     id: event.sourceEventKey ? `ticketed-${event.sourceEventKey}` : undefined,
     rawTitle: event.rawTitle,
     rawDateLabel: event.rawDateLabel,
     rawTimeLabel: event.rawTimeLabel,
   }));
+  const canonicalEvents = config.officialScheduleUrl
+    ? await scrapeOfficialTicketedPlayIdentities({ url: config.officialScheduleUrl })
+    : seedCanonicalEvents;
   const schedule = await scrapeLeapTicketedPlayInventory({ url: config.url, retrievedAt: checkedAt, canonicalEvents });
+  if (config.officialScheduleUrl) assertOfficialTicketedPlayIdentityCoverage(schedule, canonicalEvents);
   const observed = config.checkoutUrl
     ? mergeLeapCheckoutAvailability(schedule, await scrapeLeapTicketedPlayCheckout({ url: config.checkoutUrl }), config.checkoutUrl)
     : schedule;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
-import { assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
+import { assertOfficialTicketedPlayIdentityCoverage, assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
 const soldOutCards = [
@@ -17,6 +17,14 @@ const soldOutCards = [
 ].map(([title, day, time]) => ({ title, day, time, soldOut: true, controls: [] }))
 
 describe('LEAP Ticketed Play inventory', () => {
+  it('binds current official gtID despite an end-time change and rejects an unbound listing', () => {
+    const official = [{ sourceEventKey: '948777', id: 'ticketed-948777', rawTitle: 'Sold Out - Turbo - Commander Mega Draft - Mystery Booster Commander Edition - $85 (Click here for more info)', rawDateLabel: 'Sun, Nov 15, 2026', rawTimeLabel: '1:30 PM - 4:30 PM' }]
+    const schedule = normalizeLeapInventoryCards([{ title: 'Turbo - Commander Mega Draft - Mystery Booster Commander Edition - $85 (Click here for more info)', day: 'Sunday November 15th', time: '1:30pm - 4:25pm', controls: [{ text: 'Login to add to your schedule', disabled: true }] }], { sourceUrl, canonicalEvents: official })
+    expect(schedule[0]).toMatchObject({ sourceEventKey: '948777', id: 'ticketed-948777' })
+    expect(() => assertOfficialTicketedPlayIdentityCoverage(schedule, official)).not.toThrow()
+    expect(() => assertOfficialTicketedPlayIdentityCoverage([{ ...schedule[0], sourceEventKey: 'leap-synthetic' }], official)).toThrow(/identity coverage incomplete/)
+  })
+
   it('uses exact public checkout products, not the anonymous login button, for availability', () => {
     const schedule = normalizeLeapInventoryCards([
       { title: 'Commander and Cocktails League with Brian David-Marshall', day: 'Saturday November 14th', time: '7:00pm - 10:25pm', controls: [{ text: 'Login to add to your schedule', disabled: true }] },

@@ -36,6 +36,10 @@ export function leapEventIdentity(event) {
   return [cleanTitle(event.title).toLowerCase(), cleanDay(event.day).toLowerCase(), cleanTime(event.time)].join('|')
 }
 
+function startIdentity(event) {
+  return [cleanTitle(event.title).toLowerCase(), cleanDay(event.day).toLowerCase(), cleanTime(event.time).split('-')[0]].join('|')
+}
+
 /** Align a prior snapshot with current durable keys only when the slot and
  * normalized title identify exactly one event on each side. A changed label
  * must not manufacture a new availability transition. */
@@ -95,6 +99,15 @@ export function assertTicketedPlayInventoryComplete(current = [], reference = []
     if (observed < Math.ceil(expected * .7)) {
       throw new Error(`Ticketed Play inventory incomplete: ${day} has ${observed} cards versus ${expected} accepted/reviewed; hold the baseline`)
     }
+  }
+}
+
+export function assertOfficialTicketedPlayIdentityCoverage(schedule = [], official = []) {
+  const officialIds = new Set(official.map(event => event.sourceEventKey))
+  const scheduleIds = schedule.map(event => event.sourceEventKey)
+  if (official.length !== schedule.length || scheduleIds.some(id => !/^\d+$/.test(id) || !officialIds.has(id))
+    || new Set(scheduleIds).size !== scheduleIds.length) {
+    throw new Error(`Official Ticketed Play identity coverage incomplete: ${scheduleIds.filter(id => officialIds.has(id)).length}/${schedule.length} schedule cards bound to ${official.length} official gtIDs; hold the baseline`)
   }
 }
 
@@ -201,6 +214,31 @@ export async function scrapeLeapTicketedPlayCheckout({ url }) {
   }
 }
 
+/** The current official schedule publishes its canonical gtID in each event
+ * link. Do not use the old seed's full time window as a durable identifier. */
+export async function scrapeOfficialTicketedPlayIdentities({ url }) {
+  const { chromium } = await import('playwright')
+  const browser = await chromium.launch()
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1200 } })
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
+    await page.waitForSelector('.gtSessionInfo .session-title a.gtPanelLink', { state: 'attached', timeout: 30000 })
+    const events = await page.locator('.gtSessionInfo').evaluateAll(nodes => nodes.map(node => ({
+      sourceEventKey: node.querySelector('.session-title a.gtPanelLink')?.getAttribute('data-id') ?? '',
+      rawTitle: node.querySelector('.session-title a.gtPanelLink')?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+      rawDateLabel: node.querySelector('.session-date')?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+      rawTimeLabel: node.querySelector('.session-time')?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+    })))
+    if (events.length < 130 || events.some(event => !/^\d+$/.test(event.sourceEventKey) || !event.rawTitle || !event.rawDateLabel || !event.rawTimeLabel)
+      || new Set(events.map(event => event.sourceEventKey)).size !== events.length) {
+      throw new Error(`Official Ticketed Play identity source incomplete: ${events.length} listings or missing/duplicate gtID`)
+    }
+    return events.map(event => ({ ...event, id: `ticketed-${event.sourceEventKey}` }))
+  } finally {
+    await browser.close()
+  }
+}
+
 export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, canonicalEvents = [] } = {}) {
   const canonicalByIdentity = new Map(canonicalEvents.map(event => [leapEventIdentity({
     title: event.rawTitle ?? event.title,
@@ -208,11 +246,14 @@ export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, can
     time: event.rawTimeLabel ?? event.time,
   }), event]))
   const canonicalBySlot = new Map()
+  const canonicalByStart = new Map()
   for (const event of canonicalEvents) {
     const slot = `${cleanDay(event.rawDateLabel ?? event.day)}|${cleanTime(event.rawTimeLabel ?? event.time)}`
     const bucket = canonicalBySlot.get(slot) ?? []
     bucket.push(event)
     canonicalBySlot.set(slot, bucket)
+    const start = startIdentity({ title: event.rawTitle ?? event.title, day: event.rawDateLabel ?? event.day, time: event.rawTimeLabel ?? event.time })
+    canonicalByStart.set(start, [...(canonicalByStart.get(start) ?? []), event])
   }
 
   return cards.map(card => {
@@ -224,7 +265,8 @@ export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, can
     const exactCanonical = canonicalByIdentity.get(identity)
     const slotCandidates = canonicalBySlot.get(`${day}|${time}`) ?? []
     const normalizedTitle = title.toLowerCase()
-    const canonical = exactCanonical ?? slotCandidates.find(event => {
+    const startCandidates = canonicalByStart.get(startIdentity({ title, day, time })) ?? []
+    const canonical = exactCanonical ?? (startCandidates.length === 1 ? startCandidates[0] : undefined) ?? slotCandidates.find(event => {
       const candidateTitle = cleanTitle(event.rawTitle ?? event.title).toLowerCase()
       return normalizedTitle.startsWith(candidateTitle) || candidateTitle.startsWith(normalizedTitle)
     })
