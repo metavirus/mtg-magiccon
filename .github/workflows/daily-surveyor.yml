@@ -95,6 +95,8 @@ jobs:
           Add-Content $env:GITHUB_STEP_SUMMARY "- Fetch failures: $($report.failureCount)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- First-party articles: $($report.newsletterIntake.observationCount) new/changed from $($report.newsletterIntake.fetchedCount) fetched ($($report.newsletterIntake.failureCount) failures)"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Coverage: $($report.newsletterIntake.coverageStatus)"
+          Add-Content $env:GITHUB_STEP_SUMMARY "- Overall coverage: $($report.coverageStatus) (configured watch pages and discovered news-index articles only)"
+          foreach ($gap in $report.detailPageCoverage.gaps) { Add-Content $env:GITHUB_STEP_SUMMARY "- New detail page not checked: $($gap.label) — $($gap.url) (linked from $($gap.sourceId))" }
           foreach ($item in $report.newsletterIntake.unfetched) { Add-Content $env:GITHUB_STEP_SUMMARY "- Not checked: $($item.url) ($($item.reason))" }
           Add-Content $env:GITHUB_STEP_SUMMARY "- Ticketed play signals: $($report.ticketedPlay.signalCount) ($($report.ticketedPlay.status))"
           Add-Content $env:GITHUB_STEP_SUMMARY "- Mode: $($report.mode)"
