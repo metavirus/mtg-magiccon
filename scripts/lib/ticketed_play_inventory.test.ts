@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
-import { diffTicketedPlayInventory, normalizeLeapInventoryCards, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory } from './ticketed_play_inventory.mjs'
+import { assertTicketedPlayIdentityStable, diffTicketedPlayInventory, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
 const soldOutCards = [
@@ -17,6 +17,34 @@ const soldOutCards = [
 ].map(([title, day, time]) => ({ title, day, time, soldOut: true, controls: [] }))
 
 describe('LEAP Ticketed Play inventory', () => {
+  it('ignores a changed availability prefix in event identity and canonical matching', () => {
+    const card = { ...soldOutCards[0], soldOut: false, controls: [{ text: 'Add' }] }
+    const [before] = normalizeLeapInventoryCards([card], { sourceUrl })
+    const [after] = normalizeLeapInventoryCards([{ ...card, title: `Sold Out - ${card.title}`, soldOut: true }], { sourceUrl })
+    expect(after.sourceEventKey).toBe(before.sourceEventKey)
+    expect(after.title).toBe(before.title)
+    expect(diffTicketedPlayInventory([before], [after])).toMatchObject([{ previousAvailability: before.availability, availability: 'sold_out' }])
+    const [canonical] = normalizeLeapInventoryCards([{ ...card, title: `Sold Out - ${card.title}` }], {
+      sourceUrl, canonicalEvents: [{ rawTitle: card.title, rawDateLabel: card.day, rawTimeLabel: card.time, sourceEventKey: '944111' }],
+    })
+    expect(canonical.sourceEventKey).toBe('944111')
+  })
+
+  it('repairs a previously accepted synthetic-key snapshot without reannouncing unchanged sellouts', () => {
+    const old = normalizeLeapInventoryCards(soldOutCards, { sourceUrl })
+      .map(event => ({ ...event, title: `Sold Out - ${event.title}`, sourceEventKey: `wrong-${event.sourceEventKey}` }))
+    const current = normalizeLeapInventoryCards(soldOutCards, { sourceUrl })
+    const aligned = reconcileTicketedPlayIdentity(old, current)
+    expect(aligned.map(event => event.sourceEventKey)).toEqual(current.map(event => event.sourceEventKey))
+    expect(() => assertTicketedPlayIdentityStable(aligned, current)).not.toThrow()
+    expect(diffTicketedPlayInventory(aligned, current)).toEqual([])
+  })
+
+  it('holds a baseline on broad unexplained identity churn', () => {
+    const old = normalizeLeapInventoryCards(soldOutCards, { sourceUrl })
+    const now = old.map(event => ({ ...event, sourceEventKey: `different-${event.sourceEventKey}`, title: `Different ${event.title}` }))
+    expect(() => assertTicketedPlayIdentityStable(reconcileTicketedPlayIdentity(old, now), now)).toThrow(/identity churn/)
+  })
   it('normalizes the current ten explicit sellouts into stable event records', () => {
     const events = normalizeLeapInventoryCards(soldOutCards, { sourceUrl, retrievedAt: '2026-08-25T20:00:00Z' })
     expect(events).toHaveLength(10)

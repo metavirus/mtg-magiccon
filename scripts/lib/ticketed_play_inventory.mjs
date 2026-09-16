@@ -9,6 +9,7 @@ function compact(value) {
 
 function cleanTitle(value) {
   return compact(value)
+    .replace(/^(?:sold\s*out|waitlist|available)\s*(?:-|–|—|:)\s*/i, '')
     .replace(/\s*\(click here for more info\)\s*$/i, '')
     .replace(/\s*(?:-|–|—)\s*\$\d+(?:\.\d{2})?\s*$/i, '')
     .replace(/\s+/g, ' ')
@@ -33,6 +34,37 @@ function cleanTime(value) {
 
 export function leapEventIdentity(event) {
   return [cleanTitle(event.title).toLowerCase(), cleanDay(event.day).toLowerCase(), cleanTime(event.time)].join('|')
+}
+
+/** Align a prior snapshot with current durable keys only when the slot and
+ * normalized title identify exactly one event on each side. A changed label
+ * must not manufacture a new availability transition. */
+export function reconcileTicketedPlayIdentity(previous = [], current = []) {
+  const identity = event => leapEventIdentity({ title: event.title, day: event.day, time: `${event.startsAt}-${event.endsAt}` })
+  const buckets = events => {
+    const map = new Map()
+    for (const event of events) map.set(identity(event), [...(map.get(identity(event)) ?? []), event])
+    return map
+  }
+  const oldBuckets = buckets(previous)
+  const newBuckets = buckets(current)
+  return previous.map(event => {
+    const key = identity(event)
+    const old = oldBuckets.get(key) ?? []
+    const now = newBuckets.get(key) ?? []
+    if (old.length !== 1 || now.length !== 1) return event
+    return { ...event, sourceEventKey: now[0].sourceEventKey, id: now[0].id }
+  })
+}
+
+export function assertTicketedPlayIdentityStable(previous, current) {
+  const oldKeys = new Set(previous.map(event => event.sourceEventKey))
+  const newKeys = new Set(current.map(event => event.sourceEventKey))
+  const removed = previous.filter(event => !newKeys.has(event.sourceEventKey)).length
+  const added = current.filter(event => !oldKeys.has(event.sourceEventKey)).length
+  if (added >= 10 && removed >= 10 && added >= current.length * .2 && removed >= previous.length * .2) {
+    throw new Error(`Ticketed Play identity churn: ${added} added and ${removed} removed; hold the baseline for review`)
+  }
 }
 
 export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, canonicalEvents = [] } = {}) {
