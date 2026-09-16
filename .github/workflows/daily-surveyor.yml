@@ -104,6 +104,7 @@ jobs:
           if (Test-Path -LiteralPath work/monitoring/closure-manifest.json) {
             $closure = Get-Content work/monitoring/closure-manifest.json -Raw | ConvertFrom-Json
             Add-Content $env:GITHUB_STEP_SUMMARY "- Consequence closure: $($closure.status)"
+            Add-Content $env:GITHUB_STEP_SUMMARY "- Canonical Ticketed Play availability: $($closure.availabilityProjection.inspectedCount) inspected, $($closure.availabilityProjection.writtenCount) written"
             foreach ($catch in $closure.catches) { Add-Content $env:GITHUB_STEP_SUMMARY "- $($catch.sourceId): $($catch.disposition) — $($catch.rationale)" }
           }
           if ($report.changeCount -gt 0) {

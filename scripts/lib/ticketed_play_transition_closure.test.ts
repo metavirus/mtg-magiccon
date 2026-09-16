@@ -40,4 +40,17 @@ describe('Ticketed Play transition closure', () => {
       availabilityReadback: [availability('ticketed-1')],
     })).toThrow('leap-lost')
   })
+
+  it('rejects a canonical row whose state or source key does not match the transition', () => {
+    expect(() => closeTicketedPlayTransitions({
+      sourceId: 'atlanta-ticketed-play-inventory',
+      transitions: [{ eventId: 'ticketed-1', sourceEventKey: '1', availability: 'sold_out' }],
+      availabilityReadback: [{ ...availability('ticketed-1'), availability: 'available' }],
+    })).toThrow(/differs from current observation/)
+    expect(() => closeTicketedPlayTransitions({
+      sourceId: 'atlanta-ticketed-play-inventory',
+      transitions: [{ eventId: 'ticketed-1', sourceEventKey: '1', availability: 'sold_out' }],
+      availabilityReadback: [{ ...availability('ticketed-1'), source_event_key: '9' }],
+    })).toThrow(/differs from current observation/)
+  })
 })

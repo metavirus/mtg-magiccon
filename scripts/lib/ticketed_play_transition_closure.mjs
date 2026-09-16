@@ -13,6 +13,16 @@ function retainedEventIds(proofs = []) {
 export function closeTicketedPlayTransitions({ transitions = [], availabilityReadback = [], proofs = [], sourceId }) {
   const transitionKeys = new Set(transitions.map(item => String(item.eventId)))
   const observed = availabilityReadback.filter(item => transitionKeys.has(String(item.event_id)))
+  const byId = new Map(observed.map(item => [String(item.event_id), item]))
+  for (const transition of transitions) {
+    const actual = byId.get(String(transition.eventId))
+    if (!actual) continue // Unmapped identities require a retained-evidence proof below.
+    const expectedAvailability = transition.event?.availability ?? (transition.availability === 'potential_opening' ? null : transition.availability)
+    const expectedKey = transition.event?.sourceEventKey ?? transition.sourceEventKey
+    if ((expectedAvailability && actual.availability !== expectedAvailability) || (expectedKey && String(actual.source_event_key) !== String(expectedKey))) {
+      throw new Error(`Surveyor closure blocked: Ticketed Play canonical availability readback differs from current observation: ${transition.eventId}.`)
+    }
+  }
   const canonicalKeys = new Set(observed.map(item => String(item.event_id)))
   const evidenceKeys = retainedEventIds(proofs)
   const uncovered = [...transitionKeys].filter(eventId => !canonicalKeys.has(eventId) && !evidenceKeys.has(eventId))

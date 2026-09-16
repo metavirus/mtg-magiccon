@@ -6,6 +6,7 @@ import { CONCEPT_RULE_VERSION, extractMonitoringConcepts, factualChoiceFindingFo
 import { editorialAllowsFactExtraction } from './lib/surveyor_editorial.mjs'
 import { monitoringConceptBaselineFromInfo, projectRegisteredFactResolution, projectResolutionToInfo, verifyRegisteredFactReadback } from './lib/monitoring_info_projection.mjs'
 import { ticketedPlayAvailabilityProjectionRows } from './lib/ticketed_play_availability_projection.mjs'
+import { planTicketedPlayAvailabilityWrites, verifyTicketedPlayAvailabilityWrites } from './lib/ticketed_play_availability_write_plan.mjs'
 import { closeTicketedPlayTransitions } from './lib/ticketed_play_transition_closure.mjs'
 import { assertSupportedSurveyorCatches, completeSurveyorClosureManifest, pendingSurveyorClosureManifest, surveyorCatchDescriptors } from './lib/surveyor_closure_contract.mjs'
 import { validateSurveyorClosureManifest } from './lib/surveyor_closure_contract.mjs'
@@ -48,18 +49,33 @@ const client = createClient(supabaseUrl, secretKey, {
 })
 const availabilityProjection = ticketedPlayAvailabilityProjectionRows(report.ticketedPlay?.inventory)
 let availabilityReadback = []
+let availabilityWrittenCount = 0
 if (availabilityProjection.length) {
-  const availabilityWrite = await client.from('ticketed_play_current_availability').upsert(
-    availabilityProjection.map(row => ({ ...row, updated_at: report.checkedAt })),
-    { onConflict: 'event_id' },
-  ).select('event_id,source_event_key,availability,observed_at,updated_at')
-  if (availabilityWrite.error) throw availabilityWrite.error
-  availabilityReadback = availabilityWrite.data ?? []
+  const existing = await client.from('ticketed_play_current_availability')
+    .select('event_id,source_event_key,availability,observed_at,updated_at', { count: 'exact' })
+    .in('event_id', availabilityProjection.map(row => row.event_id))
+  if (existing.error) throw existing.error
+  if (existing.count !== (existing.data ?? []).length) throw new Error('Ticketed Play availability readback was truncated; refusing a partial write plan')
+  const writeRows = planTicketedPlayAvailabilityWrites(availabilityProjection, existing.data ?? [])
+  availabilityReadback = existing.data ?? []
+  if (writeRows.length) {
+    const availabilityWrite = await client.from('ticketed_play_current_availability').upsert(
+      writeRows.map(row => ({ ...row, updated_at: report.checkedAt })),
+      { onConflict: 'event_id' },
+    ).select('event_id,source_event_key,availability,observed_at,updated_at')
+    if (availabilityWrite.error) throw availabilityWrite.error
+    const written = verifyTicketedPlayAvailabilityWrites(writeRows, availabilityWrite.data ?? [])
+    const byId = new Map(availabilityReadback.map(row => [row.event_id, row]))
+    for (const row of written) byId.set(row.event_id, row)
+    availabilityReadback = [...byId.values()]
+    availabilityWrittenCount = writeRows.length
+  }
 }
 if (!changes.length) {
   const manifest = completeSurveyorClosureManifest(report, new Map())
+  manifest.availabilityProjection = { inspectedCount: availabilityProjection.length, writtenCount: availabilityWrittenCount }
   await fs.writeFile(closurePath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
-  console.log(`Monitoring findings: PASS (no source changes to stage; ${availabilityProjection.length} current Ticketed Play availability row(s) projected)`)
+  console.log(`Monitoring findings: PASS (no source changes to stage; ${availabilityProjection.length} canonical Ticketed Play availability row(s) inspected; ${availabilityWrittenCount} written)`)
 } else {
 const hasTicketedInventory = changes.some(change => change.intakeKind === 'ticketed_play_inventory')
 let routingContext = { editorialDecisions: JSON.parse(await fs.readFile('monitoring/editorial-decisions.json', 'utf8')) }
@@ -361,8 +377,9 @@ for (const descriptor of surveyorCatchDescriptors(report)) {
   }
 }
 const closureManifest = completeSurveyorClosureManifest(report, outcomes, new Date().toISOString(), false)
+closureManifest.availabilityProjection = { inspectedCount: availabilityProjection.length, writtenCount: availabilityWrittenCount }
 await fs.writeFile(closurePath, `${JSON.stringify(closureManifest, null, 2)}\n`, 'utf8')
 validateSurveyorClosureManifest(closureManifest, report)
 
-console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${conceptEvidenceAdded} new concept evidence link(s); ${factualChoicesStaged} factual choice${factualChoicesStaged === 1 ? '' : 's'} staged; ${infoClosuresVerified} maintained Info closure${infoClosuresVerified === 1 ? '' : 's'} read back; ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)
+console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${availabilityProjection.length} canonical availability row(s) inspected, ${availabilityWrittenCount} written; ${conceptEvidenceAdded} new concept evidence link(s); ${factualChoicesStaged} factual choice${factualChoicesStaged === 1 ? '' : 's'} staged; ${infoClosuresVerified} maintained Info closure${infoClosuresVerified === 1 ? '' : 's'} read back; ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)
 }
