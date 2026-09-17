@@ -14,5 +14,9 @@
     "title": "Portfolio Review applications close September 13",
     "summary": "MagicCon Atlanta added its Portfolio Review application page with a September 13, 2026 deadline. The expired Cosplay Contest application link was removed.",
     "reason": "Reviewed the exact official-home link change. The new Portfolio Review deadline is useful planning information; describe the added and expired application links rather than publishing the homepage navigation dump."
+  },
+  "d1f25704d7bf5f13f91ad61d95e0fce90f233cea22c7c870b866d1dc91faf26d": {
+    "disposition": "noise",
+    "reason": "Reviewed the exact Atlanta homepage change. The substantive convention copy is unchanged; a newsletter link was replaced by a sponsored doubleclick ad link. This is promotional page chrome, not planning-relevant Atlanta information."
   }
 }
