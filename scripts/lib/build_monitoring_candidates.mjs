@@ -39,7 +39,10 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
     if (change.intakeKind === 'ticketed_play_inventory') continue
     const added = change.linkDelta?.added ?? []
     const removed = change.linkDelta?.removed ?? []
-    const deltaKey = added.length || removed.length
+    // A source-specific review boundary cannot inherit another page's decision
+    // merely because both pages gained the same navigation link.
+    const requiresSourceReview = change.initialSourceReview || change.geographicRelevance === 'uncertain'
+    const deltaKey = !requiresSourceReview && (added.length || removed.length)
       ? crypto.createHash('sha256').update(JSON.stringify({ added, removed })).digest('hex')
       : `source:${change.id}`
     const existing = grouped.get(deltaKey)
@@ -87,6 +90,7 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
     const classification = classifyMonitoringFinding(row)
     const editorial = editorialDecision(row, routingContext.editorialDecisions)
     if (editorial.disposition !== 'pending') return applyEditorialDecision(row, editorial)
+    if (change.initialSourceReview || change.geographicRelevance === 'uncertain') return applyEditorialDecision(row, editorial)
     if (!change.initialSourceReview && change.intakeKind === 'first_party_newsletter' && change.geographicRelevance !== 'uncertain' && isInterestingAnnouncement(change)) return {
       ...row,
       destination: 'Home',

@@ -26,6 +26,12 @@ Six explicit exclusions remain visible in coverage: duplicate `info/info-overvie
 
 ## Integration proof remaining
 
+Activation run [35485943116](https://github.com/metavirus/mtg-magiccon/actions/runs/35485943116) passed on `1811efd`: 35 sources, 9 discovered articles, zero fetch failures/unfetched articles/missing discovery sources/detail gaps, six dated exclusions. Closure was complete: 24 reviewed initial snapshots archived as no additional signal; three current-reference synopses routed to Home with exact content and `app_projection_verified` readbacks. Closure verification, watched-alert step, exact baseline acceptance, cache save, and artifact upload all succeeded. Root inspected the three cards in the signed-in public Home viewport.
+
+The first actual private coverage receipt also passed: all three canonical queries completed through September 20 at 03:09:13 UTC (37/12/24 matches, 39 unique messages). No new unhandled finding; the known hotel-original gap remains explicitly `not_covered`, not hidden by successful search. Private identifiers and evidence remain out of this document.
+
+Final review additionally guarded copied-edition/new-source editorial boundaries from both informational-link fallback and cross-source link-delta coalescing. Four new regressions prove the prior bypasses and both source orderings; full ship gate now passes 418 tests. The quiet repeat on that follow-up is the remaining cloud proof.
+
 Root runs the monitoring publication gate, reviews the three public synopses, publishes the bounded checkpoint, and updates the existing heartbeat with the exact addition in `PRIVATE_MONITORING_COVERAGE.md`. Then use the normal cloud surveyor: verify 35 page fetches, initial-catch closure, Home synopsis readbacks, current-link gaps/exclusions, exact baseline acceptance and cache save. If source bytes changed since these reviews, resolve exact retained fingerprints through editorial decisions and replay; do not weaken hashes or blanket-accept. A subsequent ordinary run must prove quiet deduplication and successful baseline acceptance. No local operational monitor command substitutes for that proof.
 
 The first complete private search receipt must be established separately by root/heartbeat using the actual connector. This worker created no claimed Gmail check or private coverage receipt. S1–S4 are implemented locally, with cloud activation and private freshness proof still outstanding until those checks complete.

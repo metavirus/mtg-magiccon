@@ -3,11 +3,30 @@ import { buildMonitoringCandidateRows } from './build_monitoring_candidates.mjs'
 import { findingIsHomeWorthy, findingMayBypassConceptReadModel, findingDisplaySummary, announcementIsCurrent, type MonitoringFindingRow } from '../../src/lib/monitoringFindings'
 import { completeSurveyorClosureManifest } from './surveyor_closure_contract.mjs'
 import { editorialAllowsFactExtraction } from './surveyor_editorial.mjs'
+import { classifyMonitoringFinding } from './monitoring_action_router.mjs'
 
 const change = (text: string) => ({ id: 'atlanta-experience', label: 'Atlanta guests', url: 'https://mcatlanta.mtgfestivals.com/en-us/experience.html', current: { textSample: text, textHash: text }, previous: { textSample: 'Guests will be listed later.' }, linkDelta: { added: [], removed: [] } })
 const report = (value: object) => ({ checkedAt: '2026-09-06T12:00:00Z', changes: [value] })
 
 describe('discovery to Home editorial contract', () => {
+  it.each([{ geographicRelevance: 'uncertain' }, { initialSourceReview: true }])('does not let Magic Play link classification bypass required editorial review: %j', boundary => {
+    const input = report({ ...change('Meet and Greet information still links to Amsterdam.'), ...boundary, linkDelta: { added: ['On-Demand Events -> https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html'], removed: [] } })
+    const [row] = buildMonitoringCandidateRows(input)
+    expect(classifyMonitoringFinding(row).classification).toBe('informational_official_links')
+    expect(row.evidence.editorial?.disposition).toBe('pending')
+    expect(row.status).toBe('needs_review')
+    expect(row.evidence.presentation_links).toBeUndefined()
+    expect(editorialAllowsFactExtraction(row.evidence)).toBe(false)
+  })
+  it.each([false, true])('preserves copied-edition review when its link delta matches another source (guarded first: %s)', guardedFirst => {
+    const linkDelta = { added: ['Prize Wall -> https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html'], removed: [] }
+    const ordinary = { ...change('Existing official resource.'), id: 'atlanta-info', linkDelta }
+    const guarded = { ...ordinary, id: 'atlanta-copied-page', geographicRelevance: 'uncertain' }
+    const rows = buildMonitoringCandidateRows({ checkedAt: '2026-09-20T03:00:00Z', changes: guardedFirst ? [guarded, ordinary] : [ordinary, guarded] })
+    expect(rows).toHaveLength(2)
+    expect(rows.find(row => row.source_id === guarded.id)?.evidence.editorial?.disposition).toBe('pending')
+    expect(rows.find(row => row.source_id === ordinary.id)?.evidence.editorial?.disposition).toBe('home')
+  })
   it.each(['Meet guest Dana at the Friday panel.', 'Black Lotus pickup is now at the west entrance.'])('surfaces changed content without announcement magic words: %s', text => {
     const [row] = buildMonitoringCandidateRows(report(change(text)))
     const actual = { ...row, first_seen_at: '2026-09-06T12:00:00Z' } as MonitoringFindingRow
