@@ -1,6 +1,10 @@
 # Current Frontier
 
-Updated: 2026-09-11
+Updated: 2026-09-19
+
+## September 19 approved audit implementation — publication verification in progress
+
+The approved implementation now shares Companion codes across Explore/Plan/Calendar, routes hotel references correctly without claiming missing originals exist, fixes unconfirmed artist attendance, distinguishes unread/applied Activity history from required action, and improves mobile Plan and supporting copy. Local desktop/mobile click-throughs and 414 tests passed. The surveyor watches 35 pages with reviewed first snapshots and six dated exclusions; the existing heartbeat now requires a separate durable Gmail search receipt. Root still must verify the first cloud expansion, Home readbacks, exact baseline acceptance, quiet repeat, and public deployment before calling activation complete. See `docs/UI_UX_AUDIT_2026-09-19.md`, `docs/SURVEYOR_AUDIT_2026-09-19.md`, and `docs/SURVEYOR_SOURCE_ONBOARDING_2026-09-19.md`. Hotel original ingestion remains separate missing-data work. Accepted iPhone offline proof, deferred planning architecture, and placeholder Map remain accepted/parked. The checkpoint below describes the earlier accepted feature baseline, not the newest deployed SHA.
 
 ## Current checkpoint
 

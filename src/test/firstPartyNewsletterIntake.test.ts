@@ -17,6 +17,15 @@ const policy = {
 const limits = { maxLinks: 12, maxPages: 4, maxBytes: 512, timeoutMs: 50, maxTextChars: 8_000 }
 
 describe('bounded first-party newsletter intake', () => {
+  it('retains an initial article for deliberate editorial review instead of suppressing intake', async () => {
+    const article = await fixture('operations-update.html')
+    const link = { url: 'https://www.mtgfestivals.com/global/en-us/magiccon-news/2026/atlanta-operations-update.html', label: 'Atlanta operations', discoveredFrom: 'global-magiccon-news' }
+    const fetched = await fetchNewsletterPages({ links: [link], policy, limits, fetchImpl: async () => new Response(article, { status: 200, headers: { 'content-type': 'text/html' } }), observedAt: '2026-09-20T03:00:00Z', initialSourceReview: true })
+    expect(fetched.observations).toHaveLength(1)
+    const [row] = buildMonitoringCandidateRows({ checkedAt: '2026-09-20T03:00:00Z', changes: fetched.observations })
+    expect(row.evidence.editorial.disposition).toBe('pending')
+    expect(row.evidence.initialSourceReview).toBe(true)
+  })
   it('discovers, canonicalizes, dedupes, fetches and feeds registered claims', async () => {
     const html = await fixture('discovery.html')
     const article = await fixture('operations-update.html')

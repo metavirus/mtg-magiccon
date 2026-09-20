@@ -5,5 +5,26 @@
     "summary": "The official September 4 MagicCon Atlanta newsletter announced Bosco and Irene the Alien for their first MagicCon. Juan is especially interested, so future Spell Slayers announcements are on the watch list.",
     "reason": "Previously reviewed official September 4, 2026 newsletter announcement, already displayed in the app. Migrated unchanged in meaning from the legacy Home card to cloud findings. The source URL is the official experience landing page; the announcement evidence is the newsletter.",
     "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience.html"
+  },
+  {
+    "id": "atlanta-badge-shipping-deadline-sep-2026",
+    "title": "Badge shipping cutoff: September 30",
+    "summary": "The Atlanta badge page lists September 30 as the advance-shipping cutoff. Later purchases are collected at Registration/Will Call; international badges are collected onsite. Check the official page for the cutoff time before relying on shipping.",
+    "reason": "Reviewed the existing Atlanta 2026 Buy Badges page September 19. This is an upcoming logistics reminder, not newly announced policy or a change to purchased badges. The page labels noon as PST, so the synopsis preserves the date without converting or resolving that timezone wording.",
+    "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges.html"
+  },
+  {
+    "id": "atlanta-accessibility-request-deadline-oct-2026",
+    "title": "Accessibility requests: October 9 deadline",
+    "summary": "Atlanta's accessibility page asks attendees to request ASL interpretation or other effective communication services by October 9. ADA credentials are collected at Registration/Will Call; the Atlanta quiet-room location remains pending the official maps.",
+    "reason": "Reviewed existing Atlanta-specific accessibility information September 19. This is a planning reference, not a newly announced change. The separate Quiet Room detail page still describes Amsterdam, so its room G-111 is deliberately excluded.",
+    "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/info/accessibility-assistance.html"
+  },
+  {
+    "id": "atlanta-gathering-grounds-reference-sep-2026",
+    "title": "Explore Atlanta's Gathering Grounds",
+    "summary": "The Gathering Grounds is open to all attendees. Atlanta's existing page lists Extra Life, Birds of Paradise, MelaninMagic, Veterans the Gathering, and Wizards employee resource groups as participants in this community space.",
+    "reason": "Reviewed the Atlanta-specific community-space page September 19 while onboarding existing sources. Useful current reference, not a newly released schedule; no session times or copied prior-event details are implied.",
+    "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds.html"
   }
 ]

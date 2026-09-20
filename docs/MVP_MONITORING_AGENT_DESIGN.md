@@ -1,8 +1,8 @@
 # MVP Monitoring Agent Design
 
-Updated: 2026-08-28
+Updated: 2026-09-19
 
-Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` supervises the authoritative GitHub Actions run and may optionally discover read-only Gmail evidence when that connector is already available. It does not perform daily public-source discovery or own/request a local copy of the cloud surveyor secret. The GitHub Actions `Daily MagicCon surveyor` exclusively owns public-source discovery, privileged staging, allowlisted deterministic public consequences, watched-event alert delivery, closure verification, and exact-report baseline acceptance through its configured `SUPABASE_SECRET_KEY`. Neither runtime has generic canonical-write authority.
+Automation status has two bounded runtimes. The Codex heartbeat `magiccon-atlanta-quiet-period-monitor` supervises the authoritative GitHub Actions run and separately attempts daily read-only Gmail coverage under `docs/PRIVATE_MONITORING_COVERAGE.md`. Missing Gmail capability is recorded as `not_checked`; public success does not establish mailbox freshness. It does not perform daily public-source discovery or own/request a local copy of the cloud surveyor secret. The GitHub Actions `Daily MagicCon surveyor` exclusively owns public-source discovery, privileged staging, allowlisted deterministic public consequences, watched-event alert delivery, closure verification, and exact-report baseline acceptance through its configured `SUPABASE_SECRET_KEY`. Neither runtime has generic canonical-write authority.
 
 ## Closed-loop default
 
@@ -50,7 +50,7 @@ The mechanical Gmail query map is recorded in `monitoring/gmail-watch-queries.js
 
 ### Initial watch set
 
-- MagicCon Atlanta official site tree, not merely the home page. Any new, removed, renamed, or materially changed page under `https://mcatlanta.mtgfestivals.com/en-us/` is a candidate observation.
+- Configured MagicCon Atlanta pages and their current links within the bounded attendee-page allowlist. Reconcile existing links against watches and dated exclusions; this is not exhaustive site-tree crawling. See `docs/SURVEYOR_SOURCE_ONBOARDING_2026-09-19.md` for onboarding decisions and limits.
 - Black Lotus VIP page, elevated as a Home-worthy target by default unless a diff is clearly cosmetic.
 - Ticketed play / event schedule placeholder surfaces.
 - MagicCon news page.
@@ -189,7 +189,7 @@ The Codex heartbeat remains a deliberately simple cloud-supervision workflow:
 2. Inspect the latest `Daily MagicCon surveyor` runs. The ignored workstation baseline is not used for daily discovery because the authoritative accepted baseline lives in the workflow cache.
 3. Reuse or wait for an active/successful cloud run within 26 hours; dispatch one on `main` only when the cloud run is absent, stale, or failed.
 4. Read the authoritative cloud summary/artifact when needed and report its staging, alert, closure, and baseline result.
-5. Interpret pending editorial catches and coverage gaps under `docs/SURVEYOR_EDITORIAL_CONTRACT.md`. Gmail may use an available connector or an already signed-in read-only browser session; missing private coverage is reported separately.
+5. Interpret pending editorial catches and coverage gaps under `docs/SURVEYOR_EDITORIAL_CONTRACT.md`. Attempt/reuse private Gmail coverage under `docs/PRIVATE_MONITORING_COVERAGE.md`; persist its own successful or incomplete receipt, separately from public coverage.
 
 The GitHub Actions surveyor is separate: it runs the deterministic public and LEAP checks, uploads the artifact, stages deduplicated evidence, applies only registered deterministic public consequences such as current Ticketed Play availability, sends the narrowly watched availability email when its guard fires, verifies every terminal disposition, and accepts only the exact verified report baseline. It does not run Gmail or Discord. Routine quiet checks create no visible app noise.
 
@@ -208,7 +208,7 @@ Do not start with:
 2. Inspect the authoritative cloud run and artifact. Never use the ignored local baseline for daily discovery. Resolve pending editorial work under `docs/SURVEYOR_EDITORIAL_CONTRACT.md`.
 3. Check official site/watch URLs for changed text, new links, or removed "coming soon" language only where the mechanical check or source strategy indicates a need.
 4. Check MagicCon news for new posts.
-5. Search Gmail using `monitoring/gmail-watch-queries.json` and a narrow date window since the last run. Do not search standalone `Wizards` or standalone `Leap`; require MagicCon/MTG Festivals context for broad vendor/operator terms.
+5. Search all three canonical Gmail queries when private coverage is due, using the durable successful private checkpoint and overlapping window in `docs/PRIVATE_MONITORING_COVERAGE.md`. Persist `checked`, `partial`, or `not_checked`; the previous public run is not the Gmail checkpoint. Do not search standalone `Wizards` or standalone `Leap`.
 6. Check narrowly filtered official Wizards news only when it intersects MagicCon-relevant product/context terms.
 7. Review any manually supplied or connector-available Black Lotus Discord observations as radar. Follow official links before promoting claims; keep unsupported community chatter in Activity unless it indicates an urgent Black Lotus, ticketed-play, store, sellout, map, or vendor/exclusive lead.
 8. Classify each finding into the routing map.
@@ -220,24 +220,8 @@ Do not start with:
    - unclear items needing a rare yes/no prompt.
 11. Do not ask the owner anything unless material ambiguity prevents the safe consequence.
 
-## First deployable automation prompt
+## Active state and remaining limits
 
-When automation is enabled, the scheduled task should say:
+The cloud secret, source staging, deduplication, owner access, closure verification and exact-report baseline acceptance are deployed; do not repeat their historical activation steps or request a local server secret. The September 19 audit records the latest verified cloud run in `docs/SURVEYOR_AUDIT_2026-09-19.md`.
 
-> Check the MagicCon Atlanta 2026 watch set for meaningful changes. Use the repository docs as routing authority. Detect, extract, reconcile, apply any explicitly allowlisted high-confidence reversible consequence, emit one concise signal when useful, and stop. Preserve source evidence. Never modify Gmail. Do not turn a safe deterministic update into a Codex review request; ask one specific question only for material unresolved ambiguity.
-
-## POC acceptance
-
-The monitoring agent is POC-ready when:
-
-- the app preview demonstrates landing places for representative findings;
-- this design is documented;
-- a human can run the daily prompt manually and know where every finding belongs;
-- live automation can be enabled later without redesigning Home, Activity, Notes, Wallet, Trip, Explore, Info, Calendar, or Map.
-
-## Remaining activation gate
-
-- In GitHub repository Settings → Secrets and variables → Actions, configure the secret named exactly `SUPABASE_SECRET_KEY` with a modern `sb_secret_...` server key for `pavjsexxbueuzhzgemgy`. Never paste it into chat, commit it, or expose it through Vite/browser configuration.
-- Run `Daily MagicCon surveyor` manually and prove a changed report stages a row, then rerun the same report and prove fingerprint dedupe updates `occurrence_count` instead of creating another card.
-- Confirm Kavi can review the candidate and a non-Kavi companion cannot read or decide it.
-- Run the normal ship/public verification gate only after that workflow is clean. Private Storage for receipt originals remains a separate tranche.
+Source additions require one-time exact-content review and normal cloud closure before their first baseline is accepted. Current linked-source reconciliation and expiring exclusions are described in `docs/SURVEYOR_SOURCE_ONBOARDING_2026-09-19.md`. Public green status remains scoped coverage, not a guarantee about unknown site pages or Gmail. Private searches retain their separate durable receipt; manual receipt publication and authenticated proof/Wallet validation remain deliberate, distinct operations. The exact heartbeat addition and local receipt schema are in `docs/PRIVATE_MONITORING_COVERAGE.md`.

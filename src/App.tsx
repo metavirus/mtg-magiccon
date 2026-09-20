@@ -92,7 +92,7 @@ function surfaceTitle(surface: Surface) {
     map: 'Where things are.',
     info: 'Know before you need it.',
     wallet: 'Show, claim, remember.',
-    trip: 'One shared night, then a split.',
+    trip: 'Getting there, staying together.',
     artists: 'Who might be worth finding.',
     notes: 'Notes stay where they happened.',
     activity: 'Monitor inbox.',
@@ -109,7 +109,7 @@ function surfaceSubtitle(surface: Surface) {
     map: 'Omni, downtown hotels, and GWCC Building C.',
     info: 'Official hours, entry, and play guidance.',
     wallet: 'Passes, receipts, and Prize Tix without hunting through email.',
-    trip: 'Every stay, address, and roommate in one shared view.',
+    trip: 'Flights, stays, addresses, and who is going where.',
     artists: 'Official Atlanta artists and your signing shortlist.',
     notes: 'Mostly human notes, grouped by the object that prompted them.',
     activity: 'Signals, changes, and notes in one review lane.',
@@ -1609,6 +1609,11 @@ export default function App() {
     void upsertUserSelection(`alert-${id}`, 'alert', 'review_state', state)
   }
   const navigateFromObjectDetail = (destination: Surface) => {
+    const hotelTarget = objectDetail?.id
+    if (destination === 'wallet' && hotelTarget === 'atlanta-operational-logistics') setWalletProofRequest({ target: 'black-lotus', nonce: Date.now() })
+    if (destination === 'wallet' && (hotelTarget === 'hotel-courtyard' || hotelTarget === 'hotel-omni' || hotelTarget === 'hotel-hilton')) {
+      setWalletProofRequest({ target: hotelTarget, nonce: Date.now() })
+    }
     closeObjectDetail()
     openDestination(surfaceTitle(destination), destination)
   }
@@ -1696,6 +1701,9 @@ export default function App() {
     }
   }
   const conceptActivity: ActivityItem[] = effectiveMonitoringConcepts.filter(monitoringConceptIsUserFacing).map(concept => {
+    const appliedFlight = concept.concept_kind === 'flight_schedule' && concept.latest_resolution === 'material_update'
+    const currentFlight = appliedFlight ? tripFlights.find(flight => flight.itinerary_key === concept.current_state.itinerary_key) : undefined
+    const flightFacts = currentFlight?.legs.map(leg => ({ label: `${leg.flight_number} · ${leg.departure_airport} → ${leg.arrival_airport}`, value: `${new Date(leg.departure_at).toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: leg.departure_airport === 'ATL' ? 'America/New_York' : 'America/Los_Angeles' })} · ${flightAirportTime(leg.departure_at, leg.departure_airport)}–${flightAirportTime(leg.arrival_at, leg.arrival_airport)} (local airport times)` })) ?? []
     const resources = monitoringConceptResources(concept)
     const sourceLabel = typeof concept.current_state.source_label === 'string' ? concept.current_state.source_label : 'Official source'
     const sourceUrl = typeof concept.current_state.source_url === 'string' ? concept.current_state.source_url : ''
@@ -1707,19 +1715,21 @@ export default function App() {
       id: `concept-${concept.concept_key}`,
       conceptKey: concept.concept_key,
       sourceKind: 'monitor', kind: 'site', severity: needsAttention ? 'hot' : 'notice', destination: 'Activity',
-      attention: needsAttention ? 'Needs attention' : 'Worth knowing', title: concept.title, summary: concept.current_summary,
+      attention: needsAttention ? 'Needs attention' : 'Worth knowing', title: concept.title, summary: appliedFlight ? 'This schedule update was applied to Trip. Open it to see the current itinerary.' : concept.current_summary,
       object: sourceLabel, source: sourceLabel, checkedAt: new Date(concept.last_seen_at).toLocaleString(), checkedAtIso: concept.last_seen_at,
       status: concept.latest_resolution ?? concept.attention_state, rationale: concept.current_summary,
       nextAction: 'Open the concept for its current evidence and provenance.', reviewState,
       objectDetail: {
         id: `monitoring-concept-${concept.concept_key}`, kind: 'alert', eyebrow: 'Monitoring concept', title: concept.title,
-        summary: concept.current_summary,
+        summary: appliedFlight ? 'Applied schedule update. The itinerary below is the current saved itinerary, not a request to approve this historical change.' : concept.current_summary,
         facts: [
-          { label: 'Status', value: concept.latest_resolution ?? concept.attention_state },
+          { label: 'Status', value: appliedFlight ? 'Applied update' : concept.latest_resolution ?? concept.attention_state },
+          ...flightFacts,
           { label: 'Evidence', value: `${concept.evidence_count} retained observation${concept.evidence_count === 1 ? '' : 's'}` },
           { label: 'Last seen', value: new Date(concept.last_seen_at).toLocaleString() },
         ],
         links: resources,
+        actions: appliedFlight ? [{ label: 'Open current itinerary', destination: 'trip' }] : undefined,
         source: sourceUrl ? { label: sourceLabel, value: sourceUrl } : undefined,
         backlinks: [{ label: 'Activity', destination: 'activity' }],
       },
@@ -1961,7 +1971,7 @@ export default function App() {
       </nav>
       <div className="rail-bottom">
         <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity{mentionUnreadCount > 0 && <b className="nav-count-badge">{mentionUnreadCount > 9 ? '9+' : mentionUnreadCount}</b>}</button>
-        <span className="rail-last-checked">Last checked<br /><strong>{lastChecked}</strong></span>
+        <span className="rail-last-checked">Device refreshed<br /><strong>{lastChecked}</strong></span>
       </div>
     </aside>
 
@@ -1989,7 +1999,7 @@ export default function App() {
             <span aria-hidden="true"><NavIcon name={activityDestination.icon} /></span>{activityDestination.name}
             {mentionUnreadCount > 0 && <b className="nav-count-badge">{mentionUnreadCount > 9 ? '9+' : mentionUnreadCount}</b>}
           </button>
-          <small>Last checked<br /><strong>{lastChecked}</strong></small>
+          <small>Device refreshed<br /><strong>{lastChecked}</strong></small>
         </footer>}
       </section>
     </div>}
@@ -2100,7 +2110,7 @@ export default function App() {
 
 type ForecastId = 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
 type CalendarDetail = ForecastId | 'arrival' | 'preview' | 'friday' | 'event' | 'airport' | 'sunday' | 'bl-thursday' | 'bl-friday' | 'bl-sunday'
-type WalletProofTarget = 'black-lotus' | 'juan-premium'
+type WalletProofTarget = 'black-lotus' | 'juan-premium' | 'hotel-courtyard' | 'hotel-omni' | 'hotel-hilton'
 
 function trustSliceToObjectDetail(slice: TrustSlice): ObjectDetail {
   return {
@@ -2643,12 +2653,12 @@ async function loadAllSupabaseRows<T>(table: string, select = '*', pageSize = 10
   return rows
 }
 
-function catalogArtistToSeed(artist: ArtistCatalogRow, appearance?: ArtistAppearanceCatalogRow): ArtistSeed {
+export function catalogArtistToSeed(artist: ArtistCatalogRow, appearance?: ArtistAppearanceCatalogRow): ArtistSeed {
   const confirmed = appearance?.attending_status === 'confirmed'
   const unconfirmed = appearance?.attending_status === 'unconfirmed'
   const title = artist.display_name || artist.canonical_name
   const fallbackSeed = fallbackArtistSeedByName.get(normalizeArtistName(title))
-  const attendance = appearance?.appearance_days || (confirmed ? 'All days' : 'Unconfirmed')
+  const attendance = confirmed ? (appearance?.appearance_days || 'All days') : 'Unconfirmed'
   const status = confirmed
     ? 'Official Atlanta Art of Magic guest'
     : unconfirmed
@@ -2840,6 +2850,7 @@ function artistSeedToObjectDetail(seed: ArtistSeed): ObjectDetail {
 
 function InfoReaderContent({ detail }: { detail: NonNullable<ObjectDetail['reader']> }) {
   return <div className="info-reader-content">
+    {detail.contradictions.length > 0 && <section className="info-reader-section info-reader-unknowns"><h3>Check before relying on these details</h3><ul>{detail.contradictions.map(item => <li key={item.summary}>{item.summary}</li>)}</ul></section>}
     {detail.sections.map(section => <section key={section.key} className="info-reader-section">
       <h3>{section.title}</h3>
       {section.summary && <p>{section.summary}</p>}
@@ -2847,7 +2858,6 @@ function InfoReaderContent({ detail }: { detail: NonNullable<ObjectDetail['reade
       {section.bullets?.length ? <ul>{section.bullets.map(bullet => <li key={bullet}>{bullet}</li>)}</ul> : null}
     </section>)}
     {detail.unknowns.length > 0 && <section className="info-reader-section info-reader-unknowns"><h3>What is still unknown</h3><ul>{detail.unknowns.map(item => <li key={item}>{item}</li>)}</ul></section>}
-    {detail.contradictions.length > 0 && <section className="info-reader-section info-reader-unknowns"><h3>What does not line up yet</h3><ul>{detail.contradictions.map(item => <li key={item.summary}>{item.summary}</li>)}</ul></section>}
     {detail.recentChanges.length > 0 && <section className="info-reader-section info-reader-changes"><h3>Latest meaningful change</h3>{detail.recentChanges.map(change => <article key={`${change.title}-${change.publishedAt}`}><div><strong>{change.title}</strong><time>{new Date(change.publishedAt).toLocaleDateString()}</time></div><p>{change.summary}</p></article>)}</section>}
   </div>
 }
@@ -3099,6 +3109,8 @@ function personNameFromLabel(label: string): PersonName | undefined {
 }
 
 function defaultAlertReviewState(alert: MonitoringAlert): AlertReviewState {
+  // Retain the compatibility announcements in Archive; explicit saved review choices still win.
+  if (['atlanta-magic-play-pages-published', 'atlanta-on-demand-prize-wall-details'].includes(alert.id)) return 'archived'
   return alert.severity === 'quiet' ? 'reviewed' : 'needs-review'
 }
 
@@ -4044,7 +4056,8 @@ function purchaseQaEvents(events: ExploreEvent[]) {
   const qaModes = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
   if (!qaModes.includes('purchased-event')) return events
   const paidId = qaModes.includes('ticketed-availability') ? 'ticketed-944015' : events.find(event => canPurchaseEvent(event.price))?.id
-  return events.map(event => event.id === paidId ? { ...event, state: 'committed' as const, purchased: true } : event)
+  const previewCode = qaModes.includes('companion-code') && ['localhost', '127.0.0.1'].includes(window.location.hostname) && new URLSearchParams(window.location.search).get('preview') === '1'
+  return events.map(event => event.id === paidId ? { ...event, state: 'committed' as const, purchased: true, ...(previewCode ? { companionCode: 'QA12345' } : {}) } : event)
 }
 
 function purchaseQaEventId(events: ExploreEvent[]) {
@@ -4361,7 +4374,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
               <div className="plan-state-controls" aria-label={`${event.title} planning state`}>
                 {([['interested', 'Interested'], ['tentative', 'Tentative'], ['committed', 'Committed']] as const).map(([state, label]) => {
                   const disabled = Boolean(event.purchased) || (event.id === 'bl-planechase' ? !online || saving : false)
-                  const title = event.purchased ? 'Set by Purchased. Undo purchase to change commitment.' : label
+                  const title = event.purchased ? 'Purchased · commitment locked.' : label
                   return <button key={state} type="button" className={`decision-state-${state}`} aria-label={title} title={title} aria-pressed={event.state === state} disabled={disabled} onClick={() => setState(event, state)}><b aria-hidden="true"><PlanningStateIcon state={state} /></b><span>{label}</span></button>
                 })}
               </div>
@@ -4369,6 +4382,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
           </section>
         })}
         {planView === 'agenda' && <div className="plan-agenda">
+          {agendaPlacements.length > 0 && <p className="agenda-scroll-hint">Swipe sideways to see overlapping events <span aria-hidden="true">↔</span></p>}
           {agendaOperatingBoundary && <div className="agenda-boundary agenda-boundary-open"><time>{agendaOperatingBoundary.opens}</time><span>Show floor opens</span></div>}
           {flexibleEvents.length > 0 && <section className="agenda-flexible-strip"><span>Flexible</span><div>{flexibleEvents.map(event => <button key={event.id} type="button" onClick={() => openPlanEvent(event)} className={selected?.id === event.id ? 'selected' : ''}><strong>{displayEventTitle(event)}</strong><PlanParticipantBadges participants={(participantMap.get(event.id) ?? []).filter(participant => selectedPeople.includes(participant.person))} compact currentPerson={currentPerson} /></button>)}</div></section>}
           {agendaPlacements.length > 0 && <div className="agenda-timeline" style={{ height: agendaHeight }}>
@@ -4409,11 +4423,12 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
         </header>
         <section className="plan-who"><small>WHO'S IN</small><PlanParticipantBadges participants={participantMap.get(selected.id) ?? []} currentPerson={currentPerson} /></section>
         <EventStateRail event={selected} context="plan" onState={state => setState(selected, state)} canCommit disabled={!online || saving} />
+        <CompanionCodePanel event={selected} />
         <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(selected.detail)}</p></div>
         <section className="detail-section decision-section">
           <div className="format-heading"><strong>{selected.format}</strong>{selected.formatHelp && <details className="format-help"><summary aria-label={`Explain ${selected.format}`}>?</summary><p>{selected.formatHelp}</p></details>}</div>
           {eventDecisionFacts(selected).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(selected).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
-          <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {selected.complexityWhy}</p>
+          <details className="detail-more"><summary>Planning context</summary><p>{selected.complexityWhy}</p></details>
         </section>
         <section className="detail-section plan-summary"><strong>Plan effect</strong><p>{selected.planEffect}</p></section>
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
@@ -4683,7 +4698,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
             }} onState={state => updateEvent(event.id, state)} />)}
           </div>}
         </section>}
-        {visible.length === 0 && <div className="event-empty">No events match this view. Try All or clear search.</div>}
+        {visible.length === 0 && <div className="event-empty">No events match this view. Try All or clear search.{query && <button type="button" onClick={() => setQuery('')}>Clear search</button>}</div>}
         {!showHidden && routeState.group !== 'sold_out' && hiddenCount > 0 && <section className={`hidden-drawer ${hiddenExpanded ? 'expanded' : ''}`} aria-label="Hidden and not-for-me events">
           <button type="button" className="hidden-toggle" onClick={() => setHiddenExpanded(value => !value)}>
             <span><EyeOffMini /> Hidden / not for me</span>
@@ -4763,6 +4778,12 @@ function getPriceTone(price: string) {
 }
 
 function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onPurchase, onOpenPlan }: { event: ExploreEvent; focusedNoteId?: string; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void }) {
+  useEffect(() => {
+    if (!open) return
+    const dismiss = (key: KeyboardEvent) => { if (key.key === 'Escape') onClose() }
+    window.addEventListener('keydown', dismiss)
+    return () => window.removeEventListener('keydown', dismiss)
+  }, [open, onClose])
   const planEnabled = event.state === 'interested' || event.state === 'tentative'
   return <aside className="explore-detail event-detail-panel" data-open={open} aria-label={`${event.title} detail`}>
     <header className="detail-title-group event-detail-heading">
@@ -4782,14 +4803,14 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
       </div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
       <EventStateRail event={event} context="explore" onState={onState} />
-      <button type="button" className="detail-plan-link" onClick={() => onState('hidden')}>Hide from Explore</button>
+      <button type="button" className="detail-plan-link detail-hide-secondary" onClick={() => onState('hidden')}>Hide from Explore</button>
     </header>
+    <CompanionCodePanel event={event} />
     <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(event.detail)}</p></div>
     <section className="detail-section decision-section">
       <div className="format-heading"><strong>{event.format}</strong>{event.formatHelp && <details className="format-help"><summary aria-label={`Explain ${event.format}`}>?</summary><p>{event.formatHelp}</p></details>}</div>
       {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
-      <p className="complexity-note"><span aria-hidden="true"><FlameGlyph /> Assessment:</span> {event.complexityWhy}</p>
-      {event.fit && <p>{event.fit}</p>}
+      <details className="detail-more"><summary>Planning context</summary><p>{event.complexityWhy}</p>{event.fit && <p>{event.fit}</p>}</details>
       <div className="event-detail-tags">{[...new Set(event.tags)].map(tag => <span key={tag}>{tag}</span>)}</div>
     </section>
     <section className="detail-section plan-summary">
@@ -5247,7 +5268,7 @@ function InfoGuide({ topics, feed, onOpenObject }: { topics: InfoTopic[]; feed: 
         <div className="info-guide-heading"><div><span className="eyebrow">PLAYING MAGIC</span><h2 id="info-play-heading">Three useful answers</h2></div></div>
         <div className="info-play-steps">
           {ticketedPlay && <article><span className="info-step-number">1</span><div><h3>Ticketed Play</h3><p>{ticketedPlay.concise_answer}</p><button type="button" onClick={() => openTopic(ticketedPlay)}>Full guide</button></div><strong>{infoFact(ticketedPlay, 'sales status') ?? infoFact(ticketedPlay, 'sales open') ?? 'Schedule ahead'}</strong></article>}
-          {onDemand && <article><span className="info-step-number">2</span><div><h3>On-Demand Play</h3><p>{onDemand.concise_answer}</p><button type="button" onClick={() => openTopic(onDemand)}>How it works</button></div><strong>{[infoFact(onDemand, 'voucher increment'), infoFact(onDemand, 'maximum per visit')].filter(Boolean).join(' · ')}</strong></article>}
+          {onDemand && <article><span className="info-step-number">2</span><div><h3>On-Demand Play</h3><p>{onDemand.concise_answer}</p><button type="button" onClick={() => openTopic(onDemand)}>How it works</button></div><strong>{[infoFact(onDemand, 'voucher increment') && `${infoFact(onDemand, 'voucher increment')} units`, infoFact(onDemand, 'maximum per visit') && `${infoFact(onDemand, 'maximum per visit')} / visit`].filter(Boolean).join(' · ')}</strong></article>}
           {prizeTix && <article><span className="info-step-number">3</span><div><h3>Prize Tix</h3><p>{prizeTix.concise_answer}</p><button type="button" onClick={() => openTopic(prizeTix)}>Redemption guide</button></div><strong>{infoFact(prizeTix, 'sunday deadline') ?? infoFact(prizeTix, 'sunday line cutoff') ?? infoFact(prizeTix, 'redeem at') ?? 'Prize Wall'}</strong></article>}
         </div>
       </section>}
@@ -5376,6 +5397,11 @@ function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, cur
     if (!proofRequest) return
     if (proofRequest.target === 'black-lotus') openBlackLotusProof()
     if (proofRequest.target === 'juan-premium') openJuanProof()
+    if (proofRequest.target.startsWith('hotel-')) {
+      const kind = proofRequest.target.replace('hotel-', '') as 'courtyard' | 'omni' | 'hilton'
+      setTab('other')
+      openModal('HOTEL REFERENCE', tripHotelDetail(kind).title, <HotelWalletReference kind={kind} />)
+    }
   }, [proofRequest?.nonce])
   const adjustTix = (delta: number) => setTix(value => {
     const next = Math.max(0, value + delta)
@@ -5712,6 +5738,11 @@ function WalletStoreEmpty() {
   </div>
 }
 
+export function HotelWalletReference({ kind }: { kind: 'courtyard' | 'omni' | 'hilton' }) {
+  const detail = tripHotelDetail(kind)
+  return <div className="proof-detail"><p>{detail.summary}</p><div className="proof-info-list">{detail.facts?.map(fact => <div key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div><p>No original receipt is linked to this hotel yet. These are saved itinerary details, not registration or payment proof.</p>{kind === 'hilton' && <p>Reservation details were captured from Kyle's Gmail message “magiccon hotel receipt” dated August 19; the original remains in that email.</p>}</div>
+}
+
 export function WalletOtherTab({ flights, openModal, onOpenTrip }: { flights: TripFlight[]; openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void }) {
   const { flight } = tripFlightCalendarProjection(flights)
   return <div className="wallet-layout">
@@ -5727,11 +5758,9 @@ export function WalletOtherTab({ flights, openModal, onOpenTrip }: { flights: Tr
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
       <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL RECEIPTS</span><h2>Atlanta lodging</h2><p>Shared proof for every traveler</p></div><PersonBubbles people={['Kavi', 'Juan', 'Chris', 'Kyle']} /></div>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL REFERENCES</span><h2>Atlanta lodging</h2><p>Saved itinerary details · originals not linked yet</p></div><PersonBubbles people={['Kavi', 'Juan', 'Chris', 'Kyle']} /></div>
         <div className="receipt-lines">
-          <button type="button" onClick={() => openModal('HOTEL DETAIL', 'Courtyard', <p>Courtyard by Marriott Atlanta Downtown · Nov 11–12 · Kavi, Juan, Chris.</p>)}><span>Courtyard · Nov 11-12</span><b>K/J/C</b></button>
-          <button type="button" onClick={() => openModal('HOTEL DETAIL', 'Omni', <p>Omni Atlanta Hotel at Centennial Park · Nov 12–15 · Kavi and Juan.</p>)}><span>Omni · Nov 12-15</span><b>K/J</b></button>
-          <button type="button" onClick={() => openModal('HOTEL RECEIPT', 'Hilton Atlanta · Chris + Kyle', <div className="proof-detail"><div className="proof-info-list"><div><span>Stay</span><strong>Nov 12–16 · 4 nights</strong></div><div><span>Guests</span><strong>Chris + Kyle · 2 adults</strong></div><div><span>Room</span><strong>2 double beds</strong></div><div><span>Reserved by</span><strong>Kyle Mandell</strong></div><div><span>Hotel</span><strong>255 Courtland Street NE, Atlanta, GA 30303</strong></div><div><span>Source proof</span><strong>Gmail · “magiccon hotel receipt” · Aug 19</strong></div></div><p>The original receipt image remains attached to Kyle's source email; Wallet keeps the extracted proof easy to find.</p></div>)}><span>Hilton · Nov 12-16</span><b>C/Ky</b></button>
+          {(['courtyard', 'omni', 'hilton'] as const).map(kind => <button key={kind} type="button" onClick={() => openModal('HOTEL REFERENCE', tripHotelDetail(kind).title, <HotelWalletReference kind={kind} />)}><span>{kind === 'courtyard' ? 'Courtyard · Nov 11-12' : kind === 'omni' ? 'Omni · Nov 12-15' : 'Hilton · Nov 12-16'}</span><b>{kind === 'courtyard' ? 'K/J/C' : kind === 'omni' ? 'K/J' : 'C/Ky'}</b></button>)}
         </div>
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
@@ -5767,8 +5796,9 @@ function tripHotelDetail(kind: 'courtyard' | 'omni' | 'hilton'): ObjectDetail {
       { label: 'Nights', value: 'Nov 11-12' },
     ],
     source: { label: 'Gmail receipt + official property page', value: 'Courtyard by Marriott Atlanta Downtown' },
-    rationale: 'Useful as a quick arrival-night reference and shared-room context; booking proof should live in Wallet once captured.',
-    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet', destination: 'wallet' }],
+    rationale: 'One shared arrival night before the group moves to its convention hotels on Thursday.',
+    links: [{ label: 'Hotel map', url: 'https://www.google.com/maps/search/?api=1&query=Courtyard+Atlanta+Downtown+133+Carnegie+Way' }],
+    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Hotel details in Wallet', destination: 'wallet' }],
     backlinks: [{ label: 'Calendar', destination: 'calendar' }],
   }
   if (kind === 'hilton') return {
@@ -5782,12 +5812,14 @@ function tripHotelDetail(kind: 'courtyard' | 'omni' | 'hilton'): ObjectDetail {
       { label: 'People', value: 'Chris + Kyle' },
       { label: 'Stay', value: 'Nov 12-16 · 4 nights' },
       { label: 'Room', value: '2 adults · 2 double beds' },
+      { label: 'Reserved by', value: 'Kyle Mandell' },
       { label: 'Check-in', value: '4 PM' },
       { label: 'Check-out', value: '11 AM' },
     ],
     source: { label: 'Gmail receipt', value: 'Hilton Atlanta reservation for Kyle Mandell' },
-    rationale: 'Everyone can see the shared lodging plan; the traveler bubbles identify occupants rather than restricting access.',
-    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet', destination: 'wallet' }],
+    rationale: 'Chris and Kyle stay through Monday morning, one night beyond the convention.',
+    links: [{ label: 'Hotel map', url: 'https://www.google.com/maps/search/?api=1&query=Hilton+Atlanta+255+Courtland+Street+NE' }],
+    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Hotel details in Wallet', destination: 'wallet' }],
     backlinks: [{ label: 'Calendar', destination: 'calendar' }],
   }
   return {
@@ -5795,16 +5827,18 @@ function tripHotelDetail(kind: 'courtyard' | 'omni' | 'hilton'): ObjectDetail {
     kind: 'hotel',
     eyebrow: 'Hotel · Nov 12-15',
     title: 'Omni Atlanta Hotel at Centennial Park',
-    summary: 'Convention hotel for Kavi and Juan. Keep reservation proof in Wallet; Trip should stay focused on pleasant, usable logistics.',
+    summary: 'Convention hotel for Kavi and Juan · November 12–15.',
     facts: [
       { label: 'Address', value: '190 Marietta St NW, Atlanta, GA 30303' },
       { label: 'People', value: 'Kavi + Juan' },
+      { label: 'Stay', value: 'Nov 12-15 · 3 nights' },
       { label: 'Check-in', value: '4 PM' },
       { label: 'Check-out', value: '11 AM' },
     ],
     source: { label: 'Booking email + official property page', value: 'Omni Atlanta Hotel at Centennial Park' },
-    rationale: 'The useful value-add is quick address/map access and awareness of who is staying there, not rebuilding a hotel booking app.',
-    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Open Wallet proof', destination: 'wallet' }],
+    rationale: 'Check out Sunday morning before the final convention day; plan where to leave luggage until the airport trip.',
+    links: [{ label: 'Hotel map', url: 'https://www.google.com/maps/search/?api=1&query=Omni+Atlanta+190+Marietta+St+NW' }],
+    actions: [{ label: 'Open Trip', destination: 'trip' }, { label: 'Hotel details in Wallet', destination: 'wallet' }],
     backlinks: [{ label: 'Calendar', destination: 'calendar' }],
   }
 }
@@ -5855,7 +5889,7 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
         <span className="eyebrow">NOV 11-12 · 1 NIGHT</span>
         <h2>Courtyard by Marriott Atlanta Downtown</h2>
         <p className="hotel-address">133 Carnegie Way, Atlanta, GA 30303</p>
-        <div className="hotel-facts"><span>Shared arrival night</span><span>3 travelers</span><span>Confirmation in Wallet later</span></div>
+        <div className="hotel-facts"><span>Shared arrival night</span><span>3 travelers</span><span>Original receipt not linked</span></div>
         <div className="hotel-links"><a href="https://www.google.com/maps/search/?api=1&query=Courtyard%20by%20Marriott%20Atlanta%20Downtown" target="_blank" rel="noreferrer"><NavIcon name="map" />Maps ↗</a><a href="https://www.marriott.com/en-us/hotels/atldo-courtyard-atlanta-downtown/overview/" target="_blank" rel="noreferrer">Official hotel ↗</a></div>
       </article>
       <article className="hotel-card omni-card object-card-button" role="button" tabIndex={0} onClick={() => onOpenObject(tripHotelDetail('omni'))} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onOpenObject(tripHotelDetail('omni')) }}>
@@ -5872,7 +5906,7 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
         <h2>Hilton Atlanta</h2>
         <p className="hotel-address">255 Courtland Street NE, Atlanta, GA 30303</p>
         <div className="hotel-facts"><span>Check-in 4 PM</span><span>Check-out 11 AM</span><span>2 double beds</span><span>Reserved by Kyle</span></div>
-        <div className="hotel-links"><a href="https://www.google.com/maps/search/?api=1&query=Hilton%20Atlanta%20255%20Courtland%20Street%20NE%20Atlanta%20GA%2030303" target="_blank" rel="noreferrer"><NavIcon name="map" />Maps ↗</a><button type="button" onClick={event => { event.stopPropagation(); onOpenObject(tripHotelDetail('hilton')) }}>Receipt details</button></div>
+        <div className="hotel-links"><a href="https://www.google.com/maps/search/?api=1&query=Hilton%20Atlanta%20255%20Courtland%20Street%20NE%20Atlanta%20GA%2030303" target="_blank" rel="noreferrer"><NavIcon name="map" />Maps ↗</a><button type="button" onClick={event => { event.stopPropagation(); onOpenObject(tripHotelDetail('hilton')) }}>Reservation details</button></div>
       </article>
     </div>
     <p className="trip-source-note">All travelers can see the complete lodging plan. Occupant bubbles show who is staying where; receipt details remain in the shared trip record.</p>
@@ -5903,11 +5937,11 @@ function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
           const date = flightDateParts(leg)
           return <article key={leg.leg_key}>
             <time><strong>{date.day}</strong><span>{date.weekday}</span></time>
-            <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightAirportTime(leg.departure_at, leg.departure_airport)} - {flightAirportTime(leg.arrival_at, leg.arrival_airport)}</p></div>
+            <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightAirportTime(leg.departure_at, leg.departure_airport)} {leg.departure_airport === 'ATL' ? 'ET' : 'PT'} – {flightAirportTime(leg.arrival_at, leg.arrival_airport)} {leg.arrival_airport === 'ATL' ? 'ET' : 'PT'}</p></div>
           </article>
         })}
       </div>
-      <div className="flight-facts"><span>Kavi and Juan</span><span>Main Classic</span><span>Receipt in Gmail</span></div>
+      <div className="flight-facts"><span>Kavi and Juan</span><span>Main Classic</span><span>Source: Gmail receipt</span></div>
     </section>
 
     <aside className="trip-insight flight-ai">
@@ -6354,7 +6388,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
         <div className="artist-cards-head">
           <div>
             <span className="eyebrow">KAVI CARD WORKBENCH</span>
-            <h2>{visibleCards.length} {signingFilter === 'all' ? 'candidate' : 'selected'} cards for POC artists.</h2>
+            <h2>{visibleCards.length} {signingFilter === 'all' ? 'candidate' : 'selected'} {visibleCards.length === 1 ? 'card' : 'cards'} for signing.</h2>
           </div>
           <div className="artist-card-filters" aria-label="Card filters">
             <label className="artist-group-select">
@@ -6439,20 +6473,17 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
           <h3>{previewCard.cardName}</h3>
           <p>{previewCard.artistName} · {previewCard.setName} · {previewCard.setCode} #{previewCard.collectorNumber}</p>
           <dl className="artist-card-detail-grid">
-            <div><dt>Market</dt><dd>{previewCard.marketPrice}</dd></div>
+            <div><dt>Estimated value</dt><dd>{previewCard.marketPrice}</dd><small>{previewCard.priceAsOf}</small></div>
             <div><dt>Owned</dt><dd>{previewCard.quantity}</dd></div>
             <div><dt>Foil</dt><dd>{previewCard.foil}</dd></div>
             <div><dt>Rarity</dt><dd>{previewCard.rarity}</dd></div>
-            <div><dt>Art fit</dt><dd>{previewCard.abstractSurrealFocus}</dd></div>
-            <div><dt>Confidence</dt><dd>{previewCard.taxonomyConfidence}</dd></div>
           </dl>
           <div className="artist-card-tags">
             <i>{styleGroupForCard(previewCard)}</i>
             {previewCard.specialTreatment && <i>{previewCard.specialTreatment}</i>}
             {previewCard.reviewForTaste === 'Yes' && <i>review for taste</i>}
           </div>
-          <p>{previewCard.styleNotes}</p>
-          <small>{previewCard.priceAsOf}</small>
+          <details className="detail-more"><summary>Art assessment</summary><p>Art fit: {previewCard.abstractSurrealFocus} · Confidence: {previewCard.taxonomyConfidence}</p><p>{previewCard.styleNotes}</p></details>
           {signingInterestError && <small className="artist-card-sync-error">Signing pick could not be saved: {signingInterestError}</small>}
           {signingReadOnly && <small>Read-only · reconnect to change signing choices.</small>}
           {signingSaving && <small role="status">Saving signing choice…</small>}
@@ -6730,14 +6761,26 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
   </section>
 }
 
-function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+export function CompanionCodePanel({ event }: { event: Pick<ExploreEvent, 'companionCode'> }) {
   const [copied, setCopied] = useState(false)
+  const [copyFailed, setCopyFailed] = useState(false)
+  useEffect(() => { setCopied(false); setCopyFailed(false) }, [event.companionCode])
   const copyCode = async () => {
     if (!event.companionCode) return
-    await navigator.clipboard.writeText(event.companionCode)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1800)
+    try {
+      await navigator.clipboard.writeText(event.companionCode)
+      setCopied(true)
+      setCopyFailed(false)
+    } catch { setCopyFailed(true) }
   }
+  return <>{event.companionCode && <section className="companion-code-panel" aria-label="Magic Companion event code">
+    <div><span>COMPANION CODE</span><strong>{event.companionCode}</strong><small role="status">{copyFailed ? 'Select the code to copy it manually.' : copied ? 'Copied — paste into Companion to join.' : 'Copy this code, then join the event in Companion.'}</small></div>
+    <button type="button" onClick={() => void copyCode()}>{copied ? 'Copied' : 'Copy code'}</button>
+    <a href="https://magic.wizards.com/products/companion-app" target="_blank" rel="noreferrer">About Companion</a>
+  </section>}</>
+}
+
+function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
   return <aside className="calendar-detail-sheet calendar-event-detail event-detail-panel" aria-label={`${event.title} calendar detail`}>
     <button className="detail-close persistent-detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
     <header className="event-detail-heading">
@@ -6747,11 +6790,7 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
       <EventDetailActions event={event} onPurchase={onPurchase} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
-    {event.companionCode && <section className="companion-code-panel" aria-label="Magic Companion event code">
-      <div><span>COMPANION CODE</span><strong>{event.companionCode}</strong><small>{copied ? 'Copied' : 'Tap to copy, then join the event in Companion.'}</small></div>
-      <button type="button" onClick={() => void copyCode()}>{copied ? 'Copied' : 'Copy code'}</button>
-      <a href="https://magic.wizards.com/products/companion-app" target="_blank" rel="noreferrer">Open Companion</a>
-    </section>}
+    <CompanionCodePanel event={event} />
     <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>PLAN EFFECT</small>{event.planEffect}</p></div>
     <section className="detail-section"><strong>{event.format}</strong><p>{renderLinkedText(event.detail)}</p></section>
     {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event logistics">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
@@ -6864,7 +6903,7 @@ function groupHomeSoldOutSignals(items: ActivityItem[]) {
           { label: 'Saved plans affected', value: String(overlapCount) },
         ],
         soldOutEvents: events,
-        rationale: 'Sold-out observations are merged across survey runs, deduplicated by event, and grouped by convention day.',
+        rationale: overlapCount ? 'One or more saved plans overlap these listings. Existing purchases are unaffected; sold out means new tickets are unavailable.' : 'None of your saved plans are affected. Existing purchases remain valid; this is a short-lived availability update.',
       },
     }
   })
@@ -7109,11 +7148,11 @@ function AlertCard({ alert, onReviewChange, onFindingDecision, onFindingChoice, 
         : <AlertKindIcon kind={alert.kind} />}
     </span>
     <div>
-      <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{alert.checkedAt}</small></div>
+      <div className="activity-card-head"><span className="eyebrow">{alert.kind}</span><small>{Number.isNaN(Date.parse(alert.checkedAtIso)) ? alert.checkedAt : new Date(alert.checkedAtIso).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</small></div>
       <button className="activity-title-link" type="button" onClick={() => onOpenItem(alert)}>{alert.title}</button>
       <p>{renderLinkedText(alert.summary)}</p>
       <div className="activity-meta">
-        <span className={`review-badge ${alert.reviewState}`}>{alert.monitoringFinding ? alert.status : alert.reviewState.replace('-', ' ')}</span>
+        <span className={`review-badge ${alert.reviewState}`}>{alert.monitoringFinding ? alert.status : alert.reviewState === 'needs-review' ? 'Unread' : alert.reviewState === 'reviewed' ? 'Read' : 'Archived'}</span>
         <span>{alert.destination}</span><span>{alert.object}</span>
         {!/^https?:\/\//i.test(alert.source) && alert.source !== alert.object && <span>{alert.source}</span>}
       </div>

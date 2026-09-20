@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-06",
+  "updatedAt": "2026-09-19",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
@@ -21,8 +21,12 @@
   },
   "newsletterIntake": {
     "allowedHost": "www.mtgfestivals.com",
-    "discoverySourceIds": ["global-magiccon-news"],
-    "pathPrefixes": ["/global/en-us/magiccon-news/"],
+    "discoverySourceIds": [
+      "global-magiccon-news"
+    ],
+    "pathPrefixes": [
+      "/global/en-us/magiccon-news/"
+    ],
     "linkPattern": "newsletter|magiccon[ -]news|news|article",
     "maxBytes": 196608,
     "timeoutMs": 8000,
@@ -45,22 +49,31 @@
       "id": "atlanta-ticketed-play-details",
       "label": "Atlanta Ticketed Play schedule details",
       "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule.html",
-      "kind": "site", "priority": "canonical", "destination": "Home",
-      "homeWorthyWhen": "schedule, event, registration, or purchasing details change", "trackLinks": true
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "schedule, event, registration, or purchasing details change",
+      "trackLinks": true
     },
     {
       "id": "atlanta-on-demand-details",
       "label": "Atlanta On-Demand play details",
       "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html",
-      "kind": "site", "priority": "canonical", "destination": "Home",
-      "homeWorthyWhen": "hours, formats, vouchers, or registration details change", "trackLinks": true
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "hours, formats, vouchers, or registration details change",
+      "trackLinks": true
     },
     {
       "id": "atlanta-prize-wall-details",
       "label": "Atlanta Prize Wall details",
       "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html",
-      "kind": "site", "priority": "canonical", "destination": "Home",
-      "homeWorthyWhen": "Prize Tix rules, hours, catalog, or real inventory appears or changes", "trackLinks": true
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "Prize Tix rules, hours, catalog, or real inventory appears or changes",
+      "trackLinks": true
     },
     {
       "id": "atlanta-official-home",
@@ -141,6 +154,458 @@
       "destination": "Home",
       "homeWorthyWhen": "new or changed guests, creators, programs, panels, meet-and-greets, or experiences; especially any Spell Slayers, Bosco, or Irene the Alien announcement relevant to Juan",
       "trackLinks": true
+    },
+    {
+      "id": "atlanta-badges",
+      "label": "Atlanta Badges",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:00.449Z",
+        "contentHash": "8da7b1c41db690152777c6a303e7392973e4732764f7495dc2359632a4cc5ff8",
+        "contentLinkHash": "db3837a284714769e2247b42d8469b679da0a68ab20a53cbe3c853cf4623dc46",
+        "disposition": "noise",
+        "reason": "Overview only; November 13-16 wording conflicts with convention dates November 13-15. Preserve inconsistency; do not change canonical dates."
+      },
+      "geographicRelevance": "uncertain"
+    },
+    {
+      "id": "atlanta-badges-buy-badges",
+      "label": "Atlanta Buy Badges",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:01.794Z",
+        "contentHash": "3a4c7f7d2e9582421fb255a0f03b39e9f009408ee7620a3019a65caeeae9fbcf",
+        "contentLinkHash": "e2083a4f2a7169f27d2f61ea6c9dabe83387daf207344f4b4f270fd137107730",
+        "disposition": "noise",
+        "reason": "Existing badge package and pickup reference. Separate reviewed synopsis highlights the September 30 shipping deadline without interpreting the source's PST label."
+      }
+    },
+    {
+      "id": "atlanta-experience-arcades-arcade",
+      "label": "Atlanta Arcades Arcade",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/arcades-arcade.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:06.179Z",
+        "contentHash": "5b891182ec40b2c856b3386e844eb967fe658b615c50bbfc6f49131d9f650da6",
+        "contentLinkHash": "7301022327aac54dd177b19ff0b11165d073c77da0ceaec1e140b597da909fdd",
+        "disposition": "noise",
+        "reason": "Copied Amsterdam description and return link; not verified Atlanta activity details."
+      },
+      "geographicRelevance": "uncertain"
+    },
+    {
+      "id": "atlanta-experience-creator-central",
+      "label": "Atlanta Creator Central",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/creator-central.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:08.115Z",
+        "contentHash": "e94b938f5331b6296b5256be11eb9b04d5b7254e9505789a18b70649879e94b9",
+        "contentLinkHash": "aa6dbb30002d5ffc9b41982891b21f981dab8c4ab7db1f3414e523cd615b2f36",
+        "disposition": "noise",
+        "reason": "Generic description with Las Vegas return link; child schedules are heading-only in fetched content. No Atlanta creator list or schedule announced."
+      },
+      "geographicRelevance": "uncertain"
+    },
+    {
+      "id": "atlanta-experience-exhibitors",
+      "label": "Atlanta Exhibitors",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:09.798Z",
+        "contentHash": "7d501cbdead0c1e8051dca9a76365ac3f6977f65b029b3d83833f5ba225a9a81",
+        "contentLinkHash": "535179f4ef72f8653e5824507c97456c2d0df1c6c5c6ad699fbbb470e009d797",
+        "disposition": "noise",
+        "reason": "Generic marketplace introduction; linked exclusives/specials are heading-only. No verified Atlanta inventory in fetched content."
+      }
+    },
+    {
+      "id": "atlanta-experience-family-magic",
+      "label": "Atlanta Family Magic",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/family-magic.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:12.207Z",
+        "contentHash": "13da7fe6a7084e4b4fdcb58f094cc5debcd3b020d3fa49f4a4e501f13ad9a3da",
+        "contentLinkHash": "b812aafc3512a6384bd157d26a8e3bc92955a813b322423b0ae2f54aa1a36d33",
+        "disposition": "noise",
+        "reason": "Explicit Amsterdam copy supplies artist/activity times; do not promote copied times or names as Atlanta facts."
+      },
+      "geographicRelevance": "uncertain"
+    },
+    {
+      "id": "atlanta-experience-meet-and-greets",
+      "label": "Atlanta Meet And Greets",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:13.391Z",
+        "contentHash": "ba6a541557970a3c262f148c2bda192017986932b3f7c2c362f949e9960bc42b",
+        "contentLinkHash": "d5c917ef7fd57eac543d4f1fb1da31aeb0912d84bd3b3147b6adee7f39491423",
+        "disposition": "noise",
+        "reason": "Wristband instructions and return link point to Amsterdam; no Atlanta session list in fetched content. Do not establish Atlanta wristband policy."
+      },
+      "geographicRelevance": "uncertain"
+    },
+    {
+      "id": "atlanta-experience-panels-and-events",
+      "label": "Atlanta Panels And Events",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:14.479Z",
+        "contentHash": "c533762ac9da33d4413b9ef3a6442597094fe0741ee1f0f8cccd00a642e03daf",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Heading and Mana Stage sponsorship only; no session schedule in fetched content."
+      }
+    },
+    {
+      "id": "atlanta-experience-the-gathering-grounds",
+      "label": "Atlanta The Gathering Grounds",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:15.623Z",
+        "contentHash": "3cc3e2b0ace7e87b5b72482d94600751cd031ba0c6ba3ad322e33dfb5ce87a4a",
+        "contentLinkHash": "0318c4a3646474d1c15785625aa28e46e1947ecbbdd2098d69d7333583823611",
+        "disposition": "noise",
+        "reason": "Atlanta community-space description and participants are useful existing information; separate reviewed synopsis links the page without claiming a new announcement."
+      }
+    },
+    {
+      "id": "atlanta-experience-the-quiet-room",
+      "label": "Atlanta The Quiet Room",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-quiet-room.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:16.812Z",
+        "contentHash": "28670d14b3f951ac5ab5a8712250edfd4c5dd6d91cb4893f070ab4dc98a5a409",
+        "contentLinkHash": "ad718959acbd5e42c308f9b8d58c608ec8c6d007624ba653a50d92a9586a98f8",
+        "disposition": "noise",
+        "reason": "Explicit Amsterdam copy, accessibility link and room G-111. Do not promote that room/hours as Atlanta facts; Atlanta accessibility page is current reference."
+      },
+      "geographicRelevance": "uncertain"
+    },
+    {
+      "id": "atlanta-guests",
+      "label": "Atlanta Guests",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/guests.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:18.116Z",
+        "contentHash": "bde060d70d09781cc5f32d7b06568bf5f9b0ca00a7b22aab54cdb7bf1bbd91cd",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Only Guests heading in fetched content; not proof of a published guest roster."
+      }
+    },
+    {
+      "id": "atlanta-info-accessibility-assistance",
+      "label": "Atlanta Accessibility Assistance",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/accessibility-assistance.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:18.613Z",
+        "contentHash": "a2b48345c54aa4f213e56bcc47765ff3b9062f189b8a393b70cf2331ed799ca4",
+        "contentLinkHash": "f539a7c10ea973a2464350f21775ad1f8aa530722cb7ca9023eb7b4ac99c3d14",
+        "disposition": "noise",
+        "reason": "Atlanta-specific services and October 9 request deadline; separate reviewed synopsis routes the deadline without creating canonical policy facts."
+      }
+    },
+    {
+      "id": "atlanta-info-anti-harassment-policy",
+      "label": "Atlanta Anti Harassment Policy",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/anti-harassment-policy.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:19.902Z",
+        "contentHash": "a7321ae7137a653b33dadb6532b553b43e1f2f14f85ca178eff6cfd9fcace971",
+        "contentLinkHash": "b90ae2c1df554c59abe2768b94f86cab013f963ca9977a9a4a11c0536dd9c9a0",
+        "disposition": "noise",
+        "reason": "Existing Atlanta code of conduct and recording policy reference; no newly announced change established by onboarding."
+      }
+    },
+    {
+      "id": "atlanta-info-contact-us",
+      "label": "Atlanta Contact Us",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/contact-us.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:21.055Z",
+        "contentHash": "0a3e26317582feb772de879fc540133c3a96f26e0fc0f838a547ef2df5f1e81f",
+        "contentLinkHash": "e91af5a8e8c805ed1340c691af46fddaa4bc014e670742b519dc2041e655783e",
+        "disposition": "noise",
+        "reason": "Existing customer-service contact reference, not a new announcement."
+      }
+    },
+    {
+      "id": "atlanta-info-hotels-and-travel",
+      "label": "Atlanta Hotels And Travel",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/hotels-and-travel.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:23.445Z",
+        "contentHash": "b4cc5b6b48817e2dab74258a3c55fdca38211a30474fb8f210a89dfe4c5659e6",
+        "contentLinkHash": "0f2d2535066f24530bf54e5b6600f22ef15a7b4924ba1911e0a63749fdb29cd4",
+        "disposition": "noise",
+        "reason": "Existing hotel-booking, GWCC address and parking references; no personal reservation change or new booking required."
+      }
+    },
+    {
+      "id": "atlanta-info-wellness-information",
+      "label": "Atlanta Wellness Information",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/wellness-information.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:31.358Z",
+        "contentHash": "22e50574eaebefbecb792f73d7fd39d62e4efdac98c7663802e4957106efd6b0",
+        "contentLinkHash": "da5bc9b8a490342fc0722f63f3b920f1a57b036c4d092f2b60254268db377136",
+        "disposition": "noise",
+        "reason": "Existing Atlanta security/wellness policy dated April 17 with stale Amsterdam return link; policy watch, not a new restriction announcement."
+      }
+    },
+    {
+      "id": "atlanta-magic-play",
+      "label": "Atlanta Magic Play",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:32.452Z",
+        "contentHash": "217e3c4a8101d00e787259718e1e8e3b894973c0b7d28785fe3442a5428c6d7d",
+        "contentLinkHash": "aff537d579f71797c4b6b8f9a17e6fc106a94ebb5c1b71f52d4e7b2136ce99ba",
+        "disposition": "noise",
+        "reason": "Existing navigation to already covered play resources; not new play inventory."
+      }
+    },
+    {
+      "id": "atlanta-magic-play-your-guide-to-playing-magic-at-magiccon",
+      "label": "Atlanta Your Guide To Playing Magic At Magiccon",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/your-guide-to-playing-magic-at-magiccon.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:52:37.366Z",
+        "contentHash": "c7356a10e8963f1a48c3f98c9b0b28f7b9942a1ad5fa5738d1977e22854f22ba",
+        "contentLinkHash": "780cfc31f3b138045e8e87160ed33ae06829991b3b7523222af81ca0c1c9154a",
+        "disposition": "noise",
+        "reason": "Existing play-area/format guide overlaps reviewed August 25 article. Contains staging-path links; do not promote staging links or infer new schedule/location changes."
+      }
+    },
+    {
+      "id": "atlanta-experience-creator-central-creator-connections",
+      "label": "Atlanta Creator Connections",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/creator-central/creator-connections.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:54:19.208Z",
+        "contentHash": "5093edc2b0d97c78c28b51f4ef08fb2664ddf37f85ee0f04525f9097c6ec7fd5",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Heading-only creator/exhibitor resource in fetched content; no schedule, person list or inventory verified. Watch existing URL for substantive publication."
+      }
+    },
+    {
+      "id": "atlanta-experience-creator-central-creators",
+      "label": "Atlanta Creators",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/creator-central/creators.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:54:21.071Z",
+        "contentHash": "7a3e002a26ae46244207674c42c07b877e81a9b6f2a96d3e55decf812a6aa1ac",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Heading-only creator/exhibitor resource in fetched content; no schedule, person list or inventory verified. Watch existing URL for substantive publication."
+      }
+    },
+    {
+      "id": "atlanta-experience-creator-central-game-play-tables",
+      "label": "Atlanta Game Play Tables",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/creator-central/game-play-tables.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:54:22.839Z",
+        "contentHash": "d5066a653831cd544035e0d638b8f504e58f2ee9b5b9e1f0f9743846853f041a",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Heading-only creator/exhibitor resource in fetched content; no schedule, person list or inventory verified. Watch existing URL for substantive publication."
+      }
+    },
+    {
+      "id": "atlanta-experience-creator-central-spectacle-play-events",
+      "label": "Atlanta Spectacle Play Events",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/creator-central/spectacle-play-events.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:54:24.576Z",
+        "contentHash": "1b1f73f2f59e38a716e2e9ab52afbd33d0cf1babe3c4a64459c312d9729a6578",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Heading-only creator/exhibitor resource in fetched content; no schedule, person list or inventory verified. Watch existing URL for substantive publication."
+      }
+    },
+    {
+      "id": "atlanta-experience-exhibitors-exclusives",
+      "label": "Atlanta Exclusives",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exclusives.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:54:26.293Z",
+        "contentHash": "3f4bc0c4b77b6847b6c3ff545957e36f6a198f1d5c78f811fe21cffd8bf2c16c",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Heading-only creator/exhibitor resource in fetched content; no schedule, person list or inventory verified. Watch existing URL for substantive publication."
+      }
+    },
+    {
+      "id": "atlanta-experience-exhibitors-specials",
+      "label": "Atlanta Specials",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/specials.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-20T02:54:28.060Z",
+        "contentHash": "8193d97e351b46019f584be211e7a51d579d20946282208c6f5d3f188223d3eb",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Heading-only creator/exhibitor resource in fetched content; no schedule, person list or inventory verified. Watch existing URL for substantive publication."
+      }
+    }
+  ],
+  "detailCoverageExclusions": [
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/info-overview.html",
+      "reason": "Duplicate Info overview: inspected text and links match the watched /en-us/info.html exactly.",
+      "reviewedAt": "2026-09-20T02:55:00Z",
+      "reviewAfter": "2026-10-04T00:00:00Z"
+    },
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/magiccon-news.html",
+      "reason": "Local mirror of the nine-item global MagicCon news index; canonical index and every allowed article are already checked.",
+      "reviewedAt": "2026-09-20T02:55:00Z",
+      "reviewAfter": "2026-10-04T00:00:00Z"
+    },
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/newsletter-signup.html",
+      "reason": "Newsletter enrollment form, not announcement content. Canonical news and the separate Gmail procedure cover announcements.",
+      "reviewedAt": "2026-09-20T02:55:00Z",
+      "reviewAfter": "2026-10-04T00:00:00Z"
+    },
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/ada-assistance.html",
+      "reason": "Legacy ADA URL still linked by FAQ. Cached content names 2025 deadlines; fresh fetch failed September 19. The current accessibility-assistance.html is watched and has Atlanta November 2026 details. Recheck this excluded legacy path explicitly; do not import stale policy.",
+      "reviewedAt": "2026-09-20T03:07:00Z",
+      "reviewAfter": "2026-09-27T00:00:00Z"
+    },
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/how-to-buy/content/sitebuilder/rna/mtg-festivals/mcatlanta/en-us/t3stz0n3/2026/badges/how-to-buy.html",
+      "reason": "Malformed CMS/staging path from FAQ link; the actual /en-us/badges/how-to-buy.html is already watched. Not a separate attendee resource.",
+      "reviewedAt": "2026-09-20T03:07:00Z",
+      "reviewAfter": "2026-10-04T00:00:00Z"
+    },
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944082",
+      "reason": "The Gathering Grounds links the existing Unknown for Charity event 944082. Its exact identity and inventory are covered by the canonical current Ticketed Play/LEAP adapter; this exclusion applies only to gtID=944082, not all event detail pages.",
+      "reviewedAt": "2026-09-20T03:07:00Z",
+      "reviewAfter": "2026-10-04T00:00:00Z"
     }
   ]
 }

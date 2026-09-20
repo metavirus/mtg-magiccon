@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets.html",
+    "retrievedAt": "2026-09-20T02:52:13.391Z",
+    "status": 200,
+    "contentHash": "ba6a541557970a3c262f148c2bda192017986932b3f7c2c362f949e9960bc42b",
+    "contentLinkHash": "d5c917ef7fd57eac543d4f1fb1da31aeb0912d84bd3b3147b6adee7f39491423",
+    "contentSample": "Meet & Greet Schedule Meet and Greet Schedule Due to popularity, select Meet & Greets will require a wristband to participate. Meet & Greets requiring a wristband will be labeled with ‘Wristbanded’ in their session title. For details on how to obtain a wristband, please review the information page. < Back to Experience",
+    "contentLinks": [
+      {
+        "url": "https://mcamsterdam.mtgfestivals.com/en-us/experience.html",
+        "label": "< Back to Experience"
+      },
+      {
+        "url": "https://mcamsterdam.mtgfestivals.com/en-us/info/magic-meet-greet-wristband-distribution.html",
+        "label": "information page"
+      }
+    ]
+  },
+  {
+    "url": "https://mcatlanta.mtgfestivals.com/en-us/guests.html",
+    "retrievedAt": "2026-09-20T02:52:18.116Z",
+    "status": 200,
+    "contentHash": "bde060d70d09781cc5f32d7b06568bf5f9b0ca00a7b22aab54cdb7bf1bbd91cd",
+    "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentSample": "Guests Guests",
+    "contentLinks": []
+  },
+  {
+    "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/creator-central/creator-connections.html",
+    "retrievedAt": "2026-09-20T02:54:19.208Z",
+    "status": 200,
+    "contentHash": "5093edc2b0d97c78c28b51f4ef08fb2664ddf37f85ee0f04525f9097c6ec7fd5",
+    "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentSample": "Creator Connections Creator Connections Schedule",
+    "contentLinks": []
+  },
+  {
+    "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exclusives.html",
+    "retrievedAt": "2026-09-20T02:54:26.293Z",
+    "status": 200,
+    "contentHash": "3f4bc0c4b77b6847b6c3ff545957e36f6a198f1d5c78f811fe21cffd8bf2c16c",
+    "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentSample": "Exhibitor Exclusives",
+    "contentLinks": []
+  }
+]

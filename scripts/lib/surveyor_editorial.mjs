@@ -5,6 +5,7 @@ const official = value => {
 }
 
 export function editorialAllowsFactExtraction(evidence = {}) {
+  if (evidence.initialSourceReview && evidence.editorial?.reviewed !== true) return false
   if (evidence.editorial?.disposition === 'noise') return false
   return evidence.geographicRelevance !== 'uncertain' || (evidence.editorial?.reviewed === true && evidence.editorial?.disposition === 'home')
 }
@@ -17,6 +18,7 @@ export function editorialDecision(row, decisions = {}) {
     if (override.disposition === 'home' && (!override.title?.trim() || !override.summary?.trim())) throw new Error(`Editorial Home decision needs title and summary: ${row.fingerprint}`)
     return { ...override, reviewed: true }
   }
+  if (evidence.initialSourceReview) return { disposition: 'pending', reason: 'New source content requires an exact reviewed onboarding decision; fetching it is not review.' }
   if (!official(row.source_url)) return { disposition: 'pending', reason: 'Source requires agent interpretation.' }
   if (evidence.geographicRelevance === 'uncertain') return { disposition: 'pending', reason: 'Article was inspected but Atlanta relevance is uncertain; agent must review before routing.' }
   const current = String(evidence.current?.textSample ?? evidence.semanticSummary ?? '')

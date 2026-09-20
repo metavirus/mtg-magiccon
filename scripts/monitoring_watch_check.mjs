@@ -8,7 +8,8 @@ import { dueMonitoringMilestoneChanges } from './lib/scheduled_monitoring_milest
 import { discoverNewsletterCoverage, fetchNewsletterPages, planNewsletterFetch } from './lib/first_party_newsletter_intake.mjs';
 import { assertOfficialTicketedPlayIdentityCoverage, assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, reconcileTicketedPlayIdentity, scrapeLeapTicketedPlayCheckout, scrapeLeapTicketedPlayInventory, scrapeOfficialTicketedPlayIdentities, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './lib/ticketed_play_inventory.mjs';
 import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acceptance.mjs';
-import { newRelevantDetailCoverageGaps, retainedDetailCoverageGaps } from './lib/monitoring_detail_coverage.mjs';
+import { activeDetailCoverageExclusions, relevantDetailCoverageGaps, retainedDetailCoverageGaps } from './lib/monitoring_detail_coverage.mjs';
+import { sourceOnboardingReview } from './lib/monitoring_source_onboarding.mjs';
 import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
 
 const root = process.cwd();
@@ -340,13 +341,13 @@ for (const source of watchSet.sources) {
     fetchedSourcePages.push({ id: source.id, url: source.url, html: current.rawHtml });
     delete current.rawHtml;
     const previous = state.accepted[source.id];
-    const newDetailGaps = source.trackLinks && previous?.links ? newRelevantDetailCoverageGaps(previous.links, current.links, watchedUrls, source.id) : [];
+    const newDetailGaps = source.trackLinks ? relevantDetailCoverageGaps(current.links, watchedUrls, source.id, watchSet.detailCoverageExclusions, checkedAt) : [];
     discoveredDetailGaps.push(...newDetailGaps);
-    const changed = watchedPageChanged(previous, current) || newDetailGaps.length > 0;
+    const changed = !previous || watchedPageChanged(previous, current);
 
     results.push({ ...current, changed });
 
-    if (!previous || accept) {
+    if (accept) {
       state.accepted[source.id] = { ...current, acceptedAt: checkedAt };
     } else if (!changed) {
       state.accepted[source.id] = upgradeUnchangedPageBaseline(previous, current);
@@ -358,7 +359,10 @@ for (const source of watchSet.sources) {
         priority: source.priority,
         destination: source.destination,
         homeWorthyWhen: source.homeWorthyWhen,
-        previous: {
+        initialSourceReview: !previous,
+        ...(source.geographicRelevance ? { geographicRelevance: source.geographicRelevance } : {}),
+        ...(!previous ? { reviewedEditorial: sourceOnboardingReview(source, current) } : {}),
+        previous: previous ? {
           status: previous.status,
           title: previous.title,
           textHash: previous.textHash,
@@ -366,10 +370,10 @@ for (const source of watchSet.sources) {
           textSample: previous.contentSample ?? previous.textSample,
           rawTextSample: previous.textSample,
           acceptedAt: previous.acceptedAt
-        },
+        } : null,
         current: summarizeCurrent(current)
       });
-      changes.at(-1).linkDelta = summarizeLinkDelta(previous, current);
+      changes.at(-1).linkDelta = previous ? summarizeLinkDelta(previous, current) : { added: [], removed: [], note: 'Initial source review; existing links are not new announcements.' };
       state.pending ??= {};
       state.pending[source.id] = { ...current, detectedAt: checkedAt };
     }
@@ -400,7 +404,7 @@ if (watchSet.newsletterIntake) {
   const links = discovery.links;
   const missingDiscoverySourceIds = policy.discoverySourceIds.filter(id => !fetchedSourcePages.some(page => page.id === id));
   const plan = planNewsletterFetch({ links, initialized: state.newsletterIntakeInitialized === true, discoveredUrls: state.discoveredNewsletterUrls, seen: state.seenNewsletters, lastFetchedAt: state.newsletterLastFetchedAt });
-  const intake = await fetchNewsletterPages({ links: plan.linksToFetch, policy, limits, seen: state.seenNewsletters ?? {}, lastFetchedAt: state.newsletterLastFetchedAt, observedAt: checkedAt, suppressObservations: plan.initialBaseline });
+  const intake = await fetchNewsletterPages({ links: plan.linksToFetch, policy, limits, seen: state.seenNewsletters ?? {}, lastFetchedAt: state.newsletterLastFetchedAt, observedAt: checkedAt, initialSourceReview: plan.initialBaseline });
   state.seenNewsletters = intake.seen;
   state.newsletterLastFetchedAt = intake.lastFetchedAt;
   state.discoveredNewsletterUrls = [...new Set([...(state.discoveredNewsletterUrls ?? []), ...plan.eligible.map(link => link.url)])].sort();
@@ -474,7 +478,7 @@ try {
 }
 
 state.version = 1;
-state.detailCoverageGaps = retainedDetailCoverageGaps(state.detailCoverageGaps, discoveredDetailGaps, watchedUrls);
+state.detailCoverageGaps = retainedDetailCoverageGaps(state.detailCoverageGaps, discoveredDetailGaps, watchedUrls, watchSet.detailCoverageExclusions, checkedAt);
 state.checkedAt = checkedAt;
 state.watchSetVersion = watchSet.version;
 await mkdir(path.dirname(statePath), { recursive: true });
@@ -486,7 +490,7 @@ const output = {
   watchSet: watchSetPath,
   stateFile: statePath,
   sourceCount: watchSet.sources.length,
-  detailPageCoverage: { gapCount: state.detailCoverageGaps.length, gaps: state.detailCoverageGaps, scope: 'configured watched pages and discovered official news-index articles' },
+  detailPageCoverage: { gapCount: state.detailCoverageGaps.length, gaps: state.detailCoverageGaps, exclusions: activeDetailCoverageExclusions(watchSet.detailCoverageExclusions, checkedAt), scope: 'configured watched pages, current relevant first-party links reconciled against watches and dated exclusions, and discovered official news-index articles; no recursive crawler' },
   changeCount: changes.length,
   failureCount: failures.length,
   coverageStatus: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length || ticketedPlay.availabilityCoverage?.status === 'partial' ? 'partial' : 'complete',
@@ -495,7 +499,7 @@ const output = {
   changes,
   failures,
   summary: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length || ticketedPlay.availabilityCoverage?.status === 'partial'
-    ? `Partial coverage: ${changes.length} confirmed change(s); ${failures.length} fetch failure(s); ${newsletterIntake.unfetchedCount ?? 0} article(s) deferred by budget; ${newsletterIntake.missingDiscoverySourceIds?.length ?? 0} discovery source(s) unavailable; ${state.detailCoverageGaps.length} newly linked official detail page(s) not watched; ${ticketedPlay.availabilityCoverage?.unknownCount ?? 0} LEAP purchasable-event state(s) unresolved. Unchecked or unknown state is not confirmed unchanged.`
+    ? `Partial coverage: ${changes.length} confirmed change(s); ${failures.length} fetch failure(s); ${newsletterIntake.unfetchedCount ?? 0} article(s) unfetched; ${newsletterIntake.missingDiscoverySourceIds?.length ?? 0} discovery source(s) unavailable; ${state.detailCoverageGaps.length} linked official page(s) not watched or explicitly excluded; ${ticketedPlay.availabilityCoverage?.unknownCount ?? 0} LEAP purchasable-event state(s) unresolved. Unchecked or unknown state is not confirmed unchanged.`
     : changes.length
     ? `${changes.length} watched source(s) changed; inspect before routing.`
     : failures.length

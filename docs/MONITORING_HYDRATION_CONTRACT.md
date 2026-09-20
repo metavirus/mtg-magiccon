@@ -12,7 +12,7 @@ The app still reads `public/monitoring-intake.json` as transitional compatibilit
 
 When a deliberate preview-fixture refresh is requested, an agent may:
 
-1. run `pnpm monitor:check` against `monitoring/watch-set.json` to identify deterministic public-source changes before doing broader browsing;
+1. use an authoritative cloud report or explicit synthetic fixture; never use the ignored local baseline as operational discovery;
 2. search the approved web, site-tree, newsletter, Gmail, and radar sources from `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`, keeping Gmail MagicCon-specific rather than generic Wizards/Magic marketing and using `monitoring/gmail-watch-queries.json` as the query map;
 3. classify findings under `docs/MVP_MONITORING_AGENT_DESIGN.md` and `docs/POC_FINISH_GLIDE_PATH.md`;
 4. replace `public/monitoring-intake.json` with reviewed observation cards;
@@ -30,7 +30,7 @@ This is a legacy POC/QA path. The cloud surveyor uses discovery, agent editorial
 - It must not treat community chatter or search results as canonical facts.
 - It must not publish a noisy "nothing changed" preview update.
 - It must not broaden into a crawler beyond the approved source strategy.
-- It must not run `pnpm monitor:accept` on changed sources until the change has been reviewed or explicitly accepted as a new baseline.
+- It must not run local public-source discovery, staging, closure or acceptance operationally; the cloud alone accepts the exact verified report. Private search freshness uses the separate ignored receipt in `docs/PRIVATE_MONITORING_COVERAGE.md` and never authorizes public baseline acceptance.
 
 ## Alert shape
 

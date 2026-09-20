@@ -118,7 +118,7 @@ async function readBoundedBody(response, maxBytes) {
   return new TextDecoder().decode(body)
 }
 
-export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, limits = DEFAULT_NEWSLETTER_LIMITS, seen = {}, lastFetchedAt = {}, observedAt, suppressObservations = false }) {
+export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, limits = DEFAULT_NEWSLETTER_LIMITS, seen = {}, lastFetchedAt = {}, observedAt, suppressObservations = false, initialSourceReview = false }) {
   const observations = []
   const failures = []
   const nextSeen = { ...seen }
@@ -166,6 +166,7 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
           current: { status: response.status, title: link.label || '', textHash: fingerprint, linkHash: '', textSample: text },
           linkDelta: { added: [], removed: [] },
           intakeKind: 'first_party_newsletter',
+          ...(initialSourceReview ? { initialSourceReview: true } : {}),
           geographicRelevance: relevance,
           discoveredFrom: link.discoveredFrom,
         })
