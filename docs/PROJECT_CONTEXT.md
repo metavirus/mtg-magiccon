@@ -1,8 +1,10 @@
 # Project Context
 
+Reconciled: 2026-09-19. `CURRENT_FRONTIER.md` owns current acceptance and next work; this file describes the durable product model, not a second backlog.
+
 ## Product outcome
 
-Build a private, mobile-first companion for one authenticated attendee at MagicCon Atlanta 2026. It should eventually support official convention intelligence, ticketed play, travel, lodging, purchases, tasks, deadlines, people, vendors, plans, evidence, changes, encounters, expenses, packing, and memories.
+Build an authenticated, mobile-first companion for Kavi's MagicCon Atlanta 2026 group. Shared convention, event, trip, and receipt context supports preparation and onsite use; personal preferences and Kavi's card-signing workbench retain their explicit privacy boundaries. Broader future concepts are not promises of implemented functionality.
 
 The project began with a narrow development/trust tranche and has since grown into the connected v1.5 companion described in `CURRENT_FRONTIER.md`; schema expansion remains evidence-driven rather than speculative.
 
@@ -18,14 +20,14 @@ The app remains useful after the convention rather than treating the event date 
 
 - Supabase is canonical for authenticated data.
 - Development uses that single hosted project directly through guarded CLI and Session Pooler paths; no local Supabase replica is required.
-- The installable web app provides a fast mobile shell and safe read-only offline access to previously loaded critical itinerary information.
+- The installable web app hydrates the authenticated production read model and permitted receipt/media artifacts for read-only device access. Installed-iPhone offline proof is accepted. Missing server artifacts cannot be cached; external destinations and first-time authentication remain online-only.
 - Network-confirmed writes only; offline mutations are disabled until an explicit conflict-safe design exists.
 - Public/source-backed information and private personal continuity are separate concerns.
 - Evidence preserves source identity, retrieval time, and exact claims. Normalized facts and interpretation do not erase it.
 - Finite-event facts can be published, tentative, changed, canceled, contradicted, personally confirmed, observed onsite, or superseded.
 - Publisher truth, observed reality, and personal interpretation remain separate; none silently overwrites another.
 - Agent proposals and workflow requests are reviewable intake, never automatic canonical truth. Once Kavi explicitly approves a named, bounded consequence, that approval may authorize the system to execute the safe canonical update and production verification end to end; do not require a redundant later chat request.
-- Sensitive receipts, confirmations, screenshots, and travel artifacts belong in private Storage in a later tranche.
+- Receipt originals and other ingested proof artifacts already use authenticated Storage and the device proof pack. Preserve faithful Gmail-looking proof, not reconstructed receipt content. Missing hotel-original bindings remain intake work, not a future Storage implementation.
 - Shared trip/event context is shared unless a real privacy reason says otherwise; Black Lotus context is not secret. Kavi's card-signing workbench and signing details remain Kavi-only for now.
 
 ## Foundation proof and first trust slice
@@ -40,7 +42,9 @@ The roster table `companion_members` is the canonical lightweight identity scaff
 
 The first bounded convention-domain implementation is the Black Lotus trust slice in `docs/BLACK_LOTUS_TRUST_SLICE.md`. Five deliberately narrow owner-scoped tables prove source identity, retained observation, one normalized dated occurrence, a reversible personal decision, and one itinerary placement. This is a proof of the evidence-to-plan path, not authorization for a comprehensive convention schema.
 
-The conceptual growth path is `Source -> Observation -> Normalized entity -> Personal decision -> Itinerary`. The Black Lotus slice proves the initial real-page path. Monitoring evidence intake and the artist catalog now exist, while live reviewed reconciliation and a real-device offline reopen remain validation debt; their absence must not be misreported as proof that those implemented systems do not exist.
+The conceptual growth path is `Source -> Observation -> Normalized entity -> Personal decision -> Itinerary`. The Black Lotus slice proves the initial real-page path. The deployed cloud surveyor now verifies supported reconciliation, Home projection, closure, and exact-report baseline acceptance. This does not prove every future source consequence or receipt-ingestion path. Any remaining trust-slice reconciliation exercise is artifact-dependent; accepted iPhone offline proof is not validation debt. See `CURRENT_FRONTIER.md` and `docs/WORK_BACKLOG.md` for the precise remaining scope.
+
+Public discovery and private Gmail coverage are separate lanes. GitHub Actions owns the public-source baseline and privileged consequences. The supervisor records complete/partial/not-checked Gmail coverage independently; search success does not mean receipts were ingested or visually verified. `docs/AUTOMATION_TRUTH_TABLE.md` and `docs/PRIVATE_MONITORING_COVERAGE.md` define those proof boundaries.
 
 ## Boundaries
 

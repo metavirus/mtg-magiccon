@@ -1,12 +1,14 @@
-# POC Finish Glide Path
+# POC Finish Glide Path — historical, superseded
 
 Updated: 2026-08-21
+
+**Superseded as execution guidance on 2026-09-19.** This is the original POC plan, not current work or authorization. Its unfinished Storage, offline, cloud activation, and planning statements describe that earlier stage. Receipt storage/device hydration and iPhone offline proof are implemented/accepted; the cloud surveyor is live; session planning is complete and broader planning architecture is deferred. Do not execute the historical finish list below. Use `CURRENT_FRONTIER.md` for current work, `docs/AUTOMATION_TRUTH_TABLE.md` for actual automation, and `docs/SURVEYOR_EDITORIAL_CONTRACT.md` for routing. No new runtime cards may be written to `public/monitoring-intake.json`; daily public discovery and baseline acceptance belong exclusively to GitHub Actions.
 
 ## Goal
 
 Finish the POC as a useful quiet-period companion that is ready to receive rare, meaningful MagicCon signals from manual checks, Gmail review, newsletter review, or later automation.
 
-The conservative Codex heartbeat remains read/report oriented and may deliberately hydrate the legacy fixture preview. The durable Supabase-backed `monitoring_findings` inbox and Kavi decision UI now exist; cloud activation remains blocked only on the GitHub Actions server secret and a clean workflow/dedupe proof.
+At this historical checkpoint, monitoring was transitioning from fixture preview to a durable review inbox. The credential/activation gate described by this plan has since closed; it is not a present blocker.
 
 The first deployable monitoring-agent design is recorded in `docs/MVP_MONITORING_AGENT_DESIGN.md`. The source-priority and search-radar strategy is recorded in `research/MONITORING_SOURCE_STRATEGY_2026-08-04.md`. The POC file-based hydration seam is recorded in `docs/MONITORING_HYDRATION_CONTRACT.md`.
 
@@ -62,7 +64,7 @@ Finish work:
   - attention level;
   - current review status.
 - Add enough fixtures to demonstrate the main routes below.
-- The Codex heartbeat may read approved sources/Gmail and deliberately update preview fixtures; the GitHub Actions surveyor checks public sources and stages only `monitoring_findings` evidence.
+- The original fixture-hydration proposal is retired. The current cloud discovery/closure lane and separate read-only Gmail coverage are defined in `docs/AUTOMATION_TRUTH_TABLE.md`.
 - Do not let an agent mark facts canonical, update plans, hide events, or send notifications without a reviewed workflow.
 
 ## Landing places for information an agent uncovers

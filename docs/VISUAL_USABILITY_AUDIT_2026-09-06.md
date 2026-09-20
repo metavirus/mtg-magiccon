@@ -1,12 +1,16 @@
 # Visual usability audit — September 6, 2026
 
+## Status reconciliation — September 19, 2026
+
+This is historical defect and repair evidence, not an active backlog. The local/unpublished and open labels below describe September 6, not current deployment. The latest published desktop/mobile click-through and Wallet/card-popup proof are recorded in `UI_UX_AUDIT_2026-09-19.md`; installed-iPhone offline proof is accepted in `../CURRENT_FRONTIER.md`. Do not reopen those accepted repairs from this report. Missing hotel originals remain a separate source-ingestion gap, not proof of a broken receipt viewer or cache. Only a new reproduced defect should reactivate a visual finding.
+
 ## Superseding recheck — September 7, 2026
 
 A fresh 390×844 built-app inspection found no actionable mobile Calendar/event-detail defect remaining from this audit. The event header keeps core logistics and state controls in the first viewport; Close remains reachable and Escape dismissal is covered; simultaneous agenda rows are distinct and chronological; Past is compact; all four people filters fit; and the representative purchased state is clearly attributed and locked. `scheduleSurfaces.test.tsx` passed 9/9. Do not schedule “tighten the mobile event header” or “dense Calendar repair” from the historical findings below unless a new concrete screenshot reproduces a defect.
 
 ## Verdict and evidence boundary
 
-### Local repair checkpoint
+### Historical local repair checkpoint — September 6
 
 Findings 1–3 are repaired locally, not published. The card close control no longer inherits generic sticky positioning; explicit grid placement keeps art/copy in one desktop row, and signing actions remain in content flow. Escape, focus return, and keyboard containment are implemented. Actual desktop geometry confirmed equal art/copy top edges and a 680px-wide, roughly 493px-tall panel; phone inspection showed art, identity, and actions together without the old blank column. Plan exposes all four named people; Explore offers a visible phone type select beside Hidden; Calendar prints complete cross-month endpoints.
 

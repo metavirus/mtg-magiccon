@@ -7,9 +7,9 @@ Private, mobile-first planning and personal-intelligence app for MagicCon Atlant
 - React + TypeScript + Vite installable PWA
 - Supabase project `pavjsexxbueuzhzgemgy` as canonical storage and authentication
 - Owner-scoped personal data protected by RLS and explicit Data API grants
-- Read-only offline shell; offline writes are intentionally disabled
+- Read-only device pack for the authenticated app read model and permitted receipt/media artifacts; offline writes are intentionally disabled
 - Evidence, normalized facts, interpretation, personal state, and workflow proposals remain distinguishable
-- One bounded Black Lotus trust slice proves Source → Observation → Occurrence → Personal decision → Itinerary without broad ingestion
+- Shared convention/trip context, Wallet proof, Companion codes, and a private artist-signing workbench; the original Black Lotus trust slice remains the foundation proof
 
 ## Start
 
@@ -39,7 +39,7 @@ For the short operating contract that keeps this hobby app from accumulating avo
 | `pnpm prepare:pages` | Run the full deployment gate and prepare the local `dist/` Pages artifact; this does not deploy |
 | `pnpm verify:public` | Compare the public GitHub Pages asset references with the local `dist/` artifact after a cache-busted fetch |
 | `pnpm test` | Unit tests |
-| `pnpm monitor` | Run the canonical watched-source change check (`monitor:check` alias) |
+| `pnpm monitor` | Development/diagnostic detector (`monitor:check` alias), not daily discovery; the GitHub Actions workflow owns the authoritative baseline |
 | `pnpm validate:text` | UTF-8/LF and text checks |
 | `pnpm validate:secrets` | Tracked-file secret scan |
 | `pnpm readiness` | Identity and environment gate |
@@ -50,4 +50,10 @@ A temporary GitHub Pages preview is available for iPhone review at https://metav
 
 For this project, "published" should mean the public GitHub Pages URL has been verified after the GitHub Actions Pages deploy, not merely that `dist` was built locally.
 
-As of the August 8 fixture-backed 1.5 pass, the preview is accepted as a coherent quiet-period review surface. Google OAuth is the normal live-auth path; use `?preview=1` only for deliberate fixture/QA review. See [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md).
+## Current state
+
+The September 19 UI and surveyor improvements are shipped and verified. Installed-iPhone offline proof is accepted, including the receipt/device-pack work; missing hotel originals are a separate source-ingestion gap, not an unimplemented cache. Google OAuth is the normal live-auth path; `?preview=1` is only for deliberate fixture/QA review. See [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md).
+
+[Current Frontier](CURRENT_FRONTIER.md) owns the latest accepted checkpoint and remaining work. The [September 19 UI audit](docs/UI_UX_AUDIT_2026-09-19.md) and [surveyor audit](docs/SURVEYOR_AUDIT_2026-09-19.md) retain the verification evidence. Public-source discovery, closure, and baseline acceptance run exclusively in GitHub Actions; Gmail coverage has a separate private receipt and does not imply automatic receipt ingestion. See [Automation Truth Table](docs/AUTOMATION_TRUTH_TABLE.md).
+
+Session planning is complete for this convention. Map remains a placeholder; real Atlanta catalog/map activation waits for reviewed first-party sources. Historical POC and dated audit findings do not reopen accepted work.

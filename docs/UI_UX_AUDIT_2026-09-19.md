@@ -6,7 +6,7 @@ The findings below preserve the original audit. Kavi subsequently approved the b
 
 The final production ship gate passed 418 tests plus text/secrets/GitHub verifier guards. Actual 390px screenshots checked Plan titles/actions and readable code, Calendar code, Explore code/dismissal, Omni-to-Wallet reference, artist attendance/card popup, and the on-demand warning; desktop Plan stayed compact. Public verification passed for `1811efd`. Signed-in deployed checks confirmed Fatehold's shared code in Explore, the applied flight facts/Trip action, all hotel-reference destinations, three real Home cards, and the balanced desktop Beseech popup with adjacent value date. No purchase, note, signing choice, or receipt was modified during browser checks. Cloud activation and quiet-repeat evidence is in the source-onboarding review.
 
-## Scope and verdict
+## Original audit scope and verdict (before implementation)
 
 Audited the signed-in public app at `https://metavirus.github.io/mtg-magiccon/`, build `3b39bde36f08a8f33e0f93c66a48ea84a83ab287`. This was a click-through and screenshot-based usability review, not a check that elements merely exist. Desktop and narrow viewports were inspected, including a confirmed 390 × 844 CSS-pixel viewport. The browser viewport override was reset afterward.
 

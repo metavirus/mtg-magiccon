@@ -31,6 +31,7 @@ Use this as the one canonical approval policy for repository work:
 - Root may coordinate and resolve bounded integration conflicts, and it owns product judgment, exact staged review, risk-tier validation, commit, push, and required post-push verification. Root must not duplicate or absorb a large implementation, research, browser-proof, or database tranche that it deliberately delegated.
 - Retire workers promptly at compartment end or compaction instead of accumulating long-lived workers; reuse only when the existing context still exactly matches the next bounded task.
 - The repo is durable memory. Update frontier/backlog or a focused handoff for material decisions and unfinished substantial work, not for trivial edits with no durable state change.
+- Keep one current-state authority: `CURRENT_FRONTIER.md` owns accepted status and next work; README/project context link to it rather than maintaining competing checkpoints. When closing a tranche, supersede stale open/unpublished labels in linked audits and remove obsolete executable instructions. Dated findings remain evidence, not a second backlog; accepted device proof is reopened only for a new concrete regression.
 
 ## Recurrence doctrine
 
