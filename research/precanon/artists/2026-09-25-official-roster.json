@@ -1,0 +1,531 @@
+{
+  "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory.html",
+  "sourceOwner": "MagicCon / ReedPop official directory, Leap-hosted feed",
+  "eventKey": "magiccon_atlanta_2026",
+  "eventDates": "2026-11-13/2026-11-15",
+  "observedAt": "2026-09-26T02:25:00Z",
+  "publicationDate": null,
+  "reviewNote": "65 rendered official entries independently checked in the live directory. Names and booths confirm listing only, not individual attendance days or signing hours. Exact raw feed retained ignored at .monitoring-state/artist-release-2026-09-25/feed.json. Explicit middle-name/nickname aliases preserve existing catalog identities; Cynthia's source biography spells Sheppard; Tom's source biography/website identifies Tom Wanerstrand. Joint-credit artist identities are not merged into individuals. Missing artists are not marked absent.",
+  "artists": [
+    {
+      "sourceId": "668804",
+      "sourceName": "Cynthia Shepard",
+      "canonicalName": "Cynthia Sheppard",
+      "booth": "9151",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668804",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/97/46/33/13b08a36-5ce0-4ef1-9bf5-796c385844ca.jpg"
+    },
+    {
+      "sourceId": "668806",
+      "sourceName": "Mark Poole",
+      "canonicalName": "Mark Poole",
+      "booth": "9059",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668806",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/14/73/31/26973ba5-db6b-4412-b670-9c485c5a61f5.jpg"
+    },
+    {
+      "sourceId": "668809",
+      "sourceName": "Serena Malyon",
+      "canonicalName": "Serena Malyon",
+      "booth": "9167",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668809",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/14/49/10/bc54dddb-387f-4ad4-b9e2-69b186394fb3.jpg"
+    },
+    {
+      "sourceId": "668810",
+      "sourceName": "Aaron Miller",
+      "canonicalName": "Aaron Miller",
+      "booth": "9091",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668810",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/56/79/83/44745572-dbb7-4884-bd1d-6b8c594e6492.png"
+    },
+    {
+      "sourceId": "668811",
+      "sourceName": "Alayna Danner",
+      "canonicalName": "Alayna Danner",
+      "booth": "9307",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668811",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/64/19/69/c2923bed-72ea-4aa8-95c4-c0792570c63d.png"
+    },
+    {
+      "sourceId": "668812",
+      "sourceName": "Alessandra Pisano",
+      "canonicalName": "Alessandra Pisano",
+      "booth": "9083",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668812",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/84/44/28/acde2cde-a2b6-43f1-b462-3b19c431dd19.png"
+    },
+    {
+      "sourceId": "668813",
+      "sourceName": "Alix Branwyn",
+      "canonicalName": "Alix Branwyn",
+      "booth": "9051",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668813",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/79/64/94/d7d50735-9f6e-4a12-bb34-b6fd1956ec16.png"
+    },
+    {
+      "sourceId": "668814",
+      "sourceName": "Andrea Radeck",
+      "canonicalName": "Andrea Radeck",
+      "booth": "9182",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668814",
+      "imageUrl": null
+    },
+    {
+      "sourceId": "668872",
+      "sourceName": "Ben Hill",
+      "canonicalName": "Ben Hill",
+      "booth": "9061",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668872",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/74/65/94/789afa0f-bc89-45d2-b07a-a0d8a2d3c633.jpg"
+    },
+    {
+      "sourceId": "668817",
+      "sourceName": "Bruce Brenneise",
+      "canonicalName": "Bruce Brenneise",
+      "booth": "9085",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668817",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/42/97/89/4bd2877f-ad4f-4e4d-bae8-b622f816449f.jpg"
+    },
+    {
+      "sourceId": "668818",
+      "sourceName": "Chase Stone",
+      "canonicalName": "Chase Stone",
+      "booth": "9184",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668818",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/1/24/74/fc75695d-f9c1-48db-b8c0-b8e1dcfde209.jpg"
+    },
+    {
+      "sourceId": "668819",
+      "sourceName": "Chris Rahn",
+      "canonicalName": "Chris Rahn",
+      "booth": "9150",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668819",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/8/68/63/d42138cc-f929-444f-8011-8981bcb97ac7.jpg"
+    },
+    {
+      "sourceId": "668850",
+      "sourceName": "Chris Rallis",
+      "canonicalName": "Chris Rallis",
+      "booth": "9093",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668850",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/14/60/32/6ad4424e-3dd2-4122-a32f-f2595fe25200.jpg"
+    },
+    {
+      "sourceId": "668820",
+      "sourceName": "Chris Seaman",
+      "canonicalName": "Chris Seaman",
+      "booth": "9199",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668820",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/15/62/49/6ea8d9d7-28a8-43a6-8cd4-d3480d6c6a98.png"
+    },
+    {
+      "sourceId": "668822",
+      "sourceName": "Danny Schwartz",
+      "canonicalName": "Danny Schwartz",
+      "booth": "9169",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668822",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/2/90/1/f5ad90e9-6a90-4a2a-a2ba-77ea6dc474da.JPG"
+    },
+    {
+      "sourceId": "668823",
+      "sourceName": "Daren Bader",
+      "canonicalName": "Daren Bader",
+      "booth": "9067",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668823",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/56/79/67/6d982d07-4c32-4bc3-acf1-fb924c663cd6.jpg"
+    },
+    {
+      "sourceId": "668824",
+      "sourceName": "David Palumbo",
+      "canonicalName": "David Palumbo",
+      "booth": "9168",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668824",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/17/93/17/f4ff61b3-0039-4101-8c7f-4366c6510f3d.png"
+    },
+    {
+      "sourceId": "668825",
+      "sourceName": "Douglas Shuler",
+      "canonicalName": "Douglas Shuler",
+      "booth": "9192",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668825",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/20/31/71/a177b338-4c6b-47f5-a780-e425eba46c89.png"
+    },
+    {
+      "sourceId": "668826",
+      "sourceName": "Eli Minaya",
+      "canonicalName": "Eli Minaya",
+      "booth": "9161",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668826",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/60/1/61/225c2ff2-d581-44fe-a000-a25391ee86bf.jpg"
+    },
+    {
+      "sourceId": "668827",
+      "sourceName": "Eric Deschamps",
+      "canonicalName": "Eric Deschamps",
+      "booth": "9109",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668827",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/22/54/66/a5f0bc96-4575-4ec5-9285-00f6fcf470a9.png"
+    },
+    {
+      "sourceId": "668828",
+      "sourceName": "Evyn Fong",
+      "canonicalName": "Evyn Fong",
+      "booth": "9099",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668828",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/19/22/92/17aa9077-cbb5-49cc-a78d-976f5bbce724.png"
+    },
+    {
+      "sourceId": "668829",
+      "sourceName": "Gabor Szikszai",
+      "canonicalName": "Gabor Szikszai",
+      "booth": "9198",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668829",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/93/27/98/ec4ed72c-4668-4ff3-a110-98a67980a0be.png"
+    },
+    {
+      "sourceId": "668830",
+      "sourceName": "Izzy",
+      "canonicalName": "Izzy",
+      "booth": "9101",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668830",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/82/40/7/7581fc03-cbb6-4beb-aa4d-0437cec86bb4.jpeg"
+    },
+    {
+      "sourceId": "668831",
+      "sourceName": "Jarel Threat",
+      "canonicalName": "Jarel Threat",
+      "booth": "9200",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668831",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/17/6/25/9f57bc4a-3486-40b3-96c5-e3d43d482cef.png"
+    },
+    {
+      "sourceId": "668832",
+      "sourceName": "Jason Engle",
+      "canonicalName": "Jason A. Engle",
+      "booth": "9111",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668832",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/71/34/91/aee8001e-93c2-437a-9a21-832860c4aed9.jpg"
+    },
+    {
+      "sourceId": "668833",
+      "sourceName": "Jeff Miracola",
+      "canonicalName": "Jeff Miracola",
+      "booth": "9217",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668833",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/99/95/47/516cca3e-cc12-44d0-9826-77bb5a3540b0.jpg"
+    },
+    {
+      "sourceId": "668834",
+      "sourceName": "Joe Slucher",
+      "canonicalName": "Joe Slucher",
+      "booth": "9210",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668834",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/63/52/16/5e7f61e4-1887-424f-b30b-7d98501a1668.png"
+    },
+    {
+      "sourceId": "668835",
+      "sourceName": "John stanko",
+      "canonicalName": "John Stanko",
+      "booth": "9117",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668835",
+      "imageUrl": null
+    },
+    {
+      "sourceId": "668871",
+      "sourceName": "Josiah \"Jo\" Cameron",
+      "canonicalName": "Josiah \"Jo\" Cameron",
+      "booth": "9260",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668871",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/67/76/41/b31f8ac9-1b6d-4011-be01-2d1b21d67a14.png"
+    },
+    {
+      "sourceId": "668836",
+      "sourceName": "Josu Solano",
+      "canonicalName": "Josu Solano",
+      "booth": "9216",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668836",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/63/30/7/0b72bfe5-b7ed-420f-b278-18d701f61564.jpg"
+    },
+    {
+      "sourceId": "668837",
+      "sourceName": "Justine Jones",
+      "canonicalName": "Justine Jones",
+      "booth": "9268",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668837",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/57/49/75/e02d0538-0590-4df4-9bab-0fc73b647863.png"
+    },
+    {
+      "sourceId": "668838",
+      "sourceName": "Kai Carpenter",
+      "canonicalName": "Kai Carpenter",
+      "booth": "9119",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668838",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/83/99/88/e421ac2e-191d-4009-a3e6-004704da5e0c.jpg"
+    },
+    {
+      "sourceId": "668858",
+      "sourceName": "Kaja Foglio",
+      "canonicalName": "Kaja Foglio",
+      "booth": "9292",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668858",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/81/47/46/bbcee37e-69ba-46f2-bf58-93353c8c03bf.jpg"
+    },
+    {
+      "sourceId": "668839",
+      "sourceName": "kelogsloops",
+      "canonicalName": "kelogsloops",
+      "booth": "9218",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668839",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/17/17/65/419a1c75-95fc-450f-9bfe-f61ed563b097.png"
+    },
+    {
+      "sourceId": "668840",
+      "sourceName": "Kieran Yanner",
+      "canonicalName": "Kieran Yanner",
+      "booth": "9153",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668840",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/30/63/84/23ccda95-13f6-4b93-ac5b-772cb038092f.png"
+    },
+    {
+      "sourceId": "668841",
+      "sourceName": "Leon Tukker",
+      "canonicalName": "Leon Tukker",
+      "booth": "9252",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668841",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/71/80/56/97c5678b-7af2-47e5-ad94-105aeca26da9.png"
+    },
+    {
+      "sourceId": "668842",
+      "sourceName": "Lucas Graciano",
+      "canonicalName": "Lucas Graciano",
+      "booth": "9191",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668842",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/5/63/81/e37423c2-0aaf-43ef-96a7-9e951ceac44e.png"
+    },
+    {
+      "sourceId": "668843",
+      "sourceName": "Mark Tedin",
+      "canonicalName": "Mark Tedin",
+      "booth": "9289",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668843",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/6/65/77/986b1509-7841-42bf-aefe-c54a360386c6.png"
+    },
+    {
+      "sourceId": "668844",
+      "sourceName": "Martina Fačková",
+      "canonicalName": "Martina Fačková",
+      "booth": "9159",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668844",
+      "imageUrl": null
+    },
+    {
+      "sourceId": "668845",
+      "sourceName": "Mathias Kollros",
+      "canonicalName": "Mathias Kollros",
+      "booth": "9258",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668845",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/57/47/96/ca7cddf5-8d56-4426-94d6-8b6fa41c5a4a.jpg"
+    },
+    {
+      "sourceId": "668846",
+      "sourceName": "Mike Bierek",
+      "canonicalName": "Mike Bierek",
+      "booth": "9175",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668846",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/6/32/59/6ec89242-a001-4fd8-ad2d-c986c5d17fcb.jpeg"
+    },
+    {
+      "sourceId": "668821",
+      "sourceName": "Nicholas Gregory",
+      "canonicalName": "Nicholas Gregory",
+      "booth": "9274",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668821",
+      "imageUrl": null
+    },
+    {
+      "sourceId": "668815",
+      "sourceName": "Nino Vecia",
+      "canonicalName": "Nino Vecia",
+      "booth": "9177",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668815",
+      "imageUrl": null
+    },
+    {
+      "sourceId": "668847",
+      "sourceName": "Olena \"Lena\" Richards",
+      "canonicalName": "Olena Richards",
+      "booth": "9276",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668847",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/78/37/9/6e9fb6c9-d9bd-4110-a3c9-59496e108410.png"
+    },
+    {
+      "sourceId": "668848",
+      "sourceName": "Paul Scott Canavan",
+      "canonicalName": "Paul Scott Canavan",
+      "booth": "9185",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668848",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/47/47/41/fda8514e-d881-4dc6-9a23-5380b904d46a.png"
+    },
+    {
+      "sourceId": "668859",
+      "sourceName": "Phil Foglio",
+      "canonicalName": "Phil Foglio",
+      "booth": "9193",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668859",
+      "imageUrl": null
+    },
+    {
+      "sourceId": "668849",
+      "sourceName": "phil stone",
+      "canonicalName": "Phil Stone",
+      "booth": "9284",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668849",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/43/77/97/b7988bf3-dae8-44db-854e-ab1e4921e5dd.jpg"
+    },
+    {
+      "sourceId": "668816",
+      "sourceName": "PINDURSKI",
+      "canonicalName": "PINDURSKI",
+      "booth": "9201",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668816",
+      "imageUrl": null
+    },
+    {
+      "sourceId": "668851",
+      "sourceName": "Randy Gallegos",
+      "canonicalName": "Randy Gallegos",
+      "booth": "9166",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668851",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/22/79/85/cbe7646e-2465-48e1-8f84-91b61d3ab390.jpg"
+    },
+    {
+      "sourceId": "668852",
+      "sourceName": "Richard Kane Ferguson",
+      "canonicalName": "Richard Kane Ferguson",
+      "booth": "9053",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668852",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/68/37/53/32326b56-3dfc-48e2-9e93-540ed80616c8.jpg"
+    },
+    {
+      "sourceId": "668853",
+      "sourceName": "rk post",
+      "canonicalName": "rk post",
+      "booth": "9299",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668853",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/73/41/81/7076e4a9-5611-46b5-86df-13c749d947b5.jpg"
+    },
+    {
+      "sourceId": "668854",
+      "sourceName": "Ryan Pancoast",
+      "canonicalName": "Ryan Pancoast",
+      "booth": "9075",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668854",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/16/63/90/07dfb5e7-e69b-4059-a7cf-f54a1a8b07c4.png"
+    },
+    {
+      "sourceId": "668855",
+      "sourceName": "Sam Burley",
+      "canonicalName": "Sam Burley",
+      "booth": "9300",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668855",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/82/54/83/16885e4b-f4dc-420d-949c-8a44e3f9055b.jpg"
+    },
+    {
+      "sourceId": "668873",
+      "sourceName": "SchmandrewART",
+      "canonicalName": "SchmandrewART",
+      "booth": "9211",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668873",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/83/66/74/78fe5b86-0df5-47a1-999f-dcdb1b333aff.jpg"
+    },
+    {
+      "sourceId": "668856",
+      "sourceName": "Steve Prescott",
+      "canonicalName": "Steve Prescott",
+      "booth": "9209",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668856",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/42/40/15/f9a2af86-b7e2-4949-b8cd-a26a9e3d3f2c.jpg"
+    },
+    {
+      "sourceId": "668857",
+      "sourceName": "Steven Belledin",
+      "canonicalName": "Steven Belledin",
+      "booth": "9069",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668857",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/40/68/45/5b58c1d8-c54a-4455-bcd7-76f11e70e45d.jpg"
+    },
+    {
+      "sourceId": "668860",
+      "sourceName": "Svetlin Velinov",
+      "canonicalName": "Svetlin Velinov",
+      "booth": "9308",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668860",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/79/89/51/9c5830c7-484c-47e8-ba4e-70fec04b88ec.jpg"
+    },
+    {
+      "sourceId": "668862",
+      "sourceName": "Thomas Baxa",
+      "canonicalName": "Thomas M. Baxa",
+      "booth": "9077",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668862",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/26/11/8/b7f04325-db88-42cf-9856-c8afdec54618.jpg"
+    },
+    {
+      "sourceId": "668866",
+      "sourceName": "Tomas Wanerstrand",
+      "canonicalName": "Tom Wanerstrand",
+      "booth": "9310",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668866",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/36/30/7/2bba72c3-a46a-415d-8090-a6e3ff041eb6.jpeg"
+    },
+    {
+      "sourceId": "668863",
+      "sourceName": "Tyler Jacobson",
+      "canonicalName": "Tyler Jacobson",
+      "booth": "9219",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668863",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/54/37/68/2da8ddbc-0caf-4734-8509-c24bbb6ed2eb.png"
+    },
+    {
+      "sourceId": "668865",
+      "sourceName": "Tyler Walpole",
+      "canonicalName": "Tyler Walpole",
+      "booth": "9176",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668865",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/68/60/16/742c5db3-106d-4cab-a70b-4d934b844aff.png"
+    },
+    {
+      "sourceId": "668867",
+      "sourceName": "Victor Adame Minguez",
+      "canonicalName": "Victor Adame Minguez",
+      "booth": "9183",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668867",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/24/91/75/706f1a10-754b-4141-afa9-39993c7c35e2.png"
+    },
+    {
+      "sourceId": "668868",
+      "sourceName": "Vincent Proce",
+      "canonicalName": "Vincent Proce",
+      "booth": "9318",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668868",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/59/60/58/3fe6f2e2-7a83-44f0-b4ac-a38ca16da030.jpg"
+    },
+    {
+      "sourceId": "668869",
+      "sourceName": "Winona Nelson",
+      "canonicalName": "Winona Nelson",
+      "booth": "9160",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668869",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/86/40/31/8e680e59-4c68-451a-92fe-86754caad653.png"
+    },
+    {
+      "sourceId": "668870",
+      "sourceName": "Wizard of Barge",
+      "canonicalName": "Wizard of Barge",
+      "booth": "9263",
+      "profileUrl": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668870",
+      "imageUrl": "https://conv-prod-app.s3.amazonaws.com/media/med/18/15/95/b5d40ae9-0009-49af-8b98-4284f589fc88.jpg"
+    }
+  ]
+}

@@ -2394,6 +2394,7 @@ type ArtistSeed = {
   signal: string
   summary: string
   attendance: string
+  booth?: string
   bioUrl?: string
   thumbnailUrl?: string
   thumbnailAlt?: string
@@ -2543,6 +2544,7 @@ type ArtistAppearanceCatalogRow = {
   artist_id: string
   attending_status: 'confirmed' | 'unconfirmed' | 'unknown' | 'not_attending'
   appearance_days: string | null
+  booth?: string | null
   official_profile_url: string | null
   source_note: string | null
   priority_reason: string | null
@@ -2658,7 +2660,7 @@ export function catalogArtistToSeed(artist: ArtistCatalogRow, appearance?: Artis
   const unconfirmed = appearance?.attending_status === 'unconfirmed'
   const title = artist.display_name || artist.canonical_name
   const fallbackSeed = fallbackArtistSeedByName.get(normalizeArtistName(title))
-  const attendance = confirmed ? (appearance?.appearance_days || 'All days') : 'Unconfirmed'
+  const attendance = confirmed ? (appearance?.appearance_days || 'Days not published') : 'Unconfirmed'
   const status = confirmed
     ? 'Official Atlanta Art of Magic guest'
     : unconfirmed
@@ -2682,11 +2684,13 @@ export function catalogArtistToSeed(artist: ArtistCatalogRow, appearance?: Artis
     signal,
     summary,
     attendance,
+    booth: appearance?.booth ?? undefined,
     bioUrl: appearance?.official_profile_url ?? fallbackSeed?.bioUrl ?? undefined,
     thumbnailUrl,
     thumbnailAlt: fallbackSeed?.thumbnailAlt ?? `${title} artist portrait`,
     thumbnailCaption,
     facts: [
+      ...(appearance?.booth ? [{ label: 'Booth', value: appearance.booth }] : []),
       { label: 'Guest type', value: confirmed ? 'Art of Magic' : 'Artist watchlist' },
       { label: 'Appearing', value: attendance },
       { label: 'Source', value: appearance?.source_note ?? 'Canonical artist catalog' },
@@ -6317,11 +6321,11 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
       <div>
         <span className="eyebrow">ATLANTA 2026</span>
         <h2>{confirmedArtistCount} confirmed Art of Magic artists{watchlistArtistCount ? ` + ${watchlistArtistCount} watchlist seed` : ''}.</h2>
-        <p>{officialArtistSeeds.length ? `Confirmed: ${officialArtistSeeds.map(artist => artist.title).join(', ')}.` : 'No confirmed artists in the current catalog.'} Attendance details belong to each artist; watchlist entries are not confirmed guests.</p>
+        <p>{officialArtistSeeds.length ? 'Browse the confirmed roster below. Booths and published attendance details are shown per artist.' : 'No confirmed artists in the current catalog.'} Watchlist entries remain unconfirmed.</p>
       </div>
       <div className="artist-status-actions">
         <button type="button" disabled={!navigator.onLine} onClick={() => setCatalogRefresh(value => value + 1)}>Refresh artists</button>
-        <a href="https://mcatlanta.mtgfestivals.com/en-us/guests.html" target="_blank" rel="noreferrer">Official guests ↗</a>
+        <a href="https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory.html" target="_blank" rel="noreferrer">Official directory ↗</a>
         <button type="button" onClick={onOpenActivity}>Open Activity</button>
       </div>
     </section>}
@@ -6349,7 +6353,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
                   <small>{seed.signal}</small>
                   <strong>{seed.title}</strong>
                   <em>
-                    {seed.status} · {seed.attendance}
+                    {seed.booth ? `Booth ${seed.booth}` : seed.status} · {seed.attendance}
                     <a className="artist-scryfall-link" href={scryfallArtistSearchUrl(seed.title)} target="_blank" rel="noreferrer" aria-label={`Open ${seed.title} cards on Scryfall`} title={`Scryfall cards by ${seed.title}`} onClick={event => event.stopPropagation()}>
                       <span aria-hidden="true">🔗</span>
                       <span>Scryfall</span>

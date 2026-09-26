@@ -1,6 +1,10 @@
 # Current Frontier
 
-Updated: 2026-09-19
+Updated: 2026-09-25
+
+## September 25 artist release — canonical roster loaded, activation in progress
+
+The released official directory contains 65 artists with booths. All 65 are now confirmed in canonical Supabase, with the retained unconfirmed Rebecca Guay reference; cards, ownership, signing choices and preferences are unchanged. Individual days/hours remain unpublished. The new roster UI and source-bound dynamic-feed monitoring repair are in publication/verification; see `docs/ARTIST_ROSTER_RELEASE_2026-09-25.md` and `docs/SURVEYOR_ARTIST_FEED_REPAIR_2026-09-25.md`. The separate Gathering Grounds dynamic schedule remains an explicit coverage gap, not an artist-release blocker or a claim of complete monitoring.
 
 ## September 19 approved audit implementation — shipped and verified
 

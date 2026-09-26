@@ -46,6 +46,12 @@ describe('September 19 cross-surface usability regressions', () => {
     expect(seed.attendance).toBe('Unconfirmed')
     expect(seed.facts.find(fact => fact.label === 'Appearing')?.value).toBe('Unconfirmed')
     expect(catalogArtistToSeed(artist, { ...appearance, attending_status: 'confirmed', appearance_days: 'Friday' } as typeof appearance).attendance).toBe('Friday')
+    const directory = catalogArtistToSeed(artist, { ...appearance, attending_status: 'confirmed', appearance_days: null, booth: '9151' } as typeof appearance)
+    expect(directory.attendance).toBe('Days not published')
+    expect(directory.booth).toBe('9151')
+    expect(directory.facts[0]).toEqual({ label: 'Booth', value: '9151' })
+    expect(app).not.toContain("officialArtistSeeds.map(artist => artist.title).join(', ')")
+    expect(app).toContain('Official directory ↗')
   })
 
   it('separates cache freshness and historical unread state from survey work', () => {

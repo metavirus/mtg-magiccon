@@ -1,4 +1,4 @@
-const DETAIL_PATH = /^\/en-us\/(?:experience|magic-play|info|badges|exhibitors|artists|guests)(?:\/(?:[^/]+\/)*[^/]+)?\.html$/i
+const DETAIL_PATH = /^\/en-us\/(?:experience|magic-play|art-of-magic|info|badges|exhibitors|artists|guests)(?:\/(?:[^/]+\/)*[^/]+)?\.html$/i
 
 function plainUrl(value) {
   try {

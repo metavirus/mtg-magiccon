@@ -11,6 +11,7 @@ import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acc
 import { activeDetailCoverageExclusions, relevantDetailCoverageGaps, retainedDetailCoverageGaps } from './lib/monitoring_detail_coverage.mjs';
 import { sourceOnboardingReview } from './lib/monitoring_source_onboarding.mjs';
 import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
+import { artistDirectoryFingerprint } from './lib/artist_directory_feed.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -268,12 +269,12 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
   };
 }
 
-async function fetchSource(source) {
+async function fetchText(url) {
   let status = 200;
   let ok = true;
   let html = '';
   try {
-    const response = await fetch(source.url, {
+    const response = await fetch(url, {
       headers: {
         'user-agent': 'MagicCon Atlanta companion monitor/1.0 (+https://metavirus.github.io/mtg-magiccon/)'
       }
@@ -283,7 +284,7 @@ async function fetchSource(source) {
     html = await response.text();
   } catch (error) {
     try {
-      const escapedUrl = source.url.replace(/'/g, "''");
+      const escapedUrl = url.replace(/'/g, "''");
       const { stdout } = await execFileAsync('powershell', [
         '-NoProfile',
         '-ExecutionPolicy',
@@ -298,8 +299,17 @@ async function fetchSource(source) {
       throw new Error(`${error.message}${cause}; powershell fallback: ${fallbackCause}`);
     }
   }
+  return { status, ok, html };
+}
+
+async function fetchSource(source) {
+  const { status, ok, html } = await fetchText(source.url);
+  if (!ok) throw new Error(`HTTP ${status}`);
   const normalizedText = normalizeHtml(html);
-  const content = pageContentFingerprint(html, source.url);
+  const page = pageContentFingerprint(html, source.url);
+  const content = source.artistDirectoryFeed
+    ? await artistDirectoryFingerprint({ html, sourceUrl: source.url, config: source.artistDirectoryFeed, page, fetchText })
+    : page;
   const linkRecords = source.trackLinks ? extractLinkRecords(html, source.url) : [];
   const links = linkRecords.map((link) => link.url);
 
@@ -310,7 +320,7 @@ async function fetchSource(source) {
     status,
     ok,
     title: extractTitle(html),
-    textHash: hashText(normalizedText),
+    textHash: hashText(normalizedText + (content.artistDirectory?.rosterHash ?? '')),
     ...content,
     linkHash: hashText(linkRecords.map(compactLinkRecord).join('\n')),
     textSample: normalizedText.slice(0, 12000),
@@ -490,6 +500,12 @@ const output = {
   watchSet: watchSetPath,
   stateFile: statePath,
   sourceCount: watchSet.sources.length,
+  artistDirectoryCoverage: {
+    configuredCount: watchSet.sources.filter(source => source.artistDirectoryFeed).length,
+    checkedCount: results.filter(result => result.artistDirectory).length,
+    status: results.filter(result => result.artistDirectory).length === watchSet.sources.filter(source => source.artistDirectoryFeed).length ? 'complete' : 'partial',
+    sources: results.filter(result => result.artistDirectory).map(result => ({ id: result.id, ...result.artistDirectory, artists: undefined })),
+  },
   detailPageCoverage: { gapCount: state.detailCoverageGaps.length, gaps: state.detailCoverageGaps, exclusions: activeDetailCoverageExclusions(watchSet.detailCoverageExclusions, checkedAt), scope: 'configured watched pages, current relevant first-party links reconciled against watches and dated exclusions, and discovered official news-index articles; no recursive crawler' },
   changeCount: changes.length,
   failureCount: failures.length,

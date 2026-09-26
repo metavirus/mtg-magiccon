@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-19",
+  "updatedAt": "2026-09-25",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
@@ -45,6 +45,48 @@
     }
   ],
   "sources": [
+    {
+      "id": "atlanta-art-of-magic",
+      "label": "Atlanta Art of Magic overview",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "artist participation details, signing policies, or official Art of Magic resources change",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-09-26T02:32:27Z",
+        "contentHash": "ab6900be5a8df18a762d6b6a5282556d2fa591723d4f4335969f9d6a77c49957",
+        "contentLinkHash": "d0484aa53680d0ce90e5e53a9f74fc0d7e7d5a3996af3a30662a2d314f08a3c8",
+        "disposition": "noise",
+        "reason": "Generic Art of Magic introduction and link to the separately reviewed 65-artist directory. No signing times, prices or new attendee policy. Preserve initial source evidence without a duplicate Home announcement; future substantive changes require interpretation."
+      }
+    },
+    {
+      "id": "atlanta-artist-directory",
+      "label": "Atlanta Artist Directory",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official Atlanta artist roster, booth, biography, or artist links appear or change",
+      "trackLinks": true,
+      "artistDirectoryFeed": {
+        "publicEventKey": "d33e6b91-2a8f-4e35-970c-752c447b23ed",
+        "categoryId": "20591",
+        "eventId": "21389",
+        "eventSlug": "htwhdatl26shdl10"
+      },
+      "initialReview": {
+        "reviewedAt": "2026-09-26T02:29:35Z",
+        "contentHash": "1518d5fcc1d506b21074a951849f854e093c170a2ea86deb4ef86192fba655a2",
+        "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
+        "disposition": "home",
+        "title": "Atlanta's artist directory is available",
+        "summary": "The official Art of Magic directory lists 65 artists with booth numbers and individual artist pages. Browse the roster to plan artist visits and signing priorities.",
+        "reason": "Reviewed the official Atlanta directory and its event-bound LEAP artist feed on September 25. The 65-entry roster is a useful first-party release; publication date is unspecified. This exact-content review does not authorize future changed rosters or infer signing schedules."
+      }
+    },
     {
       "id": "atlanta-ticketed-play-details",
       "label": "Atlanta Ticketed Play schedule details",

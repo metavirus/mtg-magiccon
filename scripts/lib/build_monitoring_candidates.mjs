@@ -41,7 +41,7 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
     const removed = change.linkDelta?.removed ?? []
     // A source-specific review boundary cannot inherit another page's decision
     // merely because both pages gained the same navigation link.
-    const requiresSourceReview = change.initialSourceReview || change.geographicRelevance === 'uncertain'
+    const requiresSourceReview = change.initialSourceReview || change.geographicRelevance === 'uncertain' || Boolean(change.current?.artistDirectory)
     const deltaKey = !requiresSourceReview && (added.length || removed.length)
       ? crypto.createHash('sha256').update(JSON.stringify({ added, removed })).digest('hex')
       : `source:${change.id}`
