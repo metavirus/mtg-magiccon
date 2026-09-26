@@ -2,9 +2,9 @@
 
 Updated: 2026-09-25
 
-## September 25 artist release — canonical roster loaded, activation in progress
+## September 25 artist release — roster and monitoring shipped
 
-The released official directory contains 65 artists with booths. All 65 are now confirmed in canonical Supabase, with the retained unconfirmed Rebecca Guay reference; cards, ownership, signing choices and preferences are unchanged. Individual days/hours remain unpublished. The new roster UI and source-bound dynamic-feed monitoring repair are in publication/verification; see `docs/ARTIST_ROSTER_RELEASE_2026-09-25.md` and `docs/SURVEYOR_ARTIST_FEED_REPAIR_2026-09-25.md`. The separate Gathering Grounds dynamic schedule remains an explicit coverage gap, not an artist-release blocker or a claim of complete monitoring.
+The released official directory contains 65 artists with booths. All 65 are now confirmed in canonical Supabase, with the retained unconfirmed Rebecca Guay reference; cards, ownership, signing choices and preferences are unchanged. Individual days/hours remain unpublished. Roster/UI/feed commit `9a1b1c4` passed CI/Pages, public freshness, authenticated desktop/mobile visual inspection, cloud activation `36212138777`, and zero-change repeat `36212302077`. Home has the verified directory announcement. Superseded October artist forecasts are retired. See `docs/ARTIST_ROSTER_RELEASE_2026-09-25.md` and `docs/SURVEYOR_ARTIST_FEED_REPAIR_2026-09-25.md`. The separate Gathering Grounds dynamic schedule remains an explicit coverage gap, not an artist-release blocker or a claim of complete monitoring.
 
 ## September 19 approved audit implementation — shipped and verified
 
@@ -34,6 +34,8 @@ Atlanta 2026 session planning is effectively complete: the companion group has o
 The reviewed artist collection-refresh tooling is published and ready for a future export. It provides explicit before/after CSV review plus batched, replay-safe SQL generation; see `docs/ARTIST_IMPORT_REFRESH.md`. Its targeted tests, full-source generation, and isolated PostgreSQL replay passed. Publishing the tooling did not change hosted collection data. Missing holdings remain review flags, never automatic deletions.
 
 ## Next safe lanes
+
+The known active monitoring gap is the Gathering Grounds dynamic schedule. Add and review its actual source feed rather than treating its empty HTML heading as coverage; use the focused artist-feed repair note for the exact URL and widget binding.
 
 1. When a new artist collection export arrives, use `docs/ARTIST_IMPORT_REFRESH.md`; review the delta before any authenticated database write.
 2. When the first Atlanta catalog releases, preserve the source and use the reviewed catalog intake/promotion path. Keep Catalogs hidden until a real reviewed Atlanta offer passes exact live readback.

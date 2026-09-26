@@ -3732,10 +3732,6 @@ const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title
     rationale: 'The Ticketed Play schedule page has been published. The next logical milestone is purchasing opening Aug 25 at 10:00 AM PT, followed by hydrating real event inventory once listings are available.',
   },
   {
-    id: 'artists', icon: 'artists', title: 'Artist directory', window: 'Oct 9–16', calendarDate: '9–16', month: 'OCT', confidence: 'wide estimate',
-    rationale: 'Recent MagicCon artist lineups have become planning-ready during the final several weeks before the show. Atlanta artist applications closed Aug 2, so an early-to-mid October directory is a reasonable but lower-confidence window.',
-  },
-  {
     id: 'black-lotus-store', icon: 'black-lotus-store', title: 'Black Lotus store', window: 'Oct 30–Nov 3', calendarDate: '30–3', month: 'OCT', confidence: 'two-event clue',
     rationale: 'The 2026 Black Lotus online store opened 10 days before Las Vegas and 14 days before Amsterdam. The same 10–14 day offset points to Oct 30–Nov 3 for Atlanta.',
   },
@@ -6983,9 +6979,9 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
       <div className="home-right-rail">
         {ticketedPlaySaleIsOpen
           ? <div className="next-milestone home-top-forecast">
-              <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="artists" /></div>
-              <div><span className="eyebrow">NEXT EXPECTED</span><h2>The full artist directory is next.</h2><p>Three Art of Magic guests are listed; the broader Atlanta artist directory is still expected.</p></div>
-              <span className="milestone-date"><small>Estimate</small><strong>Oct</strong></span>
+              <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="show-catalog" /></div>
+              <div><span className="eyebrow">NEXT EXPECTED</span><h2>The show catalog and store are next.</h2><p>The artist directory is available. The show catalog and Black Lotus store are still expected in late October or early November.</p></div>
+              <span className="milestone-date"><small>Estimate</small><strong>Oct–Nov</strong></span>
             </div>
           : <button className="next-milestone home-top-forecast" type="button" onClick={() => setShowTicketedPlayMilestone(true)}>
               <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
@@ -6998,6 +6994,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
           <ol>
             <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
             {ticketedPlaySaleIsOpen && <li className="complete"><span className="runway-icon"><MilestoneIcon name="ticketed-play" /></span><div><strong>Ticketed play purchasing</strong><small>Sales open</small></div></li>}
+            <li className="complete"><span className="runway-icon"><MilestoneIcon name="artists" /></span><div><strong>Artist directory</strong><small>Published · 65 artists</small></div></li>
             {(ticketedPlaySaleIsOpen ? milestoneForecasts.slice(1) : milestoneForecasts).map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
               <span className="runway-icon"><MilestoneIcon name={forecast.icon} /></span>
               <details className="runway-forecast">

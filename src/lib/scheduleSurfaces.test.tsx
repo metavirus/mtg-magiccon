@@ -25,12 +25,12 @@ describe('Calendar display and inspector regression', () => {
     const dates = (id: string) => [...container.querySelectorAll(`.forecast-${id} .forecast-date-tile strong span`)].map(node => node.textContent)
     expect(dates('show-catalog')).toEqual(['OCT 29', '– NOV 6'])
     expect(dates('black-lotus-store')).toEqual(['OCT 30', '– NOV 3'])
-    expect(dates('artists')).toEqual(['OCT 9–16'])
+    expect(dates('artists')).toEqual([])
   })
   it('orders committed events and forecasts chronologically', () => {
     const { container } = render(<CalendarSurface {...calendarProps()} />)
     expect([...container.querySelectorAll('.convention-event-row h2')].map(n => n.textContent)).toEqual(['Earlier event', 'Late event'])
-    expect([...container.querySelectorAll('.milestone-row h2')].map(n => n.textContent)).toEqual(['Artist directory', 'Show catalog', 'Black Lotus store'])
+    expect([...container.querySelectorAll('.milestone-row h2')].map(n => n.textContent)).toEqual(['Show catalog', 'Black Lotus store'])
   })
   it('closes a future event when switching to Past', () => {
     render(<CalendarSurface {...calendarProps()} />)
@@ -42,7 +42,7 @@ describe('Calendar display and inspector regression', () => {
   it('does not stack a forecast over an event and clears it on Travel', () => {
     const { container } = render(<CalendarSurface {...calendarProps()} />)
     fireEvent.click(screen.getByRole('button', { name: /Earlier event/ }))
-    fireEvent.click(screen.getByRole('button', { name: /FORECAST.*Artist directory/ }))
+    fireEvent.click(screen.getByRole('button', { name: /FORECAST.*Show catalog/ }))
     expect(screen.queryByRole('button', { name: 'Close event detail' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Travel' }))
     expect(container.querySelector('.milestone-row')).toBeNull()

@@ -10,7 +10,9 @@ The watch set now includes the directory and Art of Magic overview, and `art-of-
 
 Local validation: targeted tests cover unchanged HTML with roster additions/removals/booth changes, ordering stability, event/category/widget identity, malformed/empty/failed feeds, source evidence retention, reviewed Home disposition, exact-report acceptance, link-gap detection and shared-navigation isolation. A separate read-only production-helper fetch confirmed all 65 entries and the configured hashes. No local operational check, stage, closure, or baseline acceptance was run.
 
-Cloud activation remains root integration work: publish the bounded repair, run the authoritative surveyor, verify the 65-entry feed coverage, the initial Home finding and readback, closure and exact baseline acceptance, then inspect a quiet repeat. Local tests and public-feed reads do not establish live cloud activation.
+Cloud activation is verified on commit `9a1b1c4`. Run `36212138777` completed successfully: 37 watched sources, two initial changes, zero fetch failures, complete 65-entry artist feed coverage with the reviewed roster hash; overview ignored as reviewed noise and directory routed to Home. Exact app-projection readback verified “Atlanta's artist directory is available,” closure completed, and the exact report baseline was accepted and saved. Authenticated browser Home readback also confirmed the card.
+
+Quiet repeat `36212302077` completed successfully at 02:39 UTC September 26: zero changes, zero failures, all 65 feed entries checked, complete closure, baseline accepted/saved, and no duplicate artist catch. Overall `coverageStatus` is still `partial` because of the separate Gathering Grounds schedule gap below. These runs prove artist monitoring, not complete monitoring of every dynamic source. Gmail was not checked in this artist-release task.
 
 ## Remaining Gathering Grounds coverage
 
