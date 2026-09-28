@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { createHash } from 'node:crypto'
+import sharp from 'sharp'
 import { buildManualReceiptPublicationResult, planPrivateGmailIntake, summarizePrivateIntake } from './private_gmail_intake.mjs'
 
 const source = {
@@ -8,7 +10,64 @@ const source = {
   subject: 'Receipt', originalHtml: '<html><body>private proof 4111<img src=https://conventions.leapevent.tech/mobile/get_qr/1fadddfd-c8eb-4164-bbf9-ddea3295a593></body></html>',
 }
 
+const hotelReceipt = { receiptType: 'hotel', title: 'Hotel booking', vendor: 'Hotel', receiptDate: source.receivedAt, amount: 125, currency: 'USD', attendeePersonKeys: ['kyle'], lineItems: [{ eventId: 'hotel-hilton', title: 'Hotel reservation', price: 125 }] }
+const pngBytes = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jvYkAAAAASUVORK5CYII=', 'base64')
+const imageAttachment = (bytes = pngBytes, mimeType = 'image/png', filename = 'hotel-original.png') => ({
+  filename, mimeType, bytesBase64: bytes.toString('base64'), sha256: createHash('sha256').update(bytes).digest('hex'),
+})
+const planHotelImage = (attachment: Record<string, unknown> = imageAttachment()) => planPrivateGmailIntake({
+  kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source: { ...source, originalHtml: undefined, originalAttachment: attachment }, receipt: hotelReceipt,
+})
+
 describe('private Gmail intake', () => {
+  it('preserves the exact PNG or JPEG original and explicit companion hotel assignment', async () => {
+    const jpeg = await sharp({ create: { width: 1, height: 1, channels: 3, background: '#fff' } }).jpeg().toBuffer()
+    for (const attachment of [imageAttachment(), imageAttachment(jpeg, 'image/jpeg', 'hotel-original.JPG')]) {
+      const result = planHotelImage(attachment)
+      expect(result).toMatchObject({ status: 'covered', operation: { attendeePersonKeys: ['kyle'], eventIds: [], receipt: { attendee_person_keys: ['kyle'], original_html: null } } })
+      if (result.status !== 'covered') throw new Error('Expected covered image receipt')
+      const artifact = result.operation.artifact
+      expect(result.operation.receipt.line_items).toMatchObject([{ event_id: 'hotel-hilton', price: 125 }])
+      expect(artifact).toMatchObject({ role: 'original', encoding: 'base64', mimeType: attachment.mimeType, filename: attachment.filename, sha256: attachment.sha256 })
+      expect(createHash('sha256').update(Buffer.from(artifact.contents, artifact.encoding)).digest('hex')).toBe(attachment.sha256)
+      expect(summarizePrivateIntake(result)).toMatchObject({ consequence: { attendeeCount: 1, purchaseLockCount: 0 } })
+      expect(JSON.stringify(summarizePrivateIntake(result))).not.toContain(attachment.bytesBase64)
+      expect(JSON.stringify(summarizePrivateIntake(result))).not.toContain(attachment.filename)
+    }
+  })
+
+  it('fails closed for invalid image bytes, filenames, unsupported types, or mismatched hashes', () => {
+    const cases = [
+      [{ bytesBase64: '' }, 'receipt_original_image_size_invalid'],
+      [{ bytesBase64: 'a'.repeat(Math.ceil(10 * 1024 * 1024 / 3) * 4 + 4) }, 'receipt_original_image_size_invalid'],
+      [{ bytesBase64: `${imageAttachment().bytesBase64}\n` }, 'receipt_original_base64_invalid'],
+      [{ bytesBase64: 'not base64!' }, 'receipt_original_base64_invalid'],
+      [{ ...imageAttachment(Buffer.from('<html>not an image</html>')) }, 'receipt_original_image_signature_invalid'],
+      [{ ...imageAttachment(pngBytes.subarray(0, -1)) }, 'receipt_original_image_signature_invalid'],
+      [{ mimeType: 'image/jpeg', filename: 'hotel.jpg' }, 'receipt_original_image_signature_invalid'],
+      [{ mimeType: 'image/svg+xml' }, 'receipt_original_image_type_invalid'],
+      [{ filename: '../hotel.png' }, 'receipt_original_filename_invalid'],
+      [{ filename: 'folder\\hotel.png' }, 'receipt_original_filename_invalid'],
+      [{ filename: 'hotel.html' }, 'receipt_original_filename_invalid'],
+      [{ sha256: '0'.repeat(64) }, 'receipt_original_checksum_mismatch'],
+      [{ sha256: undefined }, 'receipt_original_checksum_mismatch'],
+    ] as const
+    for (const [changes, reason] of cases) {
+      expect(planHotelImage({ ...imageAttachment(), ...changes })).toMatchObject({ status: 'not_covered', reason })
+    }
+  })
+
+  it('rejects ambiguous originals and does not widen companion shorthand or other receipt types', () => {
+    expect(planPrivateGmailIntake({ kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source: { ...source, originalAttachment: imageAttachment() }, receipt: hotelReceipt }))
+      .toMatchObject({ status: 'not_covered', reason: 'receipt_original_ambiguous' })
+    expect(planPrivateGmailIntake({ kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source, receipt: { ...hotelReceipt, attendeePersonKeys: undefined, attendeePersonKey: 'kyle' } }))
+      .toMatchObject({ status: 'not_covered', reason: 'attendee_identity_ambiguous' })
+    for (const receiptType of ['badge', 'store', 'travel', 'other']) {
+      expect(planPrivateGmailIntake({ kind: 'receipt', mailboxOwnerPersonKey: 'kavi', source, receipt: { ...hotelReceipt, receiptType } }))
+        .toMatchObject({ status: 'not_covered', reason: 'attendee_identity_ambiguous' })
+    }
+  })
+
   it('does not manufacture verified confidence when a normalized receipt omits it', () => {
     const planned = planPrivateGmailIntake({
       kind: 'receipt',
@@ -100,6 +159,11 @@ describe('private Gmail intake', () => {
     expect(executor).not.toContain('spawnSync')
     expect(executor).toContain(".update(receiptFacts).eq('id', existingReceipt.data.id)")
     expect(executor).not.toContain('upsert(receipt')
+    expect(executor).toContain(".in('person_key', plan.operation.attendeePersonKeys).eq('active', true).not('user_id', 'is', null)")
+    expect(executor.indexOf("reason: 'canonical_attendee_binding_unavailable'")).toBeLessThan(executor.indexOf('.insert(receipt)'))
+    expect(executor).toContain('Buffer.from(plan.operation.artifact.contents, plan.operation.artifact.encoding)')
+    expect(executor).toContain('filename: plan.operation.artifact.filename ??')
+    expect(executor).toContain("if (storedHash !== artifactHash) throw new Error('Receipt artifact checksum readback failed.')")
     expect(executor.indexOf('.download(artifactManifest.object_path)')).toBeLessThan(executor.indexOf("update({ original_html: null"))
   })
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-25",
+  "updatedAt": "2026-09-28",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
@@ -45,6 +45,31 @@
     }
   ],
   "sources": [
+    {
+      "id": "atlanta-gathering-grounds-schedule",
+      "label": "Atlanta Gathering Grounds schedule",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official Gathering Grounds sessions, times, locations, descriptions, or participants appear or change",
+      "trackLinks": true,
+      "gatheringGroundsFeed": {
+        "publicEventKey": "d33e6b91-2a8f-4e35-970c-752c447b23ed",
+        "categoryId": "20600",
+        "eventId": "21389",
+        "eventSlug": "htwhdatl26shdl10"
+      },
+      "initialReview": {
+        "reviewedAt": "2026-09-28T15:55:58.107Z",
+        "contentHash": "9e8d8423ce3dc265dee85d139418f8da88e7ba1c813f8c8447cacf16554d8d8d",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "home",
+        "title": "Gathering Grounds schedule is available",
+        "summary": "Atlanta's Gathering Grounds lists 19 sessions across November 13–15, including MelaninMagic trivia and Booster Blitz, Birds of Paradise headshots and games, Veterans The Gathering Commander events, Wizards Pride play, and Saturday Commander sleeve decorating. Check the official schedule for session details and sign-up instructions.",
+        "reason": "Directly reviewed the official schedule page, its own widget JavaScript and event/category-bound public LEAP feed September 28. Publication date is unspecified. Preserve source inconsistencies: Saturday headshots has equal start/end times; Sunday's Pride Commander description says 11am/2pm while its structured start is noon. The synopsis avoids those disputed times and makes no ticket/availability claim; no canonical calendar import is authorized."
+      }
+    },
     {
       "id": "atlanta-art-of-magic",
       "label": "Atlanta Art of Magic overview",
@@ -633,9 +658,9 @@
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/ada-assistance.html",
-      "reason": "Legacy ADA URL still linked by FAQ. Cached content names 2025 deadlines; fresh fetch failed September 19. The current accessibility-assistance.html is watched and has Atlanta November 2026 details. Recheck this excluded legacy path explicitly; do not import stale policy.",
-      "reviewedAt": "2026-09-20T03:07:00Z",
-      "reviewAfter": "2026-09-27T00:00:00Z"
+      "reason": "Fresh direct HTTP review September 28 returned 404 with Page not found at this exact legacy URL. The watched accessibility-assistance.html returned 200 with October 9, 2026 communication-request deadline and November 13–15 sensory-room hours. Exclude the broken FAQ destination as a legacy reference, not current policy; recheck October 4 in case the path is restored. Evidence: docs/SURVEYOR_GATHERING_GROUNDS_COVERAGE_2026-09-28.md.",
+      "reviewedAt": "2026-09-28T15:53:15.872Z",
+      "reviewAfter": "2026-10-04T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/how-to-buy/content/sitebuilder/rna/mtg-festivals/mcatlanta/en-us/t3stz0n3/2026/badges/how-to-buy.html",

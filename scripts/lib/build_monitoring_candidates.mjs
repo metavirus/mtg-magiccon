@@ -41,7 +41,7 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
     const removed = change.linkDelta?.removed ?? []
     // A source-specific review boundary cannot inherit another page's decision
     // merely because both pages gained the same navigation link.
-    const requiresSourceReview = change.initialSourceReview || change.geographicRelevance === 'uncertain' || Boolean(change.current?.artistDirectory)
+    const requiresSourceReview = change.initialSourceReview || change.geographicRelevance === 'uncertain' || Boolean(change.current?.artistDirectory || change.current?.gatheringGrounds)
     const deltaKey = !requiresSourceReview && (added.length || removed.length)
       ? crypto.createHash('sha256').update(JSON.stringify({ added, removed })).digest('hex')
       : `source:${change.id}`
@@ -90,7 +90,7 @@ export function buildMonitoringCandidateRows(report, routingContext = {}) {
     const classification = classifyMonitoringFinding(row)
     const editorial = editorialDecision(row, routingContext.editorialDecisions)
     if (editorial.disposition !== 'pending') return applyEditorialDecision(row, editorial)
-    if (change.initialSourceReview || change.geographicRelevance === 'uncertain') return applyEditorialDecision(row, editorial)
+    if (change.initialSourceReview || change.geographicRelevance === 'uncertain' || change.current?.gatheringGrounds) return applyEditorialDecision(row, editorial)
     if (!change.initialSourceReview && change.intakeKind === 'first_party_newsletter' && change.geographicRelevance !== 'uncertain' && isInterestingAnnouncement(change)) return {
       ...row,
       destination: 'Home',

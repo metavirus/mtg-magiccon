@@ -26,6 +26,8 @@ Six explicit exclusions remain visible in coverage: duplicate `info/info-overvie
 
 ## Completed integration proof
 
+September 28 legacy ADA follow-up: a fresh direct read now returns HTTP 404, while the watched Accessibility Assistance page returns current 2026 details. The exclusion has been reviewed through October 4 using that fresh evidence; see `docs/SURVEYOR_GATHERING_GROUNDS_COVERAGE_2026-09-28.md`. The earlier cached-policy review above remains historical evidence only.
+
 Activation run [35485943116](https://github.com/metavirus/mtg-magiccon/actions/runs/35485943116) passed on `1811efd`: 35 sources, 9 discovered articles, zero fetch failures/unfetched articles/missing discovery sources/detail gaps, six dated exclusions. Closure was complete: 24 reviewed initial snapshots archived as no additional signal; three current-reference synopses routed to Home with exact content and `app_projection_verified` readbacks. Closure verification, watched-alert step, exact baseline acceptance, cache save, and artifact upload all succeeded. Root inspected the three cards in the signed-in public Home viewport.
 
 The first actual private coverage receipt also passed: all three canonical queries completed through September 20 at 03:09:13 UTC (37/12/24 matches, 39 unique messages). No new unhandled finding; the known hotel-original gap remains explicitly `not_covered`, not hidden by successful search. Private identifiers and evidence remain out of this document.

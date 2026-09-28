@@ -16,4 +16,6 @@ Quiet repeat `36212302077` completed successfully at 02:39 UTC September 26: zer
 
 ## Remaining Gathering Grounds coverage
 
+Superseded implementation status September 28: the bounded schedule adapter and exact source review are now recorded in `docs/SURVEYOR_GATHERING_GROUNDS_COVERAGE_2026-09-28.md`. The paragraph below records the original gap; cloud proof for its replacement belongs to that follow-up checkpoint.
+
 The current Gathering Grounds page links `/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule.html`. That child embeds `growTixScheduleSlim`, the same public event key and category `20600`; direct HTML contains only the schedule heading. Its schedule feed needs a separate bounded adapter/review. The current link-gap detector already recognizes this URL and must retain it as unresolved coverage until actual schedule data is monitored. Do not add a heading-only watch or exclusion to clear the gap. The artist repair does not certify dynamic schedules, guests, creators, or merchandise on other pages.

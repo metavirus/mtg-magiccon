@@ -88,10 +88,12 @@ if (plan.kind === 'receipt') {
   const safeMessageId = plan.sourceMessageId.replace(/[^a-zA-Z0-9._-]/g, '-')
   const artifactSpecs = [{
     role: plan.operation.artifact.role,
-    bytes: Buffer.from(plan.operation.artifact.contents, 'utf8'),
+    bytes: Buffer.from(plan.operation.artifact.contents, plan.operation.artifact.encoding),
     mimeType: plan.operation.artifact.mimeType,
-    filename: `${safeMessageId}.html`,
-    displayLabel: 'Archival source HTML from reviewed payload',
+    filename: plan.operation.artifact.filename ?? `${safeMessageId}.html`,
+    displayLabel: plan.operation.artifact.mimeType === 'text/html'
+      ? 'Archival source HTML from reviewed payload'
+      : 'Original image attachment from reviewed payload',
     displayOrder: 1,
   }]
   const artifactManifests = []

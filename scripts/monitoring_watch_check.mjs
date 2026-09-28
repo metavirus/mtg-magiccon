@@ -12,6 +12,7 @@ import { activeDetailCoverageExclusions, relevantDetailCoverageGaps, retainedDet
 import { sourceOnboardingReview } from './lib/monitoring_source_onboarding.mjs';
 import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
 import { artistDirectoryFingerprint } from './lib/artist_directory_feed.mjs';
+import { gatheringGroundsFingerprint } from './lib/gathering_grounds_feed.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -309,7 +310,9 @@ async function fetchSource(source) {
   const page = pageContentFingerprint(html, source.url);
   const content = source.artistDirectoryFeed
     ? await artistDirectoryFingerprint({ html, sourceUrl: source.url, config: source.artistDirectoryFeed, page, fetchText })
-    : page;
+    : source.gatheringGroundsFeed
+      ? await gatheringGroundsFingerprint({ html, sourceUrl: source.url, config: source.gatheringGroundsFeed, page })
+      : page;
   const linkRecords = source.trackLinks ? extractLinkRecords(html, source.url) : [];
   const links = linkRecords.map((link) => link.url);
 
@@ -320,7 +323,7 @@ async function fetchSource(source) {
     status,
     ok,
     title: extractTitle(html),
-    textHash: hashText(normalizedText + (content.artistDirectory?.rosterHash ?? '')),
+    textHash: hashText(normalizedText + (content.artistDirectory?.rosterHash ?? '') + (content.gatheringGrounds?.scheduleHash ?? '')),
     ...content,
     linkHash: hashText(linkRecords.map(compactLinkRecord).join('\n')),
     textSample: normalizedText.slice(0, 12000),
@@ -500,6 +503,12 @@ const output = {
   watchSet: watchSetPath,
   stateFile: statePath,
   sourceCount: watchSet.sources.length,
+  gatheringGroundsCoverage: {
+    configuredCount: watchSet.sources.filter(source => source.gatheringGroundsFeed).length,
+    checkedCount: results.filter(result => result.gatheringGrounds).length,
+    status: results.filter(result => result.gatheringGrounds).length === watchSet.sources.filter(source => source.gatheringGroundsFeed).length ? 'complete' : 'partial',
+    sources: results.filter(result => result.gatheringGrounds).map(result => ({ id: result.id, ...result.gatheringGrounds, sessions: undefined })),
+  },
   artistDirectoryCoverage: {
     configuredCount: watchSet.sources.filter(source => source.artistDirectoryFeed).length,
     checkedCount: results.filter(result => result.artistDirectory).length,

@@ -1,4 +1,7 @@
+import { createHash } from 'node:crypto'
+
 const RECEIPT_TYPES = new Set(['badge', 'ticketed_play', 'store', 'travel', 'hotel', 'other'])
+const MAX_ORIGINAL_IMAGE_BYTES = 10 * 1024 * 1024
 const FLIGHT_ITINERARY = 'atlanta-2026-delta-hogfbx'
 const EXPECTED_TRAVELERS = ['juan', 'kavi']
 
@@ -34,6 +37,37 @@ function baseEnvelope(message) {
   return null
 }
 
+function receiptOriginal(source) {
+  const attachment = source.originalAttachment
+  if (attachment == null) {
+    if (!nonblank(source.originalHtml)) return { reason: 'receipt_original_or_currency_missing' }
+    return { artifact: { role: 'original', mimeType: 'text/html', contents: source.originalHtml, encoding: 'utf8', capturedAt: source.receivedAt } }
+  }
+  if (nonblank(source.originalHtml)) return { reason: 'receipt_original_ambiguous' }
+  if (!['image/png', 'image/jpeg'].includes(attachment.mimeType)) return { reason: 'receipt_original_image_type_invalid' }
+  const filename = attachment.filename
+  const extensionMatches = attachment.mimeType === 'image/png' ? /\.png$/i : /\.jpe?g$/i
+  if (typeof filename !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9._ -]{0,179}$/.test(filename)
+    || filename.includes('..') || !extensionMatches.test(filename)) return { reason: 'receipt_original_filename_invalid' }
+  const encoded = attachment.bytesBase64
+  if (typeof encoded !== 'string' || !encoded.length || encoded.length > Math.ceil(MAX_ORIGINAL_IMAGE_BYTES / 3) * 4) {
+    return { reason: 'receipt_original_image_size_invalid' }
+  }
+  const bytes = Buffer.from(encoded, 'base64')
+  if (bytes.toString('base64') !== encoded) return { reason: 'receipt_original_base64_invalid' }
+  if (!bytes.length || bytes.length > MAX_ORIGINAL_IMAGE_BYTES) return { reason: 'receipt_original_image_size_invalid' }
+  const signatureMatches = attachment.mimeType === 'image/png'
+    ? bytes.length >= 45 && bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'))
+      && bytes.subarray(8, 16).equals(Buffer.from('0000000d49484452', 'hex'))
+      && bytes.subarray(-12).equals(Buffer.from('0000000049454e44ae426082', 'hex'))
+    : bytes.length >= 5 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+      && bytes[bytes.length - 2] === 0xff && bytes[bytes.length - 1] === 0xd9
+  if (!signatureMatches) return { reason: 'receipt_original_image_signature_invalid' }
+  const sha256 = createHash('sha256').update(bytes).digest('hex')
+  if (attachment.sha256 !== sha256) return { reason: 'receipt_original_checksum_mismatch' }
+  return { artifact: { role: 'original', mimeType: attachment.mimeType, contents: encoded, encoding: 'base64', filename, sha256, capturedAt: source.receivedAt } }
+}
+
 function receiptPlan(message) {
   const receipt = message.receipt
   const source = message.source
@@ -42,8 +76,8 @@ function receiptPlan(message) {
   const attendeePersonKeys = hasExplicitAttendeeSet
     ? [...new Set(receipt.attendeePersonKeys.map(value => String(value).trim().toLowerCase()).filter(Boolean))]
     : nonblank(receipt.attendeePersonKey) ? [receipt.attendeePersonKey.trim().toLowerCase()] : []
-  const companionOnlyTicketedReceipt = receipt.receiptType === 'ticketed_play' && hasExplicitAttendeeSet
-  if (!attendeePersonKeys.length || (!attendeePersonKeys.includes(message.mailboxOwnerPersonKey) && !companionOnlyTicketedReceipt)) {
+  const explicitCompanionReceipt = ['ticketed_play', 'hotel'].includes(receipt.receiptType) && hasExplicitAttendeeSet
+  if (!attendeePersonKeys.length || (!attendeePersonKeys.includes(message.mailboxOwnerPersonKey) && !explicitCompanionReceipt)) {
     return notCovered('receipt', source.messageId, 'attendee_identity_ambiguous')
   }
   if (![receipt.title, receipt.vendor].every(nonblank) || !validTimestamp(receipt.receiptDate)) {
@@ -52,9 +86,11 @@ function receiptPlan(message) {
   if (typeof receipt.amount !== 'number' || !Number.isFinite(receipt.amount) || receipt.amount < 0) {
     return notCovered('receipt', source.messageId, 'receipt_amount_invalid')
   }
-  if (!nonblank(receipt.currency) || !nonblank(source.originalHtml)) {
+  if (!nonblank(receipt.currency)) {
     return notCovered('receipt', source.messageId, 'receipt_original_or_currency_missing')
   }
+  const original = receiptOriginal(source)
+  if (original.reason) return notCovered('receipt', source.messageId, original.reason)
   if (receipt.confidence != null && !['verified', 'high', 'needs_review'].includes(receipt.confidence)) {
     return notCovered('receipt', source.messageId, 'receipt_confidence_invalid')
   }
@@ -125,12 +161,7 @@ function receiptPlan(message) {
       original_html: null,
       confidence: receipt.confidence ?? 'needs_review',
     },
-    artifact: {
-      role: 'original',
-      mimeType: 'text/html',
-      contents: source.originalHtml,
-      capturedAt: source.receivedAt,
-    },
+    artifact: original.artifact,
     eventIds: [...new Set(eventIds)].sort(),
     attendeePersonKeys,
     proofBundleValidation,

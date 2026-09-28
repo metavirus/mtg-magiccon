@@ -1,11 +1,25 @@
 import { readFileSync } from 'node:fs'
+import type { ComponentProps } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { catalogArtistToSeed, CompanionCodePanel, HotelWalletReference } from '../App'
+import { catalogArtistToSeed, CompanionCodePanel, HotelWalletReference, WalletOtherTab } from '../App'
+import { downloadReceiptArtifact } from './receiptArtifacts'
+import { previewTripFlights } from './tripFlights'
 
 vi.mock('./supabase', () => ({ supabase: null }))
+vi.mock('./receiptArtifacts', async importOriginal => ({
+  ...await importOriginal<typeof import('./receiptArtifacts')>(),
+  downloadReceiptArtifact: vi.fn().mockResolvedValue('blob:hotel-original'),
+}))
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 const app = readFileSync('src/App.tsx', 'utf8')
+type HotelReceipt = NonNullable<ComponentProps<typeof HotelWalletReference>['receipts']>[number]
+const hotelReceipt: HotelReceipt = {
+  id: 'hotel-receipt', receipt_type: 'hotel', title: 'Hotel reservation', vendor: 'Hotel',
+  receipt_date: '2026-08-19', amount: 100, currency: 'USD', attendee_person_key: 'kyle', attendee_person_keys: ['kyle'],
+  line_items: [{ event_id: 'hotel-hilton', title: 'Hotel reservation', price: 100 }],
+  receipt_artifacts: [{ id: 'hotel-image', artifact_role: 'original', bucket_id: 'private-receipt-artifacts', object_path: 'hotel-receipt/original/image.PNG', mime_type: 'image/png', display_label: 'Original hotel image', display_order: 1 }],
+}
 
 describe('September 19 cross-surface usability regressions', () => {
   it('uses one public code panel in Explore, Plan and Calendar', () => {
@@ -37,6 +51,41 @@ describe('September 19 cross-surface usability regressions', () => {
     expect(screen.getByText('Address')).toBeTruthy()
     expect(app).toContain("setTab('other')")
     expect(app).toContain('setWalletProofRequest({ target: hotelTarget, nonce: Date.now() })')
+  })
+
+  it('passes the exact hotel original and current viewer through the Other drawer', async () => {
+    vi.mocked(downloadReceiptArtifact).mockClear().mockResolvedValue('blob:hotel-original')
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() })
+    const openModal = vi.fn()
+    render(<WalletOtherTab flights={previewTripFlights} receipts={[hotelReceipt]} currentOwnerId="current-viewer" openModal={openModal} onOpenTrip={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /Hilton · Nov 12-16/ }))
+    render(openModal.mock.calls[0][2])
+    expect(screen.getByText('Receipt for')).toBeInTheDocument()
+    expect(screen.getByText('$100.00')).toBeInTheDocument()
+    expect(screen.queryByText(/No original receipt is linked/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'Original' }))
+    await waitFor(() => expect(downloadReceiptArtifact).toHaveBeenCalledWith(hotelReceipt.receipt_artifacts![0], 'current-viewer'))
+    expect(screen.getByText('Original attachment retained from the hotel receipt message.')).toBeInTheDocument()
+    await waitFor(() => expect(document.querySelector('img[src="blob:hotel-original"]')).toBeTruthy())
+    expect(app.match(/<HotelWalletReference kind=\{kind\} receipts=\{receipts\} currentOwnerId=\{currentOwnerId\}/g)).toHaveLength(2)
+  })
+
+  it('never selects another hotel, a title-only match, a different receipt type, or ambiguous originals', () => {
+    const invalidSets = [
+      [{ ...hotelReceipt, line_items: [{ event_id: 'hotel-omni', title: 'Hilton reservation', price: 100 }] }],
+      [{ ...hotelReceipt, line_items: [{ title: 'Hilton reservation', price: 100 }] }],
+      [{ ...hotelReceipt, receipt_type: 'other' }],
+      [hotelReceipt, { ...hotelReceipt, id: 'second-hotel-receipt' }],
+      [{ ...hotelReceipt, receipt_artifacts: [] }],
+    ] satisfies HotelReceipt[][]
+    const view = render(<HotelWalletReference kind="hilton" />)
+    for (const receipts of invalidSets) {
+      view.rerender(<HotelWalletReference kind="hilton" receipts={receipts} />)
+      expect(screen.queryByRole('tab', { name: 'Original' })).not.toBeInTheDocument()
+      expect(screen.getByText(/No original receipt is linked/)).toBeInTheDocument()
+    }
+    view.rerender(<HotelWalletReference kind="omni" receipts={[hotelReceipt]} />)
+    expect(screen.queryByRole('tab', { name: 'Original' })).not.toBeInTheDocument()
   })
 
   it('never promotes inherited day scope to confirmed attendance', () => {

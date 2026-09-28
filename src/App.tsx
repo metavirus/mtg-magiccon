@@ -5400,9 +5400,9 @@ function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, cur
     if (proofRequest.target.startsWith('hotel-')) {
       const kind = proofRequest.target.replace('hotel-', '') as 'courtyard' | 'omni' | 'hilton'
       setTab('other')
-      openModal('HOTEL REFERENCE', tripHotelDetail(kind).title, <HotelWalletReference kind={kind} />)
+      openModal('HOTEL REFERENCE', tripHotelDetail(kind).title, <HotelWalletReference kind={kind} receipts={receipts} currentOwnerId={currentOwnerId} />)
     }
-  }, [proofRequest?.nonce])
+  }, [proofRequest?.nonce, receipts, currentOwnerId])
   const adjustTix = (delta: number) => setTix(value => {
     const next = Math.max(0, value + delta)
     onPrizeTixChange(next, next - value)
@@ -5430,7 +5430,7 @@ function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, cur
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openChrisBlackLotusProof={openChrisBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} />}
     {tab === 'store' && <WalletStoreEmpty />}
-    {tab === 'other' && <WalletOtherTab flights={flights} openModal={openModal} onOpenTrip={onOpenTrip} />}
+    {tab === 'other' && <WalletOtherTab flights={flights} receipts={receipts} currentOwnerId={currentOwnerId} openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
   </section>
 }
@@ -5738,12 +5738,32 @@ function WalletStoreEmpty() {
   </div>
 }
 
-export function HotelWalletReference({ kind }: { kind: 'courtyard' | 'omni' | 'hilton' }) {
+export function HotelWalletReference({ kind, receipts = [], currentOwnerId }: { kind: 'courtyard' | 'omni' | 'hilton'; receipts?: WalletReceiptRow[]; currentOwnerId?: string }) {
+  const [mode, setMode] = useState<'info' | 'original'>('info')
   const detail = tripHotelDetail(kind)
-  return <div className="proof-detail"><p>{detail.summary}</p><div className="proof-info-list">{detail.facts?.map(fact => <div key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}</div><p>No original receipt is linked to this hotel yet. These are saved itinerary details, not registration or payment proof.</p>{kind === 'hilton' && <p>Reservation details were captured from Kyle's Gmail message “magiccon hotel receipt” dated August 19; the original remains in that email.</p>}</div>
+  const matches = receipts.filter(receipt => receipt.receipt_type === 'hotel' && receipt.line_items.some(line => line.event_id === `hotel-${kind}`))
+  const receipt = matches.length === 1 ? matches[0] : null
+  const hasOriginal = Boolean(receipt?.receipt_artifacts?.some(artifact => artifact.artifact_role === 'original'))
+  return <div className="proof-detail">
+    {hasOriginal && <div className="proof-mode-tabs" role="tablist" aria-label="Hotel receipt view">
+      <button type="button" role="tab" aria-selected={mode === 'info'} className={mode === 'info' ? 'active' : ''} onClick={() => setMode('info')}>Info</button>
+      <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
+    </div>}
+    {mode === 'original' && hasOriginal ? <>
+      <p className="original-receipt-note">Original attachment retained from the hotel receipt message.</p>
+      <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${detail.title} original receipt`} currentOwnerId={currentOwnerId} />
+    </> : <>
+      <p>{detail.summary}</p>
+      <div className="proof-info-list">
+        {detail.facts?.map(fact => <div key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}
+        {receipt && <><div><span>Receipt for</span><strong>{receiptPeople(receipt).join(' + ')}</strong></div><div><span>Reservation total</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></div></>}
+      </div>
+      {hasOriginal ? <p>Original attachment available under Original.</p> : <p>No original receipt is linked to this hotel yet. These are saved itinerary details, not registration or payment proof.</p>}
+    </>}
+  </div>
 }
 
-export function WalletOtherTab({ flights, openModal, onOpenTrip }: { flights: TripFlight[]; openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void }) {
+export function WalletOtherTab({ flights, receipts = [], currentOwnerId, openModal, onOpenTrip }: { flights: TripFlight[]; receipts?: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void }) {
   const { flight } = tripFlightCalendarProjection(flights)
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Other wallet references">
@@ -5758,9 +5778,9 @@ export function WalletOtherTab({ flights, openModal, onOpenTrip }: { flights: Tr
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>
       <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL REFERENCES</span><h2>Atlanta lodging</h2><p>Saved itinerary details · originals not linked yet</p></div><PersonBubbles people={['Kavi', 'Juan', 'Chris', 'Kyle']} /></div>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL REFERENCES</span><h2>Atlanta lodging</h2><p>Saved itinerary details and linked receipts</p></div><PersonBubbles people={['Kavi', 'Juan', 'Chris', 'Kyle']} /></div>
         <div className="receipt-lines">
-          {(['courtyard', 'omni', 'hilton'] as const).map(kind => <button key={kind} type="button" onClick={() => openModal('HOTEL REFERENCE', tripHotelDetail(kind).title, <HotelWalletReference kind={kind} />)}><span>{kind === 'courtyard' ? 'Courtyard · Nov 11-12' : kind === 'omni' ? 'Omni · Nov 12-15' : 'Hilton · Nov 12-16'}</span><b>{kind === 'courtyard' ? 'K/J/C' : kind === 'omni' ? 'K/J' : 'C/Ky'}</b></button>)}
+          {(['courtyard', 'omni', 'hilton'] as const).map(kind => <button key={kind} type="button" onClick={() => openModal('HOTEL REFERENCE', tripHotelDetail(kind).title, <HotelWalletReference kind={kind} receipts={receipts} currentOwnerId={currentOwnerId} />)}><span>{kind === 'courtyard' ? 'Courtyard · Nov 11-12' : kind === 'omni' ? 'Omni · Nov 12-15' : 'Hilton · Nov 12-16'}</span><b>{kind === 'courtyard' ? 'K/J/C' : kind === 'omni' ? 'K/J' : 'C/Ky'}</b></button>)}
         </div>
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
       </article>

@@ -1,6 +1,6 @@
 # Private Gmail search coverage
 
-Updated: 2026-09-19
+Updated: 2026-09-28
 
 The daily Codex heartbeat attempts one read-only Gmail check when its last complete search is older than 24 hours. Extra heartbeat turns reuse a fresh complete receipt. Gmail is a separate capability from the successful public cloud surveyor. A missing connector produces `not_checked`, not mailbox freshness. Never modify Gmail, dispatch the manual receipt publisher, or imply that search proves receipt ingestion or flight application.
 
@@ -22,6 +22,10 @@ Attempt fields:
 - `resolvedCandidateKeys`: only the exact keys whose consequence or deliberate no-action disposition was verified this turn. Existing unresolved keys survive quiet searches and unavailable connectors. A fresh search checkpoint never closes a candidate's intake debt.
 
 The writer validates windows and query completeness, preserves the previous success on partial/skipped checks, and atomically replaces the receipt. Public workflow status and private search status must remain separate in any report. Persist every attempted or skipped due check; stay quiet when unchanged and non-actionable. Notify for a new meaningful candidate, new/lapsed private capability, or a concrete required action, without publishing private contents.
+
+Before declaring Gmail unavailable, inspect the current browser inventory once: an absent connector does not imply an absent signed-in Chrome session. A recovered browser search uses the same three-query/window/pagination checks, not a reduced substitute. Do not repeatedly notify about unchanged missing capability or known intake debt.
+
+For each unresolved candidate, retain its stable source reference, exact missing consequence, and next executable step in a separate ignored private evidence record keyed by the same hash. A bare hash/reason is insufficient handoff context. Close it only after verified publication and app proof, or an evidence-backed deliberate no-action decision; a source lookup or fresh search alone does not close it. Original image attachments can use the bounded manual receipt publisher without manufacturing HTML or changing their bytes; see the hydration contract. Public source gaps and expired exclusions are agent maintenance work: resolve bounded ones during supervision instead of repeatedly presenting them as owner caveats.
 
 ## Exact heartbeat prompt addition
 
