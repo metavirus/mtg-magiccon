@@ -1,6 +1,6 @@
 # Gathering Grounds and legacy ADA coverage
 
-Read-only source review: September 28, 2026, 15:53–15:56 UTC. Owner: MagicCon / MTG Festivals; public schedule transport: LEAP. Publication dates are unspecified. No local operational monitor, staging, acceptance, or database write was used. This document records local implementation and source evidence; cloud activation and quiet-repeat proof belong to root integration.
+Read-only source review: September 28, 2026, 15:53–15:56 UTC. Owner: MagicCon / MTG Festivals; public schedule transport: LEAP. Publication dates are unspecified. No local operational monitor, staging, acceptance, or database write was used. Local implementation, source evidence, and subsequent cloud activation/quiet-repeat proof are recorded below.
 
 ## Gathering Grounds
 
@@ -43,4 +43,10 @@ Disposition: renew the exact legacy URL exclusion until **October 4, 2026, 00:00
 
 ## Local validation
 
-Targeted `pnpm test` covers the adapter, artist precedent, detail coverage, source onboarding, and candidate routing. Tests cover dynamic changes under unchanged HTML, ordering stability, identity/empty/parser/transport failures, response limits, ambiguous source preservation, exact Home review, evidence retention, baseline acceptance, navigation isolation, and dated ADA exclusion expiry. Root must run the final monitoring ship gate and authoritative cloud activation/repeat before marking this coverage live.
+Targeted `pnpm test` covers the adapter, artist precedent, detail coverage, source onboarding, and candidate routing. Tests cover dynamic changes under unchanged HTML, ordering stability, identity/empty/parser/transport failures, response limits, ambiguous source preservation, exact Home review, evidence retention, baseline acceptance, navigation isolation, and dated ADA exclusion expiry.
+
+## Deployed closure
+
+Commit `b0e5960` passed the ship gate (454 tests), CI `36449738468`, Pages `36449738289`, and public freshness verification. Cloud activation `36449775196` at 16:17 UTC checked 38 sources, 65 artists, and 19 Gathering Grounds sessions with complete coverage and zero detail gaps. The exact reviewed Gathering Grounds synopsis passed canonical and app-projection readback and appeared on authenticated Home. A newly observed Friday Star Trek precon sellout updated availability and appeared in the low-priority Home group with no saved plans affected.
+
+Quiet repeat `36450121574` at 16:19 UTC returned zero changes, zero failures, complete coverage, no unfetched articles or missing discovery sources, and zero closure catches. Both runs passed closure verification, exact-report baseline acceptance, and cache save. This is live verified monitoring, not only local adapter support. The dated legacy ADA exclusion still requires its October 4 re-review by the supervisor.
