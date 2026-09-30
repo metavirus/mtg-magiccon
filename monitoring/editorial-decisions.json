@@ -1,4 +1,12 @@
 {
+  "9666895ffc5f67dc80343804b47f0cc6fc44aad310138ef6c8fbdbc131806ce9": {
+    "disposition": "noise",
+    "reason": "Reviewed retained September 29 official feed against the retained 65-artist release feed: all names, booth numbers, descriptions, images, categories and attendance identities are unchanged. Only Aaron Miller, Nino Vecia and Bruce Brenneise store links and Paul Scott Canavan website link changed to card-search destinations. These directory link corrections add no convention announcement or attendance change."
+  },
+  "e3161b23bca529f3bdfa0085732c1973eeeeaecdc0ac69e26c30d13d770ca250": {
+    "disposition": "noise",
+    "reason": "Reviewed exact September 29 Info snapshot: only an Info / MagicCon: Info self-link was added to the existing Info overview. Accessibility, hotel, safety and mobile-app copy are unchanged; the mobile app still says Coming Soon and retains Amsterdam copy, so this is not an Atlanta app release."
+  },
   "2165619d4d4a52f9ee0fd2aeef737a309b24fbb9b7869a3e10052a609635d948": {
     "disposition": "noise",
     "reason": "Reviewed the July 8 Amsterdam Know Before You Go article. Its operational details and guest paragraph concern the past Amsterdam event. The sole Atlanta passage is an already-known generic badge-sales promotion at the end, not new Atlanta news. Withdraw the incorrectly routed Amsterdam card."
