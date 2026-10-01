@@ -1,6 +1,8 @@
 # Surveyor editorial closure
 
-Updated: 2026-09-19
+Updated: 2026-10-01
+
+When the latest cloud run is failed, inspect its retained report before dispatching discovery again. Editorial and bounded coverage holds require interpretation/repair, retained-report replay, and then normal verification—not another blind discovery of the same unresolved evidence. The saved heartbeat carries this ordering as well as the finish gate below.
 
 Article coverage correction: inspect every discovered article from the approved index in the same run. There is no article-count or link-count cutoff. Retain the official-host/path allowlist, per-response byte limit, and request timeout; a failed fetch remains explicit partial coverage and holds acceptance under the failure policy. Older references below to deferred batches/rotation describe the superseded implementation, not permission to stop early. Regression coverage must include more than twelve articles completing in one run, even when legacy count settings are supplied.
 

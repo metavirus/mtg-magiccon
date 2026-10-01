@@ -1,6 +1,14 @@
 # Current Frontier
 
-Updated: 2026-09-28
+Updated: 2026-10-01
+
+## October 1 surveyor follow-through and schedule coverage — closed
+
+Repairs `943cce0` and `5a0b2fa` complete the agent-owned detect/review/publish loop rather than treating pending editorial as owner homework. The saved heartbeat now resolves retained failed reports before rediscovery and requires the read-only supervision finish gate, cloud closure, exact baseline acceptance/cache save, and app readback. Regression proof rejects the original pending artifact and incomplete nested coverage. Exact-content announcement continuity preserves first-seen age and user read/archive choices across navigation fingerprint changes; duplicate announcements are archived by the cloud lane, including on quiet runs.
+
+Both retained failed reports replayed successfully (`36932886853`, `36932890391`). Normal activation `36933161782` and zero-change repeat `36933580394` passed closure, exact acceptance and cache save. Repeat: complete 40-source coverage, nine inspected articles, no fetch failures, missing articles or linked-page gaps. Real schedule feeds cover Gathering Grounds (21), Meet and Greets (19), and Panels and Events (48); the dedicated Family Magic category is identity-valid but empty, explicitly awaiting publication and still watched. See `docs/SURVEYOR_SCHEDULE_COVERAGE_2026-10-01.md`.
+
+Home publishes reviewed Family Magic activities, panel/meet-and-greet schedules (including Spell Slayers), and current Atlanta wristband instructions. Heading/backlink-only announcements were withdrawn. The final full gate passed 481 tests; CI/Pages and public freshness passed. Private Gmail coverage remains separately checked through October 1 16:57 UTC, with no unresolved candidates. Older September 28 counts below are historical checkpoints, not current coverage.
 
 ## September 28 coverage and receipt gaps — closed
 
@@ -41,7 +49,7 @@ The reviewed artist collection-refresh tooling is published and ready for a futu
 
 ## Next safe lanes
 
-The known monitoring gaps are closed as of September 28. Maintain dynamic artist/Gathering Grounds coverage and re-review dated source exclusions when due; do not turn routine maintenance into owner homework.
+The known monitoring gaps are closed as of October 1. Maintain dynamic artist and all four schedule feeds, continue through bounded editorial work, and re-review dated source exclusions when due; do not turn routine maintenance into owner homework.
 
 1. When a new artist collection export arrives, use `docs/ARTIST_IMPORT_REFRESH.md`; review the delta before any authenticated database write.
 2. When the first Atlanta catalog releases, preserve the source and use the reviewed catalog intake/promotion path. Keep Catalogs hidden until a real reviewed Atlanta offer passes exact live readback.
