@@ -16,6 +16,35 @@ const payload = { event_id: config.eventId, event_slug: config.eventSlug, schedu
 const fingerprint = (data = payload) => gatheringGroundsFingerprint({ html, sourceUrl: source.url, config, page: pageContentFingerprint(html, source.url), fetchText: async () => ({ ok: true, status: 200, html: JSON.stringify(data) }) })
 
 describe('official Gathering Grounds dynamic schedule coverage', () => {
+  it('binds every expanded schedule to its exact category and detail page', async () => {
+    for (const id of ['atlanta-family-magic-schedule', 'atlanta-experience-meet-and-greets', 'atlanta-experience-panels-and-events']) {
+      const item = watchSet.sources.find((candidate: { id: string }) => candidate.id === id)
+      const expandedConfig = item.gatheringGroundsFeed
+      const markup = html.replace(config.categoryId, expandedConfig.categoryId)
+      const data = { ...payload, schedules: [{ ...row(), global_categories: [{ id: expandedConfig.categoryId }] }] }
+      const result = await gatheringGroundsFingerprint({ html: markup, sourceUrl: item.url, config: expandedConfig, page: pageContentFingerprint(markup, item.url), fetchText: async () => ({ ok: true, status: 200, html: JSON.stringify(data) }) })
+      expect(result.gatheringGrounds.status).toBe('complete')
+      expect(result.gatheringGrounds.sessions[0].detailUrl).toContain(id.includes('panels') ? '/panels-and-events/panel-information.html?' : '/schedule-event-information.html?')
+      expect(() => parseGatheringGroundsFeed(payload, item.url, expandedConfig)).toThrow('wrong-category')
+      expect(() => gatheringGroundsFeedUrl(markup, source.url, expandedConfig)).toThrow('page identity')
+      expect(() => parseGatheringGroundsFeed({ ...data, event_id: 'other' }, item.url, expandedConfig)).toThrow('event identity')
+    }
+  })
+
+  it('retains an identity-proven empty Family feed as awaiting publication and detects first sessions', async () => {
+    const item = watchSet.sources.find((candidate: { id: string }) => candidate.id === 'atlanta-family-magic-schedule')
+    const expandedConfig = item.gatheringGroundsFeed
+    const markup = html.replace(config.categoryId, expandedConfig.categoryId)
+    const data = { ...payload, schedules: [] }
+    const options = { html: markup, sourceUrl: item.url, config: expandedConfig, page: pageContentFingerprint(markup, item.url) }
+    const before = await gatheringGroundsFingerprint({ ...options, fetchText: async () => ({ ok: true, status: 200, html: JSON.stringify(data) }) })
+    expect(before.gatheringGrounds).toMatchObject({ status: 'awaiting_publication', count: 0 })
+    expect(before.contentSample).toContain('No published sessions')
+    expect(() => parseGatheringGroundsFeed({ ...data, schedules: undefined }, item.url, expandedConfig)).toThrow('unparsed')
+    const after = await gatheringGroundsFingerprint({ ...options, fetchText: async () => ({ ok: true, status: 200, html: JSON.stringify({ ...data, schedules: [{ ...row(), global_categories: [{ id: expandedConfig.categoryId }] }] }) }) })
+    expect(watchedPageChanged(before, after)).toBe(true)
+    expect(item.initialReview.disposition).toBe('noise')
+  })
   it('detects real schedule changes under unchanged HTML and ignores feed ordering', async () => {
     const before = await fingerprint()
     const versions = [
@@ -81,6 +110,17 @@ describe('official Gathering Grounds dynamic schedule coverage', () => {
     const state = { checkedAt, accepted: {}, pending: { [source.id]: { ...report.changes[0].current, detectedAt: checkedAt } } }
     expect(acceptClosedPublicWatchChanges(report, manifest, state).acceptedSourceIds).toEqual([source.id])
     expect(() => acceptClosedPublicWatchChanges(report, manifest, { ...state, pending: {} })).toThrow(/exact pending/)
+  })
+
+  it('applies exact feed reviews to existing baselines and holds later changed bytes', async () => {
+    const current = await fingerprint()
+    const reviewedSource = { ...source, initialReview: { ...source.initialReview, contentHash: current.contentHash, contentLinkHash: current.contentLinkHash } }
+    const make = (version = current) => ({ checkedAt: '2026-10-01T22:00:00Z', changes: [{ ...source, initialSourceReview: false, previous: { contentHash: 'old-shell', textSample: 'old shell' }, current: { ...version, status: 200, textHash: version.contentHash }, reviewedEditorial: sourceOnboardingReview(reviewedSource, version), linkDelta: { added: [], removed: [] } }] })
+    expect(buildMonitoringCandidateRows(make())[0].evidence.editorial.disposition).toBe('home')
+    expect(buildMonitoringCandidateRows(make({ ...current, contentHash: 'changed-session' }))[0].evidence.editorial.disposition).toBe('pending')
+    const runtime = readFileSync('scripts/monitoring_watch_check.mjs', 'utf8')
+    expect(runtime).toContain('reviewedEditorial: sourceOnboardingReview(source, current)')
+    expect(runtime).not.toContain('...(!previous ? { reviewedEditorial:')
   })
 
   it('does not merge schedule evidence with shared navigation changes', async () => {

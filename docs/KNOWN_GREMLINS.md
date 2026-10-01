@@ -318,6 +318,16 @@ If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, t
 
 **Prevention:** the candidate builder assigns `needs_review` before specialized informational/newsletter classifications override it, the regression test covers one ordinary row mixed with one informational row, and the workflow accepts the exact pending public snapshots only after the pure catch-to-closure validator proves one supported terminal disposition plus exact readback for every meaningful catch. Novel or blocked intake remains in the uploaded closure receipt and fails before baseline acceptance or save.
 
+## Supervisor stops after detecting pending editorial
+
+**Symptom:** the heartbeat detects/stages an official change, then reports pending editorial or partial coverage as routine "no action needed", leaving Kavi to request interpretation and publication again.
+
+**Cause:** the saved prompt already required editorial interpretation, but the supervisor treated the cloud detection result as the terminal task. Closure protection held the baseline correctly; it did not force the separate reasoning runtime to continue.
+
+**Do this:** follow the finish gate in `docs/SURVEYOR_EDITORIAL_CONTRACT.md`. Resolve bounded public editorial/coverage work in the same heartbeat, publish reviewed inputs, replay retained evidence, then verify one normal cloud run accepts its exact baseline. Pending editorial is agent work, not owner homework. Stop only at a demonstrated capability/scope/ambiguity blocker and name its exact next action.
+
+**Prevention:** before quiet completion, run `pnpm monitor:verify-supervision` against downloaded final cloud artifacts and verify the exact normal cloud acceptance/cache steps. The regression rejects pending editorial, stale closure evidence and nested incomplete coverage. Artifact validation is read-only and does not authorize local staging or acceptance. The active saved automation must carry this finish gate; repository instructions alone cannot enforce a heartbeat that ignores them.
+
 ## Local heartbeat tries to use the cloud surveyor secret
 
 **Symptom:** the Codex heartbeat finds public-source changes, then local `monitor:stage` fails because `SUPABASE_SECRET_KEY` is absent—even though the GitHub Actions secret was configured previously. A fresh cloud run may report zero changes because the ignored local baseline was also stale.

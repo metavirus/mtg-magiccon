@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-28",
+  "updatedAt": "2026-10-01",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
@@ -45,6 +45,48 @@
     }
   ],
   "sources": [
+    {
+      "id": "atlanta-family-magic-schedule",
+      "label": "Atlanta Family Magic schedule",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/family-magic/family-magic-schedule.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official Family Magic sessions, times, locations, descriptions, or participants appear or change",
+      "trackLinks": true,
+      "gatheringGroundsFeed": {
+        "publicEventKey": "d33e6b91-2a8f-4e35-970c-752c447b23ed",
+        "categoryId": "20596",
+        "eventId": "21389",
+        "eventSlug": "htwhdatl26shdl10"
+      },
+      "initialReview": {
+        "reviewedAt": "2026-10-01T22:00:40.540Z",
+        "contentHash": "f1de38f75b94b5be5ff3691f60b2ce77ac87902ee9591f6f55f0837c6114eb27",
+        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "disposition": "noise",
+        "reason": "Reviewed the exact official Atlanta widget and event/category-bound LEAP feed: category 20596 has zero published sessions. Heading-only HTML is not a published Family Magic schedule. Retain awaiting_publication and monitor the feed; family activities in the separate Panels and Events category do not establish publication in this category."
+      }
+    },
+    {
+      "id": "atlanta-meet-greet-wristband-distribution",
+      "label": "Atlanta Meet and Greet wristband distribution",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/magic-meet-greet-wristband-distribution.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "Atlanta wristband distribution location, hours, eligibility or participation policy changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-10-01T22:00:43Z",
+        "contentHash": "32ef85919a8e24c3fd7c1c888157688bd350b742d19527dadbc944a7d1febbb0",
+        "contentLinkHash": "e1f5d92d341080f8780d4387f7e53945efd62dc7b95cd5494076a3964e0f330a",
+        "disposition": "home",
+        "title": "Atlanta Meet and Greet wristband details are available",
+        "summary": "For sessions marked wristband required, free limited wristbands are distributed each event morning from 8:30 AM in the Concourse C Lobby, first come, first served. Each attendee needs their own wristband and a valid Atlanta badge for that day. Arrive at the session at least 30 minutes before it ends; there are no standby or overflow queues.",
+        "reason": "Direct current HTTP content explicitly names Atlanta, Concourse C Lobby and Show Floor. Older browser/report snapshots contain copied prior-event logistics and are not this reviewed version. The page's labeled schedule link incorrectly links to itself; use the separately watched Atlanta Meet and Greets schedule for session details. No canonical policy import is authorized."
+      }
+    },
     {
       "id": "atlanta-gathering-grounds-schedule",
       "label": "Atlanta Gathering Grounds schedule",
@@ -337,14 +379,21 @@
       "destination": "Home",
       "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
       "trackLinks": true,
-      "initialReview": {
-        "reviewedAt": "2026-09-20T02:52:13.391Z",
-        "contentHash": "ba6a541557970a3c262f148c2bda192017986932b3f7c2c362f949e9960bc42b",
-        "contentLinkHash": "d5c917ef7fd57eac543d4f1fb1da31aeb0912d84bd3b3147b6adee7f39491423",
-        "disposition": "noise",
-        "reason": "Wristband instructions and return link point to Amsterdam; no Atlanta session list in fetched content. Do not establish Atlanta wristband policy."
+      "gatheringGroundsFeed": {
+        "publicEventKey": "d33e6b91-2a8f-4e35-970c-752c447b23ed",
+        "categoryId": "20603",
+        "eventId": "21389",
+        "eventSlug": "htwhdatl26shdl10"
       },
-      "geographicRelevance": "uncertain"
+      "initialReview": {
+        "reviewedAt": "2026-10-01T22:00:41.365Z",
+        "contentHash": "230046ce77892bb393b027f799da0496ae1630f2d2f538a6ffa70a21ac046d6d",
+        "contentLinkHash": "b9ee2e1c6f42ebf1264a1bcf42c3c838b5502fa5109f4acd7f3f425ea032f5ad",
+        "disposition": "home",
+        "title": "Atlanta Meet and Greet schedule is available",
+        "summary": "The official Atlanta feed lists 19 Meet and Greet sessions across November 13–15, including Spell Slayers Sunday 1–2 PM, LoadingReadyRun, Mark Rosewater, Amazonian, and Game Knights. Selected Game Knights and Brian Kibler/Olivia Gobert-Hicks sessions require wristbands. Check the official schedule and Atlanta wristband information before planning.",
+        "reason": "Directly reviewed Atlanta event 21389, slug htwhdatl26shdl10, category 20603. Preserve exact feed times and details as source evidence, without calendar imports or assumed access. The current page links Atlanta wristband guidance."
+      }
     },
     {
       "id": "atlanta-experience-panels-and-events",
@@ -355,12 +404,20 @@
       "destination": "Home",
       "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
       "trackLinks": true,
+      "gatheringGroundsFeed": {
+        "publicEventKey": "d33e6b91-2a8f-4e35-970c-752c447b23ed",
+        "categoryId": "20607",
+        "eventId": "21389",
+        "eventSlug": "htwhdatl26shdl10"
+      },
       "initialReview": {
-        "reviewedAt": "2026-09-20T02:52:14.479Z",
-        "contentHash": "c533762ac9da33d4413b9ef3a6442597094fe0741ee1f0f8cccd00a642e03daf",
-        "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "disposition": "noise",
-        "reason": "Heading and Mana Stage sponsorship only; no session schedule in fetched content."
+        "reviewedAt": "2026-10-01T22:00:42.260Z",
+        "contentHash": "99794e604fc34b2449f96e549dec8b52bc732ee5ba490411b38002766afc4e09",
+        "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
+        "disposition": "home",
+        "title": "Atlanta Panels and Events schedule is available",
+        "summary": "The official Atlanta feed lists 48 sessions across November 13–15, including Spell Slayers Cast or Pass Friday 5–6 PM and Spell Slayers Live: Miss Blind Eternities Showdown Saturday 6:45–9 PM. Other sessions include Game Knights Live, the Preview Panel, Mystery Booster Commander Edition, artist drawing sessions, and family activities. Check the official schedule for locations; two stage slots remain labeled More Magic Coming Soon.",
+        "reason": "Directly reviewed Atlanta event 21389, slug htwhdatl26shdl10, category 20607, beyond the static HTML heading. The feed lists Birds of Prey Sunday 11:00–11:30 AM, conflicting with the Family Magic overview's 11 PM typo; preserve both source versions without silent correction or canonical calendar import."
       }
     },
     {

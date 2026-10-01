@@ -9,6 +9,11 @@ const change = (text: string) => ({ id: 'atlanta-experience', label: 'Atlanta gu
 const report = (value: object) => ({ checkedAt: '2026-09-06T12:00:00Z', changes: [value] })
 
 describe('discovery to Home editorial contract', () => {
+  it('does not announce a heading-only panel page because its return link was added', () => {
+    const [row] = buildMonitoringCandidateRows(report({ ...change('Panels & Events Panels & Events < Back to Experience'), id: 'atlanta-experience-panels-and-events', linkDelta: { added: ['< Back to Experience -> https://mcatlanta.mtgfestivals.com/en-us/experience.html'], removed: [] } }))
+    expect(row.evidence.editorial.disposition).toBe('pending')
+    expect(row.evidence.presentation_links).toBeUndefined()
+  })
   it.each([{ geographicRelevance: 'uncertain' }, { initialSourceReview: true }])('does not let Magic Play link classification bypass required editorial review: %j', boundary => {
     const input = report({ ...change('Meet and Greet information still links to Amsterdam.'), ...boundary, linkDelta: { added: ['On-Demand Events -> https://mcatlanta.mtgfestivals.com/en-us/magic-play/on-demand-events.html'], removed: [] } })
     const [row] = buildMonitoringCandidateRows(input)

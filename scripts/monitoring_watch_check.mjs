@@ -374,7 +374,7 @@ for (const source of watchSet.sources) {
         homeWorthyWhen: source.homeWorthyWhen,
         initialSourceReview: !previous,
         ...(source.geographicRelevance ? { geographicRelevance: source.geographicRelevance } : {}),
-        ...(!previous ? { reviewedEditorial: sourceOnboardingReview(source, current) } : {}),
+        reviewedEditorial: sourceOnboardingReview(source, current),
         previous: previous ? {
           status: previous.status,
           title: previous.title,
@@ -507,6 +507,7 @@ const output = {
     configuredCount: watchSet.sources.filter(source => source.gatheringGroundsFeed).length,
     checkedCount: results.filter(result => result.gatheringGrounds).length,
     status: results.filter(result => result.gatheringGrounds).length === watchSet.sources.filter(source => source.gatheringGroundsFeed).length ? 'complete' : 'partial',
+    awaitingPublicationCount: results.filter(result => result.gatheringGrounds?.status === 'awaiting_publication').length,
     sources: results.filter(result => result.gatheringGrounds).map(result => ({ id: result.id, ...result.gatheringGrounds, sessions: undefined })),
   },
   artistDirectoryCoverage: {

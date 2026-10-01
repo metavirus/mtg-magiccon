@@ -28,6 +28,7 @@
     "monitor:accept": "node --use-system-ca scripts/monitoring_watch_check.mjs --accept",
     "monitor:stage": "node --use-system-ca scripts/stage_monitoring_findings.mjs",
     "monitor:verify-closure": "node scripts/verify_surveyor_closure.mjs",
+    "monitor:verify-supervision": "node scripts/verify_surveyor_supervision.mjs",
     "monitor:accept-report": "node scripts/accept_monitoring_baseline.mjs",
     "receipts:publish-normalized-payload": "node --use-system-ca scripts/process_private_gmail_intake.mjs",
     "intake:private-gmail": "pnpm receipts:publish-normalized-payload",

@@ -11,13 +11,17 @@ const original = snapshot('<main>Meet and Greet Schedule. Wristband information:
 const source = { id: 'atlanta-meet-and-greets', label: 'Atlanta Meet and Greets', url, initialReview: { reviewedAt: '2026-09-19', contentHash: original.contentHash, contentLinkHash: original.contentLinkHash, disposition: 'noise', reason: 'Amsterdam wristband link is not verified Atlanta policy.' } }
 const makeReport = (current: typeof original) => ({ checkedAt: '2026-09-20T03:00:00Z', changes: [{ ...source, current: { ...current, textSample: current.contentSample, textHash: current.contentHash }, previous: null, initialSourceReview: true, reviewedEditorial: sourceOnboardingReview(source, current), linkDelta: { added: [], removed: [] } }] })
 describe('source onboarding through exact cloud closure', () => {
-  it('matches real September 19 official snapshots to their explicit watch-set reviews', () => {
+  it('matches unchanged September 19 snapshots and rejects superseded schedule reviews', () => {
     const fixtures = JSON.parse(readFileSync('scripts/fixtures/monitoring-source-onboarding.json', 'utf8'))
     const watch = JSON.parse(readFileSync('monitoring/watch-set.json', 'utf8'))
     for (const current of fixtures) {
       const configured = watch.sources.find((item: { url: string }) => item.url === current.url)
       expect(configured).toBeDefined()
-      expect(sourceOnboardingReview(configured, current)?.disposition).toBe('noise')
+      if (configured.gatheringGroundsFeed) {
+        // October 1 reviewed the actual Atlanta feed, not this older copied shell.
+        expect(sourceOnboardingReview(configured, current)).toBeNull()
+        expect(configured.initialReview.disposition).toBe('home')
+      } else expect(sourceOnboardingReview(configured, current)?.disposition).toBe('noise')
       expect(sourceOnboardingReview(configured, { ...current, contentHash: 'different-published-content' })).toBeNull()
     }
   })

@@ -29,7 +29,8 @@ export function editorialDecision(row, decisions = {}) {
     const separator = value.lastIndexOf(' -> ')
     if (separator < 0) return null
     const label = value.slice(0, separator).trim(), url = value.slice(separator + 4)
-    return official(url) ? { label, url } : null
+    // A newly added backlink is navigation, not publication of its target.
+    return official(url) && !/^(?:<\s*)?back to\b/i.test(label) ? { label, url } : null
   }
   const links = added.map(parseLink).filter(link => link && RESOURCE.test(`${link.label} ${link.url}`))
   if (links.length) return {
@@ -42,6 +43,7 @@ export function editorialDecision(row, decisions = {}) {
     ].join(' '),
     links, reason: 'New official resource links match convention interests; link publication is distinct from inventory availability.',
   }
+  if (added.length && added.every(value => /^(?:<\s*)?back to\b/i.test(value))) return { disposition: 'pending', reason: 'Only return-navigation links were added; inspect actual content instead of announcing a schedule from its heading.' }
   const changedPassages = current.split(/(?<=[.!?])\s+|[\r\n]+/).map(text => text.trim()).filter(text => text && !previous.includes(text))
   const interesting = changedPassages.find(text => TOPICS.test(text))
   if (interesting && (previous || evidence.intake_kind === 'first_party_newsletter')) return {

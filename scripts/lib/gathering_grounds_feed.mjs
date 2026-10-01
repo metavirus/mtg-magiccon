@@ -3,11 +3,22 @@ import { createHash } from 'node:crypto'
 const hash = value => createHash('sha256').update(value).digest('hex')
 const compact = value => String(value ?? '').replace(/\s+/g, ' ').trim()
 const pagePath = '/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule.html'
+const schedulePages = new Map([
+  [pagePath, { categoryId: '20600', label: 'Gathering Grounds', detailPath: `${pagePath.replace(/\.html$/, '')}/schedule-event-information.html` }],
+  ['/en-us/experience/family-magic/family-magic-schedule.html', { categoryId: '20596', label: 'Family Magic', detailPath: '/en-us/experience/family-magic/family-magic-schedule/schedule-event-information.html', allowEmpty: true }],
+  ['/en-us/experience/meet-and-greets.html', { categoryId: '20603', label: 'Meet and Greets', detailPath: '/en-us/experience/meet-and-greets/schedule-event-information.html' }],
+  ['/en-us/experience/panels-and-events.html', { categoryId: '20607', label: 'Panels and Events', detailPath: '/en-us/experience/panels-and-events/panel-information.html' }],
+])
+function identity(sourceUrl, config) {
+  const page = new URL(sourceUrl)
+  const expected = schedulePages.get(page.pathname)
+  if (page.origin !== 'https://mcatlanta.mtgfestivals.com' || !expected || expected.categoryId !== config.categoryId || config.eventId !== '21389' || config.eventSlug !== 'htwhdatl26shdl10' || config.publicEventKey !== 'd33e6b91-2a8f-4e35-970c-752c447b23ed') throw new Error('Official schedule page identity mismatch')
+  return expected
+}
 
 // The official gt-scripts-min.js constructs this public widget transport.
 export function gatheringGroundsFeedUrl(html, sourceUrl, config) {
-  const page = new URL(sourceUrl)
-  if (page.origin !== 'https://mcatlanta.mtgfestivals.com' || page.pathname !== pagePath) throw new Error('Gathering Grounds page identity mismatch')
+  identity(sourceUrl, config)
   const block = html.match(/\.growTixScheduleSlim\(\s*\{([\s\S]*?)\}\s*\)/)?.[1]
   const key = block?.match(/gtAPIKey\s*:\s*['"]([^'"]+)['"]/)?.[1]
   const category = block?.match(/gtCategory\s*:\s*['"]([^'"]+)['"]/)?.[1]
@@ -25,8 +36,9 @@ function stable(value) {
 }
 
 export function parseGatheringGroundsFeed(payload, sourceUrl, config) {
+  const expected = identity(sourceUrl, config)
   if (String(payload?.event_id) !== config.eventId || payload?.event_slug !== config.eventSlug) throw new Error('Gathering Grounds feed event identity mismatch')
-  if (!Array.isArray(payload.schedules) || !payload.schedules.length) throw new Error('Gathering Grounds feed empty or unparsed; schedule coverage unavailable')
+  if (!Array.isArray(payload.schedules) || (!payload.schedules.length && !expected.allowEmpty)) throw new Error('Gathering Grounds feed empty or unparsed; schedule coverage unavailable')
   const ids = new Set()
   return payload.schedules.map(row => {
     const id = compact(row?.id)
@@ -37,7 +49,7 @@ export function parseGatheringGroundsFeed(payload, sourceUrl, config) {
     if (!/^\d+$/.test(id) || !title || ids.has(id) || !Array.isArray(row.global_categories) || !row.global_categories.some(category => String(category.id) === config.categoryId)) throw new Error('Gathering Grounds feed has invalid, duplicate, or wrong-category sessions')
     if (!validTime(startTime) || (!row.no_end_time && (!validTime(endTime) || endTime < startTime))) throw new Error('Gathering Grounds session time missing or invalid; schedule coverage unavailable')
     ids.add(id)
-    const detailUrl = new URL(`${pagePath.replace(/\.html$/, '')}/schedule-event-information.html`, sourceUrl)
+    const detailUrl = new URL(expected.detailPath, sourceUrl)
     detailUrl.searchParams.set('gtID', id)
     return { id, title, startTime, endTime, location: compact(row.location), description: compact(row.description), detailUrl: detailUrl.toString(), source: stable(row) }
   }).sort((a, b) => a.id.localeCompare(b.id))
@@ -64,6 +76,7 @@ export async function fetchGatheringGroundsFeedText(url, { fetchImpl = fetch, ti
 }
 
 export async function gatheringGroundsFingerprint({ html, sourceUrl, config, page, fetchText = fetchGatheringGroundsFeedText }) {
+  const expected = identity(sourceUrl, config)
   const feedUrl = gatheringGroundsFeedUrl(html, sourceUrl, config)
   const response = await fetchText(feedUrl)
   if (!response.ok) throw new Error(`Gathering Grounds feed HTTP ${response.status}`)
@@ -74,8 +87,8 @@ export async function gatheringGroundsFingerprint({ html, sourceUrl, config, pag
   return {
     ...page,
     contentHash: hash(JSON.stringify({ pageContentHash: page.contentHash, scheduleHash })),
-    contentSample: `${page.contentSample}\nGathering Grounds: ${sessions.length} sessions. Times as supplied by the official feed.\n${sessions.map(session => `${session.title} | ${session.startTime} - ${session.endTime} | ${session.location} | ${session.detailUrl}`).join('\n')}`,
+    contentSample: `${page.contentSample}\n${expected.label}: ${sessions.length} sessions.${sessions.length ? ' Times as supplied by the official feed.' : ' No published sessions; schedule coverage awaiting publication.'}\n${sessions.map(session => `${session.title} | ${session.startTime} - ${session.endTime} | ${session.location} | ${session.detailUrl}`).join('\n')}`,
     contentRegion: `${page.contentRegion}+official_gathering_grounds_feed`,
-    gatheringGrounds: { status: 'complete', feedUrl, eventId: config.eventId, eventSlug: config.eventSlug, categoryId: config.categoryId, count: sessions.length, scheduleHash, sessions },
+    gatheringGrounds: { status: sessions.length ? 'complete' : 'awaiting_publication', label: expected.label, feedUrl, eventId: config.eventId, eventSlug: config.eventSlug, categoryId: config.categoryId, count: sessions.length, scheduleHash, sessions },
   }
 }

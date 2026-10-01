@@ -1,4 +1,56 @@
 {
+  "89add569b4857341034fed0ab025edfd705baea18559c6e9cb4d5e0d079c217b": {
+    "disposition": "noise",
+    "reason": "Exact October 1 retained schedule contentHash and all 21 complete session records match the September 30 reviewed Women of Wizards report. Only whole-page navigation hashes changed. Existing Women of Wizards Home publication is already verified; do not duplicate it."
+  },
+  "a3f4819071586ac231e51515ef84e128a62bfe56cf5888ee8989707010f80c89": {
+    "disposition": "noise",
+    "reason": "Info removes Coming Soon from the wristband tile and adds its detail link. The newly watched distribution page is separately reviewed and publishes exact Atlanta operational information; no duplicate overview card. Mobile App still has Amsterdam copy and Coming Soon, not an Atlanta app release."
+  },
+  "05ca1056866df61189eb6fbeda9a717ea155064e012cc48e6d2756f2dce90c40": {
+    "disposition": "noise",
+    "reason": "Exact Experience overview removes Coming Soon from Family Magic but provides no session details. Family activities and actual panel/meet-and-greet feeds are separately reviewed and published from their owning sources, not duplicated as a generic overview announcement."
+  },
+  "beda0b225e88a8ed1fa56ae9f025a529cc52576643673ad59c582d2d27389645": {
+    "disposition": "home",
+    "title": "Family Magic activities and artist drawing lessons",
+    "summary": "Atlanta's Family Magic page lists artist-led drawing lessons, counter crafting, coloring, Dragon Shield deck-box decorating, friendship bracelets and MagiKids family league play, plus a birds-of-prey activity with Alessandra Pisano. Check official details for participation and times.",
+    "reason": "Exact October 1 retained substantive overview matches the reviewed Atlanta Family Magic content from the earlier report. Names and activities are useful convention programming; avoid the overview's contradictory birds-of-prey time. Watch its linked category-bound feed separately without inventing sessions when that feed is empty."
+  },
+  "b6b30f6fcbe98064ddcb67dbbbed7827e72a480614351fc183d80c308fd9bd9d": {
+    "disposition": "noise",
+    "reason": "Retained static main content still contains only a heading, generic wristband notice and detail/back links. It is not the session roster. Actual category-bound Atlanta Meet and Greet feed is now added to this source and receives exact separate onboarding review to publish real sessions."
+  },
+  "6c5fa0f40f0a3a0439b154d84e0edeb2ac275154196b6ea77b3f5d54bbfb0e1a": {
+    "disposition": "noise",
+    "reason": "Retained static page is only Panels and Events headings plus a Back to Experience link. Withdraw this navigation-only Home signal; publish real panels from the newly bound complete official schedule feed, not the shell."
+  },
+  "f711e791663a3dbf5f977497e3e5b63bf0d384e5159bd750fa7922df3cd99b87": {
+    "disposition": "noise",
+    "reason": "Compared all 21 normalized sessions with the September 30 retained report: every session and its complete source fields is unchanged. The new Women of Wizards sessions are already published under e924f5db30bbaf936266a4d8ed5e690f1bafb14317d3d5a367f7cf19a25a5baa. Current schedule contentHash is identical to that reviewed report; only whole-page navigation hashes changed as Family Magic and Meet and Greet links were added. Do not duplicate or refresh the existing announcement."
+  },
+  "d9018156d3d9e6649dd86dcdd87d044cad689990bdc121985ce011912dbcd046": {
+    "disposition": "noise",
+    "reason": "Info added a wristband-distribution link and removed its self-link. Direct current page inspection shows copied Las Vegas badge, West Lobby, Level 2, and mcvegas schedule instructions, not confirmed Atlanta distribution policy. The Info tile still says Coming Soon. Watch the linked page for correction; do not publish these locations or hours as Atlanta facts."
+  },
+  "ac2963d60a78113229fe6cfb5bf046ae28bbd455a05962b006f4ef4dd36a0206": {
+    "disposition": "noise",
+    "reason": "Reviewed exact Experience overview: new Family Magic and Meet and Greet navigation tiles lead to separately reviewed sources. The overview itself contains no session roster or operational details. Family Magic substantive activities are published from its own reviewed source; Panels remains heading-only. Avoid duplicate generic navigation announcements."
+  },
+  "8c96e008aab3fa6120376cc6cdf6d722a9910bb8b2018efd6365e9f16f104c99": {
+    "disposition": "home",
+    "title": "Family Magic activities and artist drawing lessons",
+    "summary": "Atlanta's Family Magic page now lists artist-led drawing lessons, counter crafting, coloring, Dragon Shield deck-box decorating, friendship bracelets and MagiKids family league play. It also lists a birds-of-prey activity with Alessandra Pisano. Check the official schedule for times; the overview contains an inconsistent time for that activity.",
+    "reason": "Exact retained overview now explicitly says Atlanta and replaces Amsterdam schedule/back links with Atlanta destinations. Named activities are useful convention programming. Do not silently repair the contradictory Sunday 11 PM–11:30 AM birds-of-prey time or imply all sessions are currently verified. Newly linked full schedule receives its own bounded watch and initial source review."
+  },
+  "be89dd4b9cd13df05e013384985defe69b43c84d0a6b3ed5c3e90149e6abfdd8": {
+    "disposition": "noise",
+    "reason": "Exact retained Meet and Greet page contains only generic wristband wording and return/detail links, no named sessions or session times. The linked current distribution page still explicitly describes Las Vegas. The link migration from Amsterdam to Atlanta is not proof of an Atlanta guest roster or confirmed wristband procedure. Keep source watched for real content."
+  },
+  "5e22d26097753730536e09f400e96815cbe9f476b1d2b9c5ca7e62898ad63bf1": {
+    "disposition": "noise",
+    "reason": "Exact retained Panels and Events main content is only its heading and a Back to Experience link. No panels, names, times or substantive schedule are present. Withdraw the automatic navigation-only Home signal; a backlink is not a new convention announcement."
+  },
   "e924f5db30bbaf936266a4d8ed5e690f1bafb14317d3d5a367f7cf19a25a5baa": {
     "disposition": "home",
     "title": "Women of Wizards joins the Gathering Grounds schedule",
