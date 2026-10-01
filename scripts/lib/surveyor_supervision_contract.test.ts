@@ -21,6 +21,8 @@ describe('supervisor must finish agent-owned work before quiet completion', () =
     { failures: [{ id: 'official-news' }] },
     { newsletterIntake: { unfetched: ['https://example.invalid/news'] } },
     { newsletterIntake: { missingDiscoverySourceIds: ['news-index'] } },
+    { newsletterIntake: { failures: [{ sourceId: 'news-index' }] } },
+    { newsletterIntake: { failureCount: 1 } },
     { detailPageCoverage: { gaps: [{ url: 'https://example.invalid/detail' }] } },
     { ticketedPlay: { availabilityCoverage: { notCovered: [{ id: 'event' }] } } },
     { gatheringGroundsCoverage: { status: 'partial' } },

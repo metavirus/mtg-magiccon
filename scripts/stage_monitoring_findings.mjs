@@ -11,6 +11,7 @@ import { closeTicketedPlayTransitions } from './lib/ticketed_play_transition_clo
 import { assertSupportedSurveyorCatches, completeSurveyorClosureManifest, pendingSurveyorClosureManifest, surveyorCatchDescriptors } from './lib/surveyor_closure_contract.mjs'
 import { validateSurveyorClosureManifest } from './lib/surveyor_closure_contract.mjs'
 import { findingIsHomeWorthy, findingMayBypassConceptReadModel } from '../src/lib/monitoringFindings.ts'
+import { planAnnouncementContentContinuity } from './lib/announcement_content_continuity.mjs'
 
 const reportPath = process.argv[2]
 if (!reportPath) throw new Error('Usage: pnpm monitor:stage <monitor-report.json>')
@@ -47,6 +48,18 @@ const client = createClient(supabaseUrl, secretKey, {
   auth: { persistSession: false, autoRefreshToken: false },
   global: { fetch: fetchWithClockSkewRetry },
 })
+async function reconcileAnnouncementContentContinuity() {
+  const result = await client.from('monitoring_findings').select('id,fingerprint,source_id,destination,status,first_seen_at,evidence', { count: 'exact' }).eq('destination', 'Home').eq('evidence->>home_signal_kind', 'interesting_announcement')
+  if (result.error) throw result.error
+  if (result.count !== result.data.length) throw new Error('Announcement continuity readback truncated; refusing partial reconciliation')
+  for (const write of planAnnouncementContentContinuity(result.data)) {
+    const updated = await client.from('monitoring_findings').update({ status: write.status, evidence: write.evidence }).eq('id', write.id).select('id,status,evidence').single()
+    if (updated.error) throw updated.error
+    if (updated.data.status !== write.status || updated.data.evidence?.announcement_superseded_by !== write.evidence?.announcement_superseded_by) throw new Error(`Announcement continuity readback failed: ${write.id}`)
+  }
+}
+// Also repair obsolete duplicates on a zero-change normal cloud run.
+await reconcileAnnouncementContentContinuity()
 const availabilityProjection = ticketedPlayAvailabilityProjectionRows(report.ticketedPlay?.inventory)
 let availabilityReadback = []
 let availabilityWrittenCount = 0
@@ -91,11 +104,15 @@ if (hasTicketedInventory) {
 const candidateRows = buildMonitoringCandidateRows(report, routingContext)
 const fingerprints = candidateRows.map(row => row.fingerprint)
 const existingResult = fingerprints.length
-  ? await client.from('monitoring_findings').select('fingerprint,occurrence_count,status').in('fingerprint', fingerprints)
+  ? await client.from('monitoring_findings').select('fingerprint,occurrence_count,status,evidence').in('fingerprint', fingerprints)
   : { data: [], error: null }
 if (existingResult.error) throw existingResult.error
 const existingCounts = new Map((existingResult.data ?? []).map(row => [row.fingerprint, row.occurrence_count]))
 const existingStatuses = new Map((existingResult.data ?? []).map(row => [row.fingerprint, row.status]))
+for (const row of candidateRows) {
+  const supersededBy = (existingResult.data ?? []).find(existing => existing.fingerprint === row.fingerprint)?.evidence?.announcement_superseded_by
+  if (supersededBy) row.evidence = { ...row.evidence, announcement_superseded_by: supersededBy }
+}
 const rows = candidateRows.map(row => ({
   ...row,
   ...(existingStatuses.has(row.fingerprint) ? { status: existingStatuses.get(row.fingerprint) } : {}),
@@ -336,10 +353,15 @@ for (const observation of observations) {
 
 // Home routing is a separate consequence from fact extraction. A matched Info
 // fact cannot silently archive an otherwise useful announcement in the same page.
+await reconcileAnnouncementContentContinuity()
+const continuityStatus = await client.from('monitoring_findings').select('fingerprint,status,evidence').in('fingerprint', fingerprints)
+if (continuityStatus.error) throw continuityStatus.error
+for (const finding of continuityStatus.data ?? []) existingStatuses.set(finding.fingerprint, finding.status)
 for (const row of candidateRows.filter(row => row.evidence.home_signal_kind === 'interesting_announcement')) {
   const status = existingStatuses.get(row.fingerprint)
   const desiredStatus = ['read', 'archived'].includes(status) ? status : 'unread'
-  const result = await client.from('monitoring_findings').update({ status: desiredStatus, destination: 'Home', title: row.title, summary: row.summary, evidence: row.evidence }).eq('fingerprint', row.fingerprint).select('*').single()
+  const supersededBy = continuityStatus.data?.find(finding => finding.fingerprint === row.fingerprint)?.evidence?.announcement_superseded_by
+  const result = await client.from('monitoring_findings').update({ status: desiredStatus, destination: 'Home', title: row.title, summary: row.summary, evidence: { ...row.evidence, ...(supersededBy ? { announcement_superseded_by: supersededBy } : {}) } }).eq('fingerprint', row.fingerprint).select('*').single()
   if (result.error) throw result.error
   const actual = result.data
   if (actual.title !== row.title || actual.summary !== row.summary || actual.destination !== 'Home' || !findingMayBypassConceptReadModel(actual) || (desiredStatus === 'unread' && !findingIsHomeWorthy(actual))) throw new Error(`Home read-model verification failed: ${row.fingerprint}`)
