@@ -1,4 +1,14 @@
 {
+  "5c4d24d0dd42959bb538f605337ad3d9da867a5cb0a957057d36956df71769f2": {
+    "disposition": "home",
+    "title": "Voxy joins Amazonian's Friday meet and greet",
+    "summary": "The official Atlanta schedule now lists Voxy alongside Amazonian on Friday, November 13, 1–2 PM at Magic Meet & Greets. No preregistration is required; participation is first come, first served.",
+    "reason": "Compared all 19 complete retained October 2 sessions against the verified October 1 activation report 36933161782. Only session 954713 changed: title, description and people now include Voxy. Its time and location are unchanged, as are all other sessions including Spell Slayers. This named guest addition is useful normal-priority convention news."
+  },
+  "536b922ccd5874ce7e3af07f86c2c29a1cc3763c33aacdc95d7198b2ebae5fb1": {
+    "disposition": "noise",
+    "reason": "The Experience overview adds only a Council's Call navigation tile. Its newly watched detail page is directly inspected and separately publishes the full dining announcement, price and ticket-sale time. Suppress the generic overview card to avoid duplicate announcements for the same release."
+  },
   "89add569b4857341034fed0ab025edfd705baea18559c6e9cb4d5e0d079c217b": {
     "disposition": "noise",
     "reason": "Exact October 1 retained schedule contentHash and all 21 complete session records match the September 30 reviewed Women of Wizards report. Only whole-page navigation hashes changed. Existing Women of Wizards Home publication is already verified; do not duplicate it."

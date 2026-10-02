@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-01",
+  "updatedAt": "2026-10-02",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
@@ -674,6 +674,25 @@
         "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "disposition": "noise",
         "reason": "Heading-only creator/exhibitor resource in fetched content; no schedule, person list or inventory verified. Watch existing URL for substantive publication."
+      }
+    },
+    {
+      "id": "atlanta-experience-the-councils-call",
+      "label": "Atlanta The Council's Call dining experience",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-councils-call.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "material changes to dining experience dates, ticket sales, price, participation or arrival requirements",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-10-02T21:42:17Z",
+        "contentHash": "4cab7e0949cdd997e107fdebc1863f59540e7dbff8ebb89d450043421b88484b",
+        "contentLinkHash": "2de1d7121917124a085ddaab2cf7b418d52a1d8ec860735d460b8debb01158e8",
+        "disposition": "home",
+        "title": "The Council's Call: Atlanta immersive dinner announced",
+        "summary": "Friday, November 13 at the Wimbish House: choose 5:30–7:30 PM or 8:30–10:30 PM ET for an interactive Magic dinner, open bar and $15 Uber voucher. Tickets are $299 including taxes and fees, on sale October 8 at 10 AM PT. Ages 21+; an Atlanta badge is required. Tickets are nonrefundable and nontransferable; dietary requests are due November 1.",
+        "reason": "Directly reviewed the complete official Atlanta detail page on October 2, including both Council times, 150 guests per Council, the ticket sale date, price, badge and age requirements, dietary deadline and nontransferability. This is a substantive new convention experience, not a heading-only resource or copied prior-edition content."
       }
     },
     {
