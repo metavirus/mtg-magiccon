@@ -141,7 +141,11 @@ describe('official Gathering Grounds dynamic schedule coverage', () => {
     const ada = 'https://mcatlanta.mtgfestivals.com/en-us/info/ada-assistance.html'
     const links = [{ url: source.url, label: 'Schedule' }, { url: ada, label: 'ADA' }]
     const watched = watchSet.sources.map((item: { url: string }) => item.url)
-    expect(relevantDetailCoverageGaps(links, watched, 'faq', watchSet.detailCoverageExclusions, '2026-09-28T16:00:00Z')).toEqual([])
-    expect(relevantDetailCoverageGaps(links, watched, 'faq', watchSet.detailCoverageExclusions, '2026-10-04T00:00:00Z').map(item => item.url)).toEqual([ada])
+    const exclusion = watchSet.detailCoverageExclusions.find(item => item.url === ada)
+    expect(exclusion).toBeDefined()
+    if (!exclusion) throw new Error('Exact legacy ADA exclusion is required')
+    expect(Date.parse(exclusion.reviewAfter)).toBeGreaterThan(Date.parse(exclusion.reviewedAt))
+    expect(relevantDetailCoverageGaps(links, watched, 'faq', watchSet.detailCoverageExclusions, exclusion.reviewedAt)).toEqual([])
+    expect(relevantDetailCoverageGaps(links, watched, 'faq', watchSet.detailCoverageExclusions, exclusion.reviewAfter).map(item => item.url)).toEqual([ada])
   })
 })
