@@ -337,7 +337,7 @@ If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, t
 **Do this:**
 
 - Do not use local `pnpm monitor:check` for heartbeat discovery or user notification. It remains a developer/diagnostic command whose ignored baseline may lag the cloud cache.
-- Inspect the latest `Daily MagicCon surveyor` run first. Reuse or wait for a successful/active run within the standing 26-hour freshness window; dispatch `daily-surveyor.yml` on `main` only when the cloud run is stale, absent, or failed.
+- Inspect the latest `Daily MagicCon surveyor` run first. Reuse a successful run within the standing 26-hour freshness window or wait for the exact active run. If failed, inspect its retained report first and follow `docs/SURVEYOR_EDITORIAL_CONTRACT.md`: resolve bounded holds, publish reviewed inputs, replay, then verify a normal acceptance run. Use the documented bounded retry path for transient execution failures. Dispatch fresh discovery via `daily-surveyor.yml` on `main` only when stale/absent and no unresolved retained work remains.
 - Treat only the cloud workflow's successful staging, alert delivery, closure verification, and exact-report baseline acceptance as completion.
 - Never ask Kavi to copy the GitHub Actions secret into a local file merely to close a public monitoring run. Never run local `monitor:accept-report` after local staging was blocked.
 

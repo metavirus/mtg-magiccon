@@ -1,6 +1,14 @@
 # Current Frontier
 
-Updated: 2026-10-01
+Updated: 2026-10-04
+
+## October 4 current surveyor checkpoint — verified
+
+Commit `f15a73f` resolved the October 2 retained report, reviewed Voxy's addition to Amazonian's Friday meet and greet, and onboarded the Council's Call dinner detail page. Replay `37068446422` and normal run `37068579122` passed; authenticated Home readback verified both useful announcements. Council's Call tickets go on sale October 8 at 10 AM PT; the dinner is November 13. Spell Slayers remains watched and unchanged.
+
+Commit `b11fdba` re-reviewed all six dated source exclusions and renewed them through October 11. The expiry regression now derives its boundary dates from the configured review interval rather than an obsolete hard-coded date. The full gate passed 481 tests. Normal cloud run `37211050575` completed October 4 at 14:57 UTC with zero changes, complete 41-source coverage, and successful closure, exact-report baseline acceptance and cache save; the downloaded-artifact supervision gate passed.
+
+All three private Gmail searches separately completed through October 4 at 14:49 UTC, with no new relevant candidates. That is a dated checkpoint, not a standing freshness claim: subsequent private coverage comes from the ignored receipt documented in `docs/PRIVATE_MONITORING_COVERAGE.md`. Earlier counts and private-search times below are historical checkpoints.
 
 ## October 1 surveyor follow-through and schedule coverage — closed
 
@@ -8,7 +16,7 @@ Repairs `943cce0` and `5a0b2fa` complete the agent-owned detect/review/publish l
 
 Both retained failed reports replayed successfully (`36932886853`, `36932890391`). Normal activation `36933161782` and zero-change repeat `36933580394` passed closure, exact acceptance and cache save. Repeat: complete 40-source coverage, nine inspected articles, no fetch failures, missing articles or linked-page gaps. Real schedule feeds cover Gathering Grounds (21), Meet and Greets (19), and Panels and Events (48); the dedicated Family Magic category is identity-valid but empty, explicitly awaiting publication and still watched. See `docs/SURVEYOR_SCHEDULE_COVERAGE_2026-10-01.md`.
 
-Home publishes reviewed Family Magic activities, panel/meet-and-greet schedules (including Spell Slayers), and current Atlanta wristband instructions. Heading/backlink-only announcements were withdrawn. The final full gate passed 481 tests; CI/Pages and public freshness passed. Private Gmail coverage remains separately checked through October 1 16:57 UTC, with no unresolved candidates. Older September 28 counts below are historical checkpoints, not current coverage.
+At this checkpoint Home published reviewed Family Magic activities, panel/meet-and-greet schedules (including Spell Slayers), and current Atlanta wristband instructions. Heading/backlink-only announcements were withdrawn. The final full gate passed 481 tests; CI/Pages and public freshness passed. Private Gmail coverage was separately checked through October 1 16:57 UTC, with no unresolved candidates. The October 4 checkpoint above supersedes these coverage counts and freshness times.
 
 ## September 28 coverage and receipt gaps — closed
 
@@ -49,7 +57,7 @@ The reviewed artist collection-refresh tooling is published and ready for a futu
 
 ## Next safe lanes
 
-The known monitoring gaps are closed as of October 1. Maintain dynamic artist and all four schedule feeds, continue through bounded editorial work, and re-review dated source exclusions when due; do not turn routine maintenance into owner homework.
+The known monitoring gaps are closed at the October 4 verified checkpoint. Maintain dynamic artist and all four schedule feeds, continue through bounded editorial work, and re-review dated source exclusions by October 11; do not turn routine maintenance into owner homework. Family Magic's empty schedule remains explicitly awaiting publication, not a missing fetch.
 
 1. When a new artist collection export arrives, use `docs/ARTIST_IMPORT_REFRESH.md`; review the delta before any authenticated database write.
 2. When the first Atlanta catalog releases, preserve the source and use the reviewed catalog intake/promotion path. Keep Catalogs hidden until a real reviewed Atlanta offer passes exact live readback.
