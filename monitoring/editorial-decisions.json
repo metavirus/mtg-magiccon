@@ -1,4 +1,14 @@
 {
+  "9220d798975628af02bb623a6e51082f2e33d12f99e14e3d20c363db8fd0ce24": {
+    "disposition": "noise",
+    "reason": "Exact October 5 retained Experience overview adds only the Council's Call introductory description naming Friday, November 13 and the Wimbish House. All links and other overview content are unchanged. Those same facts, plus both dining times, price and ticket-sale time, are already covered by the separately reviewed Council's Call detail-source announcement from October 2. Do not duplicate or refresh that announcement for overview copy."
+  },
+  "f66766ba5818c51315911bb8ffda0795d01d9ae64f7e3d0db81af71056fee71b": {
+    "disposition": "home",
+    "title": "Zabracus and PowrDragn added to Atlanta programming",
+    "summary": "The official Atlanta schedule now lists Zabracus for the Cosplay Contest and Grand Championship on Saturday, November 14, 5–6 PM at Mana Stage. DeQuan Watson (PowrDragn) joins Power (9) Presentations on Saturday, 3:30–5 PM in Spindown Room, and Playchase: Hexhaven on Sunday, November 15, 3–4:30 PM at Mana Stage.",
+    "reason": "Compared all 48 complete retained October 5 Panels and Events session records against the reviewed October 1 activation report 36933161782. Only three source records changed: 954668 adds Zabracus; 954671 and 954688 add DeQuan Watson, whose retained alt_name is PowrDragn. Changes are confined to people and people_list; titles, descriptions, times, venues and the other 45 complete records are unchanged. These named participant additions are useful convention news; the source does not specify their roles."
+  },
   "5c4d24d0dd42959bb538f605337ad3d9da867a5cb0a957057d36956df71769f2": {
     "disposition": "home",
     "title": "Voxy joins Amazonian's Friday meet and greet",
