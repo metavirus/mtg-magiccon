@@ -14,6 +14,7 @@
 .exhibitor-copy { display: grid; gap: 6px; min-width: 0; flex: 1; }
 .exhibitor-copy strong { font-size: 13px; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
 .exhibitor-copy small { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.exhibitor-highlight { color: #b5c9dc; font-size: 11px; line-height: 1.4; max-width: 72ch; }
 .exhibitor-chevron { color: var(--muted); font-size: 20px; }
 .exhibitor-save { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; margin-right: 4px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
 .exhibitor-save svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; }
@@ -24,6 +25,8 @@
 .exhibitor-open:hover { color: var(--blue); }
 .exhibitor-message { color: var(--muted); font-size: 12px; line-height: 1.5; padding: 8px 4px; }
 .exhibitor-message[role=alert] { color: var(--rose); }
+.exhibitor-materials summary { cursor: pointer; color: var(--muted); font-size: 12px; padding: 10px 0; }
+.exhibitor-materials summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 @media (max-width: 400px) {
   .exhibitor-toolbar { flex-wrap: wrap; }
   .exhibitor-search { flex-basis: 100%; }

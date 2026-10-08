@@ -18,6 +18,14 @@ The directory joins the owner-scoped read-only offline cache. Offline save/note 
 
 Map arrival will add reviewed many-to-many booth placement. Do not infer coordinates from booth numbers or collapse multiple exhibitors sharing a booth code. Actual catalog promotion remains a separate reviewed workflow.
 
+## Reviewed booth highlights
+
+`monitoring/exhibitor-highlights.json` separates editorial relevance from vendor promotion. Seven reviewed booths lead with distinctive merchandise, a genuine debut, customization/signings, daily design releases or a live demo. The All list remains alphabetical and complete; Highlights is an optional compact filter, and Saved remains independent. Reviewed summaries are searchable and appear in rows/drawers. Full vendor descriptions and all 44 offers remain available in an initially closed disclosure, labeled vendor material rather than app endorsements.
+
+Each summary requires exact identity/booth, pertinent description excerpts and selected offer ID/title/description/price. A changed or missing supporting claim suppresses the summary until reviewed; unrelated copy, images or new ordinary promotions do not. Cached records are re-evaluated against the current review rules. No new database state or personal preferences are introduced.
+
+Do not feature trivial discounts, tiny first-come giveaways, trade bonuses, conditional freebies, wholesale marketing or mystery-box hype. Genuine exclusivity can justify a highlight, but do not call all limited editions Atlanta-exclusive. Preserve ordinary offers without sending Home/envelope noise; editorial routing follows `SURVEYOR_EDITORIAL_CONTRACT.md`.
+
 ## Activation evidence
 
 Implementation `122a26e`, editorial/presentation checkpoint `5888f20`. The initial cloud report `37716117774` retained 65 exhibitors and 44 offers across 19 vendors, with complete coverage; its exact reviewed fingerprint is in `monitoring/editorial-decisions.json`. Replay `37716374597` verified all canonical records and the useful specials Home notice. Normal run `37716525321` passed complete coverage, closure, exact baseline acceptance/cache save, and the downloaded-artifact supervision gate.

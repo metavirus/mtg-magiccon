@@ -30,6 +30,8 @@ export { CalendarSurface, PlanSurface }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { ExhibitorDirectory, type Exhibitor } from './components/ExhibitorDirectory'
 import { loadExhibitors, exhibitorObjectId, exhibitorQaFixtures, safeExhibitorUrl, type DirectoryExhibitor } from './lib/exhibitors'
+import { ExhibitorMaterials } from './components/ExhibitorMaterials'
+import { exhibitorHighlight } from './lib/exhibitorHighlights'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { monitoringNoticeSeverity } from './lib/monitoringNoticeLifecycle'
@@ -1010,7 +1012,7 @@ export default function App() {
           setInfoFeed(info.feed)
         }
         if (lanes.catalog) setCatalogReadModel(lanes.catalog as CatalogReadModel)
-        if (lanes.exhibitors) setExhibitors(lanes.exhibitors as DirectoryExhibitor[])
+        if (lanes.exhibitors) setExhibitors((lanes.exhibitors as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) })))
         if (lanes.flights) setTripFlights(lanes.flights as TripFlight[])
         if (lanes.ticketedAvailability) setTicketedAvailability(lanes.ticketedAvailability as TicketedPlayAvailabilityProjectionRow[])
         if (lanes.selections) {
@@ -2975,14 +2977,7 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
         <h3>{detail.rationaleLabel ?? 'Why it matters'}</h3>
         <p>{renderLinkedText(detail.rationale)}</p>
       </section>}
-      {detail.exhibitorOffers?.map(section => <section className="object-detail-section" key={section.title}>
-        <h3>{section.title}</h3>
-        {section.offers.map((offer, index) => <article key={`${offer.title}-${index}`}>
-          <h4>{offer.title}{offer.price && Number(offer.price) !== 0 ? ` · Listed price ${offer.price}` : ''}</h4>
-          {offer.description && <p>{offer.description}</p>}
-          {offer.url && <nav className="object-resource-links"><a href={offer.url} target="_blank" rel="noreferrer">Offer details ↗</a></nav>}
-        </article>)}
-      </section>)}
+      {detail.exhibitorOffers && <ExhibitorMaterials description={detail.exhibitorDescription} sections={detail.exhibitorOffers} />}
       {detail.links && detail.links.length > 0 && <section className="object-detail-section">
         <h3>Official resources</h3>
         <nav className="object-resource-links" aria-label="Official resources">
@@ -3082,6 +3077,7 @@ type ObjectDetail = {
   backlinks?: Array<{ label: string; destination: Surface }>
   catalogOfferId?: string
   exhibitorOffers?: Array<{ title: string; offers: Array<{ title: string; description: string; price?: string; url?: string }> }>
+  exhibitorDescription?: string
 }
 type NoteVisibility = 'private' | 'shared'
 type AddContextNoteInput = {
@@ -5383,17 +5379,17 @@ function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
   ].filter(link => link.url)
   return {
     id: exhibitorObjectId(exhibitor.id), kind: 'exhibitor', eyebrow: 'EXHIBITORS', title: exhibitor.name,
-    summary: exhibitor.description || 'No description published in the official directory.',
+    summary: exhibitor.highlight || exhibitor.visitReason || 'Official exhibitor listing.',
     facts: [
       { label: 'Booth', value: exhibitor.booth || 'Not listed' },
       ...(exhibitor.aliases.length ? [{ label: 'Also known as', value: exhibitor.aliases.join(' · ') }] : []),
     ],
-    rationale: exhibitor.visitReason || undefined,
+    exhibitorDescription: exhibitor.description,
     rationaleLabel: 'Worth knowing',
     links,
     exhibitorOffers: [
-      { title: 'Show specials', offers: exhibitor.specials ?? [] },
-      { title: 'Exclusives', offers: exhibitor.exclusives ?? [] },
+      { title: 'Vendor-posted offers', offers: exhibitor.specials ?? [] },
+      { title: 'Vendor-posted exclusives', offers: exhibitor.exclusives ?? [] },
     ].filter(section => section.offers.length).map(section => ({ ...section, offers: section.offers.map(offer => ({ ...offer, url: safeExhibitorUrl(offer.url || offer.link || '') })) })),
     source: { label: exhibitor.id.startsWith('qa-') ? 'QA sample content' : 'Official MagicCon Atlanta exhibitor directory', value: exhibitor.id.startsWith('qa-') ? 'Sample listing for local verification.' : 'Vendor-submitted descriptions, booths and offers. Confirm current terms with the exhibitor; listed offers are not stock or availability guarantees.' },
     backlinks: [{ label: 'Back to Info', destination: 'info' }],

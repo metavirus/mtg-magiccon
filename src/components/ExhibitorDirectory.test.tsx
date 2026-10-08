@@ -10,6 +10,17 @@ const exhibitors: Exhibitor[] = [
 ]
 const props = () => ({ exhibitors, savedIds: ['b'], canWrite: true, onToggleSaved: vi.fn(), onOpen: vi.fn() })
 describe('Exhibitor directory', () => {
+  it('highlights only reviewed booth reasons, not the existence of promotions', () => {
+    render(<ExhibitorDirectory {...props()} exhibitors={[{ ...exhibitors[0], highlight: 'Live product engraving' }, exhibitors[1]]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Highlights' }))
+    expect(screen.getByText('Live product engraving')).toBeVisible()
+    expect(screen.queryByText('Another Vendor')).toBeNull()
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'engraving' } })
+    expect(screen.getByText('Example Card Supply')).toBeVisible()
+    fireEvent.click(screen.getByLabelText('Clear exhibitor search'))
+    fireEvent.click(screen.getByRole('button', { name: /^All$/ }))
+    expect(screen.getByText('Another Vendor')).toBeVisible()
+  })
   it('searches names, every booth, and aliases case-insensitively', () => {
     render(<ExhibitorDirectory {...props()} />)
     for (const query of ['example', '203', 'ecs', 'ECS 101']) {

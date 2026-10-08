@@ -2,6 +2,10 @@
 
 Updated: 2026-10-07
 
+## October 7 exhibitor editorial polish
+
+Reviewed all 65 exhibitors and 44 retained vendor offers. Seven evidence-bound booth highlights separate real exclusives, the Mox jewelry debut, signings/engraving, daily foil-playmat releases and a live sorter demo from routine sales promotions. Info → Exhibitors retains All/Saved and adds Highlights plus searchable concise row summaries. Full vendor material remains available in a closed disclosure; tiny discounts, conditional freebies, trade bonuses, wholesale marketing and mystery-box hype receive no default prominence. Relevant source claims/prices/booths invalidate stale summaries without making unrelated copy/image churn a blocker. Future Home/envelope editorial review follows the same relevance policy. Local phone/desktop captures and interactive filter/drawer/disclosure checks passed, alongside all 538 tests and the full ship gate. No database, personal-state or inventory changes.
+
 ## October 7 automation resilience
 
 The cloud runtime now records accepted, awaiting-editorial, awaiting-repair, replay-verified and failed outcomes explicitly. Expected review retains evidence and a 24-hour deadline; normal runs restage it before discovery. The supervisor checks every three hours and treats green holds as unfinished work. Full coverage and exact report/source hashes are enforced inside acceptance. Pending work and email delivery receipts survive failures separately; verified 90-day accepted artifacts recover missing/stale caches. Idempotent requests receive bounded transient retries, and uncertain SMTP delivery cannot be blindly resent. Operational execution is guarded to the canonical GitHub repository.
@@ -77,7 +81,7 @@ The reviewed artist collection-refresh tooling is published and ready for a futu
 
 ## Next safe lanes
 
-Maintain dynamic artist, exhibitor roster and all four schedule feeds, continue through bounded editorial work, and re-review dated source exclusions by October 11. The October 7 Marketplace review identified structured exhibitor promotion retention as the next bounded repair. Family Magic's empty schedule remains explicitly awaiting publication, not a missing fetch.
+Maintain dynamic artist, exhibitor roster and all four schedule feeds, continue through bounded editorial work, and re-review dated source exclusions by October 11. Structured exhibitor promotion retention and the useful-booth review are complete; map joins and real catalog inventory remain source-dependent. Family Magic's empty schedule remains explicitly awaiting publication, not a missing fetch.
 
 1. When a new artist collection export arrives, use `docs/ARTIST_IMPORT_REFRESH.md`; review the delta before any authenticated database write.
 2. When the first Atlanta catalog releases, preserve the source and use the reviewed catalog intake/promotion path. Keep Catalogs hidden until a real reviewed Atlanta offer passes exact live readback.
