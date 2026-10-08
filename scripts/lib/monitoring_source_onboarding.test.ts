@@ -9,7 +9,7 @@ const url = 'https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets
 const snapshot = (html: string) => ({ status: 200, ...pageContentFingerprint(html, url) })
 const original = snapshot('<main>Meet and Greet Schedule. Wristband information: <a href="https://mcamsterdam.mtgfestivals.com/en-us/info.html">information page</a></main>')
 const source = { id: 'atlanta-meet-and-greets', label: 'Atlanta Meet and Greets', url, initialReview: { reviewedAt: '2026-09-19', contentHash: original.contentHash, contentLinkHash: original.contentLinkHash, disposition: 'noise', reason: 'Amsterdam wristband link is not verified Atlanta policy.' } }
-const makeReport = (current: typeof original) => ({ checkedAt: '2026-09-20T03:00:00Z', changes: [{ ...source, current: { ...current, textSample: current.contentSample, textHash: current.contentHash }, previous: null, initialSourceReview: true, reviewedEditorial: sourceOnboardingReview(source, current), linkDelta: { added: [], removed: [] } }] })
+const makeReport = (current: typeof original) => ({ checkedAt: '2026-09-20T03:00:00Z', changes: [{ ...source, current: { ...current, textSample: current.contentSample }, previous: null, initialSourceReview: true, reviewedEditorial: sourceOnboardingReview(source, current), linkDelta: { added: [], removed: [] } }] })
 describe('source onboarding through exact cloud closure', () => {
   it('matches unchanged September 19 snapshots and rejects superseded schedule reviews', () => {
     const fixtures = JSON.parse(readFileSync('scripts/fixtures/monitoring-source-onboarding.json', 'utf8'))
@@ -45,6 +45,7 @@ describe('source onboarding through exact cloud closure', () => {
     const manifest = { catches: [{ sourceId: source.id, intakeKind: 'public_watch' }] }
     expect(acceptClosedPublicWatchChanges(report, manifest, state).acceptedSourceIds).toEqual([source.id])
     expect(() => acceptClosedPublicWatchChanges(report, manifest, { ...state, pending: {} })).toThrow(/exact pending/)
+    expect(() => acceptClosedPublicWatchChanges(report, manifest, { ...state, pending: { [source.id]: { ...original, contentHash: 'different', detectedAt: report.checkedAt } } })).toThrow(/content does not match/)
   })
   it('does not silently accept new watch sources in the runtime', () => {
     const runtime = readFileSync('scripts/monitoring_watch_check.mjs', 'utf8')

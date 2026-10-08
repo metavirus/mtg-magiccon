@@ -18,6 +18,8 @@ Expected holds finish the workflow successfully while remaining explicitly unfin
 
 Normal runs restage retained editorial work first. If it remains pending they do no fresh discovery. Once resolved, the same run performs a fresh check, exact staging/readback, full coverage verification, watched email delivery, exact-report acceptance and checkpoint retention. Coverage repairs require a fresh check because old missing evidence cannot be invented by replay.
 
+An unrelated coverage gap does not discard successfully observed source evidence. The runtime stages those observed catches and verifies their consequences while retaining `awaiting_repair`. It still cannot send watched reopening emails or advance any accepted baseline until the complete-coverage gate passes.
+
 ## Durable state
 
 The accepted public baseline still belongs to GitHub Actions. Its cache is backed by a 90-day retained `daily-magiccon-baseline` artifact containing the exact report, closure, digests and only the configured public baseline files. Recovery validates coverage, closure, hashes and file paths before replacing a missing/stale cache. No private Gmail state is included. If both copies are unavailable, fail before discovery rather than manufacture a cold roster/news release.

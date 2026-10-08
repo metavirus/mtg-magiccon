@@ -45,8 +45,9 @@ describe('daily surveyor runtime', () => {
   it('incomplete coverage holds even with no catches and retries freshness without resetting age', async () => {
     const h = harness({ ...retained, operationalStatus: 'awaiting_repair' })
     h.ops.discover = async () => { h.calls.push('discover'); return { ...report, coverageStatus: 'partial' } }
+    h.ops.stage = async (current: any) => { h.calls.push('stage'); return completeSurveyorClosureManifest(current, new Map()) }
     const result = await runSurveyorRuntime({ ops: h.ops, now: '2026-10-07T12:00:00Z', runId: 'new' })
-    expect(h.calls).toEqual(['discover'])
+    expect(h.calls).toEqual(['discover', 'stage'])
     expect(result).toMatchObject({ operationalStatus: 'awaiting_repair', exitCode: 0, firstHeldAt: retained.firstHeldAt, readyForCache: false })
   })
   it('child execution errors fail instead of being classified as editorial', async () => {

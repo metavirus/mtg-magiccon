@@ -1,4 +1,5 @@
 import { validateSurveyorSupervisionCompletion, validateSurveyorCoverage } from './surveyor_supervision_contract.mjs'
+import { validateSurveyorClosureManifest } from './surveyor_closure_contract.mjs'
 
 export const HOLD_LIMIT_MS = 24 * 60 * 60 * 1000
 
@@ -40,14 +41,14 @@ export async function runSurveyorRuntime({ ops, now = new Date().toISOString(), 
   const stage = async report => {
     phase = 'stage'
     const manifest = await ops.stage(report)
-    if (manifest.status === 'complete') validateSurveyorSupervisionCompletion(report, manifest)
+    if (manifest.status === 'complete') validateSurveyorClosureManifest(manifest, report)
     else await ops.validatePendingEditorial(manifest, report)
     return manifest
   }
   try {
     if (replayRunId) {
       const report = await ops.readReplay()
-      if (!coverageComplete(report)) return await hold('awaiting_repair', report, null, null)
+      if (!coverageComplete(report)) return await hold('awaiting_repair', report, await stage(report), null)
       const manifest = await stage(report)
       if (manifest.status !== 'complete') return await hold('awaiting_editorial', report, manifest, null)
       return await receipt('replay_verified', { reportCheckedAt: report.checkedAt })
@@ -66,7 +67,7 @@ export async function runSurveyorRuntime({ ops, now = new Date().toISOString(), 
     }
     phase = 'discover'
     const report = await ops.discover()
-    if (!coverageComplete(report)) return await hold('awaiting_repair', report, null, pending)
+    if (!coverageComplete(report)) return await hold('awaiting_repair', report, await stage(report), pending)
     const manifest = await stage(report)
     if (manifest.status !== 'complete') return await hold('awaiting_editorial', report, manifest, pending)
     phase = 'verify'

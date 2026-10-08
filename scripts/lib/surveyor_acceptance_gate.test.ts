@@ -7,6 +7,11 @@ import { describe, expect, it } from 'vitest'
 import { completeSurveyorClosureManifest } from './surveyor_closure_contract.mjs'
 
 describe('cloud acceptance coverage gate', () => {
+  it('rejects local operational execution before touching cloud or workstation baselines', async () => {
+    for (const script of ['run_daily_surveyor.mjs', 'prepare_surveyor_state.mjs']) {
+      await expect(promisify(execFile)(process.execPath, [path.resolve('scripts', script)], { env: { ...process.env, GITHUB_ACTIONS: 'false' } })).rejects.toMatchObject({ stderr: expect.stringContaining('cloud-only') })
+    }
+  })
   it('refuses zero-catch partial coverage before writing any accepted state', async () => {
     const scratch = await fs.mkdtemp(path.join(os.tmpdir(), 'magiccon-acceptance-test-'))
     const script = path.resolve('scripts/accept_monitoring_baseline.mjs')

@@ -5,6 +5,8 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { validateSurveyorCheckpoint } from './lib/surveyor_checkpoint.mjs'
 
+if (process.env.GITHUB_ACTIONS !== 'true' || process.env.GITHUB_REPOSITORY !== 'metavirus/mtg-magiccon') throw new Error('Surveyor state recovery is cloud-only for metavirus/mtg-magiccon')
+
 const root = process.cwd()
 const exec = promisify(execFile)
 const gh = async args => (await exec('gh', args, { cwd: root, env: process.env, timeout: 60000, maxBuffer: 4 * 1024 * 1024 })).stdout

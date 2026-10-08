@@ -18,6 +18,7 @@ tmp/
 .temp/
 .monitoring-state/
 .surveyor-runtime/
+work/monitoring/
 .codex-local/
 local-assets/
 *.local

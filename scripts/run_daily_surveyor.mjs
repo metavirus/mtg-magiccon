@@ -5,6 +5,8 @@ import { spawn } from 'node:child_process'
 import { runSurveyorRuntime } from './lib/surveyor_runtime.mjs'
 import * as closureContract from './lib/surveyor_closure_contract.mjs'
 
+if (process.env.GITHUB_ACTIONS !== 'true' || process.env.GITHUB_REPOSITORY !== 'metavirus/mtg-magiccon') throw new Error('Daily surveyor runtime is cloud-only for metavirus/mtg-magiccon; use injected tests for local development')
+
 const root = process.cwd()
 const work = path.join(root, 'work/monitoring')
 const runtime = path.join(root, '.surveyor-runtime')

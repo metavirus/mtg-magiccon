@@ -2,6 +2,12 @@
 
 Updated: 2026-10-07
 
+## October 7 automation resilience
+
+The cloud runtime now records accepted, awaiting-editorial, awaiting-repair, replay-verified and failed outcomes explicitly. Expected review retains evidence and a 24-hour deadline; normal runs restage it before discovery. The supervisor checks every three hours and treats green holds as unfinished work. Full coverage and exact report/source hashes are enforced inside acceptance. Pending work and email delivery receipts survive failures separately; verified 90-day accepted artifacts recover missing/stale caches. Idempotent requests receive bounded transient retries, and uncertain SMTP delivery cannot be blindly resent. Operational execution is guarded to the canonical GitHub repository.
+
+Activation `37719204085` and cache-bypass recovery `37719424774` both completed with zero changes, full coverage, exact closure/acceptance and saved state. Recovery explicitly restored accepted state from the first run's verified artifact. Failure-injection regressions cover pending review, deadlines, incomplete coverage, damaged checkpoints, local execution and partial/uncertain email delivery. See `docs/SURVEYOR_RESILIENCE_CONTRACT.md`. A tightened snapshot guard exposed an outdated onboarding fixture in CI; its fabricated text hash was removed and same-time changed-content rejection added. Final CI verification follows this correction.
+
 ## October 7 envelope and Marketplace follow-up
 
 The envelope now projects current unread official announcements alongside existing alerts and mentions, using the same read/archive state and seven-day announcement age. Routine sellouts remain excluded. It supports multiple entries instead of a single Ticketed Play alert, with phone-height scrolling and accurate titles. Regression tests cover multiple announcements, read/dismissed state and opening the selected item.
