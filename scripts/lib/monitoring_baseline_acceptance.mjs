@@ -29,6 +29,12 @@ export function acceptClosedPublicWatchChanges(report, manifest, state) {
     if (!pending || pending.detectedAt !== report.checkedAt) {
       throw new Error(`Monitoring baseline acceptance blocked: exact pending snapshot missing for ${item.sourceId} at ${report.checkedAt}.`)
     }
+    const current = report.changes?.find(change => change.id === item.sourceId)?.current
+    const hashes = ['textHash', 'linkHash', 'contentHash', 'contentLinkHash'].filter(key => current?.[key])
+    if (!hashes.length || hashes.some(key => pending[key] !== current[key])
+      || ['artistDirectory', 'exhibitorDirectory', 'gatheringGrounds'].some(key => current?.[key] && JSON.stringify(pending[key]) !== JSON.stringify(current[key]))) {
+      throw new Error(`Monitoring baseline acceptance blocked: pending source content does not match the verified report for ${item.sourceId}.`)
+    }
     const { detectedAt: _detectedAt, ...snapshot } = pending
     next.accepted[item.sourceId] = { ...snapshot, acceptedAt: report.checkedAt }
     delete next.pending[item.sourceId]

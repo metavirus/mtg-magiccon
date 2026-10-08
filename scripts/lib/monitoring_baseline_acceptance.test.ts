@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { acceptClosedPublicWatchChanges, acceptClosedTicketedPlayChanges, stageTicketedPlayBaselineSnapshot } from './monitoring_baseline_acceptance.mjs'
 
 const checkedAt = '2026-08-28T17:24:54.702Z'
-const report = { checkedAt, mode: 'check' }
+const report = { checkedAt, mode: 'check', changes: [{ id: 'atlanta-faq', current: { textHash: 'reviewed', linkHash: 'links' } }] }
 const manifest = {
   catches: [
     { sourceId: 'atlanta-faq', intakeKind: 'public_watch' },
@@ -34,6 +34,9 @@ describe('closed monitoring baseline acceptance', () => {
     expect(() => acceptClosedPublicWatchChanges(report, manifest, {
       checkedAt, accepted: {}, pending: { 'atlanta-faq': { detectedAt: 'other' } },
     })).toThrow(/exact pending snapshot missing.*atlanta-faq/i)
+    expect(() => acceptClosedPublicWatchChanges(report, manifest, {
+      checkedAt, accepted: {}, pending: { 'atlanta-faq': { detectedAt: checkedAt, textHash: 'different', linkHash: 'links' } },
+    })).toThrow(/content does not match/)
   })
 })
 
