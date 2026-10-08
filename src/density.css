@@ -52,7 +52,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .home-surface{display:grid;gap:14px}
 .home-top-row,.home-bottom-row,.home-main-row{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.9fr);gap:14px;align-items:start}
 .home-top-row,.home-main-row{align-items:stretch}
-.home-main-row{align-items:start}
+.home-main-row{grid-template-columns:minmax(0,1fr) minmax(260px,300px);align-items:start}
 .home-right-rail{display:grid;gap:14px;align-content:start}
 .home-status-card,.home-planning-board{padding:16px 18px;border:1px solid #293c56;border-radius:15px;background:#0e1a2a}
 .home-status-card{display:grid;align-content:start;gap:9px;border-left:4px solid #70d8b1;background:linear-gradient(120deg,#111c2d,#15233a 58%,#101728)}

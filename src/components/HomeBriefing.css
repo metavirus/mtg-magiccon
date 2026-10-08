@@ -1,0 +1,44 @@
+.home-briefing{display:grid;gap:16px;min-width:0;container-type:inline-size}
+.home-briefing-sections{display:flex;flex-direction:column;gap:16px}
+@container(min-width:720px){
+  .home-briefing-sections.has-two-stacks{display:flow-root}
+  .home-briefing-sections.has-two-stacks>.home-briefing-section{width:calc(50% - 8px);margin-bottom:16px;float:left;clear:left}
+  .home-briefing-sections.has-two-stacks>.home-briefing-section.shows,.home-briefing-sections.has-two-stacks>.home-briefing-section.collaboration{float:right;clear:right}
+  .home-briefing-sections.has-two-stacks>.home-briefing-section.quiet{float:none;clear:both;width:100%;margin-bottom:0}
+}
+.home-briefing-spotlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.home-briefing-spotlight{min-width:0;padding:11px 12px 3px;border:1px solid #365373;border-radius:12px;background:linear-gradient(145deg,#182d46,#112136)}
+.home-briefing-spotlight:only-child{grid-column:1/-1}
+.home-briefing-spotlight.urgent{border-color:#80683e;background:linear-gradient(145deg,#29271f,#172133)}
+.home-briefing-spotlight>h3,.home-briefing-section h3{margin:0;color:#a9c1dc;font-size:11px;font-weight:700;letter-spacing:.02em}
+.home-briefing-spotlight.urgent>h3{color:#eac779}
+.home-briefing-item{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:9px;align-items:start;width:100%;min-width:0;padding:10px 0;text-align:left;border:0;border-radius:0;background:transparent;color:inherit;cursor:pointer}
+.home-briefing-item:hover .home-briefing-copy strong{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.home-briefing-item:focus-visible{outline:2px solid #8ebfff;outline-offset:3px;border-radius:4px}
+.home-briefing-item+.home-briefing-item{border-top:1px solid #283b53}
+.home-briefing-icon{display:grid;place-items:center;width:20px;height:20px;color:#91b4dc;padding-top:2px}
+.home-briefing-icon svg{width:16px;height:16px}
+.home-briefing-item.hot .home-briefing-icon{color:#eac779}
+.home-briefing-copy{display:grid;gap:4px;min-width:0}
+.home-briefing-copy strong{font-size:12px;line-height:1.35;font-weight:650;color:#dce7f4;overflow-wrap:anywhere}
+.home-briefing-copy>span{color:#94a7bf;font-size:11px;line-height:1.4}
+.home-briefing-meta{display:flex;align-items:center;gap:5px;color:#7289a3;padding-top:2px}
+.home-briefing-meta small{font-size:9px;white-space:nowrap}
+.home-briefing-meta>b{font-size:16px;font-weight:400;line-height:1}
+.home-briefing-meta .person-bubbles{padding:0}
+.home-briefing-spotlight .home-briefing-item{grid-template-columns:minmax(0,1fr) auto;gap:7px;padding:10px 0}
+.home-briefing-spotlight .home-briefing-icon{display:none}
+.home-briefing-spotlight .home-briefing-copy strong{font-size:14px;line-height:1.3}
+.home-briefing-spotlight .home-briefing-item+.home-briefing-item .home-briefing-copy strong{font-size:11px;font-weight:600}
+.home-briefing-spotlight .home-briefing-item+.home-briefing-item .home-briefing-copy>span{font-size:10px}
+.home-briefing-spotlight .home-briefing-meta{flex-direction:column;align-items:end}
+.home-briefing-spotlight .home-briefing-meta>b{display:none}
+.home-briefing-section{display:grid;gap:0;min-width:0}
+.home-briefing-section>header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:3px;border-bottom:1px solid #2b4059}
+.home-briefing-section>header>small{color:#6f849e;font-size:10px}
+.home-briefing-related+.home-briefing-related{margin-top:3px;padding-top:3px;border-top:1px solid #34485f}
+.home-briefing-section.quiet h3{color:#8294ab}
+.home-briefing-section.quiet .home-briefing-copy strong{font-size:11px;color:#a7b7ca}
+.home-briefing-section.quiet .home-briefing-copy>span{font-size:10px;color:#788da7}
+.home-briefing-section.quiet .home-briefing-item{padding:8px 0}
+@media(max-width:620px){.home-briefing-spotlights{grid-template-columns:1fr;gap:8px}.home-briefing{gap:14px}.home-briefing-item{gap:7px}.home-briefing-meta{flex-direction:column;align-items:end}.home-briefing-meta>b{display:none}.home-briefing-copy strong{font-size:12px}.home-briefing-spotlight .home-briefing-copy strong{font-size:14px}}

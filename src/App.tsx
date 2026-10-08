@@ -25,6 +25,7 @@ import { promoteCatalogPlan } from './lib/catalogPromotion'
 import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
 import { ArtistBringList } from './components/ArtistBringList'
+import { HomeBriefing } from './components/HomeBriefing'
 
 export { CalendarSurface, PlanSurface }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
@@ -33,7 +34,7 @@ import { loadExhibitors, exhibitorObjectId, exhibitorQaFixtures, safeExhibitorUr
 import { ExhibitorMaterials } from './components/ExhibitorMaterials'
 import { exhibitorHighlight } from './lib/exhibitorHighlights'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
-import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
+import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { monitoringNoticeSeverity } from './lib/monitoringNoticeLifecycle'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
@@ -643,6 +644,21 @@ function isKaviCompanion(companion?: CompanionMember) {
 
 function monitoringFindingQaRows(): MonitoringFindingRow[] {
   const qa = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
+  if (qa.includes('home-briefing')) return [
+    ['QA · Exhibitors preview convention exclusives and marketplace specials', 'Several exhibitors have previewed convention specials and exclusive merchandise for the marketplace. Open each announcement for its retained details and individual source context.'],
+    ['QA · The complete convention exhibitor directory is now published', 'The directory brings the marketplace roster together so you can plan which booths to visit. This sample notice exercises a longer title and leaves the full source context in details.'],
+    ['QA · Weekend convention badges are now sold out', 'Routine badge availability update; existing purchases are unaffected by this sample announcement. This quiet notice remains visible without taking a spotlight from new programming.'],
+    ['QA · Visiting illustrator shares artist signing plans for the convention weekend', 'An artist shared plans for signing and meeting visitors throughout the convention weekend. Open the sample notice for the full announcement instead of squeezing all of its details into Home.'],
+    ['QA · Featured guests share a preview of their live stage programming', 'Two guests have shared programming previews for their planned convention appearances. Their individual announcement remains linked beside the published program rather than becoming a duplicate headline.'],
+    ["QA · Council's Call dinner experience announced for the convention weekend", 'A hosted dinner experience has been announced for visitors interested in meeting other players. Tickets and timing belong in the original details; this sample is not a verified event.'],
+    ['QA · A special guest previews their convention meet and greet appearance', 'A guest shared a preview of their upcoming convention meet and greet appearance. This related sample stays beside the published meet and greet schedule with its own clickable details.'],
+    ['QA · Panel schedule published with live tabletop shows and community programming', 'The panel schedule brings live tabletop shows, guest conversations, and community programming together. Open the sample notice for the complete program and additional source details.'],
+    ['QA · Published meet and greet schedule brings guest appearances together', 'The published schedule brings guest appearances together to help visitors compare their options. Each appearance retains its own source context and this notice makes no changes to a saved plan.'],
+    ['QA · Convention wristband pickup logistics and entrance details updated', 'Pickup logistics have changed; review the entrance details before arrival at the convention. This longer sample preview exercises practical information without implying a purchased or urgent state.'],
+    ['QA · Family drawing workshop with a visiting artist announced for all ages', 'A family drawing experience has been announced with a visiting artist leading the activity. This sample belongs with experiences even though its title also mentions an artist.'],
+  ].map(([title, summary], index) => ({
+    id: `qa-home-briefing-${index}`, fingerprint: String(index).padStart(64, '0'), source_id: `qa-home-briefing-${index}`, source_label: 'QA sample announcement', source_url: 'https://mcatlanta.mtgfestivals.com/', destination: 'Home', title, summary, review_question: 'Local layout fixture; sample content is not a verified announcement.', evidence: { home_signal_kind: 'interesting_announcement', editorial: { disposition: 'home' } }, status: 'unread', decision: null, first_seen_at: new Date(Date.now() - (index === 1 || index === 7 ? 4 : 1) * 86_400_000).toISOString(), last_seen_at: new Date().toISOString(), occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null,
+  }))
   if (qa.includes('editorial')) return ['Meet guest Dana at the Friday panel.', 'Black Lotus pickup is now at the west entrance.', 'Newly linked: Atlanta floor map.'].map((summary, index) => ({
     id: `qa-editorial-${index}`, fingerprint: String(index).repeat(64), source_id: `qa-editorial-${index}`, source_label: 'Official Atlanta update', source_url: 'https://mcatlanta.mtgfestivals.com/en-us/experience.html', destination: 'Home', title: ['Friday guest update', 'Black Lotus pickup update', 'Atlanta floor map'][index], summary, review_question: 'Useful official news; no action required.', evidence: { home_signal_kind: 'interesting_announcement', editorial: { disposition: 'home' }, presentation_links: index === 2 ? [{ label: 'Floor map', url: 'https://mcatlanta.mtgfestivals.com/content/map.pdf' }] : [] }, status: 'unread', decision: null, first_seen_at: new Date(Date.now() - (qa.includes('editorial-expired') ? 8 : 0) * 86_400_000).toISOString(), last_seen_at: new Date().toISOString(), occurrence_count: 1, decided_by: null, decided_at: null, staged_at: null,
   }))
@@ -7012,17 +7028,15 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
   const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
   const ticketedPlaySaleIsOpen = activityItems.some(isTicketedPlaySaleOpen)
   const ordinarySignals = homeSignals.filter(item => item.id !== featuredSale?.id)
-  const quietSignals = ordinarySignals.filter(item => item.severity === 'quiet')
-  const { hotNow: hotSignals, recent: recentSignals, earlier: earlierSignals } = partitionHomeSignals(ordinarySignals.filter(item => item.severity !== 'quiet'), now)
   const featuredAlreadyCounted = Boolean(featuredSale && homeSignals.some(item => item.id === featuredSale.id))
   const visibleSignalCount = homeSignals.length + (featuredSale && !featuredAlreadyCounted ? 1 : 0)
-  const hotCount = hotSignals.length + (featuredSale?.severity === 'hot' && !featuredAlreadyCounted ? 1 : 0)
+  const hotCount = ordinarySignals.filter(item => item.severity === 'hot' && homeSignalIsHotNow(item.checkedAtIso, now)).length + (featuredSale?.severity === 'hot' && !featuredAlreadyCounted ? 1 : 0)
   const saleUrl = featuredSale?.officialResources?.find(resource => /ticketed.play|schedule/i.test(`${resource.label} ${resource.url}`))?.url
   return <div className="home-surface">
     <div className="home-main-row">
       <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading" data-tour-target="home-signals">
         <div className="home-lane-head">
-          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{visibleSignalCount ? `${visibleSignalCount} useful item${visibleSignalCount === 1 ? '' : 's'}` : 'All quiet'}</h2></div>
+          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{visibleSignalCount ? 'Your convention briefing' : 'All quiet'}</h2></div>
           <button type="button" onClick={onOpenActivity}>Full Activity</button>
         </div>
         <div className="timely-home" aria-label="Worth Knowing signals">
@@ -7037,15 +7051,10 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
                 <span><small>ON SALE NOW</small><strong>Ticketed Play is up for sale!</strong><em>Open Ticketed Play details.</em></span>
                 <b aria-hidden="true">›</b>
               </button>)}
-          {([['Hot now', hotSignals], ['Recent', recentSignals], ['Earlier', earlierSignals], ['Low priority', quietSignals]] as const).map(([label, signals]) => signals.length > 0 && <section className="home-signal-age-group" key={label} aria-label={`${label} Worth Knowing items`}>
-            <h3>{label}</h3>
-            {signals.map(item => <button type="button" key={item.id} className={`signal-chip-card ${item.severity}`} onClick={() => onOpenItem(item)}>
-              <span>{item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}</span>
-              <div><strong>{item.title}</strong><small>{item.summary}</small></div>
-              {(item.actors?.length || item.actor) && <PersonBubbles people={item.actors ?? [item.actor!]} />}
-            </button>)}
-          </section>)}
-          {!homeSignals.length && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
+          <HomeBriefing items={ordinarySignals} now={now} spotlightSlots={featuredSale ? 1 : 2} onOpenItem={onOpenItem}
+            renderIcon={item => item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}
+            renderPeople={item => (item.actors?.length || item.actor) ? <PersonBubbles people={item.actors ?? [item.actor!]} /> : null} />
+          {!visibleSignalCount && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
             <span><MilestoneIcon name="badges" /></span>
             <div><strong>No open items</strong><small>Monitoring is quiet and recent collaboration is caught up.</small></div>
           </button>}

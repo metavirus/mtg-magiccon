@@ -2,6 +2,12 @@
 
 Updated: 2026-10-07
 
+## October 7 Home briefing — approved publication checkpoint
+
+Home now presents usefulness-ranked topic spotlights, related individually clickable notices, compact topic sections and subdued routine availability updates instead of repeated full-width paragraph cards. Every eligible notice remains present once, with full detail callbacks, source evidence, age/expiry rules and featured Ticketed Play sale unchanged. All current urgent groups lead regardless of ordinary spotlight slots. Desktop uses independent deliberate topic stacks without stretching short groups beside long ones; phone preserves the original semantic/focus order in a single column. No monitoring, persistence or database changes.
+
+Build and 15 targeted briefing/age/sold-out tests passed. Root inspected populated 1440px/390px production-build captures with eleven long-title QA announcements, judged wrapping/line lengths/group spacing, and checked a related spotlight's complete detail callback. Kavi accepted the design and requested publication. This is the approved source checkpoint; exact deployment and public freshness are verified after push, not inferred from the local build. Local QA uses `previewOwner=kavi&qa=home-briefing` (fixture content, not canonical announcements). Existing-browser PWA caches can retain a previous preview shell; clean `pnpm ui:capture` evidence is current.
+
 ## October 7 exhibitor editorial polish
 
 Reviewed all 65 exhibitors and 44 retained vendor offers. Seven evidence-bound booth highlights separate real exclusives, the Mox jewelry debut, signings/engraving, daily foil-playmat releases and a live sorter demo from routine sales promotions. Info → Exhibitors retains All/Saved and adds Highlights plus searchable concise row summaries. Full vendor material remains available in a closed disclosure; tiny discounts, conditional freebies, trade bonuses, wholesale marketing and mystery-box hype receive no default prominence. Relevant source claims/prices/booths invalidate stale summaries without making unrelated copy/image churn a blocker. Future Home/envelope editorial review follows the same relevance policy. Local phone/desktop captures and interactive filter/drawer/disclosure checks passed, alongside all 538 tests and the full ship gate. No database, personal-state or inventory changes.
