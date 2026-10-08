@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { fetchRetryableRequest } from './retryable_request.mjs'
 
 export const DEFAULT_NEWSLETTER_LIMITS = Object.freeze({
   maxBytes: 192 * 1024,
@@ -138,11 +139,11 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), limits.timeoutMs)
     try {
-      const response = await fetchImpl(safeUrl, {
+      const response = await fetchRetryableRequest(safeUrl, {
         redirect: 'manual',
         signal: controller.signal,
         headers: { accept: 'text/html,application/xhtml+xml', 'user-agent': 'MagicCon Atlanta companion monitor/1.0 (+https://metavirus.github.io/mtg-magiccon/)' },
-      })
+      }, { fetchImpl, timeoutMs: limits.timeoutMs })
       if (response.status >= 300 && response.status < 400) throw new Error(`redirect rejected (${response.status})`)
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const contentType = response.headers.get('content-type') ?? ''

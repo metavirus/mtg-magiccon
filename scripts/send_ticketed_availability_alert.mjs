@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import nodemailer from 'nodemailer'
 import { planTicketedPlayAvailabilityEmails } from './lib/ticketed_play_email_alert.mjs'
+import { deliverTicketedPlayAvailabilityEmails } from './lib/ticketed_play_email_delivery.mjs'
 
 const [reportPath, closurePath] = process.argv.slice(2)
 if (!reportPath || !closurePath) throw new Error('Usage: node scripts/send_ticketed_availability_alert.mjs <monitor-report.json> <closure-manifest.json>')
@@ -23,16 +24,6 @@ if (!username || !password || !to) {
 }
 
 const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: username, pass: password } })
-const messageIds = []
-for (const alert of alerts) {
-  const result = await transporter.sendMail({
-    from: username,
-    to,
-    subject: alert.subject,
-    text: alert.text,
-    headers: { 'X-MagicCon-Alert-Key': alert.alertKey },
-  })
-  if (!result.messageId) throw new Error(`Gmail accepted no message ID for Ticketed Play alert ${alert.alertKey}. Baseline must not advance.`)
-  messageIds.push(result.messageId)
-}
-console.log(`Ticketed Play availability email: SENT (${messageIds.length} message${messageIds.length === 1 ? '' : 's'}: ${messageIds.join(', ')})`)
+const delivery = await deliverTicketedPlayAvailabilityEmails({ alerts, from: username, to,
+  sendMail: message => transporter.sendMail(message) })
+console.log(`Ticketed Play availability email: SENT ${delivery.sent.length}; ALREADY DELIVERED ${delivery.skipped.length}`)

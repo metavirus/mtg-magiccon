@@ -9,6 +9,15 @@ const report = (availability: string, sourceEventKey = '944127') => ({
 const closure = { catches: [{ sourceId: 'atlanta-ticketed-play-inventory', disposition: 'routed_signal', readbacks: [{ system: 'supabase' }] }] }
 
 describe('watched Ticketed Play availability email', () => {
+  it('deduplicates held-baseline retries but allows a later accepted generation', () => {
+    const first = { ...report('available'), ticketedPlay: { baselineAcceptedAt: '2026-08-25T00:00:00Z' } }
+    const key = planTicketedPlayAvailabilityEmail(first, closure)?.alertKey
+    expect(planTicketedPlayAvailabilityEmail({ ...first, checkedAt: '2026-08-27T00:00:00Z' }, closure)?.alertKey).toBe(key)
+    expect(planTicketedPlayAvailabilityEmail({ ...first, ticketedPlay: { baselineAcceptedAt: '2026-08-26T00:00:00Z' } }, closure)?.alertKey).not.toBe(key)
+    const differentTransition = report('available')
+    differentTransition.changes[0].transitions[0] = { ...differentTransition.changes[0].transitions[0], previousAvailability: 'waitlist' } as any
+    expect(planTicketedPlayAvailabilityEmail(differentTransition, closure)?.alertKey).not.toBe(planTicketedPlayAvailabilityEmail(report('available'), closure)?.alertKey)
+  })
   it('plans an ALERT email for confirmed availability', () => {
     const alert = planTicketedPlayAvailabilityEmail(report('available'), closure)
     expect(alert?.subject).toBe('ALERT! Magic: The Menu - Brunch - with Numot the Nummy is available again')

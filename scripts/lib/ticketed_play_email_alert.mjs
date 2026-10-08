@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 const ALERTABLE_STATES = new Set(['available', 'waitlist', 'potential_opening'])
 const VERIFIED_DISPOSITIONS = new Set(['canonical_update', 'routed_signal', 'retained_evidence'])
 
@@ -22,7 +24,12 @@ export function planTicketedPlayAvailabilityEmails(report, closureManifest) {
       const stateLabel = isAvailable ? 'available again' : isWaitlist ? 'accepting a waitlist' : 'possibly opening'
       const registrationUrl = watch.registrationUrl || transition.event?.sourceUrl
       alerts.push({
-        alertKey: `ticketed-play:${transition.sourceEventKey}:${transition.availability}:${report.checkedAt}`,
+        alertKey: `ticketed-play:${createHash('sha256').update(JSON.stringify([
+          change.sourceId ?? 'atlanta-ticketed-play-inventory', String(transition.sourceEventKey),
+          transition.eventId ?? transition.event?.id ?? null,
+          transition.previousAvailability ?? 'unobserved', transition.availability,
+          report.ticketedPlay?.baselineAcceptedAt ?? null,
+        ])).digest('hex')}`,
         subject: `ALERT! ${watch.title} is ${stateLabel}`,
         text: [
           `${watch.title} is ${stateLabel}.`,

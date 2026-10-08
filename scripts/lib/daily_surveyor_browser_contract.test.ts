@@ -6,7 +6,7 @@ describe('daily surveyor browser contract', () => {
   it('installs Chromium before the browser-backed inventory check', () => {
     const workflow = fs.readFileSync(path.resolve('.github/workflows/daily-surveyor.yml'), 'utf8')
     const install = workflow.indexOf('pnpm exec playwright install chromium')
-    const monitor = workflow.indexOf('node scripts/monitoring_watch_check.mjs')
+    const monitor = workflow.indexOf('node scripts/run_daily_surveyor.mjs')
 
     expect(install).toBeGreaterThan(-1)
     expect(monitor).toBeGreaterThan(install)
@@ -25,30 +25,32 @@ describe('daily surveyor browser contract', () => {
     const staging = fs.readFileSync(path.resolve('scripts/stage_monitoring_findings.mjs'), 'utf8')
 
     expect(staging).toContain('fetchWithClockSkewRetry')
-    expect(staging).toContain('/JWT issued at future/i')
+    expect(staging).toContain('retryJwtFuture: true')
+    expect(fs.readFileSync('scripts/lib/retryable_request.mjs', 'utf8')).toContain('/JWT issued at future/i')
     expect(staging).toContain('global: { fetch: fetchWithClockSkewRetry }')
   })
 
   it('verifies closure before baseline save and always uploads its receipt', () => {
     const workflow = fs.readFileSync(path.resolve('.github/workflows/daily-surveyor.yml'), 'utf8')
-    const verify = workflow.indexOf('pnpm monitor:verify-closure')
+    const verify = workflow.indexOf('pnpm monitor:verify-supervision')
     const save = workflow.indexOf('- name: Save monitoring baseline')
 
     expect(verify).toBeGreaterThan(-1)
     expect(save).toBeGreaterThan(verify)
-    expect(workflow).toContain("if: success() && inputs.replay_run_id == ''")
+    expect(workflow).toContain("if: success() && steps.runtime.outputs.ready_for_cache == 'true'")
     expect(workflow).toContain('work/monitoring/closure-manifest.json')
     expect(workflow.indexOf('if: always()', save)).toBeGreaterThan(save)
   })
 
   it('sends a watched reopening alert only after closure and before accepting the baseline', () => {
     const workflow = fs.readFileSync(path.resolve('.github/workflows/daily-surveyor.yml'), 'utf8')
-    const verify = workflow.indexOf('pnpm monitor:verify-closure')
-    const email = workflow.indexOf('node scripts/send_ticketed_availability_alert.mjs')
-    const save = workflow.indexOf('- name: Save monitoring baseline')
+    const runtime = fs.readFileSync('scripts/lib/surveyor_runtime.mjs', 'utf8')
+    const verify = runtime.indexOf('await ops.verify(')
+    const email = runtime.indexOf('await ops.alert(')
+    const accept = runtime.indexOf('await ops.accept(')
 
     expect(email).toBeGreaterThan(verify)
-    expect(save).toBeGreaterThan(email)
+    expect(accept).toBeGreaterThan(email)
     expect(workflow).toContain('ALERT_GMAIL_APP_PASSWORD: ${{ secrets.ALERT_GMAIL_APP_PASSWORD }}')
   })
 })

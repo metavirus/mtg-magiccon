@@ -1,6 +1,8 @@
 # Surveyor editorial closure
 
-Updated: 2026-10-01
+Updated: 2026-10-07
+
+Operational recovery follows `SURVEYOR_RESILIENCE_CONTRACT.md`. Read `run-receipt.json` for green holds as well as failed workflows. Expected `awaiting_editorial` work is retained and remains unfinished without triggering a runtime crash; a normal run restages it before discovery. Full coverage is enforced inside cloud acceptance. References below to a failed editorial run describe the older behavior and also apply to an explicit retained hold. Use the new runtime step outcomes and verified accepted artifact, not only a GitHub success label.
 
 When the latest cloud run is failed, inspect its retained report before dispatching discovery again. Editorial and bounded coverage holds require interpretation/repair, retained-report replay, and then normal verification—not another blind discovery of the same unresolved evidence. The saved heartbeat carries this ordering as well as the finish gate below.
 

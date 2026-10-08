@@ -9,10 +9,11 @@ import { ticketedPlayAvailabilityProjectionRows } from './lib/ticketed_play_avai
 import { planTicketedPlayAvailabilityWrites, verifyTicketedPlayAvailabilityWrites } from './lib/ticketed_play_availability_write_plan.mjs'
 import { closeTicketedPlayTransitions } from './lib/ticketed_play_transition_closure.mjs'
 import { assertSupportedSurveyorCatches, completeSurveyorClosureManifest, pendingSurveyorClosureManifest, surveyorCatchDescriptors } from './lib/surveyor_closure_contract.mjs'
-import { validateSurveyorClosureManifest } from './lib/surveyor_closure_contract.mjs'
+import { validateSurveyorClosureManifest, validatePendingSurveyorEditorialManifest } from './lib/surveyor_closure_contract.mjs'
 import { findingIsHomeWorthy, findingMayBypassConceptReadModel } from '../src/lib/monitoringFindings.ts'
 import { planAnnouncementContentContinuity } from './lib/announcement_content_continuity.mjs'
 import { projectReviewedExhibitorDirectory } from './lib/exhibitor_directory_projection.mjs'
+import { fetchRetryableRequest } from './lib/retryable_request.mjs'
 
 const reportPath = process.argv[2]
 if (!reportPath) throw new Error('Usage: pnpm monitor:stage <monitor-report.json>')
@@ -37,13 +38,7 @@ if (!secretKey.startsWith('sb_secret_')) throw new Error('SUPABASE_SECRET_KEY mu
 const changes = Array.isArray(report.changes) ? report.changes : []
 
 const fetchWithClockSkewRetry = async (input, init) => {
-  let response
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    response = await fetch(input, init)
-    if (response.status !== 401 || !/JWT issued at future/i.test(await response.clone().text())) return response
-    await new Promise(resolve => setTimeout(resolve, 2000))
-  }
-  return response
+  return fetchRetryableRequest(input, init, { retryJwtFuture: true })
 }
 const client = createClient(supabaseUrl, secretKey, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -409,7 +404,10 @@ for (const descriptor of surveyorCatchDescriptors(report)) {
 const closureManifest = completeSurveyorClosureManifest(report, outcomes, new Date().toISOString(), false)
 closureManifest.availabilityProjection = { inspectedCount: availabilityProjection.length, writtenCount: availabilityWrittenCount }
 await fs.writeFile(closurePath, `${JSON.stringify(closureManifest, null, 2)}\n`, 'utf8')
-validateSurveyorClosureManifest(closureManifest, report)
+if (closureManifest.status === 'blocked' && process.env.SURVEYOR_MANAGED_RUNTIME === '1') {
+  validatePendingSurveyorEditorialManifest(closureManifest, report)
+  console.log('Monitoring findings: AWAITING_EDITORIAL (retained agent-owned work; baseline held)')
+} else validateSurveyorClosureManifest(closureManifest, report)
 
-console.log(`Monitoring findings: PASS (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${availabilityProjection.length} canonical availability row(s) inspected, ${availabilityWrittenCount} written; ${conceptEvidenceAdded} new concept evidence link(s); ${factualChoicesStaged} factual choice${factualChoicesStaged === 1 ? '' : 's'} staged; ${infoClosuresVerified} maintained Info closure${infoClosuresVerified === 1 ? '' : 's'} read back; ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)
+console.log(`Monitoring findings: ${closureManifest.status === 'complete' ? 'PASS' : 'STAGED'} (${changes.length} changed source(s) collapsed to ${rows.length} raw evidence row(s); ${availabilityProjection.length} canonical availability row(s) inspected, ${availabilityWrittenCount} written; ${conceptEvidenceAdded} new concept evidence link(s); ${factualChoicesStaged} factual choice${factualChoicesStaged === 1 ? '' : 's'} staged; ${infoClosuresVerified} maintained Info closure${infoClosuresVerified === 1 ? '' : 's'} read back; ${infoFeedAdded} persistent Info feed entr${infoFeedAdded === 1 ? 'y' : 'ies'}; fingerprints and concept keys deduplicated)`)
 }

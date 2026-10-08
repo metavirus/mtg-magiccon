@@ -324,6 +324,8 @@ If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, t
 
 ## Supervisor stops after detecting pending editorial
 
+October 7 prevention supersedes the crash-based editorial behavior: the managed cloud runtime retains `awaiting_editorial`/`awaiting_repair` receipts and original deadlines, restages retained editorial before discovery, and escalates a hold after 24 hours. The active supervisor checks every three hours and must act on green holds. Cloud acceptance now enforces complete coverage itself, including zero-change reports. Accepted state has a verified 90-day artifact backup; runtime work and delivery receipts survive failures independently. See `SURVEYOR_RESILIENCE_CONTRACT.md` for the current steps and recovery lane. A hold remains unfinished work, never a completed survey.
+
 **Symptom:** the heartbeat detects/stages an official change, then reports pending editorial or partial coverage as routine "no action needed", leaving Kavi to request interpretation and publication again.
 
 **Cause:** the saved prompt already required editorial interpretation, but the supervisor treated the cloud detection result as the terminal task. Closure protection held the baseline correctly; it did not force the separate reasoning runtime to continue.

@@ -17,6 +17,7 @@ scripts/__pycache__/
 tmp/
 .temp/
 .monitoring-state/
+.surveyor-runtime/
 .codex-local/
 local-assets/
 *.local

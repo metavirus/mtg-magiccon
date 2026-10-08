@@ -14,6 +14,7 @@ import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChange
 import { artistDirectoryFingerprint } from './lib/artist_directory_feed.mjs';
 import { exhibitorDirectoryFingerprint } from './lib/exhibitor_directory_feed.mjs';
 import { gatheringGroundsFingerprint } from './lib/gathering_grounds_feed.mjs';
+import { fetchPublicSourceText } from './lib/public_source_fetch.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -258,6 +259,7 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
     url: config.url,
     stateFile,
     previousEventCount: previous.length,
+    baselineAcceptedAt: state.acceptedAt ?? null,
     currentEventCount: current.length,
     addedCount: added.length,
     removedCount: removed.length,
@@ -272,36 +274,19 @@ async function summarizeTicketedPlayInventory(config, checkedAt) {
 }
 
 async function fetchText(url) {
-  let status = 200;
-  let ok = true;
-  let html = '';
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'user-agent': 'MagicCon Atlanta companion monitor/1.0 (+https://metavirus.github.io/mtg-magiccon/)'
-      }
-    });
-    status = response.status;
-    ok = response.ok;
-    html = await response.text();
-  } catch (error) {
-    try {
-      const escapedUrl = url.replace(/'/g, "''");
+  return fetchPublicSourceText(url, {
+    tlsFallback: process.platform === 'win32' ? async (fallbackUrl, { timeoutMs, maxBytes }) => {
+      const escapedUrl = fallbackUrl.replace(/'/g, "''");
       const { stdout } = await execFileAsync('powershell', [
         '-NoProfile',
         '-ExecutionPolicy',
         'Bypass',
         '-Command',
-        `$ProgressPreference = "SilentlyContinue"; (Invoke-WebRequest -UseBasicParsing -Uri '${escapedUrl}' -Headers @{"User-Agent"="MagicCon Atlanta companion monitor/1.0"}).Content`
-      ], { maxBuffer: 20 * 1024 * 1024 });
-      html = stdout;
-    } catch (fallbackError) {
-      const cause = error.cause?.message ? `; cause: ${error.cause.message}` : '';
-      const fallbackCause = fallbackError.stderr?.trim() || fallbackError.message;
-      throw new Error(`${error.message}${cause}; powershell fallback: ${fallbackCause}`);
-    }
-  }
-  return { status, ok, html };
+        `$ProgressPreference = "SilentlyContinue"; $ErrorActionPreference = "Stop"; (Invoke-WebRequest -UseBasicParsing -TimeoutSec ${Math.ceil(timeoutMs / 1000)} -Uri '${escapedUrl}' -Headers @{"User-Agent"="MagicCon Atlanta companion monitor/1.0"}).Content`
+      ], { maxBuffer: maxBytes, timeout: timeoutMs });
+      return { status: 200, ok: true, html: stdout };
+    } : undefined
+  });
 }
 
 async function fetchSource(source) {
@@ -546,6 +531,6 @@ const output = {
 
 console.log(JSON.stringify(output, null, 2));
 
-if (failures.length > 0) {
+if (failures.length > 0 && process.env.SURVEYOR_MANAGED_RUNTIME !== '1') {
   process.exitCode = 1;
 }

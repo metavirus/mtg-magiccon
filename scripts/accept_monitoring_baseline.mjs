@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { acceptClosedPublicWatchChanges, acceptClosedTicketedPlayChanges } from './lib/monitoring_baseline_acceptance.mjs'
 import { validateSurveyorClosureManifest } from './lib/surveyor_closure_contract.mjs'
+import { validateSurveyorSupervisionCompletion } from './lib/surveyor_supervision_contract.mjs'
 
 const [reportPath, manifestPath] = process.argv.slice(2)
 if (!reportPath || !manifestPath) throw new Error('Usage: pnpm monitor:accept-report <monitor-report.json> <closure-manifest.json>')
@@ -13,6 +14,7 @@ const [report, manifest, watchSet] = await Promise.all([
   fs.readFile(path.join(root, 'monitoring', 'watch-set.json'), 'utf8').then(JSON.parse),
 ])
 validateSurveyorClosureManifest(manifest, report)
+validateSurveyorSupervisionCompletion(report, manifest)
 if (report.mode !== 'check') throw new Error(`Monitoring baseline acceptance blocked: report mode must be check, found ${report.mode ?? 'missing'}.`)
 
 const statePath = path.join(root, watchSet.stateFile || '.monitoring-state/watch-state.local.json')

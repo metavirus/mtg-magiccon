@@ -185,7 +185,7 @@ Prior-event store or Prize Wall fixtures are QA-only precedent. They may exercis
 
 The Codex heartbeat remains a deliberately simple cloud-supervision workflow:
 
-1. Run once daily during quiet period.
+1. Supervise every three hours during quiet period; public discovery remains once daily. Follow `SURVEYOR_RESILIENCE_CONTRACT.md` and read the operational receipt even when the latest workflow is green.
 2. Inspect the latest `Daily MagicCon surveyor` runs. The ignored workstation baseline is not used for daily discovery because the authoritative accepted baseline lives in the workflow cache.
 3. Reuse a successful cloud run within 26 hours or wait for the exact active run. If failed, inspect retained evidence and resolve bounded holds before replay and normal verification; use the documented bounded retry path for transient execution failures. Dispatch fresh discovery on `main` only when absent/stale and no unresolved retained work remains.
 4. Read the authoritative cloud summary/artifact when needed and report its staging, alert, closure, and baseline result.

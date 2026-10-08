@@ -1,4 +1,8 @@
-export const SURVEYOR_CLOSURE_SCHEMA_VERSION = 1
+import { createHash } from 'node:crypto'
+
+export const SURVEYOR_CLOSURE_SCHEMA_VERSION = 2
+const stable = value => Array.isArray(value) ? value.map(stable) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().filter(key => value[key] !== undefined).map(key => [key, stable(value[key])])) : value
+export const surveyorReportDigest = report => createHash('sha256').update(JSON.stringify(stable(report))).digest('hex')
 
 export const TERMINAL_DISPOSITIONS = Object.freeze([
   'canonical_update',
@@ -37,6 +41,7 @@ export function pendingSurveyorClosureManifest(report, generatedAt = new Date().
     generatedAt,
     report: {
       checkedAt: report?.checkedAt ?? null,
+      digest: surveyorReportDigest(report),
       changeCount: Array.isArray(report?.changes) ? report.changes.length : 0,
     },
     catches: surveyorCatchDescriptors(report).map(item => ({
@@ -65,23 +70,24 @@ export function completeSurveyorClosureManifest(report, outcomes, generatedAt = 
     schemaVersion: SURVEYOR_CLOSURE_SCHEMA_VERSION,
     status: catches.some(item => !TERMINAL_DISPOSITION_SET.has(item.disposition)) ? 'blocked' : 'complete',
     generatedAt,
-    report: { checkedAt: report?.checkedAt ?? null, changeCount: catches.length },
+    report: { checkedAt: report?.checkedAt ?? null, digest: surveyorReportDigest(report), changeCount: catches.length },
     catches,
   }
   if (validate) validateSurveyorClosureManifest(manifest, report)
   return manifest
 }
 
-export function validateSurveyorClosureManifest(manifest, report = null) {
+export function validateSurveyorClosureManifest(manifest, report = null, { allowEditorial = false } = {}) {
   const errors = []
   if (!manifest || typeof manifest !== 'object') errors.push('manifest must be an object')
   if (manifest?.schemaVersion !== SURVEYOR_CLOSURE_SCHEMA_VERSION) errors.push(`schemaVersion must be ${SURVEYOR_CLOSURE_SCHEMA_VERSION}`)
-  if (manifest?.status !== 'complete') errors.push('status must be complete')
+  if (manifest?.status !== 'complete' && !(allowEditorial && manifest?.status === 'blocked')) errors.push('status must be complete')
   if (!Array.isArray(manifest?.catches)) errors.push('catches must be an array')
 
   const expected = report ? surveyorCatchDescriptors(report) : null
   if (expected) {
     if (manifest?.report?.checkedAt !== report?.checkedAt) errors.push('report.checkedAt does not match the monitor report')
+    if (manifest?.report?.digest !== surveyorReportDigest(report)) errors.push('report digest does not match the exact monitor report')
     if (manifest?.catches?.length !== expected.length) errors.push(`expected ${expected.length} catch closure(s), found ${manifest?.catches?.length ?? 0}`)
     const expectedIds = new Set(expected.map(item => item.catchId))
     const actualIds = new Set((manifest?.catches ?? []).map(item => item.catchId))
@@ -94,7 +100,11 @@ export function validateSurveyorClosureManifest(manifest, report = null) {
     if (!item.catchId || seen.has(item.catchId)) errors.push(`catchId must be present and unique (${item.catchId ?? 'missing'})`)
     seen.add(item.catchId)
     if (item.meaningful !== true) errors.push(`${item.catchId}: meaningful must be true`)
-    if (!TERMINAL_DISPOSITION_SET.has(item.disposition)) errors.push(`${item.catchId}: disposition ${item.disposition ?? 'missing'} is blocked or unmapped`)
+    const expectedItem = expected?.find(entry => entry.catchId === item.catchId)
+    if (expectedItem && (item.sourceId !== expectedItem.sourceId || item.intakeKind !== expectedItem.intakeKind)) errors.push(`${item.catchId}: source or intake identity mismatch`)
+    const pendingEditorial = allowEditorial && item.disposition === 'pending_editorial'
+    if (!TERMINAL_DISPOSITION_SET.has(item.disposition) && !pendingEditorial) errors.push(`${item.catchId}: disposition ${item.disposition ?? 'missing'} is blocked or unmapped`)
+    if (pendingEditorial && !item.targets?.some(target => target.kind === 'agent_editorial_queue') || pendingEditorial && !item.rationale?.includes('Agent interpretation required:')) errors.push(`${item.catchId}: editorial handoff proof missing`)
     if (!Array.isArray(item.targets) || item.targets.length === 0) errors.push(`${item.catchId}: at least one terminal target is required`)
     if (!Array.isArray(item.readbacks) || item.readbacks.length === 0) errors.push(`${item.catchId}: at least one exact readback is required`)
     if (item.targets?.some(target => target.kind === 'home') && item.readbacks?.some(readback => readback.observed?.evidence?.home_signal_kind === 'interesting_announcement')) {
@@ -111,5 +121,11 @@ export function validateSurveyorClosureManifest(manifest, report = null) {
   }
 
   if (errors.length) throw new Error(`Surveyor closure verification failed:\n- ${errors.join('\n- ')}`)
+  return manifest
+}
+
+export function validatePendingSurveyorEditorialManifest(manifest, report) {
+  validateSurveyorClosureManifest(manifest, report, { allowEditorial: true })
+  if (manifest.status !== 'blocked' || !manifest.catches.some(item => item.disposition === 'pending_editorial')) throw new Error('Expected an exact pending editorial handoff')
   return manifest
 }
