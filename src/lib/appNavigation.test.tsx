@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 
@@ -18,8 +18,9 @@ afterEach(() => {
 })
 
 function navigate(name: string) {
-  const button = screen.getAllByRole('button', { name }).find(element => element.closest('.desktop-nav'))
-    ?? screen.getAllByRole('button', { name })[0]
+  // Scope accessible-name work to navigation, not the full 130-event Explore DOM.
+  const navigation = screen.getByRole('navigation', { name: /^Primary navigation$/ })
+  const button = within(navigation).getByRole('button', { name })
   fireEvent.click(button)
 }
 
@@ -36,12 +37,12 @@ describe('app navigation sequences', () => {
     navigate('Explore')
     navigate('Plan')
     const historyLength = window.history.length
-    fireEvent.click(screen.getByRole('button', { name: 'Back to previous view' }))
+    fireEvent.click(screen.getByLabelText('Back to previous view'))
     await waitFor(() => expect(window.location.hash).toBe('#explore'))
-    fireEvent.click(screen.getByRole('button', { name: 'Back to previous view' }))
+    fireEvent.click(screen.getByLabelText('Back to previous view'))
     await waitFor(() => expect(window.location.hash).toBe('#home'))
     expect(window.history.length).toBe(historyLength)
-    expect(screen.getByRole('button', { name: 'Back to previous view' })).toBeDisabled()
+    expect(screen.getByLabelText('Back to previous view')).toBeDisabled()
   })
 
   it('resets a sold-out deep link on ordinary Explore and restores it with Back/Forward', async () => {

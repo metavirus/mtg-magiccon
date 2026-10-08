@@ -6,7 +6,7 @@ Updated: 2026-10-07
 
 The envelope now projects current unread official announcements alongside existing alerts and mentions, using the same read/archive state and seven-day announcement age. Routine sellouts remain excluded. It supports multiple entries instead of a single Ticketed Play alert, with phone-height scrolling and accurate titles. Regression tests cover multiple announcements, read/dismissed state and opening the selected item.
 
-The Astra Marketplace review is recorded in `docs/WORK_BACKLOG.md`: begin with structured promotion retention, then a compact Info exhibitor directory with private saves/notes; spatial placement waits for the map. The current roster/booth feed is verified, but structured specials/exclusives are not yet retained faithfully, so promotion coverage is an explicit open item.
+The Astra Marketplace follow-up is implemented: Info → Exhibitors has all 65 official entries, name/booth/reviewed-alias search, offer details, and owner-only saves/notes. Structured promotion retention preserves 44 offers across 19 vendors. Replay `37716374597` and normal `37716525321` verified canonical publication, Home routing, complete coverage, closure, exact acceptance/cache save and the supervision gate. Desktop/phone inspection, bookmark reload and database isolation passed. See `docs/EXHIBITOR_DIRECTORY.md`. Spatial placement still waits for the map; product catalog inventory remains separate. CI navigation-test query scoping was corrected without increasing its timeout.
 
 ## October 7 exhibitor coverage — shipped and verified
 

@@ -82,6 +82,10 @@ Readiness rule: capabilities are task-specific. Check a capability only when the
 - Do not diagnose app code until the package-manager smoke itself is healthy.
 - A non-admin `corepack enable` failure caused by writing shims under Program Files is not a product blocker.
 
+## Whole-app navigation tests exceed CI time budget
+
+October 7: the navigation test helper searched every button in the full Explore page, then tried an obsolete `.desktop-nav` ancestor and fell back to another global query. On the slower CI runner this exhausted the existing five-second test budget. Query the exact `Primary navigation` landmark and its button, and use the Back button's exact accessible label. Keep real history traversal assertions and the timeout; do not hide the cost with retries or a global timeout increase.
+
 ## Local UI browser capture
 
 **Symptom:** visual work needs browser evidence, or a dev server/browser command is unclear.
