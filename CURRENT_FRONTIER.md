@@ -1,6 +1,14 @@
 # Current Frontier
 
-Updated: 2026-10-04
+Updated: 2026-10-07
+
+## October 7 exhibitor coverage — shipped and verified
+
+Commit `1310468` binds the official Exhibitors page to its Atlanta event/category feed: 65 exhibitors with booths, independently watched from catalog inventory. The supervision gate now rejects missing or invalid exhibitor coverage; static heading-only checks are not roster proof. Exact editorial decisions suppress duplicate overview/carousel changes and clarify Premium Single Day badge sellout without inferring Family Spark availability. Authenticated Home readback verified the exhibitor directory and badge cards.
+
+Activation exposed a new LEAP checkout title with missing separator whitespace. Commit `6312902` accepts that formatting variation while retaining strict day/time/product identity, with malformed and duplicate-product regressions. The full gate passed 490 tests. Retained replay `37706157250` passed; final normal run `37706660094` passed complete coverage, closure, exact acceptance/cache save and the artifact supervision gate on October 8 UTC (October 7 Pacific). This supersedes the October 4 checkpoint below. October 6 participant and Izzy announcements remain reviewed, not new roster releases.
+
+Private Gmail was last completely searched October 6 at 22:53 UTC. The October 7 due attempt was recorded as not checked because neither a connector nor signed-in Chrome was available; freshness was not advanced. The independent public lane is complete. Subsequent private capability/freshness remains in the ignored coverage receipt, not this dated checkpoint.
 
 ## October 4 current surveyor checkpoint — verified
 
