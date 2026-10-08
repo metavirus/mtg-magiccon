@@ -131,7 +131,9 @@ export function ticketedPlayAvailabilityCoverage(observed = []) {
   }
 }
 
-const CHECKOUT_TITLE = /^(Fri|Sat|Sun)\s+(\d{1,2}):(\d{2})(AM|PM)\s+-\s+(.*?)\s+-\s+[A-Z0-9]{7}$/i
+// LEAP sometimes omits the space after the time/title separator. Keep the
+// separator and product-code suffix required so this cannot relax identity.
+const CHECKOUT_TITLE = /^(Fri|Sat|Sun)\s+(\d{1,2}):(\d{2})(AM|PM)\s+-\s*(.+?)\s+-\s+[A-Z0-9]{7}$/i
 const DAY_BY_LABEL = { fri: '2026-11-13', sat: '2026-11-14', sun: '2026-11-15' }
 const CHECKOUT_ALIASES = new Map([
   ['savvy pin traders - sealed league - reality fracture with veggie wagon featuring a special pin!', 'savvy pin traders - deluxe sealed league - reality fracture with veggie wagon featuring a special pin!'],

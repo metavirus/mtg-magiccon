@@ -50,6 +50,27 @@ describe('LEAP Ticketed Play inventory', () => {
     expect(ticketedPlayAvailabilityCoverage(unresolved)).toMatchObject({ status: 'partial', unknownCount: 1 })
     expect(ticketedPlayAvailabilityCoverage(unresolved).notCovered[0].reason).toBe('no_exact_checkout_product_match')
   })
+
+  it('matches the observed checkout title with no space after the time separator', () => {
+    const schedule = normalizeLeapInventoryCards([{ title: 'Starfleet Academy League - Magic: The Gathering | Star Trek', day: 'Saturday November 14th', time: '12:30pm - 3:30pm', controls: [] }], { sourceUrl })
+    const title = 'Sat 12:30PM -Starfleet Academy League - Magic: The Gathering | Star Trek - J2MEP34'
+    const product = { productId: 'starfleet', title, control: '2 Left', purchasable: true }
+    const [merged] = mergeLeapCheckoutAvailability(schedule, [product])
+    expect(merged).toMatchObject({ title: schedule[0].title, day: '2026-11-14', startsAt: '12:30', availability: 'available', availabilityEvidence: { productId: 'starfleet' } })
+    expect(mergeLeapCheckoutAvailability(schedule, [{ ...product, title: title.replace(' -Starfleet', ' - Starfleet') }])).toEqual([merged])
+
+    // Whitespace flexibility must not let two products claim the same slot.
+    expect(() => mergeLeapCheckoutAvailability(schedule, [product, { ...product, productId: 'duplicate', title: title.replace(' -Starfleet', ' - Starfleet') }])).toThrow(/Ambiguous checkout products/)
+  })
+
+  it.each([
+    'Sat 12:30PM Starfleet Academy League - Magic: The Gathering | Star Trek - J2MEP34',
+    'Sat 12:30PM -Starfleet Academy League - Magic: The Gathering | Star Trek - J2MEP3',
+    'Sat 12:30PM -Starfleet Academy League - Magic: The Gathering | Star Trek - J2MEP34 extra',
+    'Sat 12:30PM - - J2MEP34',
+  ])('rejects malformed checkout structure: %s', title => {
+    expect(() => mergeLeapCheckoutAvailability([], [{ productId: 'malformed', title, control: '2 Left', purchasable: true }])).toThrow(/checkout title not parseable/)
+  })
   it('reports anonymous login-gated registration states as not covered rather than available', () => {
     const observed = normalizeLeapInventoryCards([
       { ...soldOutCards[0], soldOut: false, controls: [{ text: 'Login to add to your schedule', disabled: true }] },
