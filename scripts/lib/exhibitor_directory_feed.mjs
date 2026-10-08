@@ -2,6 +2,35 @@ import { createHash } from 'node:crypto'
 
 const hash = value => createHash('sha256').update(value).digest('hex')
 const compact = value => String(value ?? '').replace(/\s+/g, ' ').trim()
+const text = value => typeof value === 'string' || typeof value === 'number' ? compact(value) : ''
+// Retain source values without object coercion, with deterministic key ordering
+// so JSON property order alone cannot manufacture a changed-source finding.
+const stableValue = value => Array.isArray(value) ? value.map(stableValue)
+  : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, stableValue(value[key])]))
+    : value ?? null
+const publicUrl = value => {
+  const candidate = text(value)
+  if (!candidate) return ''
+  try {
+    const url = new URL(/^(?:www\.|[\w-]+\.[a-z]{2,}(?:\/|$))/i.test(candidate) ? `https://${candidate}` : candidate)
+    return ['https:', 'http:'].includes(url.protocol) ? url.toString() : ''
+  } catch { return '' }
+}
+
+// A boolean exclusives flag is not an offer: the live directory returns true
+// even for exhibitors with no listed promotions. Keep it only as source evidence.
+export function normalizeExhibitorOffers(value) {
+  const entries = Array.isArray(value) ? value : value == null ? [] : [value]
+  return entries.flatMap(entry => {
+    if (typeof entry === 'string') return compact(entry) ? [{ id: '', title: '', description: compact(entry), price: '', url: '', imageUrl: '' }] : []
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return []
+    return [{
+      id: text(entry.id), title: text(entry.title), description: text(entry.description),
+      price: text(entry.price), url: publicUrl(entry.link ?? entry.url),
+      imageUrl: publicUrl(entry.image?.big ?? entry.imageUrl ?? entry.image),
+    }]
+  })
+}
 
 // The public event key and category are bound by the owning official widget.
 export function exhibitorDirectoryFeedUrl(html, sourceUrl, config) {
@@ -31,7 +60,8 @@ export function parseExhibitorDirectoryFeed(payload, sourceUrl, config) {
       id, name, booth: compact(row.booth), profileUrl: profileUrl.toString(),
       description: compact(row.description), website: compact(row.website), storeUrl: compact(row.store_url),
       imageUrl: compact(row.image?.big), featured: row.featured === true,
-      specials: compact(row.specials), exclusives: typeof row.exclusives === 'string' ? compact(row.exclusives) : '',
+      specials: normalizeExhibitorOffers(row.specials), exclusives: normalizeExhibitorOffers(row.exclusives),
+      promotionSource: { specials: stableValue(row.specials), exclusives: stableValue(row.exclusives) },
     }
   }).sort((a, b) => a.id.localeCompare(b.id))
 }

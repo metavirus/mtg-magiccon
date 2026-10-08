@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { exhibitorDirectoryFeedUrl, exhibitorDirectoryFingerprint, parseExhibitorDirectoryFeed } from './exhibitor_directory_feed.mjs'
+import { exhibitorDirectoryFeedUrl, exhibitorDirectoryFingerprint, normalizeExhibitorOffers, parseExhibitorDirectoryFeed } from './exhibitor_directory_feed.mjs'
 import { pageContentFingerprint, watchedPageChanged } from './monitoring_page_fingerprint.mjs'
 import { sourceOnboardingReview } from './monitoring_source_onboarding.mjs'
 import { buildMonitoringCandidateRows } from './build_monitoring_candidates.mjs'
@@ -20,7 +20,23 @@ describe('official Atlanta exhibitor roster coverage', () => {
     }
     expect((await fingerprint({ ...payload, space_orders: [...payload.space_orders].reverse() })).contentHash).toBe(before.contentHash)
     expect(before.exhibitorDirectory.exhibitors[0].profileUrl).toContain('/exhibitor-showroom.html?gtID=1')
-    expect(before.exhibitorDirectory.exhibitors[0].exclusives).toBe('')
+    expect(before.exhibitorDirectory.exhibitors[0].exclusives).toEqual([])
+    expect(before.exhibitorDirectory.exhibitors[0].promotionSource.exclusives).toBe(true)
+  })
+  it('retains structured offer detail and detects edits without a count change', async () => {
+    const offer = { id: '63680', title: 'Collector Boxes', description: 'Original offer', price: '500.00', link: 'www.example.com', image: { big: 'https://example.com/image.png', thumb: 'https://example.com/thumb.png' } }
+    const data = { ...payload, space_orders: [{ ...row('1', 'CM Games'), specials: [offer] }] }
+    const before = await fingerprint(data)
+    const parsed = before.exhibitorDirectory.exhibitors[0]
+    expect(parsed.specials).toEqual([{ id: '63680', title: 'Collector Boxes', description: 'Original offer', price: '500.00', url: 'https://www.example.com/', imageUrl: 'https://example.com/image.png' }])
+    expect(parsed.promotionSource.specials).toEqual([offer])
+    for (const delta of [{ title: 'New title' }, { description: 'Changed offer' }, { price: '450.00' }, { link: 'https://example.org/' }, { image: { ...offer.image, thumb: 'https://example.com/new-thumb.png' } }]) {
+      expect(watchedPageChanged(before, await fingerprint({ ...data, space_orders: [{ ...data.space_orders[0], specials: [{ ...offer, ...delta }] }] }))).toBe(true)
+    }
+    const reordered = Object.fromEntries(Object.entries(offer).reverse())
+    expect((await fingerprint({ ...data, space_orders: [{ ...data.space_orders[0], specials: [reordered] }] })).contentHash).toBe(before.contentHash)
+    expect(normalizeExhibitorOffers({ title: 'Exclusive', link: 'javascript:alert(1)', image: [] })).toEqual([{ id: '', title: 'Exclusive', description: '', price: '', url: '', imageUrl: '' }])
+    expect(normalizeExhibitorOffers('  Show offer  ')).toEqual([{ id: '', title: '', description: 'Show offer', price: '', url: '', imageUrl: '' }])
   })
   it('rejects missing widget, wrong host/category/event, empty, malformed and duplicate feeds', async () => {
     expect(() => exhibitorDirectoryFeedUrl('', source.url, config)).toThrow()

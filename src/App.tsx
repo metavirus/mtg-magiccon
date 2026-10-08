@@ -28,6 +28,8 @@ import { ArtistBringList } from './components/ArtistBringList'
 
 export { CalendarSurface, PlanSurface }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
+import { ExhibitorDirectory, type Exhibitor } from './components/ExhibitorDirectory'
+import { loadExhibitors, exhibitorObjectId, exhibitorQaFixtures, safeExhibitorUrl, type DirectoryExhibitor } from './lib/exhibitors'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, partitionHomeSignals, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { monitoringNoticeSeverity } from './lib/monitoringNoticeLifecycle'
@@ -799,6 +801,8 @@ export default function App() {
   const [ticketedAvailability, setTicketedAvailability] = useState<TicketedPlayAvailabilityProjectionRow[]>([])
   const displayedExploreEvents = applyTicketedPlayAvailabilityProjection(exploreEventState, ticketedAvailability) as ExploreEvent[]
   const [infoTopics, setInfoTopics] = useState<InfoTopic[]>(previewInfoTopics)
+  const [exhibitors, setExhibitors] = useState<DirectoryExhibitor[]>(() => (designPreview || isPreviewOwnerMode) && qaFlags.includes('exhibitors') ? exhibitorQaFixtures : [])
+  const [exhibitorError, setExhibitorError] = useState('')
   const [infoFeed, setInfoFeed] = useState<InfoFeedEntry[]>(previewInfoFeed)
   const [catalogReadModel, setCatalogReadModel] = useState<CatalogReadModel>(emptyCatalogReadModel)
   const [catalogInterestSavingOfferId, setCatalogInterestSavingOfferId] = useState<string | null>(null)
@@ -983,6 +987,7 @@ export default function App() {
         setMonitoringConcepts([])
         setTicketedAvailability([])
         setInfoTopics(previewInfoTopics)
+        setExhibitors([])
         setInfoFeed(previewInfoFeed)
         setCatalogReadModel(emptyCatalogReadModel)
         setTripFlights(previewTripFlights)
@@ -1005,6 +1010,7 @@ export default function App() {
           setInfoFeed(info.feed)
         }
         if (lanes.catalog) setCatalogReadModel(lanes.catalog as CatalogReadModel)
+        if (lanes.exhibitors) setExhibitors(lanes.exhibitors as DirectoryExhibitor[])
         if (lanes.flights) setTripFlights(lanes.flights as TripFlight[])
         if (lanes.ticketedAvailability) setTicketedAvailability(lanes.ticketedAvailability as TicketedPlayAvailabilityProjectionRow[])
         if (lanes.selections) {
@@ -1021,7 +1027,7 @@ export default function App() {
       setContinuityReady(true)
       return
     }
-    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult, flightsResult, ticketedAvailabilityResult, catalogResult] = await Promise.allSettled([
+    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult, flightsResult, ticketedAvailabilityResult, catalogResult, exhibitorsResult] = await Promise.allSettled([
         loadContextNotes(effectiveOwnerId),
         loadMentionInbox(effectiveOwnerId),
         loadUserSelections(effectiveOwnerId),
@@ -1032,6 +1038,7 @@ export default function App() {
         supabase ? loadTripFlights(supabase) : Promise.resolve(previewTripFlights),
         loadTicketedPlayAvailability(),
         supabase ? loadCatalogReadModel(supabase, 'magiccon_atlanta_2026') : Promise.resolve(emptyCatalogReadModel),
+        loadExhibitors(),
       ])
     const failures: string[] = []
     const cacheLane = (lane: Parameters<typeof writeOfflineContinuityLane>[1], value: unknown) => {
@@ -1055,6 +1062,8 @@ export default function App() {
     else failures.push('monitoring concepts')
     if (infoResult.status === 'fulfilled') { setInfoTopics(infoResult.value.topics); setInfoFeed(infoResult.value.feed); cacheLane('info', infoResult.value) }
     else failures.push('Info knowledge')
+    if (exhibitorsResult.status === 'fulfilled') { setExhibitors(exhibitorsResult.value); setExhibitorError(''); cacheLane('exhibitors', exhibitorsResult.value) }
+    else setExhibitorError('Exhibitors could not be refreshed. Showing any saved directory; try refreshing when online.')
     if (flightsResult.status === 'fulfilled') {
       const flights = flightsResult.value.length ? flightsResult.value : previewTripFlights
       setTripFlights(flights)
@@ -1409,7 +1418,8 @@ export default function App() {
         return
       }
     }
-    const detail = noteSourceObjectDetail(note)
+    const exhibitor = note.objectKind === 'exhibitor' ? exhibitors.find(row => exhibitorObjectId(row.id) === note.objectId) : undefined
+    const detail = exhibitor ? focusDetailOnNote(exhibitorToObjectDetail(exhibitor), note) : noteSourceObjectDetail(note)
     if (detail.kind === 'note') {
       openDestination('Notes', 'notes')
       return
@@ -1485,6 +1495,7 @@ export default function App() {
     details?: Record<string, unknown>
     actorLabel?: PersonName
   }) => {
+    if (input.objectKind === 'exhibitor') return
     if (!canWrite || !supabase || !effectiveOwnerId) return
     const ownerId = effectiveOwnerId
     const createdAt = new Date().toISOString()
@@ -1523,6 +1534,10 @@ export default function App() {
   }
 
   const addContextNote = (input: AddContextNoteInput) => {
+    if (input.objectKind === 'exhibitor') {
+      if (!canWrite) return
+      input = { ...input, visibility: 'private' }
+    }
     const now = new Date()
     const ownerId = effectiveOwnerId
     if (!ownerId) return
@@ -1547,7 +1562,7 @@ export default function App() {
     const client = supabase
     const saveNote = async () => {
       try {
-        const mentionTargets = extractNoteMentions(note.body, companionMembers, effectiveSession)
+        const mentionTargets = note.objectKind === 'exhibitor' ? [] : extractNoteMentions(note.body, companionMembers, effectiveSession)
         const { data, error } = await client.from('personal_notes').insert({
           owner_id: ownerId,
           title: note.title,
@@ -1593,6 +1608,7 @@ export default function App() {
     void saveNote()
   }
   const deleteContextNote = (id: string) => {
+    if (contextNotesState.some(note => note.id === id && note.objectKind === 'exhibitor') && !canWrite) return
     const previous = contextNotesState
     setContextNotesState(current => current.filter(note => note.id !== id))
     if (!canWrite || !supabase || !effectiveOwnerId) return
@@ -2071,7 +2087,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-        {surface === 'info' && <InfoSurface topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogBrowserQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
+{surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogBrowserQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface flights={tripFlights} receipts={walletReceipts} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
@@ -2103,7 +2119,7 @@ export default function App() {
       </>
 
     </main>
-      <ObjectDetailLayer detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogBrowserQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
+      <ObjectDetailLayer canWriteNotes={canWrite} detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogBrowserQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
       {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onMobileMenuChange={setMobileNavMenu} onClose={() => {
         setTutorialOpen(false)
         void upsertUserSelection('onboarding-tour', 'general', 'completed', 'true')
@@ -2878,7 +2894,7 @@ function InfoReaderEvidence({ sources }: { sources: InfoSource[] }) {
   </article>)}</section>
 }
 
-function ObjectDetailLayer({ detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const closeRef = useRef(onClose)
   closeRef.current = onClose
@@ -2959,6 +2975,14 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, catalogOwnerId, cata
         <h3>{detail.rationaleLabel ?? 'Why it matters'}</h3>
         <p>{renderLinkedText(detail.rationale)}</p>
       </section>}
+      {detail.exhibitorOffers?.map(section => <section className="object-detail-section" key={section.title}>
+        <h3>{section.title}</h3>
+        {section.offers.map((offer, index) => <article key={`${offer.title}-${index}`}>
+          <h4>{offer.title}{offer.price && Number(offer.price) !== 0 ? ` · Listed price ${offer.price}` : ''}</h4>
+          {offer.description && <p>{offer.description}</p>}
+          {offer.url && <nav className="object-resource-links"><a href={offer.url} target="_blank" rel="noreferrer">Offer details ↗</a></nav>}
+        </article>)}
+      </section>)}
       {detail.links && detail.links.length > 0 && <section className="object-detail-section">
         <h3>Official resources</h3>
         <nav className="object-resource-links" aria-label="Official resources">
@@ -2974,6 +2998,8 @@ function ObjectDetailLayer({ detail, notes, currentOwnerId, catalogOwnerId, cata
         <p><strong>{detail.source.label}</strong><br />{renderLinkedText(detail.source.value)}</p>
       </section>}</>}
       {!isSyntheticNoteGroupId(detail.id) && <ObjectNotes
+        key={detail.id}
+        canEdit={detail.kind !== 'exhibitor' || canWriteNotes}
         notes={notes}
         currentOwnerId={currentOwnerId}
         onAddNote={onAddNote}
@@ -3004,6 +3030,7 @@ function detailKindLabel(kind: ObjectDetailKind) {
     place: 'Place',
     hotel: 'Place',
     artist: 'Artist',
+    exhibitor: 'Exhibitor',
     note: 'Note',
   }
   return labels[kind]
@@ -3021,7 +3048,7 @@ type AlertSeverity = 'hot' | 'notice' | 'quiet'
 type AlertReviewState = 'needs-review' | 'reviewed' | 'archived'
 type ActivityStream = 'hot' | 'events' | 'changes' | 'sources' | 'personal' | 'archived' | 'all'
 type ActivitySourceKind = 'monitor' | 'selection' | 'activity-log' | 'note'
-type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note'
+type ObjectDetailKind = 'event' | 'alert' | 'receipt' | 'place' | 'hotel' | 'artist' | 'note' | 'exhibitor'
 type NotePersonFilter = 'all' | PersonName
 type NoteTypeFilter = 'all' | 'wallet' | 'trip' | 'events' | 'other'
 type ObjectDetail = {
@@ -3054,6 +3081,7 @@ type ObjectDetail = {
   noteLabel?: string
   backlinks?: Array<{ label: string; destination: Surface }>
   catalogOfferId?: string
+  exhibitorOffers?: Array<{ title: string; offers: Array<{ title: string; description: string; price?: string; url?: string }> }>
 }
 type NoteVisibility = 'private' | 'shared'
 type AddContextNoteInput = {
@@ -3122,7 +3150,7 @@ function defaultAlertReviewState(alert: MonitoringAlert): AlertReviewState {
 }
 
 function contextNotesToActivity(notes: ContextNote[], selections: Record<string, string>): ActivityItem[] {
-  const clusters = groupNotesByObject(notes)
+  const clusters = groupNotesByObject(notes.filter(note => note.objectKind !== 'exhibitor'))
   return clusters.map(cluster => {
     const latest = cluster.notes[0]
     const reviewSelection = selections[selectionKey(`activity-note-${cluster.id}`, 'review_state')]
@@ -4988,7 +5016,8 @@ function ComplexityPill({ level }: { level: ComplexityLevel }) {
   </span>
 }
 
-function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId, objectKind, objectTitle, objectAnchor, focusedNoteId, context, backlink, compact, companions, currentSession }: {
+function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId, objectKind, objectTitle, objectAnchor, focusedNoteId, context, backlink, compact, companions, currentSession, canEdit = true }: {
+  canEdit?: boolean
   notes: ContextNote[]
   currentOwnerId?: string
   onAddNote: (input: AddContextNoteInput) => void
@@ -5005,12 +5034,13 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
   currentSession?: Session | null
 }) {
   const [body, setBody] = useState('')
-  const [visibility, setVisibility] = useState<NoteVisibility>('shared')
+  const privateExhibitor = objectKind === 'exhibitor'
+  const [visibility, setVisibility] = useState<NoteVisibility>(privateExhibitor ? 'private' : 'shared')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const focusedNoteRef = useRef<HTMLElement | null>(null)
   const mentionPreview = mentionPreviewFromBody(body, companions ?? fallbackCompanionMembers, currentSession ?? null)
   const objectNotes = notes
-    .filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor))
+    .filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor) && (!privateExhibitor || Boolean(currentOwnerId && note.ownerId === currentOwnerId)))
     .sort((a, b) => (a.id === focusedNoteId ? -1 : b.id === focusedNoteId ? 1 : 0))
   useEffect(() => {
     if (!focusedNoteId) return
@@ -5019,10 +5049,10 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
   }, [focusedNoteId, objectId])
   const submit = () => {
     const trimmed = body.trim()
-    if (!trimmed) return
-    onAddNote({ objectId, objectKind, objectTitle, objectAnchor, context, body: trimmed, visibility, backlink })
+    if (!trimmed || !canEdit) return
+    onAddNote({ objectId, objectKind, objectTitle, objectAnchor, context, body: trimmed, visibility: privateExhibitor ? 'private' : visibility, backlink })
     setBody('')
-    setVisibility('shared')
+    setVisibility(privateExhibitor ? 'private' : 'shared')
   }
 
   return <section className={`object-notes ${compact ? 'compact' : ''}`} aria-label={`Notes for ${objectTitle}`}>
@@ -5034,8 +5064,8 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
       {objectNotes.map(note => <article key={note.id} ref={note.id === focusedNoteId ? focusedNoteRef : undefined} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
         <PersonBubbles people={[note.author]} />
         <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</small></div>
-        {note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
-        {note.ownerId === currentOwnerId && confirmDeleteId === note.id && <div className="note-delete-confirm" role="alert">
+        {canEdit && note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
+        {canEdit && note.ownerId === currentOwnerId && confirmDeleteId === note.id && <div className="note-delete-confirm" role="alert">
           <span>Delete?</span>
           <button type="button" onClick={() => { onDeleteNote(note.id); setConfirmDeleteId(null) }}>Yes</button>
           <button type="button" onClick={() => setConfirmDeleteId(null)}>No</button>
@@ -5043,18 +5073,18 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
       </article>)}
     </div>}
     <div className="note-composer">
-      <textarea value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={`Note on ${objectTitle}`} />
-      <small className="note-mention-hint">Use @Kavi, @Chris, @Juan, or @Kyle to mention a companion.</small>
-      {mentionPreview.length > 0 && <div className="note-mention-preview" aria-label="Recognized mentions">
+      <textarea disabled={!canEdit} value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={canEdit ? `Note on ${objectTitle}` : 'Read-only — connect and sign in to add a private note'} />
+      <small className="note-mention-hint">{privateExhibitor ? 'Your exhibitor notes are private.' : 'Use @Kavi, @Chris, @Juan, or @Kyle to mention a companion.'}</small>
+      {!privateExhibitor && mentionPreview.length > 0 && <div className="note-mention-preview" aria-label="Recognized mentions">
         <span>Will notify</span>
         {mentionPreview.map(item => <strong key={item.key}><PersonBubbles people={[item.person]} />{item.token}</strong>)}
       </div>}
       <div className="note-composer-actions">
         <label className="note-private-inline">
           <span>Private only me</span>
-          <input type="checkbox" checked={visibility === 'private'} onChange={event => setVisibility(event.target.checked ? 'private' : 'shared')} />
+          <input type="checkbox" checked={privateExhibitor || visibility === 'private'} disabled={privateExhibitor} onChange={event => setVisibility(event.target.checked ? 'private' : 'shared')} />
         </label>
-        <button type="button" className="note-save" onClick={submit} disabled={!body.trim()}>Save note</button>
+        <button type="button" className="note-save" onClick={submit} disabled={!canEdit || !body.trim()}>Save note</button>
       </div>
     </div>
   </section>
@@ -5345,13 +5375,33 @@ function InfoCatalogsPreview({ onOpenObject, showMatchReview = false, catalogRea
   </section>
 }
 
-function InfoSurface({ topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
+  const links = [
+    { label: 'Official exhibitor profile', url: safeExhibitorUrl(exhibitor.profileUrl) },
+    { label: 'Exhibitor website', url: safeExhibitorUrl(exhibitor.website) },
+    { label: 'Store', url: safeExhibitorUrl(exhibitor.storeUrl) },
+  ].filter(link => link.url)
+  return {
+    id: exhibitorObjectId(exhibitor.id), kind: 'exhibitor', eyebrow: 'EXHIBITORS', title: exhibitor.name,
+    summary: exhibitor.description || 'No description published in the official directory.',
+    facts: [{ label: 'Booth', value: exhibitor.booth || 'Not listed' }],
+    links,
+    exhibitorOffers: [
+      { title: 'Show specials', offers: exhibitor.specials ?? [] },
+      { title: 'Exclusives', offers: exhibitor.exclusives ?? [] },
+    ].filter(section => section.offers.length).map(section => ({ ...section, offers: section.offers.map(offer => ({ ...offer, url: safeExhibitorUrl(offer.url || offer.link || '') })) })),
+    source: { label: exhibitor.id.startsWith('qa-') ? 'QA sample content' : 'Official MagicCon Atlanta exhibitor directory', value: exhibitor.id.startsWith('qa-') ? 'Sample listing for local verification.' : 'Description, booth, and published offers from the official listing.' },
+    backlinks: [{ label: 'Back to Info', destination: 'info' }],
+  }
+}
+
+function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const qaFlags = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
   const catalogMatchReviewEnabled = canUseCatalogImport && qaFlags.includes('catalog-match-review')
   const catalogBrowserQa = canUseCatalogImport && qaFlags.includes('catalog-browser')
   const catalogImportQa = canUseCatalogImport && qaFlags.includes('catalog-import-lab')
   const catalogsEnabled = catalogReadModel.offers.length > 0 || canUseCatalogImport
-  const [mode, setMode] = useState<'guide' | 'catalogs' | 'import'>(catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa ? 'catalogs' : 'guide')
+  const [mode, setMode] = useState<'guide' | 'catalogs' | 'import' | 'exhibitors'>(qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa ? 'catalogs' : 'guide')
   const visibleTopics = publishedInfoTopics(topics).map(topic => topic.topic_key === 'ticketed-play' && ticketedPlaySaleHasOpened()
     ? {
         ...topic,
@@ -5367,10 +5417,12 @@ function InfoSurface({ topics, feed, catalogReadModel, currentOwnerId, canEditCa
   return <section className="info-surface" aria-label="Info">
     <div className="trip-tabs" role="tablist" aria-label="Info view">
       <button type="button" role="tab" aria-selected={mode === 'guide'} className={mode === 'guide' ? 'active' : ''} onClick={() => setMode('guide')}>Guide</button>
+      <button type="button" role="tab" aria-selected={mode === 'exhibitors'} className={mode === 'exhibitors' ? 'active' : ''} onClick={() => setMode('exhibitors')}>Exhibitors</button>
       {catalogsEnabled && <button type="button" role="tab" aria-selected={mode === 'catalogs'} className={mode === 'catalogs' ? 'active' : ''} onClick={() => setMode('catalogs')}>Catalogs</button>}
       {canUseCatalogImport && <button type="button" role="tab" aria-selected={mode === 'import'} className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>Import</button>}
     </div>
     {mode === 'guide' && <InfoGuide topics={visibleTopics} feed={visibleFeed} onOpenObject={onOpenObject} />}
+    {mode === 'exhibitors' && <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />}
     {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} />}
     {mode === 'import' && canUseCatalogImport && <CatalogImportLab initialBatch={catalogImportPreviewBatch} canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />}
   </section>

@@ -425,6 +425,10 @@ If `actions/configure-pages` reports `Get Pages site failed` with `Not Found`, t
 - Apply hosted database changes through the connected Supabase MCP/tooling after proving project ref `pavjsexxbueuzhzgemgy`.
 - Do not retry the same CLI command first; that just burns time on a known sandbox edge.
 
+### Historical remote-only migrations block CLI db push
+
+October 7: the linked database retains older hosted migration versions that have no local files. `supabase db push` therefore refuses even a new reviewed migration. Do not mark those historical versions reverted or pull/overwrite schema as a workaround. For a bounded reviewed change, use the canonical ignored Session Pooler connection and execute the exact migration file plus its matching migration-history registration in one `psql --single-transaction -v ON_ERROR_STOP=1` operation. Prove canonical project identity first, then check live schema/RLS and `pnpm readiness`. This preserves existing history; it is not a repair of the historical gap.
+
 ### Hosted migration version drift after MCP apply
 
 **Symptom:** a migration applies successfully through the hosted Supabase tool, but the locally guessed timestamp does not match the hosted migration version, so `pnpm readiness` reports migration identity drift.

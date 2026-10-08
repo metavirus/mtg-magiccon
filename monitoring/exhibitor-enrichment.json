@@ -1,0 +1,55 @@
+{
+  "669990": {
+    "sourceName": "Card Kingdom",
+    "sourceDescriptionSha256": "47a67f38fe14f706ed06173a9137247ae1da444856f6d0db9609fc7b5d36b0d2",
+    "aliases": [],
+    "visitReason": "Community activities and events; not buying or selling cards at this show.",
+    "provenance": {
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669990",
+      "reviewedAt": "2026-10-08",
+      "field": "description",
+      "evidence": "Card Kingdom will have a variety of community activities and events at the show, and will not be buying or selling cards at the event.",
+      "reason": "The show-specific restriction is more useful than the retailer's general inventory description."
+    }
+  },
+  "671333": {
+    "sourceName": "Dragon Shield",
+    "sourceDescriptionSha256": "463e61787a460191a417fd62bca6cda87544d7b52cd9be8a83a6e832c2f3bdef",
+    "sourceBooth": "2059, 9317",
+    "aliases": [],
+    "visitReason": "Show exclusives and live product demos at booth 2059; the directory also lists booth 9317 without a stated purpose.",
+    "provenance": {
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671333",
+      "reviewedAt": "2026-10-08",
+      "field": "description and booth",
+      "evidence": "Visit our dragons at Booth 2059 for show exclusives, live demos of new products, and all the gear you need for an epic weekend at MagicCon Atlanta!",
+      "reason": "Distinguish the explicitly described booth from the additional booth number without assigning it an invented activity."
+    }
+  },
+  "670837": {
+    "sourceName": "ManaTrust Trading SRL",
+    "sourceDescriptionSha256": "d8134b3fac85d4b4cf6b1e27ab5e6f9aaa0d6153d3cd49cb93bc3f9f92cf8c90",
+    "aliases": ["Pro-Play Games", "Pro Play Games"],
+    "visitReason": "Pro-Play Games: singles, sealed products, accessories, advance-order pickup, and drop-off card valuations.",
+    "provenance": {
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670837",
+      "reviewedAt": "2026-10-08",
+      "field": "description",
+      "evidence": "Pro-Play Games is bringing Miami to MagicCon Atlanta! Visit us onsite for a huge selection of Magic: The Gathering singles, sealed products, accessories, and more.",
+      "reason": "The record itself identifies Pro-Play Games and separately states event pickup and drop-off card valuations; aliases support finding this legal-name listing."
+    }
+  },
+  "669997": {
+    "sourceName": "heo GmbH",
+    "sourceDescriptionSha256": "fa0a3bee0d5aebcc3cb513b2104fa662b0cdb2a282f465c7c0dddd6c4528ceb7",
+    "aliases": ["Ultimate Guard"],
+    "visitReason": "Ultimate Guard accessories, event exclusives, product engraving, and band playmat signings.",
+    "provenance": {
+      "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669997",
+      "reviewedAt": "2026-10-08",
+      "field": "description",
+      "evidence": "Premium TCG accessories manufacturer Ultimate Guard returns to MagicCon: Atlanta 2026 with our popular booth, spectacular event-exclusive products and plenty of action for fans!",
+      "reason": "The same description explicitly offers engraving and bands signing playmats; the brand alias makes this legal-name listing discoverable."
+    }
+  }
+}

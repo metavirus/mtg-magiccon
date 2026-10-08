@@ -12,6 +12,7 @@ import { assertSupportedSurveyorCatches, completeSurveyorClosureManifest, pendin
 import { validateSurveyorClosureManifest } from './lib/surveyor_closure_contract.mjs'
 import { findingIsHomeWorthy, findingMayBypassConceptReadModel } from '../src/lib/monitoringFindings.ts'
 import { planAnnouncementContentContinuity } from './lib/announcement_content_continuity.mjs'
+import { projectReviewedExhibitorDirectory } from './lib/exhibitor_directory_projection.mjs'
 
 const reportPath = process.argv[2]
 if (!reportPath) throw new Error('Usage: pnpm monitor:stage <monitor-report.json>')
@@ -371,6 +372,13 @@ for (const row of candidateRows.filter(row => row.evidence.home_signal_kind === 
     readbacks: [{ system: 'supabase', relation: 'monitoring_findings', match: { fingerprint: row.fingerprint }, observed: { id: actual.id, status: actual.status, destination: actual.destination, title: actual.title, summary: actual.summary, evidence: actual.evidence, app_projection_verified: true } }],
     rationale: 'Exact announcement content read back and passed the app Home selection rules; existing read/archive choice preserved.',
   })
+}
+
+// Only exact reviewed feed catches may replace the canonical directory. Keep
+// prior Home targets/readbacks when adding this independent publication proof.
+for (const candidate of candidateRows) {
+  const projection = await projectReviewedExhibitorDirectory(client, candidate, report.checkedAt)
+  if (projection) recordCandidateOutcome(candidate.fingerprint, projection)
 }
 
 const outcomes = new Map()
