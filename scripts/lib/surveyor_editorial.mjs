@@ -19,6 +19,7 @@ export function editorialDecision(row, decisions = {}) {
     return { ...override, reviewed: true }
   }
   if (evidence.initialSourceReview) return { disposition: 'pending', reason: 'New source content requires an exact reviewed onboarding decision; fetching it is not review.' }
+  if (evidence.current?.exhibitorDirectory) return { disposition: 'pending', reason: 'Exhibitor directory changed; inspect the retained roster and resolve the exact fingerprint before accepting it.' }
   if (evidence.current?.gatheringGrounds) return { disposition: 'pending', reason: 'Gathering Grounds schedule changed; inspect the retained sessions and resolve the exact fingerprint before accepting it.' }
   if (!official(row.source_url)) return { disposition: 'pending', reason: 'Source requires agent interpretation.' }
   if (evidence.geographicRelevance === 'uncertain') return { disposition: 'pending', reason: 'Article was inspected but Atlanta relevance is uncertain; agent must review before routing.' }

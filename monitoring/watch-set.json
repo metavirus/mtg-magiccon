@@ -344,12 +344,20 @@
       "destination": "Home",
       "homeWorthyWhen": "material Atlanta-specific attendee information, named guests, schedules, policies, or verified inventory appears or changes",
       "trackLinks": true,
+      "exhibitorDirectoryFeed": {
+        "publicEventKey": "d33e6b91-2a8f-4e35-970c-752c447b23ed",
+        "eventId": "21389",
+        "eventSlug": "htwhdatl26shdl10",
+        "categoryId": "20590"
+      },
       "initialReview": {
-        "reviewedAt": "2026-09-20T02:52:09.798Z",
-        "contentHash": "7d501cbdead0c1e8051dca9a76365ac3f6977f65b029b3d83833f5ba225a9a81",
+        "reviewedAt": "2026-10-08T00:06:52Z",
+        "contentHash": "b6797f0b25a523d171a9cfc6c59c974853052d2a92ea7df562adcf6dcc73370d",
         "contentLinkHash": "535179f4ef72f8653e5824507c97456c2d0df1c6c5c6ad699fbbb470e009d797",
-        "disposition": "noise",
-        "reason": "Generic marketplace introduction; linked exclusives/specials are heading-only. No verified Atlanta inventory in fetched content."
+        "disposition": "home",
+        "title": "Atlanta exhibitor directory is available",
+        "summary": "The official Atlanta directory lists 65 exhibitors with booth numbers, including Dragon Shield, Card Kingdom, Star City Games and RockLove Jewelry. Card Kingdom's profile says it will host community activities rather than buy or sell cards. Browse the directory to plan marketplace visits.",
+        "reason": "Reviewed October 7 owning-page widget and its exact LEAP category 20590 feed: event 21389, Atlanta 2026 slug htwhdatl26shdl10, 65 distinct exhibitors with booths and 33 descriptions. This useful directory is separate from Show Store, Black Lotus Store and Prize Wall catalog inventory. Publication date is unspecified; future changed feed bytes require fresh editorial review."
       }
     },
     {

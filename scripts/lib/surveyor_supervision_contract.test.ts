@@ -36,4 +36,13 @@ describe('supervisor must finish agent-owned work before quiet completion', () =
     const report = quiet()
     expect(() => validateSurveyorSupervisionCompletion({ ...report, checkedAt: '2026-10-02T12:00:00Z' }, closed(report))).toThrow(/checkedAt does not match/)
   })
+  it('requires exact Atlanta exhibitor feed coverage in real cloud reports', () => {
+    const coverage = { status: 'complete', configuredCount: 1, checkedCount: 1, sources: [{ id: 'atlanta-experience-exhibitors', eventId: '21389', eventSlug: 'htwhdatl26shdl10', categoryId: '20590', count: 65, rosterHash: 'a'.repeat(64) }] }
+    const report = { ...quiet(), sourceCount: 50, exhibitorDirectoryCoverage: coverage }
+    expect(validateSurveyorSupervisionCompletion(report, closed(report)).status).toBe('complete')
+    for (const exhibitorDirectoryCoverage of [undefined, { ...coverage, checkedCount: 0 }, { ...coverage, configuredCount: 0 }, { ...coverage, sources: [{ ...coverage.sources[0], eventId: 'wrong' }] }, { ...coverage, sources: [{ ...coverage.sources[0], count: 0 }] }]) {
+      const invalid = { ...report, exhibitorDirectoryCoverage }
+      expect(() => validateSurveyorSupervisionCompletion(invalid, closed(invalid))).toThrow(/exhibitor directory coverage/)
+    }
+  })
 })

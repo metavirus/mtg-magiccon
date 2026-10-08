@@ -12,6 +12,7 @@ import { activeDetailCoverageExclusions, relevantDetailCoverageGaps, retainedDet
 import { sourceOnboardingReview } from './lib/monitoring_source_onboarding.mjs';
 import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
 import { artistDirectoryFingerprint } from './lib/artist_directory_feed.mjs';
+import { exhibitorDirectoryFingerprint } from './lib/exhibitor_directory_feed.mjs';
 import { gatheringGroundsFingerprint } from './lib/gathering_grounds_feed.mjs';
 
 const root = process.cwd();
@@ -310,6 +311,8 @@ async function fetchSource(source) {
   const page = pageContentFingerprint(html, source.url);
   const content = source.artistDirectoryFeed
     ? await artistDirectoryFingerprint({ html, sourceUrl: source.url, config: source.artistDirectoryFeed, page, fetchText })
+    : source.exhibitorDirectoryFeed
+      ? await exhibitorDirectoryFingerprint({ html, sourceUrl: source.url, config: source.exhibitorDirectoryFeed, page, fetchText })
     : source.gatheringGroundsFeed
       ? await gatheringGroundsFingerprint({ html, sourceUrl: source.url, config: source.gatheringGroundsFeed, page })
       : page;
@@ -323,7 +326,7 @@ async function fetchSource(source) {
     status,
     ok,
     title: extractTitle(html),
-    textHash: hashText(normalizedText + (content.artistDirectory?.rosterHash ?? '') + (content.gatheringGrounds?.scheduleHash ?? '')),
+    textHash: hashText(normalizedText + (content.artistDirectory?.rosterHash ?? '') + (content.exhibitorDirectory?.rosterHash ?? '') + (content.gatheringGrounds?.scheduleHash ?? '')),
     ...content,
     linkHash: hashText(linkRecords.map(compactLinkRecord).join('\n')),
     textSample: normalizedText.slice(0, 12000),
@@ -515,6 +518,12 @@ const output = {
     checkedCount: results.filter(result => result.artistDirectory).length,
     status: results.filter(result => result.artistDirectory).length === watchSet.sources.filter(source => source.artistDirectoryFeed).length ? 'complete' : 'partial',
     sources: results.filter(result => result.artistDirectory).map(result => ({ id: result.id, ...result.artistDirectory, artists: undefined })),
+  },
+  exhibitorDirectoryCoverage: {
+    configuredCount: watchSet.sources.filter(source => source.exhibitorDirectoryFeed).length,
+    checkedCount: results.filter(result => result.exhibitorDirectory).length,
+    status: results.filter(result => result.exhibitorDirectory).length === watchSet.sources.filter(source => source.exhibitorDirectoryFeed).length ? 'complete' : 'partial',
+    sources: results.filter(result => result.exhibitorDirectory).map(result => ({ id: result.id, ...result.exhibitorDirectory, exhibitors: undefined })),
   },
   detailPageCoverage: { gapCount: state.detailCoverageGaps.length, gaps: state.detailCoverageGaps, exclusions: activeDetailCoverageExclusions(watchSet.detailCoverageExclusions, checkedAt), scope: 'configured watched pages, current relevant first-party links reconciled against watches and dated exclusions, and discovered official news-index articles; no recursive crawler' },
   changeCount: changes.length,

@@ -1,4 +1,22 @@
 {
+  "38e170b2233c53464c12560f67ea21bbd7d25912dc033dbae1d346361c86415e": {
+    "disposition": "noise",
+    "reason": "Compared exact October 7 retained official Home main content with its accepted sample: the Badge and Ticketed Play carousel slides and their repeated labels swap order. All substantive announcement, dates, World Championship 32, Reality Fracture, application deadlines and calls to action are unchanged; content link delta is empty. Shared navigation adds already watched experience pages. No new planning fact or inventory release in this catch."
+  },
+  "3613c0611509f26ebb8f29d48b73bc0267790eb7b1d690b1a6f4fa786d682d4e": {
+    "disposition": "noise",
+    "reason": "Exact October 7 retained Experience overview only removes Coming Soon from the Exhibitors tile. All other substantive overview wording and links are unchanged. The owning Exhibitors page now embeds a real event-bound directory, separately reviewed and bound to its official feed for one precise Home announcement; avoid duplicate overview cards."
+  },
+  "e33c20f561fcd7640eb5dfd8608c548f5c7cbba663630c9673f3f9ef3fc0263d": {
+    "disposition": "noise",
+    "reason": "Exact October 7 retained static Exhibitors sample adds only a duplicate Exhibitors heading; its introduction and three content links are unchanged. Supplemental review of the owning page found the official Atlanta category 20590 feed with 65 exhibitors and booths. The retained catch omits that feed, so publish the directory from the separately reviewed exact feed-bound onboarding rather than duplicate this shell or mistake roster entries for Show Store, Black Lotus Store or Prize Wall inventory."
+  },
+  "d80d347bf709fa32d88215d69e1a0aa2866863b65034e367a067167d90cbd60b": {
+    "disposition": "home",
+    "title": "Premium Single Day badges now marked sold out",
+    "summary": "Atlanta's Buy Badges page now marks Premium Single Day badges SOLD OUT and removes the remaining Buy Badge controls. The Family Spark Bundle purchase block is also gone; its availability is not stated in the retained page.",
+    "reason": "Compared exact October 7 retained main content with its accepted previous sample: Premium Single Day and Family Spark Bundle were the two remaining purchase blocks. Premium Single Day now explicitly appears under SOLD OUT, while Family Spark Bundle disappears without an explicit sellout label. Other badge sellout labels, operating hours, pickup hours and shipping/refund policy are unchanged. Useful factual low-urgency update; do not infer Family Spark sellout."
+  },
   "104f6b0abf56ed31231dbba34277cff94d529cc5d7bf78d32e62ea76d2b66bca": {
     "disposition": "home",
     "title": "Izzy lists signing and merchandise plans for Atlanta",
