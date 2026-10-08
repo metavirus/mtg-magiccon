@@ -1,4 +1,10 @@
 {
+  "ff2922fab73f39d2069f533280771a554780deabc888ef383a2721fd0c434e09": {
+    "disposition": "home",
+    "title": "Exhibitor specials: Atlanta sleeves, playmats and pickup options",
+    "summary": "The official exhibitor listings include Dragon Shield's Atlanta-exclusive Elesh Norn sleeves at booth 2059, Gatherers' Tavern Atlanta playmats and accessories at 3079, and Baron of Dice's MagicCon playmat at 6072. Browse Info → Exhibitors for the full directory and vendor-posted offers, including advance-order pickup deadlines. Offers are vendor claims, not stock guarantees.",
+    "reason": "Reviewed the exact October 8 retained cloud feed against the raw official event/category-bound capture: 65 exhibitors and 44 structured offers across 19 exhibitors. This repair recovers previously lossy offer evidence, not a second roster release. Same roster and booths; useful existing promotions deserve one clear Home synopsis. Preserve all source offer descriptions, including vendor caveats and stale image references, without turning blanket exclusives booleans or zero-price placeholders into factual exclusive/free inventory claims. Projection publishes the exact reviewed roster with private saves and notes."
+  },
   "38e170b2233c53464c12560f67ea21bbd7d25912dc033dbae1d346361c86415e": {
     "disposition": "noise",
     "reason": "Compared exact October 7 retained official Home main content with its accepted sample: the Badge and Ticketed Play carousel slides and their repeated labels swap order. All substantive announcement, dates, World Championship 32, Reality Fracture, application deadlines and calls to action are unchanged; content link delta is empty. Shared navigation adds already watched experience pages. No new planning fact or inventory release in this catch."

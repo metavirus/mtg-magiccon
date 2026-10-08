@@ -5384,13 +5384,18 @@ function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
   return {
     id: exhibitorObjectId(exhibitor.id), kind: 'exhibitor', eyebrow: 'EXHIBITORS', title: exhibitor.name,
     summary: exhibitor.description || 'No description published in the official directory.',
-    facts: [{ label: 'Booth', value: exhibitor.booth || 'Not listed' }],
+    facts: [
+      { label: 'Booth', value: exhibitor.booth || 'Not listed' },
+      ...(exhibitor.aliases.length ? [{ label: 'Also known as', value: exhibitor.aliases.join(' · ') }] : []),
+    ],
+    rationale: exhibitor.visitReason || undefined,
+    rationaleLabel: 'Worth knowing',
     links,
     exhibitorOffers: [
       { title: 'Show specials', offers: exhibitor.specials ?? [] },
       { title: 'Exclusives', offers: exhibitor.exclusives ?? [] },
     ].filter(section => section.offers.length).map(section => ({ ...section, offers: section.offers.map(offer => ({ ...offer, url: safeExhibitorUrl(offer.url || offer.link || '') })) })),
-    source: { label: exhibitor.id.startsWith('qa-') ? 'QA sample content' : 'Official MagicCon Atlanta exhibitor directory', value: exhibitor.id.startsWith('qa-') ? 'Sample listing for local verification.' : 'Description, booth, and published offers from the official listing.' },
+    source: { label: exhibitor.id.startsWith('qa-') ? 'QA sample content' : 'Official MagicCon Atlanta exhibitor directory', value: exhibitor.id.startsWith('qa-') ? 'Sample listing for local verification.' : 'Vendor-submitted descriptions, booths and offers. Confirm current terms with the exhibitor; listed offers are not stock or availability guarantees.' },
     backlinks: [{ label: 'Back to Info', destination: 'info' }],
   }
 }
