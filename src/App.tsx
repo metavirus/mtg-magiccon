@@ -1920,9 +1920,12 @@ export default function App() {
   }
   const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems, Date.now(), currentCompanion?.name ?? 'Kavi') : []
   const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
-  const saleInboxSignal = activityItems.find(item => item.monitoringFinding?.destination === 'Inbox' && !findingIsRoutineSellout(item.monitoringFinding))
-    ?? activityItems.find(item => isFeaturedTicketedPlaySale(item, Date.now()))
-  const shiverSignal = saleInboxSignal?.reviewState === 'needs-review' ? saleInboxSignal : undefined
+  const inboxSignals = activityItems.filter(item => {
+    const finding = item.monitoringFinding
+    if (finding && findingIsRoutineSellout(finding)) return false
+    if (finding?.evidence.home_signal_kind === 'interesting_announcement') return announcementIsCurrent(finding)
+    return finding?.destination === 'Inbox' || isFeaturedTicketedPlaySale(item, Date.now())
+  }).sort((a, b) => Date.parse(b.checkedAtIso) - Date.parse(a.checkedAtIso))
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
   const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
   const headerSubtitle = surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
@@ -2032,9 +2035,9 @@ export default function App() {
             </details>}
             <MentionInbox
               items={mentionInboxState}
-              alert={saleInboxSignal}
+              alerts={inboxSignals}
               onOpenMention={openMentionNote}
-              onOpenAlert={() => { if (saleInboxSignal) openActivityItem(saleInboxSignal) }}
+              onOpenAlert={openActivityItem}
               onDismissAlert={item => setActivityReviewState(item, 'archived')}
               onRestoreAlert={item => setActivityReviewState(item, 'needs-review')}
               onDismissMention={item => { void setMentionDismissed(item.id, true) }}
@@ -7438,9 +7441,9 @@ function OnboardingTutorial({ surface, onNavigate, onMobileMenuChange, onClose }
   </div>
 }
 
-function MentionInbox({
+export function MentionInbox({
   items,
-  alert,
+  alerts,
   onOpenMention,
   onOpenAlert,
   onDismissAlert,
@@ -7449,20 +7452,20 @@ function MentionInbox({
   onRestoreMention,
 }: {
   items: MentionInboxItem[]
-  alert?: ActivityItem
+  alerts: ActivityItem[]
   onOpenMention: (note: ContextNote) => void
-  onOpenAlert: () => void
+  onOpenAlert: (item: ActivityItem) => void
   onDismissAlert: (item: ActivityItem) => void
   onRestoreAlert: (item: ActivityItem) => void
   onDismissMention: (item: MentionInboxItem) => void
   onRestoreMention: (item: MentionInboxItem) => void
 }) {
   const { active, dismissed } = partitionMentionInboxItems(items)
-  const alertDismissed = alert?.reviewState === 'archived'
-  const activeAlert = alert && !alertDismissed ? alert : undefined
-  const ticketedSelloutAlert = alert?.monitoringFinding?.destination === 'Inbox'
-  const unread = active.length + (activeAlert ? 1 : 0)
-  const dismissedCount = dismissed.length + (alertDismissed ? 1 : 0)
+  const activeAlerts = alerts.filter(item => item.reviewState === 'needs-review')
+  const dismissedAlerts = alerts.filter(item => item.reviewState === 'archived')
+  const urgent = activeAlerts.some(item => item.severity === 'hot')
+  const unread = active.length + activeAlerts.length
+  const dismissedCount = dismissed.length + dismissedAlerts.length
 
   const mentionButton = (item: MentionInboxItem) => <button
     type="button"
@@ -7482,34 +7485,34 @@ function MentionInbox({
     <i aria-hidden="true">›</i>
   </button>
 
-  const openAlertButton = (event: MouseEvent<HTMLButtonElement>) => {
+  const openAlertButton = (event: MouseEvent<HTMLButtonElement>, item: ActivityItem) => {
     const root = event.currentTarget.closest('details.mention-inbox')
     if (root instanceof HTMLDetailsElement) root.open = false
-    onOpenAlert()
+    onOpenAlert(item)
   }
 
-  return <details className={`mention-inbox ${activeAlert ? 'has-urgent' : ''}`}>
-    <summary aria-label={`Mentions${unread ? `, ${unread} unread` : ''}`}>
+  return <details className={`mention-inbox ${urgent ? 'has-urgent' : ''}`}>
+    <summary aria-label={`Inbox${unread ? `, ${unread} unread` : ''}`}>
       <svg className="mention-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <rect x="4" y="6" width="16" height="12" rx="2" />
         <path d="m4 8 8 6 8-6" />
       </svg>
-      {activeAlert && <span className="mention-shiver-bell" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></svg></span>}
+      {urgent && <span className="mention-shiver-bell" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></svg></span>}
       {unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}
     </summary>
     <div className="mention-popover">
       <header>
-        <span className="eyebrow">MENTIONS</span>
+        <span className="eyebrow">INBOX</span>
         <strong>{unread ? `${unread} for you` : 'Nothing waiting'}</strong>
       </header>
-      {activeAlert && <div className="mention-row mention-alert-row">
-        <button type="button" className="mention-item mention-alert-item" onClick={openAlertButton}>
+      {activeAlerts.map(alert => <div className="mention-row mention-alert-row" key={alert.id}>
+        <button type="button" className="mention-item mention-alert-item" onClick={event => openAlertButton(event, alert)}>
           <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
-          <span><strong>{ticketedSelloutAlert ? alert?.title : 'Ticketed Play is up for sale!'}</strong><small>{ticketedSelloutAlert ? alert?.summary : 'Sales are open now.'}</small><em>{ticketedSelloutAlert ? 'A selected event sold out. Open the alert for the retained source evidence.' : 'Open the signal for purchasing details.'}</em></span>
+          <span><strong>{alert.title}</strong><small>{alert.summary}</small></span>
           <i aria-hidden="true">›</i>
         </button>
-        <button className="mention-dismiss" type="button" aria-label="Dismiss Ticketed Play sale alert" title="Dismiss" onClick={() => onDismissAlert(activeAlert)}>×</button>
-      </div>}
+        <button className="mention-dismiss" type="button" aria-label={`Dismiss ${alert.title}`} title="Dismiss" onClick={() => onDismissAlert(alert)}>×</button>
+      </div>)}
       {active.length
         ? <div className="mention-list">
           {active.map(item => <div className="mention-row" key={item.id}>
@@ -7521,14 +7524,14 @@ function MentionInbox({
       {dismissedCount > 0 && <details className="mention-dismissed">
         <summary>Dismissed <b>{dismissedCount}</b></summary>
         <div className="mention-list">
-          {alertDismissed && alert && <div className="mention-row dismissed mention-alert-row">
-            <button type="button" className="mention-item mention-alert-item" onClick={openAlertButton}>
+          {dismissedAlerts.map(alert => <div className="mention-row dismissed mention-alert-row" key={alert.id}>
+            <button type="button" className="mention-item mention-alert-item" onClick={event => openAlertButton(event, alert)}>
               <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
-              <span><strong>{ticketedSelloutAlert ? alert.title : 'Ticketed Play is up for sale!'}</strong><small>{ticketedSelloutAlert ? alert.summary : 'Sales are open now.'}</small><em>Dismissed alert</em></span>
+              <span><strong>{alert.title}</strong><small>{alert.summary}</small><em>Dismissed alert</em></span>
               <i aria-hidden="true">›</i>
             </button>
-            <button className="mention-restore" type="button" aria-label="Restore Ticketed Play sale alert" onClick={() => onRestoreAlert(alert)}>Restore</button>
-          </div>}
+            <button className="mention-restore" type="button" aria-label={`Restore ${alert.title}`} onClick={() => onRestoreAlert(alert)}>Restore</button>
+          </div>)}
           {dismissed.map(item => <div className="mention-row dismissed" key={item.id}>
             {mentionButton(item)}
             <button className="mention-restore" type="button" aria-label={`Restore mention from ${item.note.author}`} onClick={() => onRestoreMention(item)}>Restore</button>

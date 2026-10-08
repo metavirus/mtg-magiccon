@@ -13,6 +13,17 @@ Current acceptance is owned by `CURRENT_FRONTIER.md`; dated completed entries be
 - [x] Prevent the seven-card Info Recent recurrence: one current meaningful card per stable concept, retained superseded history, and internal-only link discovery.
 - [x] Group Home Worth Knowing items into `Recent` (past few days) and `Earlier` (past couple weeks) while allowing the surface to grow naturally rather than hiding older useful items in an internal scroll box.
 
+## Exhibitor release — October 7 Astra review
+
+The official directory provides 65 stable exhibitor records with booth text and profile links. Review of retained run `37706660094` found 33 descriptions/websites, 29 store URLs and 32 images. Split `MAP-LATER-07`: the nonspatial directory can proceed before the map; reviewed booth placement still depends on map arrival.
+
+- [ ] **First — preserve promotion evidence:** inspect the raw official feed and repair `exhibitor_directory_feed.mjs`. Structured `specials` currently becomes `[object Object]`, and nonstring `exclusives` is discarded. Preserve structured content deterministically and test that changed content with the same number of offers changes the fingerprint. Existing roster/booth coverage remains valid; promotion coverage is incomplete.
+- [ ] **Next — compact Info → Exhibitors:** hydrate all 65 source-backed entities, search names/booths/reviewed aliases, and reuse the existing detail drawer. Show short visit reasons only where supported. Add one Saved filter and private saves/notes using canonical owner state. Extend object kinds honestly for exhibitors; the shared-default note composer and companion-visible catalog interests cannot be reused unchanged. Verify owner isolation.
+- [ ] **Review useful booth details:** Ultimate Guard (source name heo GmbH, 4061) lists named exclusives and engraving; Baron of Dice (6072) lists an exclusive playmat; RockLove (3070) lists an in-person necklace debut, which is not proof of exclusivity; Card Kingdom (3098) explicitly offers activities without card buying/selling. Dragon Shield lists 2059 and 9317 but associates its exclusives/demos specifically with 2059. Keep publisher descriptions separate from reviewed highlights; publisher featured status is not personal relevance.
+- [ ] **At map arrival — reviewed booth joins:** six exhibitors have multiple booths; booth codes 2117, 4089, 4109 and 5117 occur under multiple entities. Preserve raw booth text and stable source IDs, support many-to-many bindings, and review shared/disputed assignments against the map. Never infer geometry from booth numbers. Keep card dealers discoverable while reducing their visual emphasis; saved booths remain prominent.
+
+Product inventory, prices, item-level wishes and catalog activation still require reviewed product evidence. A directory alone does not activate Show Store, Black Lotus Store or Prize Wall catalogs. Avoid a new top-level navigation item or a separate vendor-management system.
+
 ## Semantic Map miniproject
 
 Canonical plan: `docs/SEMANTIC_MAP_MINIPROJECT_PLAN.md`. Active semantic model: `docs/MAP_SEMANTIC_DATA_CONTRACT.md`. Arrival procedure: `docs/MAP_INGESTION_RUNBOOK.md`. “Safe now” permits only contracts, quarantined historical/synthetic fixtures, tooling, and rehearsal. “Must wait” forbids every Atlanta 2026 spatial assertion until a first-party original passes the arrival runbook. Historical Atlanta 2025 is structural reference only; its user-confirmed west-up orientation is never inherited by 2026.

@@ -2,6 +2,12 @@
 
 Updated: 2026-10-07
 
+## October 7 envelope and Marketplace follow-up
+
+The envelope now projects current unread official announcements alongside existing alerts and mentions, using the same read/archive state and seven-day announcement age. Routine sellouts remain excluded. It supports multiple entries instead of a single Ticketed Play alert, with phone-height scrolling and accurate titles. Regression tests cover multiple announcements, read/dismissed state and opening the selected item.
+
+The Astra Marketplace review is recorded in `docs/WORK_BACKLOG.md`: begin with structured promotion retention, then a compact Info exhibitor directory with private saves/notes; spatial placement waits for the map. The current roster/booth feed is verified, but structured specials/exclusives are not yet retained faithfully, so promotion coverage is an explicit open item.
+
 ## October 7 exhibitor coverage — shipped and verified
 
 Commit `1310468` binds the official Exhibitors page to its Atlanta event/category feed: 65 exhibitors with booths, independently watched from catalog inventory. The supervision gate now rejects missing or invalid exhibitor coverage; static heading-only checks are not roster proof. Exact editorial decisions suppress duplicate overview/carousel changes and clarify Premium Single Day badge sellout without inferring Family Spark availability. Authenticated Home readback verified the exhibitor directory and badge cards.
@@ -65,7 +71,7 @@ The reviewed artist collection-refresh tooling is published and ready for a futu
 
 ## Next safe lanes
 
-The known monitoring gaps are closed at the October 4 verified checkpoint. Maintain dynamic artist and all four schedule feeds, continue through bounded editorial work, and re-review dated source exclusions by October 11; do not turn routine maintenance into owner homework. Family Magic's empty schedule remains explicitly awaiting publication, not a missing fetch.
+Maintain dynamic artist, exhibitor roster and all four schedule feeds, continue through bounded editorial work, and re-review dated source exclusions by October 11. The October 7 Marketplace review identified structured exhibitor promotion retention as the next bounded repair. Family Magic's empty schedule remains explicitly awaiting publication, not a missing fetch.
 
 1. When a new artist collection export arrives, use `docs/ARTIST_IMPORT_REFRESH.md`; review the delta before any authenticated database write.
 2. When the first Atlanta catalog releases, preserve the source and use the reviewed catalog intake/promotion path. Keep Catalogs hidden until a real reviewed Atlanta offer passes exact live readback.
