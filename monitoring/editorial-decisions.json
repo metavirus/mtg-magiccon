@@ -1,4 +1,22 @@
 {
+  "5c886f95e9ed0cf6e36a5e7e8d9cce692daf5b00a4d2ff0b7f4173e2820a49f9": {
+    "disposition": "home",
+    "title": "Welcome to WUBRG joins the Atlanta exhibitor directory",
+    "summary": "The official directory now lists 66 exhibitors, adding Welcome to WUBRG at booth 6099. TCGplayer's name was also standardized; its booth remains 2089. Browse Info → Exhibitors for the updated directory. No product or promotion details have been announced for the new booth.",
+    "reason": "Exact retained run 37850976917 roster comparison adds one ID, 672084, at booth 6099 and changes only the spelling of existing TCG Player ID 671382 to TCGplayer. New booth description and offers are empty: do not invent inventory or elevate a promotion. Publish the useful directory addition with exact canonical hydration/readback."
+  },
+  "2f8e66d5af41701c4200b742f37aa2d89dad0022faa55ad3a637b9f5cce5ec83": {
+    "disposition": "home",
+    "title": "Rachel Weeks joins Playchase: Hexhaven",
+    "summary": "The official Atlanta schedule adds Rachel Weeks to Playchase: Hexhaven alongside Ryan Omega, Reuben Bresler and DeQuan Watson (PowrDragn). The comedy game show remains Sunday, November 15, 3–4:30 PM at Mana Stage. All 48 session times and locations are unchanged.",
+    "reason": "Compared the exact retained current event-bound feed with prior retained run 37386855236, whose schedule hash cc68289dc0410ef2b9a5407903d490bd2f1406abb83b68d1d20cd69a8596de04 matches the accepted predecessor. Only session 954671 changes: Rachel Weeks ID 381048 is added to people and people_list. Titles, descriptions, times and locations otherwise match. Shared navigation churn is not the substantive finding."
+  },
+  "6b8f4f2cd945a64af58691809f838fb8f80aea49a00cf23e355e113bc087fca7": {
+    "disposition": "home",
+    "title": "The Council's Call now links to ticket checkout",
+    "summary": "The official immersive-dinner page now has Buy Now links to Atlanta's ticket checkout. The November 13 experience remains $299 per person, with 5:30–7:30 PM or 8:30–10:30 PM sessions, ages 21+, and an Atlanta badge required. Check checkout for current availability; a link alone does not guarantee seats.",
+    "reason": "Exact retained run 37850976917 main content adds three Buy Now labels and an official LEAP checkout destination. After removing those labels the substantive text matches its predecessor, including the published October 8 10 AM PT sale time. Useful purchase-path activation, not a new dinner announcement or verified seat inventory. Preserve existing terms and avoid claiming availability from a link."
+  },
   "ff2922fab73f39d2069f533280771a554780deabc888ef383a2721fd0c434e09": {
     "disposition": "home",
     "title": "Exhibitor specials: Atlanta sleeves, playmats and pickup options",
