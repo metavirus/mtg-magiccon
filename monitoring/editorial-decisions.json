@@ -1,4 +1,14 @@
 {
+  "bf4a0ba519f1835f987ef3a09f399874e1742dc5a4308eb8979e7718baf83cab": {
+    "disposition": "noise",
+    "reason": "Compared retained run 37994799873 with prior feed in run 37535105431 matching accepted roster hash 33ec10626620e2063f102ed69a48f6c3bbb869a4f60207ab858910fa84954101. The sole normalized artist-field change is kelogsloops ID 668839 imageUrl, from PNG to a new JPG. All 65 names, booths, descriptions and links are unchanged. Portrait asset refresh is not a new attendee announcement."
+  },
+  "fae8ef804f72b93056707b1ef670149b3b0722b3555b04c44430654d7926f49c": {
+    "disposition": "home",
+    "title": "Card Kingdom adds game shows and artist meetups",
+    "summary": "Card Kingdom's official booth 3098 listing now advertises daily team-based Magic trivia game shows and guest/artist meetups, including Josh Freydkis. Exact times are not listed yet. Browse Info → Exhibitors for the vendor's details; Card Kingdom still says it will not buy or sell cards at this event.",
+    "reason": "Exact retained run 37994799873 compared with accepted-hash predecessor in run 37850976917: same 66 exhibitors and booths. Card Kingdom adds three offers: quest-completion Monarch Coin while supplies last, daily Local Game Show, and meetups naming Josh Freydkis. Promote substantive participation/signings, not conditional giveaway scarcity or unspecified prizes. Retain the coin offer as ordinary vendor material. Sirius Dice adds generic company copy, store links and image mentioning Star Trek accessories, without specific exclusive inventory or attendee requirements; hydrate quietly rather than amplify it."
+  },
   "5c886f95e9ed0cf6e36a5e7e8d9cce692daf5b00a4d2ff0b7f4173e2820a49f9": {
     "disposition": "home",
     "title": "Welcome to WUBRG joins the Atlanta exhibitor directory",

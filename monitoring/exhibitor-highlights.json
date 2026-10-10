@@ -1,4 +1,19 @@
 {
+  "669990": {
+    "sourceName": "Card Kingdom",
+    "sourceBooth": "3098",
+    "summary": "Daily team-based Magic trivia game shows and guest/artist meetups including Josh Freydkis; times not yet listed.",
+    "reason": "Substantive booth participation and named artist meetups deserve discovery. Do not highlight conditional coin giveaways or unspecified prize hype. The booth is not buying or selling cards.",
+    "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669990",
+    "reviewedAt": "2026-10-10",
+    "evidence": {
+      "descriptionIncludes": [],
+      "offers": [
+        {"id":"64322","title":"Compete in Local Game Show!","description":"Assemble a team and test your Magic knowledge by attending our Local Game Show events each day for a chance to win fabulous prizes!","price":""},
+        {"id":"64323","title":"Special Guests and Artist Signings!","description":"Stop by our booth for exclusive meet and greets, including Josh Freydkis and other surprise guests and artists from the Magic community! Stay tuned to our social media channels for more information!","price":""}
+      ]
+    }
+  },
   "669992": {
     "sourceName": "RockLove Jewelry",
     "sourceBooth": "3070",
