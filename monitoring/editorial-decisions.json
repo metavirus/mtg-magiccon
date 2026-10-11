@@ -1,4 +1,8 @@
 {
+  "4dce9f26a560c66679de94d42d71c118dc2e032d517bc4b5010bb05d330105e3": {
+    "disposition": "noise",
+    "reason": "Exact retained run 38174355673 compared with accepted roster in run 38020540964: same 66 exhibitors, names and booths. Journey's End Games adds offer 64327, a QR-entry chance to win a collector box; raffle/unspecified odds is ordinary vendor promotion, not a distinctive exclusive or substantive booth experience. Victory Gems adds a Card Cache-branded description, unqualified website and image; retain the official identity without inventing a rename. Manamart adds generic collector marketing, website and logo. Preserve all vendor materials in directory hydration; none merits Home/envelope amplification under the reviewed promotion policy."
+  },
   "bf4a0ba519f1835f987ef3a09f399874e1742dc5a4308eb8979e7718baf83cab": {
     "disposition": "noise",
     "reason": "Compared retained run 37994799873 with prior feed in run 37535105431 matching accepted roster hash 33ec10626620e2063f102ed69a48f6c3bbb869a4f60207ab858910fa84954101. The sole normalized artist-field change is kelogsloops ID 668839 imageUrl, from PNG to a new JPG. All 65 names, booths, descriptions and links are unchanged. Portrait asset refresh is not a new attendee announcement."
