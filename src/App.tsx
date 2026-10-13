@@ -3785,6 +3785,23 @@ const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title
 ]
 
 const exploreEventCandidates: ExploreEvent[] = [
+  ...([
+    { id: 'program-954674', title: 'Spell Slayers Cast or Pass', day: 'Fri', time: '5-6 PM', location: 'Showcase Room', sourceId: '954674' },
+    { id: 'program-954669', title: 'Spell Slayers Live: Miss Blind Eternities Showdown', day: 'Sat', time: '6:45-9 PM', location: 'Mana Stage', sourceId: '954669' },
+    { id: 'program-955653', title: 'Meet Spell Slayers', day: 'Sun', time: '1-2 PM', location: 'Magic Meet & Greets', sourceId: '955653' },
+  ] as const).map(event => ({
+    id: event.id, title: event.title, day: event.day, time: event.time,
+    window: 'Scheduled program', price: 'included', kind: 'Convention program', type: 'info' as const,
+    format: event.day === 'Sun' ? 'Meet & greet' : 'Live show', tags: ['official atlanta', 'spell slayers', 'Bosco', 'Irene the Alien'],
+    state: 'none' as const, availability: 'open' as const, complexity: 'easy' as const,
+    complexityWhy: 'Watch or meet the creators; no game preparation required.',
+    fit: 'Spell Slayers appearance of particular interest to Juan and Kavi.',
+    detail: `${event.location}. Times are Atlanta local time. ${event.day === 'Sun' ? 'No preregistration; first come, first served.' : 'Official Atlanta program; admission is not a reserved seat.'}`,
+    officialUrl: `https://mcatlanta.mtgfestivals.com/en-us/experience/${event.day === 'Sun' ? 'meet-and-greets/schedule-event-information' : 'panels-and-events/panel-information'}.html?gtID=${event.sourceId}`,
+    decisionFacts: [{ label: 'Location', value: event.location }],
+    sourceNote: 'Official Atlanta event-bound schedule, verified October 13, 2026.',
+    planEffect: 'Keep the commitment visible even when it overlaps another confirmed or paid event.',
+  })),
   {
     id: 'bl-progressive-sealed',
     title: 'BL Progressive Sealed League',
