@@ -1,5 +1,11 @@
 # Known gremlins and how not to waste time on them
 
+## Schedule source accepted while selectable app events remain obsolete
+
+October 13 recurrence: the accepted cloud snapshot contained the complete updated Black Lotus page, but Explore/Plan still used August static events and TBD titles. The same consequence gap omitted 85 of 88 published panel/meet-and-greet/Gathering Grounds sessions, plus Council's Call's two dinner slots. Source/announcement closure was incorrectly treated as full ingestion; no acceptance check compared source evidence with the app schedule artifact.
+
+Reconcile every source session into the app-consumed reviewed JSON, preserving stable event IDs and personal selections. Black Lotus logistics must also replace stale Calendar claims; do not infer end times or purchase/attendance from entitlement. The mandatory `appProjectionCoverage` gate binds exact source content/links and projection bytes, including unchanged sources. Changed bytes hold acceptance until the supervisor reviews and publishes the full correction. See `SURVEYOR_RESILIENCE_CONTRACT.md`. A Home announcement alone never proves schedule hydration.
+
 ## LEAP schedule display times drift from official and checkout times
 
 October 13 run `38473528578` held coverage at 3/139 identities after LEAP rendered most starts five hours earlier than the official Atlanta schedule and checkout product names. Browser timezone overrides did not change those source values. Do not guess a global offset or match by title alone. Bind each rendered card to one unique same-origin schedules payload title/day/display-time slot, take its numeric ID, and require that ID plus matching title/day in the current official gtID list. Official times remain authoritative; checkout still independently requires exact product matching. `bindLeapInventorySourceIds` regressions reject ambiguous payload slots, unknown IDs and title/day mismatches. A bounded live proof restored 139 identities and 130 known purchase states plus nine advancement-only rounds; cloud acceptance is still required.

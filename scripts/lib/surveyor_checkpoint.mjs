@@ -1,9 +1,17 @@
 import { surveyorReportDigest } from './surveyor_closure_contract.mjs'
 import { validateSurveyorSupervisionCompletion } from './surveyor_supervision_contract.mjs'
+import { validateSurveyorCoverage } from './surveyor_supervision_contract.mjs'
+import { validateSurveyorClosureManifest } from './surveyor_closure_contract.mjs'
 
 export function validateSurveyorCheckpoint(checkpoint, allowedPaths) {
   if (checkpoint?.schemaVersion !== 1 || checkpoint.checkedAt !== checkpoint.report?.checkedAt) throw new Error('Accepted checkpoint identity invalid')
-  validateSurveyorSupervisionCompletion(checkpoint.report, checkpoint.manifest)
+  // Restore the one verified pre-hydration checkpoint as predecessor evidence,
+  // never as current completion. Fresh discovery must pass the new gate.
+  const legacyPredecessor = checkpoint.runId === '38478614293' && checkpoint.reportDigest === '5e89afadd5e6e129459f8933160668d7544c31c5b7fb42069956e8bdbd8074b4'
+  if (legacyPredecessor) {
+    validateSurveyorClosureManifest(checkpoint.manifest, checkpoint.report)
+    validateSurveyorCoverage(checkpoint.report, { historicalProjectionRecovery: true })
+  } else validateSurveyorSupervisionCompletion(checkpoint.report, checkpoint.manifest)
   if (checkpoint.reportDigest !== surveyorReportDigest(checkpoint.report) || checkpoint.closureDigest !== surveyorReportDigest(checkpoint.manifest)) throw new Error('Accepted checkpoint evidence digest mismatch')
   const paths = Object.keys(checkpoint.files ?? {})
   if (paths.length !== allowedPaths.length || paths.some(file => !allowedPaths.includes(file) || !/^\.monitoring-state\/[a-zA-Z0-9_.-]+\.json$/.test(file) || file.includes('private'))) throw new Error('Accepted checkpoint public file set invalid')

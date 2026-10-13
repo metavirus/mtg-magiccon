@@ -15,6 +15,7 @@ import { artistDirectoryFingerprint } from './lib/artist_directory_feed.mjs';
 import { exhibitorDirectoryFingerprint } from './lib/exhibitor_directory_feed.mjs';
 import { gatheringGroundsFingerprint } from './lib/gathering_grounds_feed.mjs';
 import { fetchPublicSourceText } from './lib/public_source_fetch.mjs';
+import { reviewedSourceProjectionCoverage } from './lib/reviewed_source_projection.mjs';
 
 const root = process.cwd();
 const watchSetPath = path.join(root, 'monitoring', 'watch-set.json');
@@ -485,12 +486,21 @@ state.watchSetVersion = watchSet.version;
 await mkdir(path.dirname(statePath), { recursive: true });
 await writeFile(statePath, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
 
+const projectionReviews = await readJson(path.join(root, 'monitoring/reviewed-source-projections.json'), {});
+const projectionArtifacts = {};
+for (const review of Object.values(projectionReviews)) {
+  if (!/^src\/data\/[a-zA-Z0-9_.-]+\.json$/.test(review.projectionPath ?? '')) throw new Error('Unsafe reviewed projection path');
+  try { projectionArtifacts[review.projectionPath] = await readFile(path.join(root, review.projectionPath)); } catch { /* Explicit missing projection coverage. */ }
+}
+const appProjectionCoverage = reviewedSourceProjectionCoverage(results, projectionReviews, projectionArtifacts);
+
 const output = {
   checkedAt,
   mode: accept ? 'accept-baseline' : 'check',
   watchSet: watchSetPath,
   stateFile: statePath,
   sourceCount: watchSet.sources.length,
+  appProjectionCoverage,
   gatheringGroundsCoverage: {
     configuredCount: watchSet.sources.filter(source => source.gatheringGroundsFeed).length,
     checkedCount: results.filter(result => result.gatheringGrounds).length,
@@ -513,13 +523,13 @@ const output = {
   detailPageCoverage: { gapCount: state.detailCoverageGaps.length, gaps: state.detailCoverageGaps, exclusions: activeDetailCoverageExclusions(watchSet.detailCoverageExclusions, checkedAt), scope: 'configured watched pages, current relevant first-party links reconciled against watches and dated exclusions, and discovered official news-index articles; no recursive crawler' },
   changeCount: changes.length,
   failureCount: failures.length,
-  coverageStatus: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length || ticketedPlay.availabilityCoverage?.status === 'partial' ? 'partial' : 'complete',
+  coverageStatus: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length || ticketedPlay.availabilityCoverage?.status === 'partial' || appProjectionCoverage.status !== 'complete' ? 'partial' : 'complete',
   ticketedPlay,
   newsletterIntake,
   changes,
   failures,
-  summary: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length || ticketedPlay.availabilityCoverage?.status === 'partial'
-    ? `Partial coverage: ${changes.length} confirmed change(s); ${failures.length} fetch failure(s); ${newsletterIntake.unfetchedCount ?? 0} article(s) unfetched; ${newsletterIntake.missingDiscoverySourceIds?.length ?? 0} discovery source(s) unavailable; ${state.detailCoverageGaps.length} linked official page(s) not watched or explicitly excluded; ${ticketedPlay.availabilityCoverage?.unknownCount ?? 0} LEAP purchasable-event state(s) unresolved. Unchecked or unknown state is not confirmed unchanged.`
+  summary: failures.length || newsletterIntake.coverageStatus === 'partial' || state.detailCoverageGaps.length || ticketedPlay.availabilityCoverage?.status === 'partial' || appProjectionCoverage.status !== 'complete'
+    ? `Partial coverage: ${changes.length} confirmed change(s); ${failures.length} fetch failure(s); ${newsletterIntake.unfetchedCount ?? 0} article(s) unfetched; ${newsletterIntake.missingDiscoverySourceIds?.length ?? 0} discovery source(s) unavailable; ${state.detailCoverageGaps.length} linked official page(s) not watched or explicitly excluded; ${ticketedPlay.availabilityCoverage?.unknownCount ?? 0} LEAP purchasable-event state(s) unresolved; app hydration ${appProjectionCoverage.status}. Unchecked or unknown state is not confirmed unchanged.`
     : changes.length
     ? `${changes.length} watched source(s) changed; inspect before routing.`
     : failures.length

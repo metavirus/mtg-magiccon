@@ -1,0 +1,921 @@
+{
+  "reviewedFrom": "Daily MagicCon surveyor run 38478614293 accepted checkpoint",
+  "timezone": "America/New_York",
+  "sources": [
+    {
+      "sourceId": "atlanta-experience-panels-and-events",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events.html",
+      "contentHash": "dd2d3084ec6615c3e5ce48f13fd7c968d4b2367986131ed686d18c09ed90b2dd",
+      "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
+      "scheduleHash": "8ab01cb6e29e58cc3b671471bd9bc588ca70ec8f9cb36c6a99d4c3fd505fcd1b",
+      "eventId": "21389",
+      "eventSlug": "htwhdatl26shdl10",
+      "categoryId": "20607",
+      "count": 48
+    },
+    {
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets.html",
+      "contentHash": "0ba3fb49ed3d0b26a3d72db3c553dbdf6aa82cd493944fc7d8019948d92059ae",
+      "contentLinkHash": "b9ee2e1c6f42ebf1264a1bcf42c3c838b5502fa5109f4acd7f3f425ea032f5ad",
+      "scheduleHash": "0abf1fe70bb6f92cc788601e7c3b07ad4d978fc4dcf12f89c2ab1c7de7f72392",
+      "eventId": "21389",
+      "eventSlug": "htwhdatl26shdl10",
+      "categoryId": "20603",
+      "count": 19
+    },
+    {
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule.html",
+      "contentHash": "b8bbfaa446571e8a4402aa007a9f18362241fd50e583e9a8ec9cae6677bccac2",
+      "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scheduleHash": "0f69d52bbe11bbeecb7baddfb9a0128109b2de8416056a500a5ac0c3acde5a42",
+      "eventId": "21389",
+      "eventSlug": "htwhdatl26shdl10",
+      "categoryId": "20600",
+      "count": 21
+    }
+  ],
+  "sessions": [
+    {
+      "id": "954662",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "The Preview Panel",
+      "startTime": "2026-11-13 13:00:00",
+      "endTime": "2026-11-13 14:00:00",
+      "location": "Mana Stage",
+      "description": "This Preview Panel has it all! In fact, the previews are so deep we can’t even tell you what half the panel is about! And the other half? Dive deeper into a First Look at Nauctis: The Sunken Realm for card previews and worldbuilding. As for the rest of it, let’s just say if you love Magic’s multiverse, you’ll want to be here to be the first in the world to see what this panel previews.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954662"
+    },
+    {
+      "id": "954663",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Mark Rosewater Presents: What If Magic Started Over?",
+      "startTime": "2026-11-13 14:30:00",
+      "endTime": "2026-11-13 15:30:00",
+      "location": "Mana Stage",
+      "description": "Inspired by Jace's redo of the Multiverse, Mark examines the game of Magic and walks through what he might do differently if we were starting the game from scratch. Will card types go away? Will he add and subtract supertypes and subtypes? Will core definitions change? Will the mechanical color pie be altered? Absolutely. Mark will take no prisoners in his quest to make Echoverse Magic.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954663"
+    },
+    {
+      "id": "954664",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Game Knights Live",
+      "startTime": "2026-11-13 16:00:00",
+      "endTime": "2026-11-13 19:00:00",
+      "location": "Mana Stage",
+      "description": "Game Knights Live is beaming down to MagicCon Atlanta for a four-way free-for-all in the final frontier! Don’t miss the out-of-this-world action as Jimmy Wong, Josh Lee Kwai, Rachel Weeks, Gavin Verhey, and more exciting guests boldly take the stage for a show full of hilarious gameplay and jaw-dropping moments. Who will live long? Who will prosper? Engage your warp drive and grab a seat early to find out!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954664"
+    },
+    {
+      "id": "954665",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Commander at Home ... at MagicCon",
+      "startTime": "2026-11-14 13:00:00",
+      "endTime": "2026-11-14 15:00:00",
+      "location": "Mana Stage",
+      "description": "Commander at Home returns to the Mana Stage at MagicCon! Brian Kibler and Olivia Gobert-Hicks bring all the energy and laughs of their popular YouTube show back to MagicCon in Atlanta, with a live performance and incredible guests you won't want to miss!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954665"
+    },
+    {
+      "id": "954666",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "More Magic Coming Soon to the Mana Stage",
+      "startTime": "2026-11-14 15:30:00",
+      "endTime": "2026-11-14 16:30:00",
+      "location": "Mana Stage",
+      "description": "We are finalizing details on a panel taking place on this day & time at MagicCon. Check back for more information closer to the show!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954666"
+    },
+    {
+      "id": "954668",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Cosplay Contest and Grand Championship",
+      "startTime": "2026-11-14 17:00:00",
+      "endTime": "2026-11-14 18:00:00",
+      "location": "Mana Stage",
+      "description": "Get your seat early for one of the true highlights of MagicCon! Witness the awesome creativity of the Magic community as they dazzle the audience with mind-blowing representations of your favorite cards and characters. Who will win? Planeswalker? Legendary Creature? Basic Land??? Anything’s possible. This event culminates with the Cosplay Grand Championship, featuring the top cosplay competitors from the previous three MagicCons.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954668"
+    },
+    {
+      "id": "954669",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Spell Slayers Live: Miss Blind Eternities Showdown",
+      "startTime": "2026-11-14 18:45:00",
+      "endTime": "2026-11-14 21:00:00",
+      "location": "Mana Stage",
+      "description": "Spell Slayers Live is coming to MagicCon: Atlanta with a first-of-its-kind Commander showdown meets over-the-top Drag Pageant! Your favorite Magic player's favorite drag queens Bosco & Irene the Alien, \"Spell Slayers\" cast member Lucy Lips, and \"RuPaul's Drag Race\" star Jane Don't will square off for a high-stakes game of Commander, filled with sabotage, lip-sync battles, comedy, camp, glamour, and FIERCE decks. Pageant MC Joey Schultz (of \"JoeyDH\" and \"Spell Slayers\") not only hosts the showdown, but gives the audience power to influence the game. Four will enter... but who will snatch the crown, sash, trophy, and check for 100,000... booster packs?",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954669"
+    },
+    {
+      "id": "954670",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Pack It Up LIVE! - The Ultimate Chaos Draft Presented by Star City Games",
+      "startTime": "2026-11-15 12:00:00",
+      "endTime": "2026-11-15 14:30:00",
+      "location": "Mana Stage",
+      "description": "Join Ben Bateman, the world's leading expert in chaos drafting, for a live episode of Pack It Up, the craziest Magic show on YouTube. Witness a live pick-2 draft where four players will randomly select 12 total packs from throughout Magic’s entire history. Any booster pack ever created could be drafted, with one spicy detail: WINNER OF THE DRAFT KEEPS EVERY CARD IN THE DRAFT! Your own Chaos Draft experience is available at Star City Games' booth.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954670"
+    },
+    {
+      "id": "954671",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Playchase: Hexhaven",
+      "startTime": "2026-11-15 15:00:00",
+      "endTime": "2026-11-15 16:30:00",
+      "location": "Mana Stage",
+      "description": "Five students are put through a rigorous final exam in this quest-based comedy game show! Administered by Proctor Reuben Bresler and judged by Headmaster Ryan Omega, contestants compete in multiple subjects to survive with the highest life total and graduate as Valedictorian of Hexhaven!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954671"
+    },
+    {
+      "id": "954672",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Scrybabies Vs. Play To Win LIVE",
+      "startTime": "2026-11-13 13:00:00",
+      "endTime": "2026-11-13 15:00:00",
+      "location": "Showcase Room",
+      "description": "Join your favorite wizards of the east coast in a battle of epic CEDH featuring chaos, mini games and a trip to the Echoverse!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954672"
+    },
+    {
+      "id": "954673",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Ranking Every Jace with The Magic Story Podcast",
+      "startTime": "2026-11-13 15:30:00",
+      "endTime": "2026-11-13 16:30:00",
+      "location": "Showcase Room",
+      "description": "The Magic Story Podcast loves a Jace no matter the face, but which Jace we would place at the front of the race? Join our story-loving crew as they go through every single Jace card printed in Magic, from Lorwyn to Reality Fracture, and rate them on their own unique tier list. Jace, Vryn's Prodigy was a Standard powerhouse, but how good is his outfit? The Theorist, Jace Beleren is a menace in Commander, but that's nothing compared to his narrative drama. By the end of the show, we will crown (or blue hood) the greatest Jace in all of the Multiverse. Cheer for your favorite Jace and see who sits atop the Theorist's tower!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954673"
+    },
+    {
+      "id": "954674",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Spell Slayers Cast or Pass",
+      "startTime": "2026-11-13 17:00:00",
+      "endTime": "2026-11-13 18:00:00",
+      "location": "Showcase Room",
+      "description": "Spell Slayers are bringing “Cast Or Pass” to MagicCon for a live panel, with help from MTG World-Builders, Card Artists, and Creators! On YouTube, “Cast or Pass” features Spell Slayers (Bosco & Irene the Alien) humorously discussing the character design, mechanics, and \"fashions\" of Magic’s most iconic Creatures, Planeswalkers, and other card types (Think Fashion Police meets MTG Podcast). In the live panel edition, Bosco, Irene, and Spell Slayers' pod member Lucy Lips will discuss iconic Magic cards, their character designs, and the art we love... with those who know them best!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954674"
+    },
+    {
+      "id": "954675",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "The Making of Mystery Booster Commander Edition",
+      "startTime": "2026-11-14 11:30:00",
+      "endTime": "2026-11-14 12:30:00",
+      "location": "Showcase Room",
+      "description": "A mix of strange legends from across the Multiverse, playtest cards, Future Sight frames, and iconic Commander reprints are an eclectic bunch that all come together to make up Mystery Booster Commander Edition! How were these cards created and chosen? What are the behind-the-scenes stories from their designs? Come and find out what went into making this wild release from start to finish—and uncover some Easter eggs you probably didn't notice!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954675"
+    },
+    {
+      "id": "954676",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Play to Win Podcast LIVE",
+      "startTime": "2026-11-14 13:00:00",
+      "endTime": "2026-11-14 14:00:00",
+      "location": "Showcase Room",
+      "description": "Dylan, Cam, and Tyler record an episode of their cEDH podcast LIVE from MagicCon: Atlanta as they talk about the strongest Commanders and cards in cEDH and answer questions from the live audience.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954676"
+    },
+    {
+      "id": "954677",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Commander Clash LIVE",
+      "startTime": "2026-11-14 15:00:00",
+      "endTime": "2026-11-14 17:00:00",
+      "location": "Showcase Room",
+      "description": "The MTGGoldfish Crew plays a game of Commander Clash where you have the chance of affecting the game via the Chaos Dice!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954677"
+    },
+    {
+      "id": "954678",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Legends Roundtable: Inside the Pro Tour Hall of Fame",
+      "startTime": "2026-11-14 17:30:00",
+      "endTime": "2026-11-14 18:30:00",
+      "location": "Showcase Room",
+      "description": "Join Pro Tour Historian Brian David-Marshall and some of the biggest names from the Magic: The Gathering Pro Tour Hall of Fame as they look back on what the Hall means to them, their career achievements, and much more on the eve of the 2026 Pro Tour Hall of Fame Induction Ceremony.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954678"
+    },
+    {
+      "id": "954680",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "More Magic Coming Soon to the Showcase Room",
+      "startTime": "2026-11-15 12:30:00",
+      "endTime": "2026-11-15 13:30:00",
+      "location": "Showcase Room",
+      "description": "We are finalizing details on a panel taking place on this day & time at MagicCon. Check back for more information closer to the show!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954680"
+    },
+    {
+      "id": "954681",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "World Championship Sunday Watch Party",
+      "startTime": "2026-11-15 14:00:00",
+      "endTime": "2026-11-15 18:00:00",
+      "location": "Showcase Room",
+      "description": "The weekend wraps up with the conclusion of World Championship 32 and the 2026 Pro Tour Hall of Fame Induction Ceremony livestreamed from the Worlds stage. Join current Pro Tour players as they share their insights about high-level Magic -- plus lots of booster packs for the audience -- as we crown a World Champion and honor Javier Dominguez, Ken Yukuhiro, and Jean-Emmanuel Depraz as the newest members of the Hall of Fame.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954681"
+    },
+    {
+      "id": "954682",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Planeswalker Fantasy Draft: Drafting The Universe's Ultimate Fantasy Team",
+      "startTime": "2026-11-13 13:30:00",
+      "endTime": "2026-11-13 14:30:00",
+      "location": "Spindown Room",
+      "description": "Assembling the most entertaining creators in the space for a discussion and snake draft centered around building the multiverse's ultimate Fantasy team. As first featured at MagicCon: Las Vegas to racuous audience, join your favorite personalities for a hilarious and informative spin on the education of Magic lore -- and maybe discover a new franchise player for your own deck building!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954682"
+    },
+    {
+      "id": "954683",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "CASCADE CASCADE: Why Writing About Magic Is Important",
+      "startTime": "2026-11-13 15:00:00",
+      "endTime": "2026-11-13 16:00:00",
+      "location": "Spindown Room",
+      "description": "In February, Cal Jones and Dan Sheehan launched CASCADE CASCADE, the first physical Magic: The Gathering magazine to exist in circulation in decades. The publication features best-in-class writing about Magic: The Gathering by people who love it, including everyone from regular fans to Pro Tour players to celebrity Magic lovers. We believe that the success of this publication has been in part because of Magic players' appreciation for the games past and for the recent surge in the popularity of physical media. This discussion delves ito why it's important to write about the things you love and to celebrate the game's past, present, and future. We'll talk about the process that went into launching the magazine our love of the Magic mags of yesteryear, share some of our favorite pieces and insights, and take questions from the audience. <b> Panelists: Dan Sheehan, Cal Jones </b>",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954683"
+    },
+    {
+      "id": "954684",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "City Planning in the Multiverse",
+      "startTime": "2026-11-13 16:30:00",
+      "endTime": "2026-11-13 17:30:00",
+      "location": "Spindown Room",
+      "description": "Brought to you by a real-world urban planner, this panel puts on its planner hat and asks: what would actually happen if Magic: The Gathering's cities existed? Ravnica is a city that covers an entire plane. New Capenna stacks a five-family megalopolis into demonic verticality. Kamigawa's Neon Dynasty retrofits a hypermodern city onto a world already ancient. Magic's worlds are full of urban design choices, with some inspired and some that would never survive a real planning commission. This panel brings real-world city planning, zoning, and land-use frameworks to Magic's most iconic planes to dig into infrastructure, governance, density, and public space through the lens of actual municipal practice. Expect rigorous urban theory alongside plenty of\"well, actually\" with room for audience questions about your own favorite Magic cities. <b> Panelists: Ravnica Building and Planning, Kunx</b>",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954684"
+    },
+    {
+      "id": "954685",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Would You Like Fries with that L? Joy of Stupid Rule-0 Deck Building",
+      "startTime": "2026-11-13 18:00:00",
+      "endTime": "2026-11-13 19:00:00",
+      "location": "Spindown Room",
+      "description": "Hungry for rule breaking? Join us as we explore the Rule-0 conversation and showcase multi-format themed decks that defy all convention (except the one we’re at, of course)! Feast your eyes on some of the worst (and funniest) decks possible. <b> Panelists: Jamie Luttrell </b>",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954685"
+    },
+    {
+      "id": "954686",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "You Make the Unknown Card",
+      "startTime": "2026-11-14 12:30:00",
+      "endTime": "2026-11-14 13:30:00",
+      "location": "Spindown Room",
+      "description": "Principal Game Designer and MagicCon Unknown Event mastermind Gavin Verhey turns you all into game designers to create new cards to be played in a future Unknown Event! This event regularly fills up and attendees will be required to sign a release form before entering, so get there early!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954686"
+    },
+    {
+      "id": "954687",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "The New Magic Judge Program",
+      "startTime": "2026-11-14 14:00:00",
+      "endTime": "2026-11-14 15:00:00",
+      "location": "Spindown Room",
+      "description": "Get an exciting peek at the new Magic Judge Program! Learn what the future holds for our biggest group of Magic community-builders. Join Program Manager Samantha Harr and members of the Rules and Game Experience teams as they discuss the upcoming launch of the program and ways you can get involved to build a better tomorrow for Magic play at all levels.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954687"
+    },
+    {
+      "id": "954688",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Power (9) Presentations",
+      "startTime": "2026-11-14 15:30:00",
+      "endTime": "2026-11-14 17:00:00",
+      "location": "Spindown Room",
+      "description": "We challenged the Magic community to craft thought-provoking, carefully written, and hilariously clip-arted short presentations about something they love, obsess over, or just can't get off their mind about Magic: The Gathering. After a long and careful process we've selected nine to present live here at MagicCon: Atlanta. Our chosen nine finalists have less than 5 minutes to present their slides make their arguments, and try their hardest to impress both the live audience AND our panel of luminary judges in hopes of taking home the title in the first inaugural round of the Power 9 Presentation Hour!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954688"
+    },
+    {
+      "id": "954689",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Howling Salt Mine",
+      "startTime": "2026-11-14 17:30:00",
+      "endTime": "2026-11-14 18:30:00",
+      "location": "Spindown Room",
+      "description": "Join Sam, Mike, and Tony as they delve into those salty salty mines of the Magic: The Gathering community with a live performance of their comedy/advice podcast! The hosts will be reading audience-submitted salty stories about Commander games gone wrong as they discuss playgroup dynamics, deck building strategies, and most of all... SALT! Keep all hands and arms within the mine cart at all times!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954689"
+    },
+    {
+      "id": "954690",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Debate This!",
+      "startTime": "2026-11-15 12:00:00",
+      "endTime": "2026-11-15 13:00:00",
+      "location": "Spindown Room",
+      "description": "Would Winston Churchill be Boros or Orzhov? How would you \"partner\" Louis VIII with 6 other legendaries? Would a Henry Ford deck have an aristocrats theme or an artifact affinity theme? Join us for a live recording of our podcast, Debate This! We're a nerdy comedy show with a Magic problem, and in each episode we argue goofy, hypothetical questions just like this. Don't worry, there will be a PowerPoint component. <b> Panelists: Andrew Henderson, Todd Thomas, Matt Cole, Kyle Harper</b>",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954690"
+    },
+    {
+      "id": "954691",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Let's Build a Commander Deck All About ____",
+      "startTime": "2026-11-15 13:30:00",
+      "endTime": "2026-11-15 14:30:00",
+      "location": "Spindown Room",
+      "description": "Let's Build a Commander all about... Well, whatever y'all decide! That's right, we're building a Commander deck TOGETHER! Full of randomized wheels, random themes , and more! It could be a Commander deck where all the art features hats! Or maybe every card has the same first letter? Who knows, anything can happen! Inspired by the alternative deckbuilding style of MTG Chopped and ManaBox Deck Building Contest Winner Dork4Short, 15 years of deckbuilding, content creation, and comedy experience all intertwine in one panel! And there are plenty more surprises we have in store! Can't wait to brew with y'all there!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954691"
+    },
+    {
+      "id": "954692",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "The Best Magic Formats You're Not Playing",
+      "startTime": "2026-11-15 15:00:00",
+      "endTime": "2026-11-15 16:00:00",
+      "location": "Spindown Room",
+      "description": "You know Commander, Modern, Standard, and Pauper. But what about those weird other formats? We'll be talking about Dandan (and its other colors!), Oathbreaker, Judge's Tower, and so many other great formats on the fringes of Magic. Come by and learn about some wonderful and wacky formats. <b> Panelists: Maximumoverbite, SwiftyCaesar</b>",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954692"
+    },
+    {
+      "id": "954693",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: Phil Stone",
+      "startTime": "2026-11-13 12:00:00",
+      "endTime": "2026-11-13 12:30:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954693"
+    },
+    {
+      "id": "954694",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: Josu Solano",
+      "startTime": "2026-11-13 15:30:00",
+      "endTime": "2026-11-13 16:00:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954694"
+    },
+    {
+      "id": "954695",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: Andrea Radeck",
+      "startTime": "2026-11-13 16:30:00",
+      "endTime": "2026-11-13 17:00:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954695"
+    },
+    {
+      "id": "954696",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: Josiah \"Jo\" Cameron",
+      "startTime": "2026-11-14 12:00:00",
+      "endTime": "2026-11-14 12:30:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954696"
+    },
+    {
+      "id": "954697",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: Mathias Kollros",
+      "startTime": "2026-11-14 15:30:00",
+      "endTime": "2026-11-14 16:00:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954697"
+    },
+    {
+      "id": "954698",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: Vincent Proce",
+      "startTime": "2026-11-14 16:30:00",
+      "endTime": "2026-11-14 17:00:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954698"
+    },
+    {
+      "id": "954699",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Birds of Prey with Magic Artist Alessandra Pisano",
+      "startTime": "2026-11-15 11:00:00",
+      "endTime": "2026-11-15 11:30:00",
+      "location": "Family Magic",
+      "description": "Experiance the beauty and mystique of owls up close! Meet a real Maha while learning about raptors, conservation and the history and importance of falconry. You'll leave this program with more bird facts then you'll know what to do with and a road map to get involved with raptors if you so choose! Take all the photos you want, this program is open to all ages.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954699"
+    },
+    {
+      "id": "954700",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: Kai Carpenter",
+      "startTime": "2026-11-15 12:00:00",
+      "endTime": "2026-11-15 12:30:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954700"
+    },
+    {
+      "id": "954701",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: Ben Hill",
+      "startTime": "2026-11-15 15:30:00",
+      "endTime": "2026-11-15 16:00:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954701"
+    },
+    {
+      "id": "954702",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Family League Play hosted by MagiKids",
+      "startTime": "2026-11-13 13:00:00",
+      "endTime": "2026-11-13 15:00:00",
+      "location": "Family Magic",
+      "description": "Please arrive 15 minutes prior to event start to participate as this event is first come, first serve. Seating will be limited to those with Youth Badges and 1 guardian per group, and play will be limited to those with a Youth Badge, unless additional capacity is available. League Play Details: There is no additional cost to participate Play 3, Best of One Games with anyone between 1 pm and 3 pm. Each player will begin the League with 2 Jumpstart 2025 Boosters. This is the deck that you will be playing with. Prizing: For every game a player wins, they will receive 1 additional Jumpstart 2025 Booster to add to their collection. If a player plays all three games, regardless of winning or losing, they will receive 1 additional Jumpstart 2025 Booster to add to their collection.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954702"
+    },
+    {
+      "id": "954703",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Family League Play hosted by MagiKids",
+      "startTime": "2026-11-14 13:00:00",
+      "endTime": "2026-11-14 15:00:00",
+      "location": "Family Magic",
+      "description": "Please arrive 15 minutes prior to event start to participate as this event is first come, first serve. Seating will be limited to those with Youth Badges and 1 guardian per group, and play will be limited to those with a Youth Badge, unless additional capacity is available. League Play Details: There is no additional cost to participate Play 3, Best of One Games with anyone between 1 pm and 3 pm. Each player will begin the League with 2 Jumpstart 2025 Boosters. This is the deck that you will be playing with. Prizing: For every game a player wins, they will receive 1 additional Jumpstart 2025 Booster to add to their collection. If a player plays all three games, regardless of winning or losing, they will receive 1 additional Jumpstart 2025 Booster to add to their collection.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954703"
+    },
+    {
+      "id": "954704",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Family League Play hosted by MagiKids",
+      "startTime": "2026-11-15 13:00:00",
+      "endTime": "2026-11-15 15:00:00",
+      "location": "Family Magic",
+      "description": "Please arrive 15 minutes prior to event start to participate as this event is first come, first serve. Seating will be limited to those with Youth Badges and 1 guardian per group, and play will be limited to those with a Youth Badge, unless additional capacity is available. League Play Details: There is no additional cost to participate Play 3, Best of One Games with anyone between 1 pm and 3 pm. Each player will begin the League with 2 Jumpstart 2025 Boosters. This is the deck that you will be playing with. Prizing: For every game a player wins, they will receive 1 additional Jumpstart 2025 Booster to add to their collection. If a player plays all three games, regardless of winning or losing, they will receive 1 additional Jumpstart 2025 Booster to add to their collection.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954704"
+    },
+    {
+      "id": "954705",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Magic Friendship Bracelets",
+      "startTime": "2026-11-13 11:00:00",
+      "endTime": "2026-11-13 13:00:00",
+      "location": "Family Magic",
+      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954705"
+    },
+    {
+      "id": "954706",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Magic Friendship Bracelets",
+      "startTime": "2026-11-14 11:00:00",
+      "endTime": "2026-11-14 13:00:00",
+      "location": "Family Magic",
+      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954706"
+    },
+    {
+      "id": "954707",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Magic Friendship Bracelets",
+      "startTime": "2026-11-15 11:00:00",
+      "endTime": "2026-11-15 13:00:00",
+      "location": "Family Magic",
+      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954707"
+    },
+    {
+      "id": "954708",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Deck Box Decorating provided by Dragon Shield",
+      "startTime": "2026-11-13 14:00:00",
+      "endTime": "2026-11-13 15:00:00",
+      "location": "Family Magic",
+      "description": "\"The decks you work so hard to build deserve a deck box as unique as they are! Unleash your creativity and personalize a deck box of your own – you'll never have to guess what cards are inside that deck box again! Thank you to Dragon Shield for providing deck boxes for this activity! Stop by their booth to learn more about Dragon Shield products.\"",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954708"
+    },
+    {
+      "id": "954709",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Deck Box Decorating provided by Dragon Shield",
+      "startTime": "2026-11-14 14:00:00",
+      "endTime": "2026-11-14 15:00:00",
+      "location": "Family Magic",
+      "description": "The decks you work so hard to build deserve a deck box as unique as they are! Unleash your creativity and personalize a deck box of your own – you'll never have to guess what cards are inside that deck box again! Thank you to Dragon Shield for providing deck boxes for this activity! Stop by their booth to learn more about Dragon Shield products.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954709"
+    },
+    {
+      "id": "954710",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Deck Box Decorating provided by Dragon Shield",
+      "startTime": "2026-11-15 14:00:00",
+      "endTime": "2026-11-15 15:00:00",
+      "location": "Family Magic",
+      "description": "The decks you work so hard to build deserve a deck box as unique as they are! Unleash your creativity and personalize a deck box of your own – you'll never have to guess what cards are inside that deck box again! Thank you to Dragon Shield for providing deck boxes for this activity! Stop by their booth to learn more about Dragon Shield products.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954710"
+    },
+    {
+      "id": "955621",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Draw with a Magic Artist: SchmandrewART",
+      "startTime": "2026-11-14 11:00:00",
+      "endTime": "2026-11-14 11:30:00",
+      "location": "Family Magic",
+      "description": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=955621"
+    },
+    {
+      "id": "954711",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Ben Bateman",
+      "startTime": "2026-11-13 11:00:00",
+      "endTime": "2026-11-13 12:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet Ben Bateman.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954711"
+    },
+    {
+      "id": "954712",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet members of LoadingReadyRun",
+      "startTime": "2026-11-13 11:00:00",
+      "endTime": "2026-11-13 12:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet members of LoadingReadyRun.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954712"
+    },
+    {
+      "id": "954713",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Voxy and Amazonian",
+      "startTime": "2026-11-13 13:00:00",
+      "endTime": "2026-11-13 14:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet Voxy and Amazonian.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954713"
+    },
+    {
+      "id": "954715",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet NumotTheNummy",
+      "startTime": "2026-11-13 15:00:00",
+      "endTime": "2026-11-13 16:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet NumotTheNummy.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954715"
+    },
+    {
+      "id": "954716",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet members of the Commander Format Panel",
+      "startTime": "2026-11-13 15:30:00",
+      "endTime": "2026-11-13 16:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet members of the Commander Format Panel - Lua Stardust, Rebell, Toby Elliot, and Alexander Heyer.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954716"
+    },
+    {
+      "id": "954717",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Ify Nwadiwe and Brian David Gilbert",
+      "startTime": "2026-11-13 16:30:00",
+      "endTime": "2026-11-13 18:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet Ify Nwadiwe and Brian David Gilbert.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954717"
+    },
+    {
+      "id": "954719",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet members of LoadingReadyRun",
+      "startTime": "2026-11-14 11:00:00",
+      "endTime": "2026-11-14 12:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet members of LoadingReadyRun.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954719"
+    },
+    {
+      "id": "954720",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Josh Lee Kwai, Jimmy Wong, and Rachel Weeks from Game Knights (Wristband Required)",
+      "startTime": "2026-11-14 11:00:00",
+      "endTime": "2026-11-14 12:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Meet Josh Lee Kwai, Jimmy Wong, and Rachel Weeks from Game Knights. Wristband required. Wristbands will be distributed the morning of the session and are on a first come, first serve basis at the Wristband Distribution area by the Information Booth. Wristbands will be distributed while supplies last. Wristbands are free of charge. <br /> Attendees who secure a wristband must wear and show their wristband to participate in the Game Knights Meet & Greet at Magic Meet & Greets.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954720"
+    },
+    {
+      "id": "954722",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet The Howling Salt Mine",
+      "startTime": "2026-11-14 13:00:00",
+      "endTime": "2026-11-14 14:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet The Howling Salt Mine.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954722"
+    },
+    {
+      "id": "954723",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Scrybabies",
+      "startTime": "2026-11-14 14:30:00",
+      "endTime": "2026-11-14 15:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet Scrybabies - Tori of the Vast and Lua Stardust.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954723"
+    },
+    {
+      "id": "954724",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Brian Kibler and Olivia Gobert-Hicks (Wristband Required)",
+      "startTime": "2026-11-14 15:30:00",
+      "endTime": "2026-11-14 17:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Meet Brian Kibler and Olivia Gobert-Hicks! Wristband required. Wristbands will be distributed the morning of the session and are on a first come, first serve basis at the Wristband Distribution area by the Information Booth. Wristbands will be distributed while supplies last. Wristbands are free of charge. <br /> Attendees who secure a wristband must wear and show their wristband to participate in the Brian Kibler and Olivia Gobert-Hicks Meet & Greet at Magic Meet & Greets.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954724"
+    },
+    {
+      "id": "954725",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Mark Rosewater",
+      "startTime": "2026-11-14 17:00:00",
+      "endTime": "2026-11-14 18:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet Mark Rosewater.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954725"
+    },
+    {
+      "id": "954726",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Josh Lee Kwai and Jimmy Wong from Game Knights (Wristband Required)",
+      "startTime": "2026-11-15 11:00:00",
+      "endTime": "2026-11-15 12:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Meet Josh Lee Kwai and Jimmy Wong from Game Knights. Wristband required. Wristbands will be distributed the morning of the session and are on a first come, first serve basis at the Wristband Distribution area by the Information Booth. Wristbands will be distributed while supplies last. Wristbands are free of charge. <br /> Attendees who secure a wristband must wear and show their wristband to participate in the Josh Lee Kwai and Jimmy Wong Meet & Greet at Magic Meet & Greets.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954726"
+    },
+    {
+      "id": "954727",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Play to Win",
+      "startTime": "2026-11-15 11:00:00",
+      "endTime": "2026-11-15 12:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet Play to Win.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954727"
+    },
+    {
+      "id": "954728",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet members of the Commander Format Panel",
+      "startTime": "2026-11-15 14:00:00",
+      "endTime": "2026-11-15 15:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet members of the Commander Format Panel - Lua Stardust, Rebell, Toby Elliot, and Alexander Heyer.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954728"
+    },
+    {
+      "id": "954729",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet members of Birds of Paradise",
+      "startTime": "2026-11-15 14:30:00",
+      "endTime": "2026-11-15 15:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Creator Centrals Creator Connection area to grab an autograph and meet Birds of Paradise - Jane Plays Magic, Magic_Mishamigo, and CooperLeeF. <br />No pre-registration required. This event is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954729"
+    },
+    {
+      "id": "954730",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Mark Rosewater",
+      "startTime": "2026-11-15 15:30:00",
+      "endTime": "2026-11-15 16:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet Mark Rosewater.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954730"
+    },
+    {
+      "id": "954731",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Brian Kibler and Olivia Gobert-Hicks (Wristband Required)",
+      "startTime": "2026-11-15 16:30:00",
+      "endTime": "2026-11-15 17:30:00",
+      "location": "Magic Meet & Greets",
+      "description": "Meet Brian Kibler and Olivia Gobert-Hicks! Wristband required. Wristbands will be distributed the morning of the session and are on a first come, first serve basis at the Wristband Distribution area by the Information Booth. Wristbands will be distributed while supplies last. Wristbands are free of charge. <br /> Attendees who secure a wristband must wear and show their wristband to participate in the Brian Kibler and Olivia Gobert-Hicks Meet & Greet at Magic Meet & Greets.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954731"
+    },
+    {
+      "id": "955653",
+      "sourceId": "atlanta-experience-meet-and-greets",
+      "title": "Meet Spell Slayers",
+      "startTime": "2026-11-15 13:00:00",
+      "endTime": "2026-11-15 14:00:00",
+      "location": "Magic Meet & Greets",
+      "description": "Head to Magic Meet & Greets to grab an autograph and meet the Spell Slayers.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=955653"
+    },
+    {
+      "id": "954448",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "MelaninMagic Booster Blitz",
+      "startTime": "2026-11-13 15:00:00",
+      "endTime": "2026-11-13 19:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 10 Players With ONE pack you can share a fun game of Booster Blitz! Each player opens a single booster pack, looks at the contents, and distributes the contents into 5 face-down piles of 3 cards each. Afterward, the order of the face-down piles is randomized, for instance by having the opponent rearrange them. You play 5 consecutive, separate games of Magic. In game 1, each player's first pile becomes their opening hand. In game 2, each player's second pile becomes their opening hand. And so on. There are no libraries, and you can't lose to decking. In every game, each player starts at 5 life. All players have access to an unlimited amount of mana in any combination of colors. The player who is done first (with their distribution of cards into piles) gets to play first in the first game. In subsequent games, the loser of the previous game gets to play first. If the previous game was a draw, then the player who played first in the previous game gets to play first again. A player who wins 3 or more games automatically wins the match.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954448"
+    },
+    {
+      "id": "954449",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "MelaninMagic Booster Blitz",
+      "startTime": "2026-11-14 15:00:00",
+      "endTime": "2026-11-14 19:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 10 Players With ONE pack you can share a fun game of Booster Blitz! Each player opens a single booster pack, looks at the contents, and distributes the contents into 5 face-down piles of 3 cards each. Afterward, the order of the face-down piles is randomized, for instance by having the opponent rearrange them. You play 5 consecutive, separate games of Magic. In game 1, each player's first pile becomes their opening hand. In game 2, each player's second pile becomes their opening hand. And so on. There are no libraries, and you can't lose to decking. In every game, each player starts at 5 life. All players have access to an unlimited amount of mana in any combination of colors. The player who is done first (with their distribution of cards into piles) gets to play first in the first game. In subsequent games, the loser of the previous game gets to play first. If the previous game was a draw, then the player who played first in the previous game gets to play first again. A player who wins 3 or more games automatically wins the match.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954449"
+    },
+    {
+      "id": "954450",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "MelaninMagic Booster Blitz",
+      "startTime": "2026-11-15 10:00:00",
+      "endTime": "2026-11-15 13:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 10 Players With ONE pack you can share a fun game of Booster Blitz! Each player opens a single booster pack, looks at the contents, and distributes the contents into 5 face-down piles of 3 cards each. Afterward, the order of the face-down piles is randomized, for instance by having the opponent rearrange them. You play 5 consecutive, separate games of Magic. In game 1, each player's first pile becomes their opening hand. In game 2, each player's second pile becomes their opening hand. And so on. There are no libraries, and you can't lose to decking. In every game, each player starts at 5 life. All players have access to an unlimited amount of mana in any combination of colors. The player who is done first (with their distribution of cards into piles) gets to play first in the first game. In subsequent games, the loser of the previous game gets to play first. If the previous game was a draw, then the player who played first in the previous game gets to play first again. A player who wins 3 or more games automatically wins the match.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954450"
+    },
+    {
+      "id": "954451",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "MelaninMagic Guess That Character!",
+      "startTime": "2026-11-15 13:00:00",
+      "endTime": "2026-11-15 19:00:00",
+      "location": "The Gathering Grounds",
+      "description": "How much Magic Lore do you know?! In three categories can you name each character from the magic story? If you pass all three rounds of difficulty you could win yourself a booster pack. Only while supplies last.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954451"
+    },
+    {
+      "id": "954452",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "MelaninMagic Guess That Character!",
+      "startTime": "2026-11-13 10:00:00",
+      "endTime": "2026-11-13 15:00:00",
+      "location": "The Gathering Grounds",
+      "description": "How much Magic Lore do you know?! In three categories can you name each character from the magic story? If you pass all three rounds of difficulty you could win yourself a booster pack. Only while supplies last.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954452"
+    },
+    {
+      "id": "954453",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "MelaninMagic Guess That Character!",
+      "startTime": "2026-11-14 10:00:00",
+      "endTime": "2026-11-14 15:00:00",
+      "location": "The Gathering Grounds",
+      "description": "How much Magic Lore do you know?! In three categories can you name each character from the magic story? If you pass all three rounds of difficulty you could win yourself a booster pack. Only while supplies last.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954453"
+    },
+    {
+      "id": "954454",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "BOP! Free Headshots Booth",
+      "startTime": "2026-11-13 10:30:00",
+      "endTime": "2026-11-13 12:30:00",
+      "location": "The Gathering Grounds",
+      "description": "Are you a marginalized creator in need of new headshots? Come by the Birds of Paradise booth and get some fresh headshots, free of charge! We'd love to help you look your best in your media kits and a professional photos are a big part of that. Photography services will be provided by Drew (showandtell2u)!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954454"
+    },
+    {
+      "id": "954455",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "BOP! Booster Blitz",
+      "startTime": "2026-11-13 13:30:00",
+      "endTime": "2026-11-13 15:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Open a pack, sort it into 5 piles of 3 cards, and battle it out to see who reigns supreme! We'd love to say hello, chat with you over a few packs, and help you have fun at the convention. The BOP! booth is a safe, inclusive play space. Meet us there and connect with other marginalized community members!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954455"
+    },
+    {
+      "id": "954456",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "BOP! Booster Blitz",
+      "startTime": "2026-11-14 13:30:00",
+      "endTime": "2026-11-14 15:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Open a pack, sort it into 5 piles of 3 cards, and battle it out to see who reigns supreme! We'd love to say hello, chat with you over a few packs, and help you have fun at the convention. The BOP! booth is a safe, inclusive play space. Meet us there and connect with other marginalized community members!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954456"
+    },
+    {
+      "id": "954457",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "BOP! Booster Blitz",
+      "startTime": "2026-11-15 13:30:00",
+      "endTime": "2026-11-15 15:00:00",
+      "location": "The Gathering Grounds",
+      "description": "",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954457"
+    },
+    {
+      "id": "954458",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "BOP! Free Headshots Booth",
+      "startTime": "2026-11-14 10:30:00",
+      "endTime": "2026-11-14 10:30:00",
+      "location": "The Gathering Grounds",
+      "description": "Are you a marginalized creator in need of new headshots? Come by the Birds of Paradise booth and get some fresh headshots, free of charge! We'd love to help you look your best in your media kits and a professional photos are a big part of that. Photography services will be provided by Drew (showandtell2u)!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954458"
+    },
+    {
+      "id": "954459",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "BOP! Mini Master Tournament",
+      "startTime": "2026-11-15 11:00:00",
+      "endTime": "2026-11-15 12:30:00",
+      "location": "The Gathering Grounds",
+      "description": "Do you have great luck cracking packs? Put that to use with a Mini Master showdown in the Gathering Grounds! This silly, fun format is all random; you crack a pack, add some lands, and shuffle up to play. If you win, you face down another winner and add a pack! Come play with the Birds of Paradise, share some laughs, and enjoy the vibe at our inclusive safe space. You CAN sit with us!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954459"
+    },
+    {
+      "id": "954460",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "Wizards Pride Presents: Commander",
+      "startTime": "2026-11-13 11:00:00",
+      "endTime": "2026-11-13 16:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Time: Pods firing at 11am and 2pm Spots: 40 players per time slot Wizards Pride presents Pride Commander! Come play Commander using the Pride ruleset. All commanders are legal and all have the Partner mechanic. Pride takes all forms so bring your favorite decks-this event is all about creating a deck that speaks to you, so build whatever brings you joy! If you play one match, you earn a prize! Sign-ups are available at the Wizards Pride booth.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954460"
+    },
+    {
+      "id": "954461",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "Draft with Wizards Pride",
+      "startTime": "2026-11-14 12:00:00",
+      "endTime": "2026-11-14 16:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 16 players Come draft with Wizards Pride as we draft one of our newest sets! We are keeping things fun and casual but try to win some prizes and get some cool cards!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954461"
+    },
+    {
+      "id": "954462",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "Wizards Pride Presents: Commander",
+      "startTime": "2026-11-15 12:00:00",
+      "endTime": "2026-11-15 16:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Time: Pods firing at 11am and 2pm Spots: 40 players per time slot Wizards Pride presents Pride Commander! Come play Commander using the Pride ruleset. All commanders are legal and all have the Partner mechanic. Pride takes all forms so bring your favorite decks-this event is all about creating a deck that speaks to you, so build whatever brings you joy! If you play one match, you earn a prize! Sign-ups are available at the Wizards Pride booth.\"",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954462"
+    },
+    {
+      "id": "954463",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "Casual Commander",
+      "startTime": "2026-11-13 10:30:00",
+      "endTime": "2026-11-13 14:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 40 Casual Commander. Come play commander with fellow veterans in a casual, no pressure setting. Enjoy the camaraderie and sarcasm that only fellow veterans can bring.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954463"
+    },
+    {
+      "id": "954464",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "DOUBLE TAP EVENT",
+      "startTime": "2026-11-14 10:30:00",
+      "endTime": "2026-11-14 14:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 40 Veterans The Gathering presents the commander Double Tap Event. All players receive a Sol Ring Token starting on the field.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954464"
+    },
+    {
+      "id": "954465",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "PLANE CHASE",
+      "startTime": "2026-11-15 10:30:00",
+      "endTime": "2026-11-15 14:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 40 PLANE CHASE: Veterans The Gathering presents a plane chase event centered around military and veteran culture. Regular 6D needed. Come enjoy the fun and shenanigans.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954465"
+    },
+    {
+      "id": "954466",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "DAA Commander Sleeve Decorating",
+      "startTime": "2026-11-14 15:00:00",
+      "endTime": "2026-11-14 17:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Seeking a cozy and calm activity to break up your Saturday? Come stop by the Gathering Grounds for a crafting break to decorate Commander sleeves. All are welcome to join as long as supplies persist! As long as supplies last!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954466"
+    },
+    {
+      "id": "955599",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "Women of Wizards Commander Pods",
+      "startTime": "2026-11-13 12:00:00",
+      "endTime": "2026-11-13 14:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 16 players Looking to play a round of Commander with exciting new faces? Come on by to get matched up, paired off, or find that missing fourth! Come on by for fun, friends, and chill vibes while you test that new deck or dust off an old one.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=955599"
+    },
+    {
+      "id": "955600",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "Women of Wizards Learn to Play / Pod Pairing",
+      "startTime": "2026-11-14 12:00:00",
+      "endTime": "2026-11-14 14:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Spots: 8 players Newer to Magic, needing some tips, or hoping to play the least sweaty game possible? Women of Wizards is offering Learn to Play this year for any and all of the above! Already know how to play and aching to try out that Oops, All Bears Commander deck? Come on by to find other friendly faces and join a pod with your new best friends waiting to happen (or enemies, we don't make the rules).",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=955600"
+    }
+  ]
+}

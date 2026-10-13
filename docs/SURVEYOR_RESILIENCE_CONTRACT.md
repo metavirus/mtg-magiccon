@@ -28,6 +28,10 @@ Pending work and email delivery receipts use a separate runtime cache and artifa
 
 ## Completion and resilience
 
+Schedule hydration is a separate consequence from source detection and Home publication. `monitoring/reviewed-source-projections.json` binds the five required schedule sources (Black Lotus, Panels, Meet & Greets, Gathering Grounds and Council's Call) to exact reviewed source content/link hashes and the app-consumed JSON artifact digest. Every normal survey verifies these bindings, including zero-change reports. A missing or changed binding is `awaiting_repair`: reconcile all current sessions and operational details, preserve event IDs/personal selections, publish the updated app artifact and review together, then run normal cloud verification. An unchanged accepted source is not evidence that the app already contains its facts. Never clear a mismatch merely by copying hashes without inspecting and reconciling the complete source.
+
+The single pinned October 13 pre-hydration checkpoint may be restored as predecessor evidence only. Its exact report digest, closure and public file digests remain checked; it cannot satisfy the current supervision/acceptance gate. New checkpoints must include complete app-projection coverage.
+
 The coverage gate runs inside acceptance, including zero-change reports. Missing linked pages, unfetched articles, invalid event-bound feeds or unresolved purchase availability cannot reach baseline acceptance. Closure version 2 binds the complete report digest and catch source/intake identities. Unknown catches cannot be renamed noise to close a run.
 
 Public requests have bounded time/size budgets and small retries for transient failures. Parser/identity errors remain exact repair work. Database retries apply only to safe idempotent operations; non-idempotent inserts/RPCs must not be blindly repeated.

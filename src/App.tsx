@@ -9,6 +9,8 @@ import { CatalogImportLab } from './CatalogImportLab'
 import { activityDestination, mobileDrawerDestinations, navigationDestination, primaryDestinations, surfaces, type Surface } from './lib/navigation'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
 import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
+import { conventionProgramEvents, councilsCallEvents } from './data/conventionPrograms'
+import { blackLotusDaySummary, blackLotusExploreEvents, blackLotusRetiredEvents } from './data/blackLotusSchedule'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode, standaloneAppSearch } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
@@ -3785,326 +3787,19 @@ const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title
 ]
 
 const exploreEventCandidates: ExploreEvent[] = [
-  ...([
-    { id: 'program-954674', title: 'Spell Slayers Cast or Pass', day: 'Fri', time: '5-6 PM', location: 'Showcase Room', sourceId: '954674' },
-    { id: 'program-954669', title: 'Spell Slayers Live: Miss Blind Eternities Showdown', day: 'Sat', time: '6:45-9 PM', location: 'Mana Stage', sourceId: '954669' },
-    { id: 'program-955653', title: 'Meet Spell Slayers', day: 'Sun', time: '1-2 PM', location: 'Magic Meet & Greets', sourceId: '955653' },
-  ] as const).map(event => ({
-    id: event.id, title: event.title, day: event.day, time: event.time,
-    window: 'Scheduled program', price: 'included', kind: 'Convention program', type: 'info' as const,
-    format: event.day === 'Sun' ? 'Meet & greet' : 'Live show', tags: ['official atlanta', 'spell slayers', 'Bosco', 'Irene the Alien'],
-    state: 'none' as const, availability: 'open' as const, complexity: 'easy' as const,
-    complexityWhy: 'Watch or meet the creators; no game preparation required.',
-    fit: 'Spell Slayers appearance of particular interest to Juan and Kavi.',
-    detail: `${event.location}. Times are Atlanta local time. ${event.day === 'Sun' ? 'No preregistration; first come, first served.' : 'Official Atlanta program; admission is not a reserved seat.'}`,
-    officialUrl: `https://mcatlanta.mtgfestivals.com/en-us/experience/${event.day === 'Sun' ? 'meet-and-greets/schedule-event-information' : 'panels-and-events/panel-information'}.html?gtID=${event.sourceId}`,
-    decisionFacts: [{ label: 'Location', value: event.location }],
-    sourceNote: 'Official Atlanta event-bound schedule, verified October 13, 2026.',
-    planEffect: 'Keep the commitment visible even when it overlaps another confirmed or paid event.',
+  ...conventionProgramEvents,
+  ...councilsCallEvents,
+  ...blackLotusExploreEvents.map(event => ({
+    ...event,
+    // Retain existing personal fallbacks; source hydration never changes choices.
+    state: ({
+      'bl-progressive-sealed': 'tentative', 'bl-first-look-thursday': 'interested',
+      'bl-welcome-reception': 'interested', 'bl-friday-play-event': 'interested',
+      'bl-planechase': 'tentative', 'bl-mystery-booster-drafts': 'interested',
+      'bl-feedback-session': 'interested',
+    } as Record<string, ExploreState>)[event.id] ?? event.state,
   })),
-  {
-    id: 'bl-progressive-sealed',
-    title: 'BL Progressive Sealed League',
-    day: 'Thu',
-    time: '12 PM start',
-    window: 'Weekend-long league',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'play',
-    format: 'Progressive sealed league',
-    tags: ['official atlanta', 'included', 'league', 'pickup'],
-    state: 'tentative',
-    availability: 'open',
-    complexity: 'focused',
-    complexityWhy: 'Sealed deckbuilding plus daily games creates some ongoing attention, but the league structure is flexible and included with Black Lotus.',
-    fit: 'Real Atlanta Black Lotus anchor: product pickup and daily league play are exactly the kind of included benefit worth keeping visible.',
-    detail: 'Pick up 4 Reality Fracture play boosters starting Thursday, build a 40-card deck, play at least 2 games each day Friday through Sunday, and earn additional Collector Boosters through Sunday.',
-    formatHelp: 'A progressive sealed league starts with a small sealed pool and adds product over time. Here, daily play unlocks extra Reality Fracture Collector Boosters.',
-    decisionFacts: [
-      { label: 'Access', value: 'Black Lotus included' },
-      { label: 'Starts', value: 'Thu 12 PM pickup/play' },
-      { label: 'Daily ask', value: '2 games Fri-Sun' },
-      { label: 'Final claim', value: 'Sun 5 PM' },
-    ],
-    moreDetails: [
-      { label: 'Reward path', value: 'Playing 6 games by Sunday earns three total Collector Boosters. Final booster-prize claim is Sunday at 5:00 PM.' },
-      { label: 'Location', value: 'Event locations will be announced closer to the event.' },
-    ],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
-    planEffect: 'Keep as an included weekend thread, not a hard fixed block except for pickup and final claim timing.',
-  },
-  {
-    id: 'bl-first-look-thursday',
-    title: 'BL First Look Thursday',
-    day: 'Thu',
-    time: '1-8 PM',
-    window: 'Program block',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'info',
-    format: 'First Look / panels',
-    tags: ['official atlanta', 'included', 'first look', 'tbd'],
-    state: 'interested',
-    availability: 'changed',
-    complexity: 'easy',
-    complexityWhy: 'Mostly informational/social programming; several content slots are explicitly TBD, so the effort is attention rather than rules complexity.',
-    fit: 'High relevance because this is the whole reason Thursday exists for Black Lotus, but several schedule slots are still TBD.',
-    detail: 'Behind the Card Frame & First Look runs 1:00-8:00 PM, with TBD content slots at 2:00, 3:00, and 5:30, a Planechase-card design session at 4:15, and Paint & Sip at 6:30.',
-    decisionFacts: [
-      { label: 'Known block', value: '1:00-8:00 PM' },
-      { label: 'TBD slots', value: '2:00, 3:00, 5:30' },
-      { label: 'Known activity', value: 'Design Unknown Planechase Card' },
-    ],
-    moreDetails: [
-      { label: 'Lounge opens', value: '12:00 PM Welcome to MagicCon First Look Thursday.' },
-      { label: 'Location', value: 'Event locations will be announced closer to the event.' },
-    ],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
-    planEffect: 'Thursday is a BL-only day; keep this as a known program shell and monitor for TBD slot replacements.',
-  },
-  {
-    id: 'bl-thursday-tbd-2',
-    title: 'Black Lotus Content TBD — 2 PM',
-    day: 'Thu',
-    time: '2-2:45 PM',
-    window: '45 minutes',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'info',
-    format: 'Content TBD',
-    tags: ['official atlanta', 'included', 'first look', 'tbd'],
-    state: 'none',
-    availability: 'changed',
-    complexity: 'easy',
-    complexityWhy: 'The official schedule reserves this time but has not announced its content.',
-    fit: 'A real reserved Black Lotus slot whose subject is still pending.',
-    detail: 'The official Thursday Black Lotus schedule currently lists this 45-minute slot as “Content TBD.”',
-    decisionFacts: [{ label: 'Access', value: 'Black Lotus included' }, { label: 'Status', value: 'Content not announced' }],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, reviewed Aug 19, 2026. Schedule subject to change.',
-    planEffect: 'Keep visible as a placeholder until the official program names the session.',
-  },
-  {
-    id: 'bl-thursday-tbd-3',
-    title: 'Black Lotus Content TBD — 3 PM',
-    day: 'Thu',
-    time: '3-3:45 PM',
-    window: '45 minutes',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'info',
-    format: 'Content TBD',
-    tags: ['official atlanta', 'included', 'first look', 'tbd'],
-    state: 'none',
-    availability: 'changed',
-    complexity: 'easy',
-    complexityWhy: 'The official schedule reserves this time but has not announced its content.',
-    fit: 'A real reserved Black Lotus slot whose subject is still pending.',
-    detail: 'The official Thursday Black Lotus schedule currently lists this 45-minute slot as “Content TBD.”',
-    decisionFacts: [{ label: 'Access', value: 'Black Lotus included' }, { label: 'Status', value: 'Content not announced' }],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, reviewed Aug 19, 2026. Schedule subject to change.',
-    planEffect: 'Keep visible as a placeholder until the official program names the session.',
-  },
-  {
-    id: 'bl-thursday-tbd-530',
-    title: 'Black Lotus Content TBD — 5:30 PM',
-    day: 'Thu',
-    time: '5:30-6:15 PM',
-    window: '45 minutes',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'info',
-    format: 'Content TBD',
-    tags: ['official atlanta', 'included', 'first look', 'tbd'],
-    state: 'none',
-    availability: 'changed',
-    complexity: 'easy',
-    complexityWhy: 'The official schedule reserves this time but has not announced its content.',
-    fit: 'A real reserved Black Lotus slot whose subject is still pending.',
-    detail: 'The official Thursday Black Lotus schedule currently lists this 45-minute slot as “Content TBD.”',
-    decisionFacts: [{ label: 'Access', value: 'Black Lotus included' }, { label: 'Status', value: 'Content not announced' }],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, reviewed Aug 19, 2026. Schedule subject to change.',
-    planEffect: 'Keep visible as a placeholder until the official program names the session.',
-  },
-  {
-    id: 'bl-design-planechase',
-    title: 'Design the Unknown Planechase Card',
-    day: 'Thu',
-    time: '4:15-5:15 PM',
-    window: '1 hour',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'info',
-    format: 'Interactive design session',
-    tags: ['official atlanta', 'included', 'planechase', 'design'],
-    state: 'none',
-    availability: 'open',
-    complexity: 'easy',
-    complexityWhy: 'A bounded interactive session with no deck or purchase requirement.',
-    fit: 'A distinctive hour inside the Thursday program block, especially if designing an Unknown plane sounds more interesting than the surrounding TBD sessions.',
-    detail: 'A dedicated Black Lotus session for collaboratively designing an Unknown Planechase card during First Look Thursday.',
-    decisionFacts: [{ label: 'Access', value: 'Black Lotus included' }, { label: 'Duration', value: '1 hour' }],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
-    planEffect: 'A precise one-hour contender inside the broader First Look shell; it should replace, not duplicate, that portion of the block if committed.',
-  },
-  {
-    id: 'bl-paint-sip',
-    title: 'Black Lotus Paint & Sip',
-    day: 'Thu',
-    time: '6:30-7:30 PM',
-    window: '1 hour',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'social',
-    format: 'Paint & Sip',
-    tags: ['official atlanta', 'included', 'social', 'creative'],
-    state: 'none',
-    availability: 'open',
-    complexity: 'easy',
-    complexityWhy: 'A contained creative/social hour with no play-format preparation.',
-    fit: 'A low-pressure creative option before the evening reception, worth comparing with downtime and the rest of the First Look block.',
-    detail: 'An included Black Lotus Paint & Sip session during the Thursday First Look program.',
-    decisionFacts: [{ label: 'Access', value: 'Black Lotus included' }, { label: 'Duration', value: '1 hour' }],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
-    planEffect: 'A soft one-hour social block before the reception; committing should carve it out of the broader Thursday shell.',
-  },
-  {
-    id: 'bl-welcome-reception',
-    title: 'BL Welcome Reception + First Look',
-    day: 'Thu',
-    time: '8-11 PM',
-    window: '3 hours',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'social',
-    format: 'Reception',
-    tags: ['official atlanta', 'included', 'social', 'guests'],
-    state: 'interested',
-    availability: 'open',
-    complexity: 'easy',
-    complexityWhy: 'Social mixer, light food, no-host bar; no rules or deck prep.',
-    fit: 'Worth keeping visible because it is a social opportunity with Wizards staff/special guests after the First Look block.',
-    detail: 'Casual mixer with Wizards of the Coast members and special guests. Light food provided and a no-host bar.',
-    decisionFacts: [
-      { label: 'Time', value: 'Thu 8:00-11:00 PM' },
-      { label: 'Food', value: 'Light food provided' },
-      { label: 'Bar', value: 'No-host bar' },
-    ],
-    moreDetails: [{ label: 'Location', value: 'Event locations will be announced closer to the event.' }],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
-    planEffect: 'Late social anchor after Thursday programming; useful for energy planning, not a contention problem yet.',
-  },
-  {
-    id: 'bl-friday-play-event',
-    title: 'BL Friday Play Event with Special Guests',
-    day: 'Fri',
-    time: '2-6 PM',
-    window: '4 hours',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'play',
-    format: 'TBD play event',
-    tags: ['official atlanta', 'included', 'tbd', 'special guests'],
-    state: 'interested',
-    availability: 'changed',
-    complexity: 'unknown',
-    complexityWhy: 'The official page says the event is under construction; not enough rules detail exists yet to assess difficulty.',
-    fit: 'Real Atlanta BL slot, but the content is not settled. This is exactly the kind of thing the monitor should watch.',
-    detail: 'Officially listed as “PLAY EVENT* with Special Guests,” with a note that the event is under construction and being workshopped based on Black Lotus feedback.',
-    decisionFacts: [
-      { label: 'Time', value: 'Fri 2:00-6:00 PM' },
-      { label: 'Rules', value: 'TBD / under construction' },
-      { label: 'Access', value: 'Black Lotus' },
-    ],
-    moreDetails: [
-      { label: 'Official caveat', value: 'Stay tuned and check back here for updates.' },
-      { label: 'Location', value: 'Event locations will be announced closer to the event.' },
-    ],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
-    planEffect: 'Hold as a meaningful Friday contender, but do not over-rank until the official format is published.',
-  },
-  {
-    id: 'bl-planechase',
-    title: 'BL Planechase Unknown',
-    day: 'Sat',
-    time: '11:30-3',
-    window: 'Included',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'play',
-    format: 'Planechase Unknown',
-    tags: ['included', 'unusual', 'shared'],
-    state: 'tentative',
-    availability: 'open',
-    complexity: 'focused',
-    complexityWhy: 'Unusual rules and mystery structure deserve attention, but included Black Lotus events are lower financial risk.',
-    fit: 'Distinctive Black Lotus anchor. Chris can attend; Juan probably cannot.',
-    detail: 'Keep this surfaced because it is included, unusual, and likely to be referenced repeatedly before the event.',
-    formatHelp: 'Planechase uses a shared planar card that changes the table rules. “Unknown” signals an intentionally surprising event structure whose complete twists are not explained in advance.',
-    decisionFacts: [
-      { label: 'Access', value: 'Black Lotus included event' },
-      { label: 'Prep', value: 'Bring a Commander deck' },
-      { label: 'Duration', value: '11:30 AM–3 PM' },
-    ],
-    moreDetails: [
-      { label: 'Location', value: 'To be announced closer to the convention.' },
-      { label: 'Eligibility', value: 'Black Lotus access is required; Chris can attend and Juan cannot.' },
-    ],
-    sourceNote: 'Official Atlanta Black Lotus page, retrieved Aug 3, 2026.',
-    planEffect: 'Stays in Plan as a strong Black Lotus contender until a better Saturday shape appears.',
-  },
-  {
-    id: 'bl-mystery-booster-drafts',
-    title: 'BL Mystery Booster 2 Drafts',
-    day: 'Sun',
-    time: '1-5 PM',
-    window: 'On-demand drafts',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'play',
-    format: 'Mystery Booster 2 draft',
-    tags: ['official atlanta', 'included', 'draft', 'wizards guests'],
-    state: 'interested',
-    availability: 'open',
-    complexity: 'focused',
-    complexityWhy: 'Drafting Mystery Booster 2 asks for real card-reading bandwidth, but there are no pairings or prizes and drafts fire casually.',
-    fit: 'Potentially fun because it is chaotic and included, with the option to play against Wizards for extra boosters.',
-    detail: 'Drafts fire whenever 8 players gather starting at 1:00 PM Sunday. Limit 2 per person. Last draft fires at 4:00 PM regardless of participants. No pairings or prizes.',
-    formatHelp: 'Draft means selecting cards from packs and building a deck on the spot. Mystery Booster products add novelty and many unfamiliar cards.',
-    decisionFacts: [
-      { label: 'Fires', value: '8 players gathered' },
-      { label: 'Limit', value: '2 drafts/person' },
-      { label: 'Last fire', value: 'Sun 4:00 PM' },
-      { label: 'Prizes', value: 'No pairings/prizes' },
-    ],
-    moreDetails: [{ label: 'Opportunity', value: 'Play against Wizards for a chance at extra boosters.' }],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
-    planEffect: 'Flexible Sunday play window; useful to keep near the airport-leaving calculation but not a fixed commitment yet.',
-  },
-  {
-    id: 'bl-feedback-session',
-    title: 'BL Meet & Greet / Feedback Session',
-    day: 'Sun',
-    time: '3-4 PM',
-    window: '1 hour',
-    price: 'included',
-    kind: 'Black Lotus',
-    type: 'social',
-    format: 'Meet & greet',
-    tags: ['official atlanta', 'included', 'feedback', 'wizards'],
-    state: 'interested',
-    availability: 'open',
-    complexity: 'easy',
-    complexityWhy: 'Conversation session rather than gameplay; low prep unless there is something specific you want to ask.',
-    fit: 'Could be useful as a low-effort final-day touchpoint with the event team, especially if Thursday/Friday programming changes.',
-    detail: 'Meet & Greet / Feedback Session with Wizards of the Coast Event Team.',
-    decisionFacts: [
-      { label: 'Time', value: 'Sun 3:00-4:00 PM' },
-      { label: 'Type', value: 'Feedback/social' },
-      { label: 'Access', value: 'Black Lotus' },
-    ],
-    sourceNote: 'Official Atlanta Black Lotus VIP page, retrieved Aug 8, 2026. Schedule subject to change.',
-    planEffect: 'Small Sunday anchor that may overlap with drafts; easy to choose later.',
-  },
+  ...blackLotusRetiredEvents,
 ]
 
 const exploreEvents = [
@@ -4522,7 +4217,6 @@ function exploreDayContext(day: ExploreEvent['day']) {
 function planPressure(event: ExploreEvent) {
   if (event.state === 'committed') return 'Hard block'
   if (event.id === 'bl-progressive-sealed') return ''
-  if (event.id === 'bl-friday-play-event') return 'Details pending'
   if (event.id === 'bl-mystery-booster-drafts') return 'On demand'
   if (event.id === 'bl-feedback-session') return 'Soft overlap'
   if (event.availability === 'changed') return 'Watch change'
@@ -6827,7 +6521,6 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
 
     {showConvention && <CalendarDayHeader day="FRI" date="November 13" label={showFriday ? 'Committed events' : 'Convention day 1'} />}
     {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} />}
-    {showConvention && <AgendaMarker time="8:30 AM" label="Online store pre-order pickup begins" detail="Pickup window runs until 5 PM" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} />}
     {showConvention && <AgendaMarker time="10:00 AM" label="Show floor opens" detail="Friday show-floor hours run 10 AM–7 PM" />}
     {showConvention && fridaySelected.map(renderCommittedEvent)}
@@ -6923,17 +6616,17 @@ function CalendarDetailSheet({ detail, slice, flights, onClose, onOpenPlan, onOp
       : detail === 'preview'
         ? { eyebrow: 'BLACK LOTUS · NOV 12', title: 'First Look and Omni check-in', copy: 'Kavi and Chris have the Black Lotus First Look day. Courtyard ends before Omni check-in at 4 PM, so luggage handling is the only practical transition note currently worth keeping visible.' }
         : detail === 'bl-thursday'
-          ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 12', title: 'Thursday early-access schedule', copy: 'Published BL schedule: lounge opens at 12 PM; Progressive Sealed league pickup/play begins at 12 PM; Behind the Card Frame & First Look runs 1-8 PM with several TBD content slots; Design the Unknown Planechase Card is 4:15-5:15; Paint & Sip is 6:30-7:30; Welcome Reception + First Look runs 8-11 PM. Locations are still TBD and the schedule is subject to change.' }
+          ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 12', title: 'Thursday early-access schedule', copy: blackLotusDaySummary('Thu') }
         : detail === 'friday'
           ? { eyebrow: 'CONVENTION · NOV 13', title: 'Friday', copy: 'No committed or purchased events are captured yet.' }
           : detail === 'bl-friday'
-            ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 13', title: 'Friday Black Lotus schedule', copy: 'Published BL schedule: lounge opens 8:30 AM; beverage service 8:30-11; online store pre-order pickup 8:30-5; priority show-floor entry 9:45; play event with special guests 2-6 PM. The play event is explicitly under construction, so this is a meaningful watch item rather than a fully defined event.' }
+            ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 13', title: 'Friday Black Lotus schedule', copy: blackLotusDaySummary('Fri') }
           : detail === 'airport'
             ? { eyebrow: 'TRIP · NOV 15', title: 'Leave for ATL airport', copy: `The reminder is restored, but its time is intentionally unset. It should account for the final Sunday plan, bags, airport buffer, and local travel conditions before ${flightProjection.returnLeg.flight_number} departs at ${returnDepartureTime}.` }
           : detail === 'sunday'
             ? { eyebrow: 'TRIP · NOV 15', title: 'Closing day and flight home', copy: `Omni check-out is 11 AM. Kavi and Juan fly ${flightProjection.returnLeg.flight_number} from ATL to SNA, ${returnDepartureTime}-${returnArrivalTime}, confirmation ${flightProjection.flight.confirmation_code}. The leave-for-airport reminder stays visible until its exact time is set from the final Sunday plan.` }
             : detail === 'bl-sunday'
-              ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 15', title: 'Sunday Black Lotus schedule', copy: 'Published BL schedule: lounge opens 8:30 AM; beverage service 8:30-11; priority show-floor entry 9:45; Mystery Booster 2 drafts fire 1-5 PM, limited to 2 per person, with the last draft firing at 4 PM; Meet & Greet / Feedback Session with the Wizards event team is 3-4 PM; lounge closes at 6 PM.' }
+              ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 15', title: 'Sunday Black Lotus schedule', copy: blackLotusDaySummary('Sun') }
             : { eyebrow: 'BLACK LOTUS · NOV 14', title: slice.occurrence.title.replace('Black Lotus ', ''), copy: '11:30 AM–3:00 PM · included Black Lotus event.' }
 
   return <aside className="calendar-detail-sheet" aria-label={`${content.title} details`}>

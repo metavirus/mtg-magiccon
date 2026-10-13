@@ -1,4 +1,5 @@
 import { validateSurveyorClosureManifest } from './surveyor_closure_contract.mjs'
+import { REQUIRED_SCHEDULE_PROJECTIONS } from './reviewed_source_projection.mjs'
 
 // Read-only finish gate for downloaded cloud artifacts. This never discovers,
 // stages, accepts, or replaces the authoritative GitHub Actions baseline.
@@ -8,7 +9,7 @@ export function validateSurveyorSupervisionCompletion(report, manifest) {
   return { status: 'complete', checkedAt: report.checkedAt, catchCount: manifest.catches.length }
 }
 
-export function validateSurveyorCoverage(report) {
+export function validateSurveyorCoverage(report, { historicalProjectionRecovery = false } = {}) {
   const gaps = []
   if (report?.coverageStatus !== 'complete') gaps.push('overall coverage is not complete')
   if (report?.failures?.length || report?.failureCount) gaps.push('source fetch failures remain')
@@ -16,6 +17,10 @@ export function validateSurveyorCoverage(report) {
   if (news?.coverageStatus === 'partial' || news?.failures?.length || news?.failureCount || news?.unfetched?.length || news?.unfetchedCount || news?.missingDiscoverySourceIds?.length) gaps.push('article/discovery coverage remains open')
   if (report?.detailPageCoverage?.gaps?.length || report?.detailPageCoverage?.gapCount) gaps.push('linked detail-page coverage remains open')
   const exhibitors = report?.exhibitorDirectoryCoverage
+  if (report?.sourceCount && !(historicalProjectionRecovery && !report.appProjectionCoverage)) {
+    const projections = report.appProjectionCoverage
+    if (projections?.status !== 'complete' || REQUIRED_SCHEDULE_PROJECTIONS.some(id => !projections?.sources?.some(source => source.id === id && source.status === 'complete'))) gaps.push('reviewed Black Lotus and convention app hydration coverage missing or stale')
+  }
   if (report?.sourceCount || exhibitors) {
     const source = exhibitors?.sources?.[0]
     if (exhibitors?.configuredCount !== 1 || exhibitors?.checkedCount !== 1 || exhibitors?.sources?.length !== 1 || source?.id !== 'atlanta-experience-exhibitors' || source?.eventId !== '21389' || source?.eventSlug !== 'htwhdatl26shdl10' || source?.categoryId !== '20590' || !Number.isInteger(source?.count) || source.count < 1 || !/^[a-f0-9]{64}$/.test(source?.rosterHash ?? '')) gaps.push('event-bound exhibitor directory coverage is missing or invalid')

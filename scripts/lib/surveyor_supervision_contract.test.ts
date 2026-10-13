@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { completeSurveyorClosureManifest, pendingSurveyorClosureManifest } from './surveyor_closure_contract.mjs'
 import { validateSurveyorSupervisionCompletion } from './surveyor_supervision_contract.mjs'
+import { REQUIRED_SCHEDULE_PROJECTIONS } from './reviewed_source_projection.mjs'
 
 const quiet = () => ({ checkedAt: '2026-10-01T12:00:00Z', coverageStatus: 'complete', changes: [], failures: [] })
 const closed = (report: object) => completeSurveyorClosureManifest(report, new Map())
@@ -38,11 +39,15 @@ describe('supervisor must finish agent-owned work before quiet completion', () =
   })
   it('requires exact Atlanta exhibitor feed coverage in real cloud reports', () => {
     const coverage = { status: 'complete', configuredCount: 1, checkedCount: 1, sources: [{ id: 'atlanta-experience-exhibitors', eventId: '21389', eventSlug: 'htwhdatl26shdl10', categoryId: '20590', count: 65, rosterHash: 'a'.repeat(64) }] }
-    const report = { ...quiet(), sourceCount: 50, exhibitorDirectoryCoverage: coverage }
+    const report = { ...quiet(), sourceCount: 50, exhibitorDirectoryCoverage: coverage, appProjectionCoverage: { status: 'complete', sources: REQUIRED_SCHEDULE_PROJECTIONS.map(id => ({ id, status: 'complete' })) } }
     expect(validateSurveyorSupervisionCompletion(report, closed(report)).status).toBe('complete')
     for (const exhibitorDirectoryCoverage of [undefined, { ...coverage, checkedCount: 0 }, { ...coverage, configuredCount: 0 }, { ...coverage, sources: [{ ...coverage.sources[0], eventId: 'wrong' }] }, { ...coverage, sources: [{ ...coverage.sources[0], count: 0 }] }]) {
       const invalid = { ...report, exhibitorDirectoryCoverage }
       expect(() => validateSurveyorSupervisionCompletion(invalid, closed(invalid))).toThrow(/exhibitor directory coverage/)
     }
+  })
+  it('rejects green zero-change real reports with no verified app hydration', () => {
+    const report = { ...quiet(), sourceCount: 41 }
+    expect(() => validateSurveyorSupervisionCompletion(report, closed(report))).toThrow(/app hydration/)
   })
 })

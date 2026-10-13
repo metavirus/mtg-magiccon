@@ -1,0 +1,42 @@
+{
+  "atlanta-black-lotus-vip": {
+    "projectionPath": "src/data/blackLotusSchedule-reviewed.json",
+    "contentHash": "f9a4e0c9fa9678773d61494fe13a64bb14cc7bc428091f0de85122abd95a4bbd",
+    "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
+    "projectionHash": "be5841cc8c5c575b4393c8a029dcf1fc4bdb5bc3f4b98edfb8ca8fb5417fbd78",
+    "contentLinkHash": "23bbcc52225a8dac6b32c93b561e2808a8118e4219fe90c6a2c5e6c630abf5ba",
+    "reviewedAt": "2026-10-13T23:48:00Z"
+  },
+  "atlanta-experience-panels-and-events": {
+    "projectionPath": "src/data/conventionPrograms.json",
+    "contentHash": "dd2d3084ec6615c3e5ce48f13fd7c968d4b2367986131ed686d18c09ed90b2dd",
+    "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
+    "projectionHash": "f6452abb3fabe1e96c4b1f3f6c9e117f72f039cf3650d078bc935093c2aa9a21",
+    "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
+    "reviewedAt": "2026-10-13T23:48:00Z"
+  },
+  "atlanta-gathering-grounds-schedule": {
+    "projectionPath": "src/data/conventionPrograms.json",
+    "contentHash": "b8bbfaa446571e8a4402aa007a9f18362241fd50e583e9a8ec9cae6677bccac2",
+    "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
+    "projectionHash": "f6452abb3fabe1e96c4b1f3f6c9e117f72f039cf3650d078bc935093c2aa9a21",
+    "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reviewedAt": "2026-10-13T23:48:00Z"
+  },
+  "atlanta-experience-meet-and-greets": {
+    "projectionPath": "src/data/conventionPrograms.json",
+    "contentHash": "0ba3fb49ed3d0b26a3d72db3c553dbdf6aa82cd493944fc7d8019948d92059ae",
+    "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
+    "projectionHash": "f6452abb3fabe1e96c4b1f3f6c9e117f72f039cf3650d078bc935093c2aa9a21",
+    "contentLinkHash": "b9ee2e1c6f42ebf1264a1bcf42c3c838b5502fa5109f4acd7f3f425ea032f5ad",
+    "reviewedAt": "2026-10-13T23:48:00Z"
+  },
+  "atlanta-experience-the-councils-call": {
+    "projectionPath": "src/data/councilsCall.json",
+    "contentHash": "4757f7c1494bf3a31d759db41fff68a4d60dcbadc67c9b4280f205e050a8f923",
+    "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
+    "projectionHash": "2c4ecde348c46c8b296acc24983e25aa348864ac5724e8c8b73ac3cdc860a088",
+    "contentLinkHash": "b32463fa902fb11bac4a0d4ebaf249359453ca6e16d83c075df59ee79fddb4c1",
+    "reviewedAt": "2026-10-13T23:48:00Z"
+  }
+}

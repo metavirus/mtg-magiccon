@@ -1,5 +1,19 @@
 [
   {
+    "id": "atlanta-black-lotus-schedule-hydrated-oct-13",
+    "title": "Black Lotus schedule corrected and expanded in Plan",
+    "summary": "The official Atlanta Black Lotus schedule is now reconciled into Explore and Plan: named Thursday sessions, corrected Paint & Sip and reception times, Friday Mirror Mayhem 2HG, creator meet-and-greets, coffee chats and three MEGA Game playtests. MEGA Game slots are limited and require lounge preregistration by 2 PM on the day. Existing selections are preserved; Black Lotus access does not reserve a MEGA slot.",
+    "reason": "October 13 recovery of an app hydration omission, not a claim the upstream page was newly published today. Exact current official Atlanta schedule reviewed against the retained accepted cloud snapshot and the corrected selectable catalog.",
+    "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+  },
+  {
+    "id": "atlanta-programs-hydrated-oct-13",
+    "title": "Official convention programs are now selectable in Plan",
+    "summary": "Explore and Plan now include all 88 published Atlanta panel, meet-and-greet and Gathering Grounds sessions, including Family Magic sessions listed in the panels feed, plus both Council's Call dinner times. Previously these sources produced announcements without the complete selectable event list. Wristband and access requirements stay attached to each event; no attendance or purchase is assumed.",
+    "reason": "October 13 app ingestion recovery from the reviewed Atlanta event-bound official feeds and Council's Call page, not a new upstream release. The separate Family Magic feed is empty, but 19 Family Magic sessions are already published in Panels & Events. Retains the existing three Spell Slayers IDs and attendance.",
+    "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events.html"
+  },
+  {
     "id": "atlanta-spell-slayers-announced-sep-4",
     "title": "Spell Slayers are coming to Atlanta",
     "summary": "The official September 4 MagicCon Atlanta newsletter announced Bosco and Irene the Alien for their first MagicCon. Juan is especially interested, so future Spell Slayers announcements are on the watch list.",

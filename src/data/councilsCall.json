@@ -1,0 +1,15 @@
+{
+  "sourceId": "atlanta-experience-the-councils-call",
+  "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-councils-call.html",
+  "contentHash": "4757f7c1494bf3a31d759db41fff68a4d60dcbadc67c9b4280f205e050a8f923",
+  "contentLinkHash": "b32463fa902fb11bac4a0d4ebaf249359453ca6e16d83c075df59ee79fddb4c1",
+  "reviewedFrom": "Daily MagicCon surveyor run 38478614293 accepted checkpoint",
+  "date": "2026-11-13",
+  "timezone": "America/New_York",
+  "location": "The Wimbish House, 1150 Peachtree St. NE, Atlanta",
+  "price": 299,
+  "sessions": [
+    { "id": "council-call-1", "title": "The Council’s Call — Council 1", "time": "5:30 PM–7:30 PM" },
+    { "id": "council-call-2", "title": "The Council’s Call — Council 2", "time": "8:30 PM–10:30 PM" }
+  ]
+}
