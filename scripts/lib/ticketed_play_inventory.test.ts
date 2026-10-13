@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
+import { bindLeapInventorySourceIds } from './ticketed_play_inventory.mjs'
 import { assertOfficialTicketedPlayIdentityCoverage, assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
@@ -17,6 +18,23 @@ const soldOutCards = [
 ].map(([title, day, time]) => ({ title, day, time, soldOut: true, controls: [] }))
 
 describe('LEAP Ticketed Play inventory', () => {
+  it('binds source IDs despite upstream time drift and preserves official checkout slots', () => {
+    const title = '2HG - Collector Booster Sealed - Magic: The Gathering | Star Trek'
+    const card = { title, day: 'Friday November 13th', time: '6:00am - 9:55am', controls: [] }
+    const source = { id: 944011, title, calendar_date: card.day, start_time_formatted: '6:00am', end_time_formatted: '9:55am' }
+    const official = [{ sourceEventKey: '944011', rawTitle: title, rawDateLabel: 'Fri, Nov 13, 2026', rawTimeLabel: '11:00 AM - 2:55 PM' }]
+    const bound = bindLeapInventorySourceIds([card], [source])
+    const schedule = normalizeLeapInventoryCards(bound, { sourceUrl, canonicalEvents: official })
+    expect(schedule[0]).toMatchObject({ id: 'ticketed-944011', sourceEventKey: '944011', startsAt: '11:00', endsAt: '14:55' })
+    expect(() => assertOfficialTicketedPlayIdentityCoverage(schedule, official)).not.toThrow()
+    expect(mergeLeapCheckoutAvailability(schedule, [{ productId: '481732', title: `Fri 11:00AM - ${title} - 4ZJMXZ5`, control: '4 Left', purchasable: true }])[0].availability).toBe('available')
+    expect(() => bindLeapInventorySourceIds([card], [])).toThrow(/rendered source identity incomplete/)
+    expect(() => bindLeapInventorySourceIds([card], [source, { ...source, id: 123 }])).toThrow(/rendered source identity incomplete/)
+    expect(() => normalizeLeapInventoryCards([{ ...bound[0], sourceEventKey: '123' }], { canonicalEvents: official })).toThrow(/source identity mismatch/)
+    expect(() => normalizeLeapInventoryCards([{ ...bound[0], title: 'Different event' }], { canonicalEvents: official })).toThrow(/source identity mismatch/)
+    expect(() => normalizeLeapInventoryCards([{ ...bound[0], day: 'Saturday November 14th' }], { canonicalEvents: official })).toThrow(/source identity mismatch/)
+  })
+
   it('binds current official gtID despite an end-time change and rejects an unbound listing', () => {
     const official = [{ sourceEventKey: '948777', id: 'ticketed-948777', rawTitle: 'Sold Out - Turbo - Commander Mega Draft - Mystery Booster Commander Edition - $85 (Click here for more info)', rawDateLabel: 'Sun, Nov 15, 2026', rawTimeLabel: '1:30 PM - 4:30 PM' }]
     const schedule = normalizeLeapInventoryCards([{ title: 'Turbo - Commander Mega Draft - Mystery Booster Commander Edition - $85 (Click here for more info)', day: 'Sunday November 15th', time: '1:30pm - 4:25pm', controls: [{ text: 'Login to add to your schedule', disabled: true }] }], { sourceUrl, canonicalEvents: official })

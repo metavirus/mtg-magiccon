@@ -242,6 +242,7 @@ export async function scrapeOfficialTicketedPlayIdentities({ url }) {
 }
 
 export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, canonicalEvents = [] } = {}) {
+  const canonicalById = new Map(canonicalEvents.map(event => [String(event.sourceEventKey), event]))
   const canonicalByIdentity = new Map(canonicalEvents.map(event => [leapEventIdentity({
     title: event.rawTitle ?? event.title,
     day: event.rawDateLabel ?? event.day,
@@ -260,15 +261,21 @@ export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, can
 
   return cards.map(card => {
     const title = cleanTitle(card.title)
-    const day = cleanDay(card.day)
-    const time = cleanTime(card.time)
+    const directCanonical = card.sourceEventKey ? canonicalById.get(String(card.sourceEventKey)) : undefined
+    if (card.sourceEventKey && (!directCanonical
+      || cleanTitle(directCanonical.rawTitle ?? directCanonical.title).toLowerCase() !== title.toLowerCase()
+      || cleanDay(directCanonical.rawDateLabel ?? directCanonical.day) !== cleanDay(card.day))) {
+      throw new Error(`Ticketed Play source identity mismatch: ${card.sourceEventKey}; hold the baseline`)
+    }
+    const day = cleanDay(directCanonical?.rawDateLabel ?? card.day)
+    const time = cleanTime(directCanonical?.rawTimeLabel ?? card.time)
     const [startsAt = '', endsAt = ''] = time.split('-')
     const identity = leapEventIdentity({ title, day, time })
     const exactCanonical = canonicalByIdentity.get(identity)
     const slotCandidates = canonicalBySlot.get(`${day}|${time}`) ?? []
     const normalizedTitle = title.toLowerCase()
     const startCandidates = canonicalByStart.get(startIdentity({ title, day, time })) ?? []
-    const canonical = exactCanonical ?? (startCandidates.length === 1 ? startCandidates[0] : undefined) ?? slotCandidates.find(event => {
+    const canonical = directCanonical ?? exactCanonical ?? (startCandidates.length === 1 ? startCandidates[0] : undefined) ?? slotCandidates.find(event => {
       const candidateTitle = cleanTitle(event.rawTitle ?? event.title).toLowerCase()
       return normalizedTitle.startsWith(candidateTitle) || candidateTitle.startsWith(normalizedTitle)
     })
@@ -297,11 +304,39 @@ export function normalizeLeapInventoryCards(cards, { sourceUrl, retrievedAt, can
   }).sort((a, b) => `${a.day}|${a.startsAt}|${a.title}`.localeCompare(`${b.day}|${b.startsAt}|${b.title}`))
 }
 
+/** Bind rendered controls to their exact first-party payload slot. LEAP's
+ * rendered times can drift from official/checkout times; its numeric ID cannot. */
+export function bindLeapInventorySourceIds(cards, sourceEvents) {
+  const byIdentity = new Map()
+  for (const event of sourceEvents) {
+    const identity = leapEventIdentity({ title: event.title, day: event.calendar_date, time: `${event.start_time_formatted}-${event.end_time_formatted}` })
+    byIdentity.set(identity, [...(byIdentity.get(identity) ?? []), event])
+  }
+  return cards.map(card => {
+    const matches = byIdentity.get(leapEventIdentity(card)) ?? []
+    if (matches.length !== 1 || !/^\d+$/.test(String(matches[0].id))) {
+      throw new Error(`Ticketed Play rendered source identity incomplete: ${card.title}; hold the baseline`)
+    }
+    return { ...card, sourceEventKey: String(matches[0].id) }
+  })
+}
+
 export async function scrapeLeapTicketedPlayInventory({ url, retrievedAt, canonicalEvents = [] }) {
   const { chromium } = await import('playwright')
   const browser = await chromium.launch()
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1200 } })
+    const sourceEvents = new Map()
+    const payloadReads = []
+    const payloadErrors = []
+    page.on('response', response => {
+      const responseUrl = new URL(response.url())
+      if (responseUrl.origin !== new URL(url).origin || !/^\/schedules\/schedules_ajax\/\d+$/.test(responseUrl.pathname)) return
+      payloadReads.push(response.json().then(payload => {
+        if (!payload.success || !payload.schedules) throw new Error('Ticketed Play source payload incomplete; hold the baseline')
+        for (const event of Object.values(payload.schedules).flat()) sourceEvents.set(String(event.id), event)
+      }).catch(error => { payloadErrors.push(error) }))
+    })
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
     await page.waitForSelector('.schedule.card', { timeout: 30000 })
     const allDates = page.getByRole('button', { name: /View All Dates/i })
@@ -335,7 +370,10 @@ export async function scrapeLeapTicketedPlayInventory({ url, retrievedAt, canoni
         controls,
       }
     }))
-    return normalizeLeapInventoryCards(cards, { sourceUrl: url, retrievedAt, canonicalEvents })
+    await Promise.all(payloadReads)
+    if (payloadErrors.length) throw payloadErrors[0]
+    const boundCards = canonicalEvents.length ? bindLeapInventorySourceIds(cards, [...sourceEvents.values()]) : cards
+    return normalizeLeapInventoryCards(boundCards, { sourceUrl: url, retrievedAt, canonicalEvents })
   } finally {
     await browser.close()
   }

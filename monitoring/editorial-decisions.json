@@ -1,4 +1,14 @@
 {
+  "fc3256f8f9aab800f4f2bffee721969a1bac974cbdfc818ab0f8df3b71969055": {
+    "disposition":"noise",
+    "reason":"Exact retained run 38473528578 versus accepted exhibitor predecessor 38323048208: all 66 booths and IDs unchanged. Misty Mountain Gaming adds generic brand/product-range and warranty copy, website and logo; no named Atlanta-exclusive product or substantive new experience. Victory Gems LLC display name becomes Card Cache at the same ID 671341, consistent with its existing description. Preserve directory updates, but neither cosmetic identity alignment nor generic vendor marketing merits a Home notice."
+  },
+  "641b0e875df60dee49cf4de10e23791647d41daa81423dcb21c18146adcd7224": {
+    "disposition":"home",
+    "title":"Sunday Commander Format Panel meetup moves to 2 PM",
+    "summary":"The official schedule moves Sunday's Commander Format Panel meet-and-greet to November 15, 2–3 PM at Magic Meet & Greets, from 1:30–2:30 PM. It lists Lua Stardust, Rebell, Toby Elliott and Alexander Heyer; no preregistration, first come, first served. Spell Slayers remains 1–2 PM, making the sessions sequential rather than overlapping.",
+    "reason":"Exact retained run 38473528578 changes session 954728 start/end times by 30 minutes. All other title/time/location lines match the retained predecessor; current event-bound feed confirms the named participants and first-come terms. Juan's Spell Slayers interest makes the now-sequential 1–2 PM and 2–3 PM sessions particularly useful. Do not imply reserved admission or a guaranteed transition between queues."
+  },
   "3cffad6539d9b4e3377946248e3aae0c2fd7e67f3e93c830a94515fe2492666f": {
     "disposition": "home",
     "title": "Tier 1 Games announces an express selling lane",

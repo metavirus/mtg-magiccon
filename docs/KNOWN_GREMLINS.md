@@ -1,5 +1,9 @@
 # Known gremlins and how not to waste time on them
 
+## LEAP schedule display times drift from official and checkout times
+
+October 13 run `38473528578` held coverage at 3/139 identities after LEAP rendered most starts five hours earlier than the official Atlanta schedule and checkout product names. Browser timezone overrides did not change those source values. Do not guess a global offset or match by title alone. Bind each rendered card to one unique same-origin schedules payload title/day/display-time slot, take its numeric ID, and require that ID plus matching title/day in the current official gtID list. Official times remain authoritative; checkout still independently requires exact product matching. `bindLeapInventorySourceIds` regressions reject ambiguous payload slots, unknown IDs and title/day mismatches. A bounded live proof restored 139 identities and 130 known purchase states plus nine advancement-only rounds; cloud acceptance is still required.
+
 This file exists because repeated avoidable errors are expensive. If one of these patterns appears, use the listed path instead of rediscovering the problem.
 
 Core rule: a known environment-specific failure is no longer debugging. It is operating procedure. If the same sandbox, Git, PowerShell, Vite, network, cache, or publish failure happens again after the correct lane is documented here, that is an agent execution failure unless the documented lane itself changed.
