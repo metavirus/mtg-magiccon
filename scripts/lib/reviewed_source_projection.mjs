@@ -3,7 +3,7 @@
 import { createHash } from 'node:crypto'
 
 export const projectionDigest = bytes => createHash('sha256').update(bytes).digest('hex')
-export const REQUIRED_SCHEDULE_PROJECTIONS = ['atlanta-black-lotus-vip', 'atlanta-experience-panels-and-events', 'atlanta-experience-meet-and-greets', 'atlanta-gathering-grounds-schedule', 'atlanta-experience-the-councils-call']
+export const REQUIRED_SCHEDULE_PROJECTIONS = ['atlanta-black-lotus-vip', 'atlanta-experience-panels-and-events', 'atlanta-experience-meet-and-greets', 'atlanta-gathering-grounds-schedule', 'atlanta-family-magic-schedule', 'atlanta-experience-the-councils-call']
 
 export function reviewedSourceProjectionCoverage(results, reviews, artifacts = {}) {
   const sources = Object.entries(reviews).map(([id, review]) => {

@@ -4,7 +4,7 @@
 
 The previously accepted cloud source snapshot already contained the updated Black Lotus schedule while Explore/Plan retained obsolete inline definitions. Source/announcement closure did not prove app hydration. The same gap left 85 of 88 event-bound Panels/Meet & Greets/Gathering Grounds sessions and two Council dinner slots unselectable. The reviewed catalog now shares source-bound JSON, retains event-selection keys, and distinguishes source changes from personal attendance. Family Magic's 19 sessions are published inside Panels despite its separate empty feed.
 
-`appProjectionCoverage` now makes all five schedule-source projections mandatory even on zero-change runs: exact source content/link hashes and reviewed app-artifact digest must match. Missing/stale hydration is agent-owned repair and cannot advance the baseline. See `SURVEYOR_RESILIENCE_CONTRACT.md` and `monitoring/reviewed-source-projections.json`; do not substitute an announcement or source-fetch success for ingestion. The single pinned pre-guard checkpoint is recovery predecessor evidence only, not current completion.
+`appProjectionCoverage` now makes all six schedule-source projections mandatory even on zero-change runs, including the currently empty dedicated Family Magic feed: exact source content/link hashes and reviewed app-artifact digest must match. Missing/stale hydration is agent-owned repair and cannot advance the baseline. See `SURVEYOR_RESILIENCE_CONTRACT.md` and `monitoring/reviewed-source-projections.json`; do not substitute an announcement or source-fetch success for ingestion. The single pinned pre-guard checkpoint is recovery predecessor evidence only, not current completion.
 
 Updated: 2026-10-07
 

@@ -1,4 +1,12 @@
 {
+  "atlanta-family-magic-schedule": {
+    "projectionPath": "src/data/conventionPrograms.json",
+    "contentHash": "f1de38f75b94b5be5ff3691f60b2ce77ac87902ee9591f6f55f0837c6114eb27",
+    "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "projectionHash": "f6452abb3fabe1e96c4b1f3f6c9e117f72f039cf3650d078bc935093c2aa9a21",
+    "reviewedAt": "2026-10-13T23:48:00Z",
+    "reason": "Dedicated Family Magic feed has zero published sessions in the accepted Atlanta checkpoint. Nineteen current Family Magic sessions are preserved from Panels & Events without duplication. Publication into this currently empty feed requires fresh complete hydration review, not silent baseline acceptance."
+  },
   "atlanta-black-lotus-vip": {
     "projectionPath": "src/data/blackLotusSchedule-reviewed.json",
     "contentHash": "f9a4e0c9fa9678773d61494fe13a64bb14cc7bc428091f0de85122abd95a4bbd",
