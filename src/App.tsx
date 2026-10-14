@@ -10,7 +10,7 @@ import { activityDestination, mobileDrawerDestinations, navigationDestination, p
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
 import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
 import { conventionProgramEvents, councilsCallEvents } from './data/conventionPrograms'
-import { blackLotusDaySummary, blackLotusExploreEvents, blackLotusRetiredEvents } from './data/blackLotusSchedule'
+import { blackLotusDaySummary, blackLotusExploreEvents } from './data/blackLotusSchedule'
 import { artistCardCandidates as generatedArtistCardCandidates } from './data/artistCardCandidates'
 import { authRedirectUrl, resolveDesignPreviewMode, standaloneAppSearch } from './lib/appMode'
 import { hashPath, parseExploreRouteState, type ExploreRouteState } from './lib/exploreRouting'
@@ -3799,7 +3799,6 @@ const exploreEventCandidates: ExploreEvent[] = [
       'bl-feedback-session': 'interested',
     } as Record<string, ExploreState>)[event.id] ?? event.state,
   })),
-  ...blackLotusRetiredEvents,
 ]
 
 const exploreEvents = [

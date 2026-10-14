@@ -32,6 +32,8 @@ Schedule hydration is a separate consequence from source detection and Home publ
 
 The single pinned October 13 pre-hydration checkpoint may be restored as predecessor evidence only. Its exact report digest, closure and public file digests remain checked; it cannot satisfy the current supervision/acceptance gate. New checkpoints must include complete app-projection coverage.
 
+The current Black Lotus schedule is authoritative for active events. Removed slots must not remain selectable, appear in Plan/Calendar, or generate conflicts merely because someone previously committed. Preserve historical selections as stored history without resurrecting a removed source event or transferring the choice to another session.
+
 The coverage gate runs inside acceptance, including zero-change reports. Missing linked pages, unfetched articles, invalid event-bound feeds or unresolved purchase availability cannot reach baseline acceptance. Closure version 2 binds the complete report digest and catch source/intake identities. Unknown catches cannot be renamed noise to close a run.
 
 Public requests have bounded time/size budgets and small retries for transient failures. Parser/identity errors remain exact repair work. Database retries apply only to safe idempotent operations; non-idempotent inserts/RPCs must not be blindly repeated.

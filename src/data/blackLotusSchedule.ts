@@ -65,19 +65,3 @@ export const blackLotusExploreEvents = blackLotusSessions.map(session => ({
   sourceNote: `Official Atlanta Black Lotus VIP page, reviewed ${blackLotusSource.retrievedAt}. Times are Atlanta local time. Schedule subject to change.`,
   planEffect: session.window === 'End time not published' ? 'Start time only; no fixed-duration conflict is inferred.' : 'Compare the published time with your other events before committing.',
 }))
-
-// Historical selection identity only: excluded from the current source schedule.
-export const blackLotusRetiredEvents = [{
-  id: 'bl-thursday-tbd-530', title: 'Former Black Lotus 5:30 PM slot — no longer listed',
-  day: 'Thu' as const, time: '5:30-6:15 PM', window: 'Superseded source slot',
-  price: 'included', kind: 'Black Lotus', type: 'info' as const, format: 'Superseded / not currently listed',
-  tags: ['official atlanta', 'included', 'superseded'], state: 'none' as const,
-  availability: 'changed' as const, complexity: 'easy' as const,
-  complexityWhy: 'The former unnamed slot is no longer in the current official schedule.',
-  fit: 'Saved choice retained for review; this slot is no longer listed.',
-  detail: 'The old official schedule listed an unnamed 5:30–6:15 PM Thursday slot. The current official page no longer lists it. Your saved commitment is retained under its original identity and has not been transferred to Iconic Deck Histories or any other session. Remove the choice if it no longer belongs in your plan.',
-  officialUrl: blackLotusSource.url,
-  decisionFacts: [{ label: 'Status', value: 'Superseded; no current official listing' }],
-  sourceNote: `Official Atlanta Black Lotus VIP page, reviewed ${blackLotusSource.retrievedAt}; former source slot is no longer listed.`,
-  planEffect: 'Historical saved choice only; review or remove it. This is not confirmed current programming.',
-}]
