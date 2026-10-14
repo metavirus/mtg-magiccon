@@ -42,6 +42,16 @@ Watched reopening email keys bind event/state transition and accepted predecesso
 
 ## Supervisor
 
+### Model-service 429 recovery
+
+An OpenAI 429 before the first tool call means supervision did not run. It is not an official-source fetch failure, accepted run, private search or healthy check. The daily GitHub survey remains independent of that model call. This repository cannot intercept or change Codex's pre-turn transport retries.
+
+The existing supervisor now wakes hourly for bounded catch-up; daily public discovery and 24-hour Gmail freshness remain unchanged. Do not burst rediscovery or resend emails to recover a failed model turn. On each successful wake-up, inspect `.monitoring-state/private/supervisor-coverage.local.json` and recent failed scheduled turns. Missing/old completion means work is due, even when a prior chat response sounded healthy. Resolve the actual latest cloud/runtime work and due private lane before quiet completion.
+
+After downloading the exact normal accepted artifacts and saving `gh run view <id> --json databaseId,status,conclusion,jobs` metadata into an ignored file, run `pnpm monitor:verify-supervision <report> <closure>`, then `pnpm monitor:record-supervision <artifact-directory> <run-metadata-json>`. The artifact-only recorder validates current reviewed projections, the exact retained checkpoint, 26-hour freshness, accepted receipt and all four terminal cloud steps. It keeps public and Gmail coverage separate. A due private search does not advance `lastComplete`; missing private capability remains named incomplete work, without discarding verified public coverage. The separate Gmail receipt still requires its canonical writer.
+
+Failed checks retain the previous successful completion. Pre-tool failures leave its timestamp untouched and are therefore still due at the next wake-up. Only verified checks advance it. Notify for meaningful discoveries or unresolved/overdue work, not routine recovered transient throttling. Do not claim the OpenAI 429 itself is fixed: hourly recovery is conditional on the app running and a model request succeeding.
+
 The existing supervisor checks every three hours, while public discovery remains once daily. It reads the latest operational receipt before using freshness or success labels, finishes ordinary retained review/repair in the same turn, and verifies the final normal artifacts plus `Run surveyor to terminal outcome`, `Verify complete coverage and consequences`, `Retain verified accepted baseline`, and `Save monitoring baseline` step outcomes. A successful pending run is not a quiet completion. Routine unchanged state stays quiet.
 
 Private Gmail remains separate under `PRIVATE_MONITORING_COVERAGE.md`: search only when due, preserve actual capability/freshness and unresolved candidates, and never imply that public success published receipts or applied flight changes. Manual private payload publication remains deliberately authorized work.

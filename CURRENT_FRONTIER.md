@@ -1,5 +1,9 @@
 # Current Frontier
 
+## October 14 model-throttling recovery
+
+The missed Codex supervisor check was recovered against exact accepted cloud run `38486987658`, complete public/six-source hydration coverage and the fresh three-query Gmail receipt. No duplicate public discovery or Gmail search was dispatched. The active heartbeat now checks hourly for catch-up, with the daily discovery/private cadence unchanged. `monitor:record-supervision` writes only an ignored artifact-verified local completion receipt; failed or pre-tool 429 turns cannot advance it. Tests cover missed timestamps, failed-step/wrong-run/replay/stale/projection proof and private/public separation. Provider-side 429 retries are not controlled by this repository; recovery requires a successful later model turn. See `SURVEYOR_RESILIENCE_CONTRACT.md`.
+
 ## October 13 schedule-ingestion recurrence
 
 The previously accepted cloud source snapshot already contained the updated Black Lotus schedule while Explore/Plan retained obsolete inline definitions. Source/announcement closure did not prove app hydration. The same gap left 85 of 88 event-bound Panels/Meet & Greets/Gathering Grounds sessions and two Council dinner slots unselectable. The reviewed catalog now shares source-bound JSON, retains event-selection keys, and distinguishes source changes from personal attendance. Family Magic's 19 sessions are published inside Panels despite its separate empty feed.

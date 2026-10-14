@@ -1,5 +1,11 @@
 # Known gremlins and how not to waste time on them
 
+## Codex scheduled turn fails before tools with 429
+
+October 14: the scheduled supervisor and two image-message turns failed with `exceeded retry limit, last status: 429 Too Many Requests` before any tool calls. The account still reported usage allowed with 17% weekly consumption; that does not establish the exact provider-side limit. Do not confuse this with a MagicCon source or GitHub workflow failure, or describe the failed turn as healthy.
+
+Use the hourly catch-up supervisor and its verified `.monitoring-state/private/supervisor-coverage.local.json` receipt under `SURVEYOR_RESILIENCE_CONTRACT.md`. A pre-tool failure cannot advance the timestamp; ordinary accepted cloud discovery remains independent. The artifact-only recorder rejects stale/held/replay results, wrong run IDs, unsuccessful terminal steps and stale app projections. Preserve private Gmail freshness independently. Repository changes cannot override the app's model-service retry implementation.
+
 ## Schedule source accepted while selectable app events remain obsolete
 
 October 13 recurrence: the accepted cloud snapshot contained the complete updated Black Lotus page, but Explore/Plan still used August static events and TBD titles. The same consequence gap omitted 85 of 88 published panel/meet-and-greet/Gathering Grounds sessions, plus Council's Call's two dinner slots. Source/announcement closure was incorrectly treated as full ingestion; no acceptance check compared source evidence with the app schedule artifact.
