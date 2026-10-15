@@ -1,4 +1,10 @@
 {
+  "e850c59b4aa2c4c2645071fbf0f92cfcb014cc22cf068812b22c2ddca97400b6": {
+    "disposition": "home",
+    "title": "Six exhibitor booth listings updated",
+    "summary": "The official Atlanta directory now lists Frost Giant Games at 4109, Galactus TCG Corporation at 6061, Dragon Shield at 2059, Journey's End Games at 4117, Face to Face Games at 3117 and Girudo at 8078. Each listing removed an additional booth number; use the current directory when planning your route.",
+    "reason": "Reviewed every changed field against the exact accepted predecessor: six booth corrections are useful wayfinding information. Face to Face also added ordinary buying/trade-bonus and candy promotions; these are retained in the directory, not promoted as highlights. Welcome to WUBRG added a deliberately redacted teaser without verifiable program details, so do not invent an exclusive or event. Roster remains 66 exhibitors."
+  },
   "c7c38456ce08319a1c2503cf1c4e82406d34bb25587dcfebc7818b25639f8ed4": {
     "disposition": "noise",
     "reason": "Compared all 66 retained exhibitor records against the exact accepted predecessor. Only Norse Foundry LLC at booth 5073 changed: generic dice-brand description, website and image were populated. Roster, booths, specials and exclusives remain unchanged. No named Atlanta exclusive, debut, experience or operational deadline was added; the existing exclusives flag alone is not evidence of an exclusive. Keep this ordinary directory material rather than amplify promotional copy on Home or the envelope."
