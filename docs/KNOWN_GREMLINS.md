@@ -1,5 +1,11 @@
 # Known gremlins and how not to waste time on them
 
+## Gmail tools disappear before authentication
+
+October 15: Gmail search definitions were initially exposed, then the client removed the namespace and returned `tool not available`. Plugin-management discovery also disappeared. Browser inventory exposed no signed-in Gmail session; the separate desktop recovery runtime failed initialization with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`. This establishes a client capability failure, not revoked Gmail authorization. Earlier advice to reconnect Gmail was unsupported.
+
+Follow `PRIVATE_MONITORING_COVERAGE.md`: try the exposed read-only connector, inspect plugin connection state through available management tools, and use an existing signed-in browser when available. If these recovery capabilities are themselves absent, request app restart/reload and preserve the last successful search window. Reauthorize only when a real authentication error or connection-status readback requires it. Completion requires all three canonical searches with pagination and the canonical receipt writer; recording the gap is not recovery.
+
 ## Codex scheduled turn fails before tools with 429
 
 October 14: the scheduled supervisor and two image-message turns failed with `exceeded retry limit, last status: 429 Too Many Requests` before any tool calls. The account still reported usage allowed with 17% weekly consumption; that does not establish the exact provider-side limit. Do not confuse this with a MagicCon source or GitHub workflow failure, or describe the failed turn as healthy.
