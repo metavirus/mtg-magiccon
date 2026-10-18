@@ -724,39 +724,39 @@
   "detailCoverageExclusions": [
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/info-overview.html",
-      "reason": "Direct October 4 HTTP 200 review: main content and link hashes exactly match watched /en-us/info.html (52be0ea3cb8d0313b80ef69d5e5e059c7c5bc320e29d53ef41d05590f0050e67 / f1ff1148ad3dfe6eb7e74e477d896bb75b00e6b0aa6e318b0fb43bd68c53feb8). Duplicate overview, not a separate resource.",
-      "reviewedAt": "2026-10-11T22:12:00Z",
-      "reviewAfter": "2026-10-18T00:00:00Z"
+      "reason": "Direct October 18 HTTP 200 review: main content and link hashes exactly match watched /en-us/info.html (52be0ea3cb8d0313b80ef69d5e5e059c7c5bc320e29d53ef41d05590f0050e67 / f1ff1148ad3dfe6eb7e74e477d896bb75b00e6b0aa6e318b0fb43bd68c53feb8). Duplicate overview, not a separate resource.",
+      "reviewedAt": "2026-10-18T19:55:00Z",
+      "reviewAfter": "2026-10-25T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/magiccon-news.html",
-      "reason": "Direct October 4 HTTP 200 review: same nine articles and exact main content hash 59f3c846c8e87946e9e981b0e807358c373b320c1253b6f83956a1ab438ce515 as watched global news index. Article paths match; mirror links use Atlanta host rather than canonical www.mtgfestivals.com. Canonical index and allowed articles are already checked.",
-      "reviewedAt": "2026-10-11T22:12:00Z",
-      "reviewAfter": "2026-10-18T00:00:00Z"
+      "reason": "Direct October 18 HTTP 200 review: same nine articles and exact main content hash 59f3c846c8e87946e9e981b0e807358c373b320c1253b6f83956a1ab438ce515 as watched global news index. Article paths match; mirror links use Atlanta host rather than canonical www.mtgfestivals.com. Canonical index and allowed articles are already checked.",
+      "reviewedAt": "2026-10-18T19:55:00Z",
+      "reviewAfter": "2026-10-25T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/newsletter-signup.html",
-      "reason": "Direct October 4 HTTP 200 review: newsletter enrollment landing page with Wizards and ReedPop signup links, no announcement inventory. Content hash 6e92e82b1d69a6753582630bd18154be35d17f39ad4a5aa9f097141df68c0572. Canonical news and separate Gmail coverage cover announcements.",
-      "reviewedAt": "2026-10-11T22:12:00Z",
-      "reviewAfter": "2026-10-18T00:00:00Z"
+      "reason": "Direct October 18 HTTP 200 review: newsletter enrollment landing page with Wizards and ReedPop signup links, no announcement inventory. Content hash 6e92e82b1d69a6753582630bd18154be35d17f39ad4a5aa9f097141df68c0572. Canonical news and separate Gmail coverage cover announcements.",
+      "reviewedAt": "2026-10-18T19:55:00Z",
+      "reviewAfter": "2026-10-25T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/ada-assistance.html",
-      "reason": "Direct October 4 review still returns HTTP 404 / Page not found (content hash 937b698c0ed1704c80db1867640f257f87759442c19ce8355a93e65fea56bb3a). Watched accessibility-assistance.html returns 200 with unchanged current 2026 services, October 9 request deadline and November 13–15 sensory-room hours. Exact broken legacy FAQ destination only; not current policy.",
-      "reviewedAt": "2026-10-11T22:12:00Z",
-      "reviewAfter": "2026-10-18T00:00:00Z"
+      "reason": "Direct October 18 review still returns HTTP 404 / Page not found (content hash 937b698c0ed1704c80db1867640f257f87759442c19ce8355a93e65fea56bb3a). Watched accessibility-assistance.html returns 200 with unchanged current 2026 services, October 9 request deadline and November 13–15 sensory-room hours. Exact broken legacy FAQ destination only; not current policy.",
+      "reviewedAt": "2026-10-18T19:55:00Z",
+      "reviewAfter": "2026-10-25T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/how-to-buy/content/sitebuilder/rna/mtg-festivals/mcatlanta/en-us/t3stz0n3/2026/badges/how-to-buy.html",
-      "reason": "Direct October 4 review returns HTTP 404 / Page not found at the exact malformed nested CMS path (content hash 937b698c0ed1704c80db1867640f257f87759442c19ce8355a93e65fea56bb3a). Watched /en-us/badges/how-to-buy.html returns 200 with badge/transfer/Ticketed Play instructions. Not a separate attendee resource.",
-      "reviewedAt": "2026-10-11T22:12:00Z",
-      "reviewAfter": "2026-10-18T00:00:00Z"
+      "reason": "Direct October 18 review returns HTTP 404 / Page not found at the exact malformed nested CMS path (content hash 937b698c0ed1704c80db1867640f257f87759442c19ce8355a93e65fea56bb3a). Watched /en-us/badges/how-to-buy.html returns 200 with badge/transfer/Ticketed Play instructions. Not a separate attendee resource.",
+      "reviewedAt": "2026-10-18T19:55:00Z",
+      "reviewAfter": "2026-10-25T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944082",
-      "reason": "Direct October 4 HTTP 200 review remains a heading-only Event Information shell (content hash e1dfa0cc286760f16407b7cfc8b3e6d7c2543d7b474dacdd333552b7e2089678). Unknown for Charity 944082 remains represented in the current authoritative Ticketed Play/LEAP report. Exact gtID=944082 only; no blanket event-detail exclusion.",
-      "reviewedAt": "2026-10-11T22:12:00Z",
-      "reviewAfter": "2026-10-18T00:00:00Z"
+      "reason": "Direct October 18 HTTP 200 review remains a heading-only Event Information shell (content hash e1dfa0cc286760f16407b7cfc8b3e6d7c2543d7b474dacdd333552b7e2089678). Unknown for Charity 944082 remains represented in the current authoritative Ticketed Play/LEAP report. Exact gtID=944082 only; no blanket event-detail exclusion.",
+      "reviewedAt": "2026-10-18T19:55:00Z",
+      "reviewAfter": "2026-10-25T00:00:00Z"
     }
   ]
 }
