@@ -3,7 +3,7 @@
     "projectionPath": "src/data/conventionPrograms.json",
     "contentHash": "f1de38f75b94b5be5ff3691f60b2ce77ac87902ee9591f6f55f0837c6114eb27",
     "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "projectionHash": "f6452abb3fabe1e96c4b1f3f6c9e117f72f039cf3650d078bc935093c2aa9a21",
+    "projectionHash": "6a9548d04c851268fe9aeae7a93db35eb3c127b3bca2774898963f0adef3abc2",
     "reviewedAt": "2026-10-13T23:48:00Z",
     "reason": "Dedicated Family Magic feed has zero published sessions in the accepted Atlanta checkpoint. Nineteen current Family Magic sessions are preserved from Panels & Events without duplication. Publication into this currently empty feed requires fresh complete hydration review, not silent baseline acceptance."
   },
@@ -19,7 +19,7 @@
     "projectionPath": "src/data/conventionPrograms.json",
     "contentHash": "dd2d3084ec6615c3e5ce48f13fd7c968d4b2367986131ed686d18c09ed90b2dd",
     "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
-    "projectionHash": "f6452abb3fabe1e96c4b1f3f6c9e117f72f039cf3650d078bc935093c2aa9a21",
+    "projectionHash": "6a9548d04c851268fe9aeae7a93db35eb3c127b3bca2774898963f0adef3abc2",
     "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
     "reviewedAt": "2026-10-13T23:48:00Z"
   },
@@ -27,7 +27,7 @@
     "projectionPath": "src/data/conventionPrograms.json",
     "contentHash": "b8bbfaa446571e8a4402aa007a9f18362241fd50e583e9a8ec9cae6677bccac2",
     "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
-    "projectionHash": "f6452abb3fabe1e96c4b1f3f6c9e117f72f039cf3650d078bc935093c2aa9a21",
+    "projectionHash": "6a9548d04c851268fe9aeae7a93db35eb3c127b3bca2774898963f0adef3abc2",
     "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "reviewedAt": "2026-10-13T23:48:00Z"
   },
@@ -35,7 +35,7 @@
     "projectionPath": "src/data/conventionPrograms.json",
     "contentHash": "0ba3fb49ed3d0b26a3d72db3c553dbdf6aa82cd493944fc7d8019948d92059ae",
     "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
-    "projectionHash": "f6452abb3fabe1e96c4b1f3f6c9e117f72f039cf3650d078bc935093c2aa9a21",
+    "projectionHash": "6a9548d04c851268fe9aeae7a93db35eb3c127b3bca2774898963f0adef3abc2",
     "contentLinkHash": "b9ee2e1c6f42ebf1264a1bcf42c3c838b5502fa5109f4acd7f3f425ea032f5ad",
     "reviewedAt": "2026-10-13T23:48:00Z"
   },

@@ -1,4 +1,14 @@
 {
+  "34514b1ea6294c6c1a0af581f4ff888e62f0d65d1fef0c3edcdc9e0138849b27": {
+    "disposition": "noise",
+    "reason": "Compared all 66 retained exhibitors against the exact accepted checkpoint. Galactus TCG Corporation adds Yakata Games branding, buylist and five buying lines plus a conditional $100 trade booster; Galactus TCG adds conditional $100 sleeves; Face to Face replaces promotion IDs/images and adds jackpot-style Treasure Boosters. No roster or booth changes. These are routine buying services, conditional freebies and mystery-pack claims, not useful attendee announcements or verified exclusives."
+  },
+  "b0e596e5ada7e61a0142360f701814cf92c310e1481d94895170ff368d47e2e0": {
+    "disposition": "home",
+    "title": "Sunday drawing sessions: Family Spark priority seating",
+    "summary": "Family Spark badge holders have priority seating for Sunday Draw with a Magic Artist sessions. Arrive 15 minutes before the start; after that, seating is released to general attendees. This does not reserve seats for other badge types.",
+    "reason": "Reviewed the complete retained Atlanta Family Magic page against its predecessor. The substantive addition is this Sunday access rule; all published activity times remain unchanged. Applied it to the Kai Carpenter and Ben Hill Sunday sessions without changing identities or personal attendance."
+  },
   "d5f96aea606ae352c8bf7517c36035defb9d8e89889528ddc4baf84ce1208e7a": {"disposition":"noise","reason":"Compared every field of all 66 retained exhibitor records with the exact accepted October 16 predecessor. Only TCGplayer's imageUrl was populated. Roster, booth numbers, descriptions, specials and exclusives are unchanged. A vendor image is ordinary directory enrichment, not a useful new Home or envelope announcement."},
   "6b97eae7504e49621467642772fdc4114eab0bbebea7cecb083f41458636f0b5": {"disposition":"noise","reason":"Exact retained Hotels & Travel substantive text is unchanged. The sole delta replaces GWCC parking-map-directions with https://gwcc.parkingguide.com/map; direct review identifies the destination as the GWCC Reserve Parking application, not an Atlanta convention floor map. Equivalent parking-link maintenance, no new attendee policy or convention map release."},
   "f2b4064daea0df83de30ddc13d0357b646ca68c1b7ebd5fefb2171e55c09245c": {"disposition":"noise","reason":"Compared every retained artist record with the accepted predecessor. Only Svetlin Velinov's website was populated as www.velinov.com; roster, booths and attendee offerings are unchanged. Directory metadata enrichment, not a new announcement."},
