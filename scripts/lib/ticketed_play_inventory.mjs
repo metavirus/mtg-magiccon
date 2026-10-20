@@ -146,7 +146,11 @@ function checkoutIdentity({ title, day, startsAt }) {
 
 export function normalizeLeapCheckoutProducts(products = []) {
   return products.map(product => {
-    const match = compact(product.title).match(CHECKOUT_TITLE)
+    // October 20: this exact product lost its day/time prefix. Its stable
+    // checkout ID is bound by accepted run 39329466067 to Saturday noon.
+    // Require both ID and complete label; ordinary slot matching still applies.
+    const reviewedTribble = product.productId === '481789' && compact(product.title) === 'Tribble Takeover with Matt Tabak - Sealed - Magic: The Gathering | Star Trek - PP8DVRN'
+    const match = (reviewedTribble ? 'Sat 12:00PM - Tribble Takeover - Sealed - PP8DVRN' : compact(product.title)).match(CHECKOUT_TITLE)
     if (!match) throw new Error(`Ticketed Play checkout title not parseable: ${product.title}`)
     const [, label, hour, minute, meridiem, rawTitle] = match
     const startsAt = `${String(Number(hour) % 12 + (meridiem.toUpperCase() === 'PM' ? 12 : 0)).padStart(2, '0')}:${minute}`

@@ -4,6 +4,14 @@ import { bindLeapInventorySourceIds } from './ticketed_play_inventory.mjs'
 import { assertOfficialTicketedPlayIdentityCoverage, assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
+it('binds only the reviewed prefixless Tribble product to its exact accepted slot', () => {
+  const product = { productId: '481789', title: 'Tribble Takeover with Matt Tabak - Sealed - Magic: The Gathering | Star Trek - PP8DVRN', control: 'Limited Qty Available', purchasable: true }
+  const schedule = [{ id: 'ticketed-944068', title: 'Tribble Takeover - Sealed', day: '2026-11-14', startsAt: '12:00' }]
+  expect(mergeLeapCheckoutAvailability(schedule, [product])[0]).toMatchObject({ availability: 'available', availabilityEvidence: { productId: '481789' } })
+  expect(() => mergeLeapCheckoutAvailability(schedule, [{ ...product, productId: 'other' }])).toThrow(/not parseable/)
+  expect(() => mergeLeapCheckoutAvailability(schedule, [{ ...product, title: product.title.replace('PP8DVRN', 'XXXXXXX') }])).toThrow(/not parseable/)
+  expect(() => mergeLeapCheckoutAvailability([{ ...schedule[0], startsAt: '13:00' }], [product])).toThrow(/not matched/)
+})
 const soldOutCards = [
   ['Commander Sealed Draft with Commander at Home - Rochester draft your Sealed pool!- $180 (Click here for more info)', 'Friday November 13th', '11:30am - 3:25pm'],
   ['2HG - Full-Box Sealed - Mystery Booster Commander Edition - $320 (Click here for more info)', 'Friday November 13th', '4:30pm - 8:59pm'],
