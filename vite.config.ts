@@ -91,7 +91,9 @@ export default defineConfig({
       globPatterns: ['index.html', '**/*.{js,css,svg}'],
       maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       runtimeCaching: [{
-        urlPattern: ({ request, url }) => request.destination === 'image' || /\.(?:avif|gif|jpe?g|png|webp)(?:\?.*)?$/i.test(url.href),
+        // Explicit hydration refresh must reach the network, not CacheFirst's
+        // old response. The warmer writes the refreshed bytes back afterward.
+        urlPattern: ({ request, url }) => request.cache !== 'reload' && (request.destination === 'image' || /\.(?:avif|gif|jpe?g|png|webp)(?:\?.*)?$/i.test(url.href)),
         handler: 'CacheFirst',
         options: {
           cacheName: 'magiccon-remote-images-v1',

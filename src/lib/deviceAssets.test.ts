@@ -13,6 +13,7 @@ describe('device asset pack', () => {
     expect(DEVICE_ASSET_CACHE).toBe('magiccon-remote-images-v1')
     expect(config).toContain(`cacheName: '${DEVICE_ASSET_CACHE}'`)
     expect(config).toContain("request.destination === 'image'")
+    expect(config).toContain("request.cache !== 'reload'")
     expect(config).not.toContain('maxEntries: 250')
   })
 
