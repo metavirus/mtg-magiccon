@@ -1,4 +1,8 @@
 {
+  "68ec707e82d471ec6316b3f82f602ee0ff6ece263f4e2223a8804cabd425fbab": {
+    "disposition": "noise",
+    "reason": "Compared every field of all 66 retained exhibitors in run 39690156368 against accepted run 39498794662 and reviewed run 39671856129. The sole additional change since the reviewed run is The Mana Vault MKE ID 671338 populating its generic store/inventory description, website and logo; mentions of misprints, signed cards and non-English cards describe inventory, not a signing appearance or convention-exclusive offer. The accepted-baseline delta also retains CM Games offer 64411 correcting its conditional pin threshold from $100+ to $50+ and Face to Face Games gaining a featured flag, already reviewed as ordinary vendor material. No identities, names, booths or other offers changed. Preserve directory enrichment without a Home or envelope announcement."
+  },
   "c2be08a38b873b4ce9a79ab2fe5299e08085df020e96f4f395b18554212a9382": {
     "disposition": "noise",
     "reason": "Compared every field of all 66 retained exhibitor records in run 39671856129 against accepted run 39498794662. Only two exhibitors changed: CM Games offer 64411 corrects its Star Trek pin description from a $100+ purchase or trade to $50+, matching its already-$50 title; Face to Face Games changes featured from false to true. All identities, names, booths and other offer terms are unchanged. The corrected conditional freebie and vendor featured flag remain ordinary directory material, not Home or envelope news; neither proves an unconditional giveaway, exclusive inventory or a substantive attendee experience."
