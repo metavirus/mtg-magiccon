@@ -9,6 +9,7 @@ $OfflineReopen = $false
 $ExpectText = ''
 $ExpectImage = ''
 $ExpectAssets = ''
+$Exhibitor = ''
 
 $forwardedArgs = @($args | Where-Object { $_ -ne '--' })
 for ($index = 0; $index -lt $forwardedArgs.Count; $index++) {
@@ -22,6 +23,7 @@ for ($index = 0; $index -lt $forwardedArgs.Count; $index++) {
     '^-ExpectText$' { $index++; $ExpectText = $forwardedArgs[$index]; continue }
     '^-ExpectImage$' { $index++; $ExpectImage = $forwardedArgs[$index]; continue }
     '^-ExpectAssets$' { $index++; $ExpectAssets = $forwardedArgs[$index]; continue }
+    '^-Exhibitor$' { $index++; $Exhibitor = $forwardedArgs[$index]; continue }
     default {
       if ($forwardedArgs[$index] -and -not $forwardedArgs[$index].StartsWith('-')) {
         $Route = $forwardedArgs[$index]
@@ -140,7 +142,8 @@ $captureEvidence = & $node.Source $captureScript `
   --offline-reopen $offlineReopenValue `
   --expect-text $ExpectText `
   --expect-image $ExpectImage `
-  --expect-assets $ExpectAssets
+  --expect-assets $ExpectAssets `
+  --exhibitor $Exhibitor
 if ($LASTEXITCODE -ne 0) { throw "Playwright capture failed for $targetUrl" }
 if (-not (Test-Path -LiteralPath $shotPath) -or -not (Test-Path -LiteralPath $domPath) -or -not (Test-Path -LiteralPath $textPath)) {
   throw "Playwright capture did not produce all expected artifacts for $targetUrl"

@@ -2,6 +2,9 @@
 // unrelated bucket would succeed here but the service worker would never serve
 // those responses to image requests while offline.
 export const DEVICE_ASSET_CACHE = 'magiccon-remote-images-v1'
+const recentlyRefreshed = new Map<string, number>()
+const downloads = new Map<string, Promise<void>>()
+const MEDIA_REFRESH_INTERVAL = 5 * 60 * 1000
 
 export type DeviceAssetCacheResult = {
   expected: number
@@ -34,11 +37,17 @@ export async function auditDeviceAssets(urls: Array<string | null | undefined>):
   return { expected: unique.length, cached, failures }
 }
 
-export async function cacheDeviceAssets(urls: Array<string | null | undefined>): Promise<DeviceAssetCacheResult> {
+export function exhibitorAssetUrls(exhibitors: Array<{ imageUrl?: string; specials?: Array<{ imageUrl?: string }>; exclusives?: Array<{ imageUrl?: string }> }>) {
+  return exhibitors.flatMap(exhibitor => [exhibitor.imageUrl, ...(exhibitor.specials ?? []).map(offer => offer.imageUrl), ...(exhibitor.exclusives ?? []).map(offer => offer.imageUrl)])
+}
+
+export async function cacheDeviceAssets(urls: Array<string | null | undefined>, refreshExisting = false): Promise<DeviceAssetCacheResult> {
   const unique = [...new Set(urls.filter((url): url is string => Boolean(url)))]
   if (!unique.length) return { expected: 0, cached: 0, failures: [] }
   if (!('caches' in globalThis) || !navigator.onLine) return { expected: unique.length, cached: 0, failures: unique }
-  const cache = await caches.open(DEVICE_ASSET_CACHE)
+  let cache: Cache
+  try { cache = await caches.open(DEVICE_ASSET_CACHE) }
+  catch { return { expected: unique.length, cached: 0, failures: unique } }
   let cursor = 0
   let cached = 0
   const failures: string[] = []
@@ -47,10 +56,19 @@ export async function cacheDeviceAssets(urls: Array<string | null | undefined>):
       const url = unique[cursor++]
       try {
         const request = requestForAsset(url)
-        if (!(await cache.match(request))) {
-          const response = await fetch(request)
-          if (!response.ok && response.type !== 'opaque') throw new Error(`HTTP ${response.status}`)
-          await cache.put(request, response)
+        const present = await cache.match(request)
+        if (!present || (refreshExisting && Date.now() - (recentlyRefreshed.get(request.url) ?? 0) >= MEDIA_REFRESH_INTERVAL)) {
+          let download = downloads.get(request.url)
+          if (!download) {
+            download = (async () => {
+              const response = await fetch(request, refreshExisting ? { cache: 'reload' } : undefined)
+              if (!response.ok && response.type !== 'opaque') throw new Error(`HTTP ${response.status}`)
+              await cache.put(request, response)
+              recentlyRefreshed.set(request.url, Date.now())
+            })().finally(() => { downloads.delete(request.url) })
+            downloads.set(request.url, download)
+          }
+          await download
         }
         cached += 1
       } catch {

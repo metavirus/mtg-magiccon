@@ -42,6 +42,23 @@ describe('offline continuity', () => {
     expect(readOfflineContinuity('owner', storage)?.lanes).toEqual({ notes: ['old note'], selections: ['fresh selection'] })
   })
 
+  it('refreshes on online resume without needing an offline edge and deduplicates in-flight resumes', async () => {
+    let release!: () => void
+    const run = vi.fn(() => new Promise<void>(resolve => { release = resolve }))
+    const refresh = createReconnectRefresh(run)
+    await refresh(true)
+    expect(run).not.toHaveBeenCalled()
+    const first = refresh(true, true)
+    const repeated = refresh(true, true)
+    expect(run).toHaveBeenCalledTimes(1)
+    release()
+    await Promise.all([first, repeated])
+    const resumed = refresh(true, true)
+    expect(run).toHaveBeenCalledTimes(2)
+    release()
+    await resumed
+  })
+
   it('keeps owners isolated and rejects malformed snapshots', () => {
     const storage = memoryStorage()
     writeOfflineContinuityLane('owner-a', 'notes', ['private'], storage)

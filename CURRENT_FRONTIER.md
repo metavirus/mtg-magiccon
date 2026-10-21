@@ -1,5 +1,11 @@
 # Current Frontier
 
+## October 21 exhibitor freshness and offline media
+
+Online visible resumes now refresh server data (without requiring an offline edge), cached exhibitors render immediately, and a successful directory read no longer waits for unrelated continuity lanes. Every vendor logo and offer image is included in device warming; same-URL bytes revalidate with a five-minute bound and in-flight deduplication. The image cache no longer silently evicts hydrated packs at 250 entries. Exhibitor image completeness is audited and exposes retry; browser storage eviction is detectable, not preventable.
+
+The directory displays official supplied logos with monogram fallbacks, searches product wording, and renders source product thumbnails inside vendor materials without treating every promotion as a highlight. Local production-build 390px cold-offline reopen verified both a logo and a previously unopened offer thumbnail; 1440px layout was inspected. These are QA fixtures with real source media, not a claim that a particular phone has downloaded the complete production pack. Each device must finish its displayed image download before going offline. No private data or attendance was changed.
+
 ## October 14 model-throttling recovery
 
 The missed Codex supervisor check was recovered against exact accepted cloud run `38486987658`, complete public/six-source hydration coverage and the fresh three-query Gmail receipt. No duplicate public discovery or Gmail search was dispatched. The active heartbeat now checks hourly for catch-up, with the daily discovery/private cadence unchanged. `monitor:record-supervision` writes only an ignored artifact-verified local completion receipt; failed or pre-tool 429 turns cannot advance it. Tests cover missed timestamps, failed-step/wrong-run/replay/stale/projection proof and private/public separation. Provider-side 429 retries are not controlled by this repository; recovery requires a successful later model turn. See `SURVEYOR_RESILIENCE_CONTRACT.md`.

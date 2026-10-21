@@ -44,7 +44,7 @@ import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, anno
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
-import { cacheDeviceAssets } from './lib/deviceAssets'
+import { cacheDeviceAssets, exhibitorAssetUrls } from './lib/deviceAssets'
 import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
 import { ReceiptPages } from './components/ReceiptPages'
 import { ArtistAssetStatus } from './components/ArtistAssetStatus'
@@ -975,6 +975,7 @@ export default function App() {
   const refreshUserContinuity = useCallback(async (forceOnline = false) => {
     setContinuityReady(false)
     if (designPreview || isPreviewOwnerMode) {
+      if (qaFlags.includes('exhibitors')) void cacheDeviceAssets(exhibitorAssetUrls(exhibitorQaFixtures), true)
       setMessage('')
       setContextNotesState(designPreview ? contextNotes : [])
       setMentionInboxState(new URLSearchParams(window.location.search).get('qa') === 'mention-inbox' ? mentionInboxQaRows() : [])
@@ -1047,7 +1048,11 @@ export default function App() {
       setContinuityReady(true)
       return
     }
-    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult, flightsResult, ticketedAvailabilityResult, catalogResult, exhibitorsResult] = await Promise.allSettled([
+    // Show the saved directory immediately, even when an apparently online
+    // connection is slow or unavailable. Server readback replaces it below.
+    const cachedExhibitors = readOfflineContinuity(effectiveOwnerId)?.lanes.exhibitors
+    if (Array.isArray(cachedExhibitors)) setExhibitors((cachedExhibitors as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) })))
+    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult, flightsResult, ticketedAvailabilityResult, catalogResult] = await Promise.allSettled([
         loadContextNotes(effectiveOwnerId),
         loadMentionInbox(effectiveOwnerId),
         loadUserSelections(effectiveOwnerId),
@@ -1058,7 +1063,14 @@ export default function App() {
         supabase ? loadTripFlights(supabase) : Promise.resolve(previewTripFlights),
         loadTicketedPlayAvailability(),
         supabase ? loadCatalogReadModel(supabase, 'magiccon_atlanta_2026') : Promise.resolve(emptyCatalogReadModel),
-        loadExhibitors(),
+        loadExhibitors().then(records => {
+          // This lane must render as soon as it resolves, rather than waiting
+          // for unrelated Wallet/catalog/notes requests to settle.
+          setExhibitors(records)
+          setExhibitorError('')
+          try { writeOfflineContinuityLane(effectiveOwnerId, 'exhibitors', records) } catch { /* best-effort read-only cache */ }
+          void cacheDeviceAssets(exhibitorAssetUrls(records), true)
+        }).catch(() => setExhibitorError('Exhibitors could not be refreshed. Showing any saved directory; try refreshing when online.')),
       ])
     const failures: string[] = []
     const cacheLane = (lane: Parameters<typeof writeOfflineContinuityLane>[1], value: unknown) => {
@@ -1082,8 +1094,6 @@ export default function App() {
     else failures.push('monitoring concepts')
     if (infoResult.status === 'fulfilled') { setInfoTopics(infoResult.value.topics); setInfoFeed(infoResult.value.feed); cacheLane('info', infoResult.value) }
     else failures.push('Info knowledge')
-    if (exhibitorsResult.status === 'fulfilled') { setExhibitors(exhibitorsResult.value); setExhibitorError(''); cacheLane('exhibitors', exhibitorsResult.value) }
-    else setExhibitorError('Exhibitors could not be refreshed. Showing any saved directory; try refreshing when online.')
     if (flightsResult.status === 'fulfilled') {
       const flights = flightsResult.value.length ? flightsResult.value : previewTripFlights
       setTripFlights(flights)
@@ -1242,7 +1252,7 @@ export default function App() {
       if (document.visibilityState !== 'visible' || !navigator.onLine) return
       onlineRef.current = true
       setOnline(true)
-      void reconnect(true)
+      void reconnect(true, true)
     }
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
@@ -3094,7 +3104,7 @@ type ObjectDetail = {
   noteLabel?: string
   backlinks?: Array<{ label: string; destination: Surface }>
   catalogOfferId?: string
-  exhibitorOffers?: Array<{ title: string; offers: Array<{ title: string; description: string; price?: string; url?: string }> }>
+  exhibitorOffers?: Array<{ title: string; offers: Array<{ title: string; description: string; price?: string; url?: string; imageUrl?: string }> }>
   exhibitorDescription?: string
 }
 type NoteVisibility = 'private' | 'shared'
@@ -5149,7 +5159,10 @@ function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhi
       {canUseCatalogImport && <button type="button" role="tab" aria-selected={mode === 'import'} className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>Import</button>}
     </div>
     {mode === 'guide' && <InfoGuide topics={visibleTopics} feed={visibleFeed} onOpenObject={onOpenObject} />}
-    {mode === 'exhibitors' && <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />}
+    {mode === 'exhibitors' && <>
+      <ArtistAssetStatus urls={exhibitorAssetUrls(exhibitors).filter((url): url is string => Boolean(url))} missingImages={0} online={navigator.onLine} revision={0} label="Exhibitor images" />
+      <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />
+    </>}
     {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} />}
     {mode === 'import' && canUseCatalogImport && <CatalogImportLab initialBatch={catalogImportPreviewBatch} canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />}
   </section>

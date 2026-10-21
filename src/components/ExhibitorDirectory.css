@@ -1,4 +1,12 @@
 .exhibitor-directory { min-width: 0; }
+.exhibitor-logo-frame { display: grid; place-items: center; flex: 0 0 52px; width: 52px; height: 52px; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #f4f5f7; }
+.exhibitor-logo { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
+.exhibitor-monogram { color: #52637a; font-size: 15px; font-weight: 750; letter-spacing: .03em; }
+.exhibitor-offer { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.exhibitor-offer-copy { min-width: 0; flex: 1; }
+.exhibitor-product-image { flex: 0 0 84px; width: 84px; height: 84px; object-fit: contain; border-radius: 8px; background: #f4f5f7; }
+.exhibitor-offer h4 { margin: 0 0 6px; font-size: 13px; line-height: 1.4; }
+.exhibitor-offer p { margin: 0; }
 .exhibitor-toolbar { position: sticky; top: 8px; z-index: 2; display: flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
 .exhibitor-search { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; height: 36px; padding: 0 8px; color: var(--muted); }
 .exhibitor-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #edf3fb; font-size: 12px; }

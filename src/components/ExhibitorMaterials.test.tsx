@@ -3,6 +3,11 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { ExhibitorMaterials } from './ExhibitorMaterials'
 afterEach(cleanup)
 describe('quiet vendor materials', () => {
+  it('preserves product thumbnails and terms inside the vendor disclosure', () => {
+    render(<ExhibitorMaterials sections={[{ title: 'Vendor-posted exclusives', offers: [{ title: 'Convention playmat', description: 'While supplies last.', price: '25', imageUrl: 'https://example.com/playmat.jpg' }] }]} />)
+    expect(screen.getByRole('img', { name: 'Convention playmat', hidden: true })).toHaveAttribute('src', 'https://example.com/playmat.jpg')
+    expect(screen.getByText('While supplies last.')).toBeInTheDocument()
+  })
   it('retains ordinary promotions behind a closed disclosure, never relabeling zero as free', () => {
     render(<ExhibitorMaterials description="Vendor marketing" sections={[{ title: 'Vendor-posted offers', offers: [
       { title: 'First four shoppers', description: 'Save one cent', price: '0.00' },

@@ -5,6 +5,14 @@ import { auditDeviceAssets, cacheDeviceAssets } from '../lib/deviceAssets'
 vi.mock('../lib/deviceAssets', () => ({ auditDeviceAssets: vi.fn(), cacheDeviceAssets: vi.fn() }))
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 describe('artist image completion status', () => {
+  it('reports vendor pack failures and retries the complete manifest', async () => {
+    vi.mocked(cacheDeviceAssets).mockResolvedValueOnce({ expected: 3, cached: 2, failures: ['/unopened-offer'] }).mockResolvedValueOnce({ expected: 3, cached: 3, failures: [] })
+    render(<ArtistAssetStatus urls={['/logo', '/special', '/unopened-offer']} missingImages={0} online revision={0} label="Exhibitor images" />)
+    await waitFor(() => expect(screen.getByText('Exhibitor images incomplete · 2/3')).toBeTruthy())
+    expect(cacheDeviceAssets).toHaveBeenCalledWith(['/logo', '/special', '/unopened-offer'])
+    fireEvent.click(screen.getByRole('button', { name: 'Retry image download' }))
+    await waitFor(() => expect(screen.getByText('Exhibitor images saved · 3/3')).toBeTruthy())
+  })
   it('shows partial coverage and retries without claiming readiness', async () => {
     vi.mocked(cacheDeviceAssets).mockResolvedValueOnce({ expected: 2, cached: 1, failures: ['/b'] }).mockResolvedValueOnce({ expected: 2, cached: 2, failures: [] })
     render(<ArtistAssetStatus urls={['/a', '/b']} missingImages={0} online revision={0} />)

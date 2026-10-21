@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 import type { Exhibitor } from '../components/ExhibitorDirectory'
 import { exhibitorHighlight } from './exhibitorHighlights'
 
-export type ExhibitorOffer = { id?: string; title: string; description: string; price?: string; url?: string; link?: string }
+export type ExhibitorOffer = { id?: string; title: string; description: string; price?: string; url?: string; link?: string; imageUrl?: string }
 export type DirectoryExhibitor = Exhibitor & { specials?: ExhibitorOffer[]; exclusives?: ExhibitorOffer[] }
 export const exhibitorObjectId = (id: string) => `exhibitor-atlanta-2026-${id}`
 export function safeExhibitorUrl(value: string | null | undefined) {
@@ -11,7 +11,7 @@ export function safeExhibitorUrl(value: string | null | undefined) {
   try { const url = new URL(candidate); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.toString() : '' } catch { return '' }
 }
 export const exhibitorQaFixtures: DirectoryExhibitor[] = [
-  { id: 'qa-card-shop', name: 'QA Card Shop', booth: '101', profileUrl: 'https://www.mtgfestivals.com/', description: 'QA fixture: singles, sealed products, and trading accessories. This is sample content for viewport verification, not an Atlanta listing.', website: 'https://www.mtgfestivals.com/', storeUrl: '', imageUrl: '', aliases: ['Sample Cards'], visitReason: '', specials: [{ title: 'QA bundle offer', description: 'Sample sleeves and deck-box bundle.', price: '$25' }], exclusives: [{ title: 'QA convention playmat', description: 'Sample convention-exclusive artwork.', url: 'https://www.mtgfestivals.com/' }] },
+  { id: 'qa-card-shop', name: 'QA Card Shop', booth: '101', profileUrl: 'https://www.mtgfestivals.com/', description: 'QA fixture: singles, sealed products, and trading accessories. This is sample content for viewport verification, not an Atlanta listing.', website: 'https://www.mtgfestivals.com/', storeUrl: '', imageUrl: 'https://conv-prod-app.s3.amazonaws.com/media/big/10/15/80/3bf3e93b-891d-4445-ae4e-b19d16d1e299.jpg', aliases: ['Sample Cards'], visitReason: '', specials: [{ title: 'QA bundle offer', description: 'Sample sleeves and deck-box bundle.', price: '$25' }], exclusives: [{ title: 'QA convention playmat', description: 'Sample artwork layout; official supplied image used only to verify thumbnail rendering.', imageUrl: 'https://conv-prod-app.s3.amazonaws.com/media/big/91/44/42/9eb89b3c-4581-47dc-8489-6e51a037206a.jpg', url: 'https://www.mtgfestivals.com/' }] },
   { id: 'qa-art-studio', name: 'QA Illustration & Collectibles Studio', booth: '202, 204', profileUrl: '', description: 'QA fixture: art prints and collectibles.', website: '', storeUrl: '', imageUrl: '', aliases: ['Sample Art'], visitReason: '', highlight: 'QA sample: convention-exclusive playmat and live product engraving; signings at booth 202.' },
   { id: 'qa-accessories', name: 'QA Tabletop Accessories', booth: '', profileUrl: '', description: '', website: '', storeUrl: '', imageUrl: '', aliases: [], visitReason: '' },
 ]

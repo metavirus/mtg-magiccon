@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './ExhibitorDirectory.css'
+import { ExhibitorImage } from './ExhibitorImage'
 
 export type Exhibitor = {
   id: string
@@ -13,6 +14,8 @@ export type Exhibitor = {
   aliases: string[]
   visitReason: string
   highlight?: string
+  specials?: Array<{ title: string; description: string }>
+  exclusives?: Array<{ title: string; description: string }>
 }
 
 export type ExhibitorDirectoryProps = {
@@ -37,7 +40,8 @@ export function ExhibitorDirectory({ exhibitors, savedIds, onToggleSaved, onOpen
   const visible = exhibitors.filter(exhibitor => {
     if (filter === 'saved' && !saved.has(exhibitor.id)) return false
     if (filter === 'highlights' && !exhibitor.highlight) return false
-    const text = searchable([exhibitor.name, exhibitor.booth, exhibitor.highlight ?? '', ...exhibitor.aliases].join(' '))
+    const offers = [...(exhibitor.specials ?? []), ...(exhibitor.exclusives ?? [])]
+    const text = searchable([exhibitor.name, exhibitor.booth, exhibitor.highlight ?? '', ...exhibitor.aliases, ...offers.flatMap(offer => [offer.title, offer.description])].join(' '))
     return terms.every(term => text.includes(term))
   })
   async function toggle(id: string) {
@@ -52,7 +56,7 @@ export function ExhibitorDirectory({ exhibitors, savedIds, onToggleSaved, onOpen
     <div className="exhibitor-toolbar">
       <label className="exhibitor-search">
         <span aria-hidden="true">⌕</span>
-        <input type="search" aria-label="Find exhibitor or booth" placeholder="Find exhibitor or booth" value={query} onChange={event => setQuery(event.target.value)} />
+        <input type="search" aria-label="Find exhibitor, product or booth" placeholder="Exhibitor, product or booth" value={query} onChange={event => setQuery(event.target.value)} />
         {query && <button type="button" aria-label="Clear exhibitor search" onClick={() => setQuery('')}>×</button>}
       </label>
       <div className="trip-tabs exhibitor-filters" role="group" aria-label="Exhibitor filter">
@@ -68,6 +72,7 @@ export function ExhibitorDirectory({ exhibitors, savedIds, onToggleSaved, onOpen
     <div className="exhibitor-list">
       {visible.map(exhibitor => <article className="exhibitor-row" key={exhibitor.id}>
         <button type="button" className="exhibitor-open" aria-label={`Open ${exhibitor.name} details`} onClick={() => onOpen(exhibitor)}>
+          <span className="exhibitor-logo-frame"><ExhibitorImage src={exhibitor.imageUrl} name={exhibitor.name} logo /></span>
           <span className="exhibitor-copy"><strong>{exhibitor.name}</strong><small>{exhibitor.booth ? `Booth ${exhibitor.booth}` : 'Booth not listed'}</small>{exhibitor.highlight && <span className="exhibitor-highlight">{exhibitor.highlight}</span>}</span>
           <span className="exhibitor-chevron" aria-hidden="true">›</span>
         </button>

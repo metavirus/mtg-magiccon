@@ -25,6 +25,7 @@ const expectText = values.get('--expect-text') === 'true' ? '' : values.get('--e
 const expectImage = values.get('--expect-image') === 'true' ? '' : values.get('--expect-image') ?? ''
 const expectAssetsValue = values.get('--expect-assets') === 'true' ? '' : values.get('--expect-assets') ?? ''
 const expectAssets = expectAssetsValue.split('|').filter(Boolean)
+const exhibitor = values.get('--exhibitor') === 'true' ? '' : values.get('--exhibitor') ?? ''
 
 if (!url || !screenshot || !dom || !text) {
   throw new Error('Missing required UI capture argument.')
@@ -62,6 +63,9 @@ try {
   await page.waitForTimeout(1_500)
   let serviceWorkerControlled = false
   if (offlineReopen) {
+    // A cold-reopen proof must not race the app's asynchronous media pack.
+    // Wait for its visible saving indicator, then verify offline bytes below.
+    await page.getByText(/^Saving .*images$/).waitFor({ state: 'hidden', timeout: 30_000 })
     writePhase('serviceWorkerReady')
     await page.evaluate(async () => { await navigator.serviceWorker.ready })
     serviceWorkerControlled = await page.evaluate(() => Boolean(navigator.serviceWorker.controller))
@@ -79,6 +83,11 @@ try {
     page = await context.newPage()
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15_000 })
     await page.waitForTimeout(750)
+  }
+  if (exhibitor) {
+    await page.getByRole('button', { name: `Open ${exhibitor} details`, exact: true }).click()
+    await page.locator('.exhibitor-materials summary').click()
+    await page.locator('.exhibitor-product-image').evaluate(image => image.scrollIntoView({ block: 'center' }))
   }
   writePhase('screenshot')
   await withTimeout('page.screenshot', page.screenshot({ path: screenshot, fullPage: false }), 10_000)

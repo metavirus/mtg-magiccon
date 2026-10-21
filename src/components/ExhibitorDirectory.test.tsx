@@ -10,6 +10,13 @@ const exhibitors: Exhibitor[] = [
 ]
 const props = () => ({ exhibitors, savedIds: ['b'], canWrite: true, onToggleSaved: vi.fn(), onOpen: vi.fn() })
 describe('Exhibitor directory', () => {
+  it('finds product names without promoting ordinary offers to highlights', () => {
+    render(<ExhibitorDirectory {...props()} exhibitors={[{ ...exhibitors[0], exclusives: [{ title: 'Monarch Coin', description: 'Complete a booth quest' }] }]} />)
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'monarch' } })
+    expect(screen.getByText('Example Card Supply')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Highlights' }))
+    expect(screen.queryByText('Example Card Supply')).toBeNull()
+  })
   it('highlights only reviewed booth reasons, not the existence of promotions', () => {
     render(<ExhibitorDirectory {...props()} exhibitors={[{ ...exhibitors[0], highlight: 'Live product engraving' }, exhibitors[1]]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Highlights' }))

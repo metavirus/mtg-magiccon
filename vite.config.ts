@@ -91,12 +91,13 @@ export default defineConfig({
       globPatterns: ['index.html', '**/*.{js,css,svg}'],
       maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       runtimeCaching: [{
-        urlPattern: /^https:\/\/.*\.(?:avif|gif|jpe?g|png|webp)(?:\?.*)?$/i,
+        urlPattern: ({ request, url }) => request.destination === 'image' || /\.(?:avif|gif|jpe?g|png|webp)(?:\?.*)?$/i.test(url.href),
         handler: 'CacheFirst',
         options: {
           cacheName: 'magiccon-remote-images-v1',
           cacheableResponse: { statuses: [0, 200] },
-          expiration: { maxEntries: 250, maxAgeSeconds: 60 * 60 * 24 * 45 },
+          // The complete authenticated device pack shares this cache. A fixed
+          // LRU limit silently evicts hydrated media as other images are read.
         },
       }],
     },

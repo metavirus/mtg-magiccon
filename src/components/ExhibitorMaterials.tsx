@@ -1,4 +1,5 @@
-type Offer = { title: string; description: string; price?: string; url?: string }
+import { ExhibitorImage } from './ExhibitorImage'
+type Offer = { title: string; description: string; price?: string; url?: string; imageUrl?: string }
 export function ExhibitorMaterials({ description, sections }: { description?: string; sections: Array<{ title: string; offers: Offer[] }> }) {
   const count = sections.reduce((total, section) => total + section.offers.length, 0)
   if (!description && !count) return null
@@ -7,10 +8,13 @@ export function ExhibitorMaterials({ description, sections }: { description?: st
     {description && <section><h3>Vendor description</h3><p>{description}</p></section>}
     {sections.filter(section => section.offers.length).map(section => <section key={section.title}>
       <h3>{section.title}</h3>
-      {section.offers.map((offer, index) => <article key={`${offer.title}-${index}`}>
+      {section.offers.map((offer, index) => <article className="exhibitor-offer" key={`${offer.title}-${index}`}>
+        <ExhibitorImage src={offer.imageUrl} name={offer.title} />
+        <div className="exhibitor-offer-copy">
         <h4>{offer.title}{offer.price && !/^\$?0+(?:\.0+)?$/.test(offer.price.trim()) ? ` · Listed price ${offer.price}` : ''}</h4>
         {offer.description && <p>{offer.description}</p>}
         {offer.url && <nav className="object-resource-links"><a href={offer.url} target="_blank" rel="noreferrer">Offer details ↗</a></nav>}
+        </div>
       </article>)}
     </section>)}
   </details>

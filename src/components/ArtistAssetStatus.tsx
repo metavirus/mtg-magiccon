@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { auditDeviceAssets, cacheDeviceAssets, type DeviceAssetCacheResult } from '../lib/deviceAssets'
 import './ArtistAssetStatus.css'
 
-export function ArtistAssetStatus({ urls, missingImages, online, revision }: { urls: string[]; missingImages: number; online: boolean; revision: number }) {
+export function ArtistAssetStatus({ urls, missingImages, online, revision, label = 'Artist/card images' }: { urls: string[]; missingImages: number; online: boolean; revision: number; label?: string }) {
   const [result, setResult] = useState<DeviceAssetCacheResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [retry, setRetry] = useState(0)
@@ -21,10 +21,10 @@ export function ArtistAssetStatus({ urls, missingImages, online, revision }: { u
   const expected = (result?.expected ?? JSON.parse(manifest).length) + missingImages
   const cached = result?.cached ?? 0
   return <div className="artist-asset-status" role="status">
-    <small>{loading ? (online ? 'Saving artist/card images' : 'Checking saved artist/card images')
-      : expected === 0 ? 'No artist/card images in this catalog'
-      : cached === expected ? `Artist/card images saved · ${cached}/${expected}`
-      : `Artist/card images incomplete · ${cached}/${expected}`}</small>
+    <small>{loading ? (online ? `Saving ${label.toLowerCase()}` : `Checking saved ${label.toLowerCase()}`)
+      : expected === 0 ? `No ${label.toLowerCase()} in this catalog`
+      : cached === expected ? `${label} saved · ${cached}/${expected}`
+      : `${label} incomplete · ${cached}/${expected}`}</small>
     {!loading && cached < expected && <>
       <small>{missingImages ? `${missingImages} image references missing. ` : ''}{online ? 'Some images are not available offline yet.' : 'Reconnect to download missing images.'}</small>
       {online && <button type="button" onClick={() => setRetry(value => value + 1)}>Retry image download</button>}

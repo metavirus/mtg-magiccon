@@ -54,17 +54,17 @@ export function writeOfflineContinuityLane(
   storage.setItem(cacheKey(ownerId), JSON.stringify(snapshot))
 }
 
-/** Tracks connectivity edges. Repeated browser `online` events do not start a
- * second refresh while the first is running or until another offline edge. */
+/** Refresh on connectivity edges and explicit visible resumes. Repeated events
+ * share the in-flight refresh; plain online events require an offline edge. */
 export function createReconnectRefresh(run: () => Promise<void>) {
   let wasOffline = false
   let inFlight: Promise<void> | null = null
-  return (online: boolean) => {
+  return (online: boolean, resumed = false) => {
     if (!online) {
       wasOffline = true
       return Promise.resolve()
     }
-    if (!wasOffline) return inFlight ?? Promise.resolve()
+    if (!wasOffline && !resumed) return inFlight ?? Promise.resolve()
     wasOffline = false
     if (!inFlight) inFlight = run().finally(() => { inFlight = null })
     return inFlight
