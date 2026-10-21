@@ -133,7 +133,7 @@ export function ticketedPlayAvailabilityCoverage(observed = []) {
 
 // LEAP sometimes omits the space after the time/title separator. Keep the
 // separator and product-code suffix required so this cannot relax identity.
-const CHECKOUT_TITLE = /^(Fri|Sat|Sun)\s+(\d{1,2}):(\d{2})(AM|PM)\s+-\s*(.+?)\s+-\s+[A-Z0-9]{7}$/i
+const CHECKOUT_TITLE = /^(Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s+(\d{1,2}):(\d{2})(AM|PM)\s+-\s*(.+?)\s+-\s+[A-Z0-9]{7}$/i
 const DAY_BY_LABEL = { fri: '2026-11-13', sat: '2026-11-14', sun: '2026-11-15' }
 const CHECKOUT_ALIASES = new Map([
   ['savvy pin traders - sealed league - reality fracture with veggie wagon featuring a special pin!', 'savvy pin traders - deluxe sealed league - reality fracture with veggie wagon featuring a special pin!'],
@@ -159,7 +159,7 @@ export function normalizeLeapCheckoutProducts(products = []) {
     const availability = /sold\s*out/i.test(control) ? 'sold_out'
       : /unavailable|registration\s+closed/i.test(control) ? 'unavailable'
       : product.purchasable ? 'available' : 'unknown'
-    return { ...product, title, day: DAY_BY_LABEL[label.toLowerCase()], startsAt, availability, control }
+    return { ...product, title, day: DAY_BY_LABEL[label.toLowerCase().slice(0, 3)], startsAt, availability, control }
   })
 }
 

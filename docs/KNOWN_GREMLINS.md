@@ -528,6 +528,8 @@ Card-popup prevention checkpoint (September 6): remove generic `persistent-detai
 
 ## Mistake visibility
 
+October 21 Ticketed Play recurrence: the Tribble product restored a full `Saturday` prefix after the reviewed missing-prefix exception. The prior exact exception did not cover ordinary full weekday spellings. Parse Fri/Friday, Sat/Saturday and Sun/Sunday with the same exact slot/product-code requirements; regression tests must prove both the restored Tribble label and rejection of a changed start time. A green `awaiting_repair` run is not completed supervision.
+
 October 21 exhibitor integration: adding partial offer arrays to the directory view narrowed drawer offer fields through an intersected type. Keep one exported `ExhibitorOffer` contract for the directory and loader. After any final typed-model edit, rerun the build before publication; shell command chains must stop on a nonzero validation exit rather than continuing to commit/push.
 
 **Symptom:** a gremlin is fixed eventually, but Kavi only learns through GitHub emails, screenshots, or repeated prompts that something was wrong.

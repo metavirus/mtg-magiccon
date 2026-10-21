@@ -90,6 +90,13 @@ describe('LEAP Ticketed Play inventory', () => {
     expect(() => mergeLeapCheckoutAvailability(schedule, [product, { ...product, productId: 'duplicate', title: title.replace(' -Starfleet', ' - Starfleet') }])).toThrow(/Ambiguous checkout products/)
   })
 
+  it.each(['Saturday', 'Sat'])('matches the restored Tribble checkout weekday %s without weakening slot identity', weekday => {
+    const schedule = normalizeLeapInventoryCards([{ title: 'Tribble Takeover with Matt Tabak - Sealed - Magic: The Gathering | Star Trek', day: 'Saturday November 14th', time: '12:00pm - 3:00pm', controls: [] }], { sourceUrl })
+    const product = { productId: '481789', title: `${weekday} 12:00PM - Tribble Takeover with Matt Tabak - Sealed - Magic: The Gathering | Star Trek - PP8DVRN`, control: '2 Left', purchasable: true }
+    expect(mergeLeapCheckoutAvailability(schedule, [product])[0]).toMatchObject({ day: '2026-11-14', startsAt: '12:00', availability: 'available' })
+    expect(() => mergeLeapCheckoutAvailability(schedule, [{ ...product, title: product.title.replace('12:00PM', '1:00PM') }])).toThrow(/checkout mismatch/)
+  })
+
   it.each([
     'Sat 12:30PM Starfleet Academy League - Magic: The Gathering | Star Trek - J2MEP34',
     'Sat 12:30PM -Starfleet Academy League - Magic: The Gathering | Star Trek - J2MEP3',
