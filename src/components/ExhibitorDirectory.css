@@ -4,6 +4,13 @@
 .exhibitor-monogram { color: #52637a; font-size: 15px; font-weight: 750; letter-spacing: .03em; }
 .exhibitor-offer { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
 .exhibitor-offer-copy { min-width: 0; flex: 1; }
+.exhibitor-product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.exhibitor-product-grid figure { margin: 0; min-width: 0; }
+.exhibitor-product-grid .exhibitor-product-image { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; }
+.exhibitor-product-grid figcaption { display: grid; gap: 4px; padding-top: 8px; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+.exhibitor-product-grid figcaption small { color: var(--muted); font-size: 9px; }
+.exhibitor-product-grid figcaption strong { font-size: 12px; }
+.exhibitor-product-grid figcaption span { color: var(--muted); }
 .exhibitor-product-image { flex: 0 0 84px; width: 84px; height: 84px; object-fit: contain; border-radius: 8px; background: #f4f5f7; }
 .exhibitor-offer h4 { margin: 0 0 6px; font-size: 13px; line-height: 1.4; }
 .exhibitor-offer p { margin: 0; }

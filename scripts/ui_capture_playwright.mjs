@@ -86,7 +86,6 @@ try {
   }
   if (exhibitor) {
     await page.getByRole('button', { name: `Open ${exhibitor} details`, exact: true }).click()
-    await page.locator('.exhibitor-materials summary').click()
     await page.locator('.exhibitor-product-image').evaluate(image => image.scrollIntoView({ block: 'center' }))
   }
   writePhase('screenshot')
