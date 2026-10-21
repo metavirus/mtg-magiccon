@@ -6,6 +6,19 @@
 .exhibitor-offer-copy { min-width: 0; flex: 1; }
 .exhibitor-product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .exhibitor-product-grid figure { margin: 0; min-width: 0; }
+.exhibitor-product-enlarge { display: block; position: relative; width: 100%; padding: 0; border: 0; border-radius: 8px; overflow: hidden; background: transparent; cursor: zoom-in; }
+.exhibitor-product-enlarge > span { position: absolute; bottom: 6px; right: 6px; padding: 3px 6px; border-radius: 5px; background: #07111ee8; color: #eef4fc; font-size: 10px; }
+.exhibitor-product-enlarge:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.exhibitor-image-viewer { width: min(1000px, calc(100vw - 24px)); max-width: none; max-height: calc(100dvh - 24px); padding: 12px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 12px; color: #eef4fc; background: var(--panel, #101e30); }
+.exhibitor-image-viewer::backdrop { background: #030811dc; }
+.exhibitor-image-viewer header { display: flex; align-items: center; gap: 12px; }
+.exhibitor-image-viewer header strong { flex: 1; font-size: 14px; }
+.exhibitor-image-viewer button { min-width: 40px; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; color: inherit; background: transparent; cursor: pointer; }
+.exhibitor-image-tools { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+.exhibitor-image-tools output { min-width: 48px; text-align: center; font-size: 12px; }
+.exhibitor-image-tools button:disabled { opacity: .4; cursor: default; }
+.exhibitor-image-scroll { width: 100%; height: min(70dvh, 700px); overflow: auto; background: #07101b; border-radius: 8px; }
+.exhibitor-image-scroll img { display: block; width: 100%; height: 100%; object-fit: contain; max-width: none; }
 .exhibitor-product-grid .exhibitor-product-image { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; }
 .exhibitor-product-grid figcaption { display: grid; gap: 4px; padding-top: 8px; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
 .exhibitor-product-grid figcaption small { color: var(--muted); font-size: 9px; }

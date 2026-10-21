@@ -10,6 +10,7 @@ $ExpectText = ''
 $ExpectImage = ''
 $ExpectAssets = ''
 $Exhibitor = ''
+$ZoomProduct = $false
 
 $forwardedArgs = @($args | Where-Object { $_ -ne '--' })
 for ($index = 0; $index -lt $forwardedArgs.Count; $index++) {
@@ -24,6 +25,7 @@ for ($index = 0; $index -lt $forwardedArgs.Count; $index++) {
     '^-ExpectImage$' { $index++; $ExpectImage = $forwardedArgs[$index]; continue }
     '^-ExpectAssets$' { $index++; $ExpectAssets = $forwardedArgs[$index]; continue }
     '^-Exhibitor$' { $index++; $Exhibitor = $forwardedArgs[$index]; continue }
+    '^-ZoomProduct$' { $ZoomProduct = $true; continue }
     default {
       if ($forwardedArgs[$index] -and -not $forwardedArgs[$index].StartsWith('-')) {
         $Route = $forwardedArgs[$index]
@@ -143,7 +145,8 @@ $captureEvidence = & $node.Source $captureScript `
   --expect-text $ExpectText `
   --expect-image $ExpectImage `
   --expect-assets $ExpectAssets `
-  --exhibitor $Exhibitor
+  --exhibitor $Exhibitor `
+  --zoom-product $ZoomProduct.ToString().ToLowerInvariant()
 if ($LASTEXITCODE -ne 0) { throw "Playwright capture failed for $targetUrl" }
 if (-not (Test-Path -LiteralPath $shotPath) -or -not (Test-Path -LiteralPath $domPath) -or -not (Test-Path -LiteralPath $textPath)) {
   throw "Playwright capture did not produce all expected artifacts for $targetUrl"

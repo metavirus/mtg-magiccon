@@ -3,6 +3,19 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { ExhibitorMaterials } from './ExhibitorMaterials'
 afterEach(cleanup)
 describe('quiet vendor materials', () => {
+  it('opens a zoomable image without expanding vendor copy', () => {
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
+    render(<ExhibitorMaterials sections={[{ title: 'Vendor-posted exclusives', offers: [{ title: 'Playmat art', description: '', imageUrl: 'https://example.com/art.jpg' }] }]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Enlarge Playmat art' }))
+    expect(screen.getByRole('dialog', { name: 'Playmat art image viewer' })).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }))
+    expect(screen.getByText('150%')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Fit' }))
+    expect(screen.getByText('100%')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Close image viewer' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
   it('shows product images before closed vendor copy without requiring expansion', () => {
     render(<ExhibitorMaterials sections={[{ title: 'Vendor-posted exclusives', offers: [{ title: 'Convention playmat', description: 'While supplies last.', price: '25', imageUrl: 'https://example.com/playmat.jpg' }] }]} />)
     const image = screen.getByRole('img', { name: 'Convention playmat' })

@@ -87,6 +87,11 @@ try {
   if (exhibitor) {
     await page.getByRole('button', { name: `Open ${exhibitor} details`, exact: true }).click()
     await page.locator('.exhibitor-product-image').evaluate(image => image.scrollIntoView({ block: 'center' }))
+    if (values.get('--zoom-product') === 'true') {
+      await page.locator('.exhibitor-product-enlarge').first().click()
+      await page.getByRole('button', { name: 'Zoom in', exact: true }).click()
+      await page.getByText('150%', { exact: true }).waitFor({ state: 'visible' })
+    }
   }
   writePhase('screenshot')
   await withTimeout('page.screenshot', page.screenshot({ path: screenshot, fullPage: false }), 10_000)
