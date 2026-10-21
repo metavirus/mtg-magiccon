@@ -2,6 +2,8 @@ import { useState } from 'react'
 import './ExhibitorDirectory.css'
 import { ExhibitorImage } from './ExhibitorImage'
 
+export type ExhibitorOffer = { id?: string; title: string; description: string; price?: string; url?: string; link?: string; imageUrl?: string }
+
 export type Exhibitor = {
   id: string
   name: string
@@ -14,8 +16,8 @@ export type Exhibitor = {
   aliases: string[]
   visitReason: string
   highlight?: string
-  specials?: Array<{ title: string; description: string }>
-  exclusives?: Array<{ title: string; description: string }>
+  specials?: ExhibitorOffer[]
+  exclusives?: ExhibitorOffer[]
 }
 
 export type ExhibitorDirectoryProps = {

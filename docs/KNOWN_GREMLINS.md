@@ -528,6 +528,8 @@ Card-popup prevention checkpoint (September 6): remove generic `persistent-detai
 
 ## Mistake visibility
 
+October 21 exhibitor integration: adding partial offer arrays to the directory view narrowed drawer offer fields through an intersected type. Keep one exported `ExhibitorOffer` contract for the directory and loader. After any final typed-model edit, rerun the build before publication; shell command chains must stop on a nonzero validation exit rather than continuing to commit/push.
+
 **Symptom:** a gremlin is fixed eventually, but Kavi only learns through GitHub emails, screenshots, or repeated prompts that something was wrong.
 
 **Cause:** over-smoothing progress updates can hide the very signal needed to prevent recurrence.

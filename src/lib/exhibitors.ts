@@ -2,8 +2,8 @@ import { supabase } from './supabase'
 import type { Exhibitor } from '../components/ExhibitorDirectory'
 import { exhibitorHighlight } from './exhibitorHighlights'
 
-export type ExhibitorOffer = { id?: string; title: string; description: string; price?: string; url?: string; link?: string; imageUrl?: string }
-export type DirectoryExhibitor = Exhibitor & { specials?: ExhibitorOffer[]; exclusives?: ExhibitorOffer[] }
+export type { ExhibitorOffer } from '../components/ExhibitorDirectory'
+export type DirectoryExhibitor = Exhibitor
 export const exhibitorObjectId = (id: string) => `exhibitor-atlanta-2026-${id}`
 export function safeExhibitorUrl(value: string | null | undefined) {
   const trimmed = value?.trim() ?? ''
