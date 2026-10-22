@@ -1,4 +1,16 @@
 {
+  "b968ccb210984f91f39ceb9d67673aae87df1eeaefc5ee43a24db11df35a98a2": {
+    "disposition": "home",
+    "title": "GIRUDO adds a Cardboard Crack tote and creator-activity bag",
+    "summary": "At booth 8078, GIRUDO lists a $10 Cardboard Crack tote and a Tokiwata mini drawstring bag offered for participating in a creator activation. The latter is conditional, not an unconditional giveaway.",
+    "reason": "Retained run 39849825675 adds named offer 64417 and conditional creator-activation offer 64416. Other deltas rename heo GmbH to Ultimate Guard at unchanged ID/booth and populate $5 sleeve prices while signup-free terms remain. Do not infer unconditional free stock or Atlanta-only exclusivity from vendor wording."
+  },
+  "6e88179e9b030121a645fb2dd42b4f90c655d6d710b0a2f9de3ba97cd5fb23f0": {
+    "disposition": "home",
+    "title": "Four Mana Stage programs add participants",
+    "summary": "The official lineup adds Anna Margaret to Game Knights Live; Anna Margaret, Lua Stardust and Lauren Bond to the Cosplay Contest; TheAsianAvenger to Pack It Up LIVE; and Becca Scott to Playchase: Hexhaven. Session times and locations are unchanged.",
+    "reason": "Compared every field of all 48 retained Panels & Events sessions against accepted run 39690604891. Only participant lists for IDs 954664, 954668, 954670 and 954671 changed. Hydrate these names into the selectable session details without changing IDs, times, access rules or personal attendance."
+  },
   "68ec707e82d471ec6316b3f82f602ee0ff6ece263f4e2223a8804cabd425fbab": {
     "disposition": "noise",
     "reason": "Compared every field of all 66 retained exhibitors in run 39690156368 against accepted run 39498794662 and reviewed run 39671856129. The sole additional change since the reviewed run is The Mana Vault MKE ID 671338 populating its generic store/inventory description, website and logo; mentions of misprints, signed cards and non-English cards describe inventory, not a signing appearance or convention-exclusive offer. The accepted-baseline delta also retains CM Games offer 64411 correcting its conditional pin threshold from $100+ to $50+ and Face to Face Games gaining a featured flag, already reviewed as ordinary vendor material. No identities, names, booths or other offers changed. Preserve directory enrichment without a Home or envelope announcement."

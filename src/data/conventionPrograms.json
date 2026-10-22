@@ -1,13 +1,13 @@
 {
-  "reviewedFrom": "Daily MagicCon surveyor run 38478614293 accepted checkpoint",
+  "reviewedFrom": "Daily MagicCon surveyor run 39849825675; complete 48-session comparison, four participant-list updates; reviewed Family Spark access rules preserved",
   "timezone": "America/New_York",
   "sources": [
     {
       "sourceId": "atlanta-experience-panels-and-events",
       "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events.html",
-      "contentHash": "dd2d3084ec6615c3e5ce48f13fd7c968d4b2367986131ed686d18c09ed90b2dd",
+      "contentHash": "d75380e998a3b49596c41f09a37a97eb7ed6c250eb272a197822ce5b4d0c4813",
       "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
-      "scheduleHash": "8ab01cb6e29e58cc3b671471bd9bc588ca70ec8f9cb36c6a99d4c3fd505fcd1b",
+      "scheduleHash": "677aaa0e62943d43ee6fcdc2ac061172e85f3ce9decf7f0d72f3298cc7bef442",
       "eventId": "21389",
       "eventSlug": "htwhdatl26shdl10",
       "categoryId": "20607",
@@ -64,7 +64,7 @@
       "startTime": "2026-11-13 16:00:00",
       "endTime": "2026-11-13 19:00:00",
       "location": "Mana Stage",
-      "description": "Game Knights Live is beaming down to MagicCon Atlanta for a four-way free-for-all in the final frontier! Don’t miss the out-of-this-world action as Jimmy Wong, Josh Lee Kwai, Rachel Weeks, Gavin Verhey, and more exciting guests boldly take the stage for a show full of hilarious gameplay and jaw-dropping moments. Who will live long? Who will prosper? Engage your warp drive and grab a seat early to find out!",
+      "description": "Game Knights Live is beaming down to MagicCon Atlanta for a four-way free-for-all in the final frontier! Don’t miss the out-of-this-world action as Jimmy Wong, Josh Lee Kwai, Rachel Weeks, Gavin Verhey, and more exciting guests boldly take the stage for a show full of hilarious gameplay and jaw-dropping moments. Who will live long? Who will prosper? Engage your warp drive and grab a seat early to find out!\n\nParticipants: Josh Lee Kwai, Jimmy Wong, Gavin Verhey, Rachel Weeks, Anna Margaret.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954664"
     },
     {
@@ -94,7 +94,7 @@
       "startTime": "2026-11-14 17:00:00",
       "endTime": "2026-11-14 18:00:00",
       "location": "Mana Stage",
-      "description": "Get your seat early for one of the true highlights of MagicCon! Witness the awesome creativity of the Magic community as they dazzle the audience with mind-blowing representations of your favorite cards and characters. Who will win? Planeswalker? Legendary Creature? Basic Land??? Anything’s possible. This event culminates with the Cosplay Grand Championship, featuring the top cosplay competitors from the previous three MagicCons.",
+      "description": "Get your seat early for one of the true highlights of MagicCon! Witness the awesome creativity of the Magic community as they dazzle the audience with mind-blowing representations of your favorite cards and characters. Who will win? Planeswalker? Legendary Creature? Basic Land??? Anything’s possible. This event culminates with the Cosplay Grand Championship, featuring the top cosplay competitors from the previous three MagicCons.\n\nParticipants: Zabracus, Anna Margaret, Lua Stardust, Lauren Bond.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954668"
     },
     {
@@ -114,7 +114,7 @@
       "startTime": "2026-11-15 12:00:00",
       "endTime": "2026-11-15 14:30:00",
       "location": "Mana Stage",
-      "description": "Join Ben Bateman, the world's leading expert in chaos drafting, for a live episode of Pack It Up, the craziest Magic show on YouTube. Witness a live pick-2 draft where four players will randomly select 12 total packs from throughout Magic’s entire history. Any booster pack ever created could be drafted, with one spicy detail: WINNER OF THE DRAFT KEEPS EVERY CARD IN THE DRAFT! Your own Chaos Draft experience is available at Star City Games' booth.",
+      "description": "Join Ben Bateman, the world's leading expert in chaos drafting, for a live episode of Pack It Up, the craziest Magic show on YouTube. Witness a live pick-2 draft where four players will randomly select 12 total packs from throughout Magic’s entire history. Any booster pack ever created could be drafted, with one spicy detail: WINNER OF THE DRAFT KEEPS EVERY CARD IN THE DRAFT! Your own Chaos Draft experience is available at Star City Games' booth.\n\nParticipants: Ben Bateman, TheAsianAvenger.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954670"
     },
     {
@@ -124,7 +124,7 @@
       "startTime": "2026-11-15 15:00:00",
       "endTime": "2026-11-15 16:30:00",
       "location": "Mana Stage",
-      "description": "Five students are put through a rigorous final exam in this quest-based comedy game show! Administered by Proctor Reuben Bresler and judged by Headmaster Ryan Omega, contestants compete in multiple subjects to survive with the highest life total and graduate as Valedictorian of Hexhaven!",
+      "description": "Five students are put through a rigorous final exam in this quest-based comedy game show! Administered by Proctor Reuben Bresler and judged by Headmaster Ryan Omega, contestants compete in multiple subjects to survive with the highest life total and graduate as Valedictorian of Hexhaven!\n\nParticipants: Ryan Omega, Reuben Bresler, DeQuan Watson, Rachel Weeks, Becca Scott.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954671"
     },
     {
