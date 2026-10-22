@@ -528,6 +528,8 @@ Card-popup prevention checkpoint (September 6): remove generic `persistent-detai
 
 ## Mistake visibility
 
+October 22 Ticketed Play run `39868137853`: ten products stopped matching because the official/LEAP schedule added sponsor credits while checkout retained its original labels. The reviewed comparison-only map covers seven complete labels (ten exact day/start slots) for Gatherer's Tavern, Trophy Smack and Ultimate Guard, including the Birds of Paradise label without a hyphen before the sponsor. Preserve canonical source titles and numeric gtIDs; do not generically strip sponsor suffixes, guess offsets or match partial titles. New sponsors/changed labels require direct first-party review. Regressions reject altered sponsor, title, day and start time, and duplicate checkout matches. A bounded source proof is development evidence; normal cloud acceptance remains required.
+
 October 21 Ticketed Play recurrence: the Tribble product restored a full `Saturday` prefix after the reviewed missing-prefix exception. The prior exact exception did not cover ordinary full weekday spellings. Parse Fri/Friday, Sat/Saturday and Sun/Sunday with the same exact slot/product-code requirements; regression tests must prove both the restored Tribble label and rejection of a changed start time. A green `awaiting_repair` run is not completed supervision.
 
 October 21 exhibitor integration: adding partial offer arrays to the directory view narrowed drawer offer fields through an intersected type. Keep one exported `ExhibitorOffer` contract for the directory and loader. After any final typed-model edit, rerun the build before publication; shell command chains must stop on a nonzero validation exit rather than continuing to commit/push.

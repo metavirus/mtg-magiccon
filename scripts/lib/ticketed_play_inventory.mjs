@@ -140,8 +140,24 @@ const CHECKOUT_ALIASES = new Map([
   ['friday night magic - pick-two draft - magic: the gathering | star trek draft night', 'friday night magic - pick-two draft - magic: the gathering | star trek'],
 ])
 
+// October 22: official gtID/LEAP titles added these exact sponsor credits,
+// while checkout retained the original labels. This comparison-only review
+// preserves source titles and exact day/start slots; do not strip arbitrary
+// sponsor suffixes or accept partial title matches.
+const REVIEWED_SCHEDULE_CHECKOUT_TITLES = new Map([
+  ['Grand Melee - Deluxe Sealed - with Ify Nwadiwe and Brian David Gilbert', " - sponsored by Gatherer's Tavern"],
+  ['Last Commander Standing Qualifier', ' - sponsored by Trophy Smack'],
+  ['Team Trios - Collector Booster Sealed - Reality Fracture', ' - sponsored by Ultimate Guard'],
+  ['Magic: The Menu with Brian David-Marshall', " - sponsored by Gatherer's Tavern"],
+  ['Deluxe Sealed - Magic: The Gathering | Star Trek with Birds of Paradise', " sponsored by Gatherer's Tavern"],
+  ['Magic: The Menu - Brunch - with Numot the Nummy', ' - sponsored by Ultimate Guard'],
+  ['Commander - Full Box Sealed - Magic: The Gathering | Star Trek with Ify Nwadiwe and Brian David Gilbert', ' - sponsored by Ultimate Guard'],
+].map(([title, suffix]) => [`${title}${suffix}`.toLowerCase(), title.toLowerCase()]))
+
 function checkoutIdentity({ title, day, startsAt }) {
-  return `${day}|${startsAt}|${compact(title).toLowerCase().replace(/[^a-z0-9]/g, '')}`
+  const label = compact(title).toLowerCase()
+  const reviewedTitle = REVIEWED_SCHEDULE_CHECKOUT_TITLES.get(label) ?? label
+  return `${day}|${startsAt}|${reviewedTitle.replace(/[^a-z0-9]/g, '')}`
 }
 
 export function normalizeLeapCheckoutProducts(products = []) {

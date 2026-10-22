@@ -4,6 +4,38 @@ import { bindLeapInventorySourceIds } from './ticketed_play_inventory.mjs'
 import { assertOfficialTicketedPlayIdentityCoverage, assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
+const sponsoredCheckoutSlots = [
+  ['944013', '481734', '2026-11-13', '11:00', 'Fri 11:00AM', 'Grand Melee - Deluxe Sealed - with Ify Nwadiwe and Brian David Gilbert', " - sponsored by Gatherer's Tavern"],
+  ['944018', '481739', '2026-11-13', '12:00', 'Fri 12:00PM', 'Last Commander Standing Qualifier', ' - sponsored by Trophy Smack'],
+  ['944040', '481761', '2026-11-13', '17:00', 'Fri 5:00PM', 'Last Commander Standing Qualifier', ' - sponsored by Trophy Smack'],
+  ['944063', '481784', '2026-11-14', '11:00', 'Sat 11:00AM', 'Last Commander Standing Qualifier', ' - sponsored by Trophy Smack'],
+  ['944070', '481791', '2026-11-14', '12:00', 'Sat 12:00PM', 'Team Trios - Collector Booster Sealed - Reality Fracture', ' - sponsored by Ultimate Guard'],
+  ['944073', '481794', '2026-11-14', '12:30', 'Sat 12:30PM', 'Magic: The Menu with Brian David-Marshall', " - sponsored by Gatherer's Tavern"],
+  ['944093', '481814', '2026-11-14', '15:00', 'Sat 3:00PM', 'Last Commander Standing Qualifier', ' - sponsored by Trophy Smack'],
+  ['944101', '481822', '2026-11-14', '17:00', 'Sat 5:00PM', 'Deluxe Sealed - Magic: The Gathering | Star Trek with Birds of Paradise', " sponsored by Gatherer's Tavern"],
+  ['944127', '481848', '2026-11-15', '11:30', 'Sun 11:30AM', 'Magic: The Menu - Brunch - with Numot the Nummy', ' - sponsored by Ultimate Guard'],
+  ['944132', '481853', '2026-11-15', '12:00', 'Sun 12:00PM', 'Commander - Full Box Sealed - Magic: The Gathering | Star Trek with Ify Nwadiwe and Brian David Gilbert', ' - sponsored by Ultimate Guard'],
+].map(([sourceEventKey, productId, day, startsAt, prefix, title, suffix]) => ({
+  schedule: { id: `ticketed-${sourceEventKey}`, sourceEventKey, title: `${title}${suffix}`, day, startsAt },
+  product: { productId, title: `${prefix} - ${title} - ABC1234`, control: '2 Left', purchasable: true },
+}))
+
+it('matches all ten reviewed sponsor additions without changing canonical titles or slots', () => {
+  const merged = mergeLeapCheckoutAvailability(sponsoredCheckoutSlots.map(row => row.schedule), sponsoredCheckoutSlots.map(row => row.product))
+  expect(merged).toHaveLength(10)
+  merged.forEach((event, index) => expect(event).toMatchObject({ ...sponsoredCheckoutSlots[index].schedule, availability: 'available', availabilityEvidence: { productId: sponsoredCheckoutSlots[index].product.productId } }))
+})
+
+it.each(sponsoredCheckoutSlots)('keeps reviewed sponsor identity strict for $schedule.sourceEventKey', ({ schedule, product }) => {
+  for (const changed of [
+    { ...schedule, startsAt: '23:59' },
+    { ...schedule, day: '2026-11-16' },
+    { ...schedule, title: `${schedule.title} extra` },
+    { ...schedule, title: schedule.title.replace('sponsored by', 'sponsored by Other') },
+  ]) expect(() => mergeLeapCheckoutAvailability([changed], [product])).toThrow(/checkout mismatch/)
+  expect(() => mergeLeapCheckoutAvailability([schedule], [product, { ...product, productId: 'duplicate' }])).toThrow(/Ambiguous checkout products/)
+})
+
 it('binds only the reviewed prefixless Tribble product to its exact accepted slot', () => {
   const product = { productId: '481789', title: 'Tribble Takeover with Matt Tabak - Sealed - Magic: The Gathering | Star Trek - PP8DVRN', control: 'Limited Qty Available', purchasable: true }
   const schedule = [{ id: 'ticketed-944068', title: 'Tribble Takeover with Matt Tabak - Sealed - Magic: The Gathering | Star Trek', day: '2026-11-14', startsAt: '12:00' }]
