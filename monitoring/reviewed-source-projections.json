@@ -3,7 +3,7 @@
     "projectionPath": "src/data/conventionPrograms.json",
     "contentHash": "f1de38f75b94b5be5ff3691f60b2ce77ac87902ee9591f6f55f0837c6114eb27",
     "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "projectionHash": "4d25a048987db29d7394c85de3cb2d4cdd1cea7f8dd30963c8ae16eb892c68a0",
+    "projectionHash": "fd0e4dcad8f3cd7ecf813fe5b2e7c474dd0a2049f33f3496148b12ad9657b8c9",
     "reviewedAt": "2026-10-13T23:48:00Z",
     "reason": "Dedicated Family Magic feed has zero published sessions in the accepted Atlanta checkpoint. Nineteen current Family Magic sessions are preserved from Panels & Events without duplication. Publication into this currently empty feed requires fresh complete hydration review, not silent baseline acceptance."
   },
@@ -17,17 +17,17 @@
   },
   "atlanta-experience-panels-and-events": {
     "projectionPath": "src/data/conventionPrograms.json",
-    "contentHash": "d75380e998a3b49596c41f09a37a97eb7ed6c250eb272a197822ce5b4d0c4813",
-    "reason": "Complete 48-session comparison: participant lists for 954664, 954668, 954670 and 954671 hydrated; stable identities, times, locations and reviewed Family Spark access rules preserved.",
-    "projectionHash": "4d25a048987db29d7394c85de3cb2d4cdd1cea7f8dd30963c8ae16eb892c68a0",
+    "contentHash": "2d51a0bd197dc5d2789213923c13db3cb3aeb0812f417d893d9614c391d727b6",
+    "reason": "Complete 48-session comparison: Andrea Mengucci added to 954670 and 954681 in selectable details; stable identities, timing, locations and prior Family Spark rules preserved.",
+    "projectionHash": "fd0e4dcad8f3cd7ecf813fe5b2e7c474dd0a2049f33f3496148b12ad9657b8c9",
     "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
-    "reviewedAt": "2026-10-22T22:49:06Z"
+    "reviewedAt": "2026-10-23T22:06:15Z"
   },
   "atlanta-gathering-grounds-schedule": {
     "projectionPath": "src/data/conventionPrograms.json",
     "contentHash": "b8bbfaa446571e8a4402aa007a9f18362241fd50e583e9a8ec9cae6677bccac2",
     "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
-    "projectionHash": "4d25a048987db29d7394c85de3cb2d4cdd1cea7f8dd30963c8ae16eb892c68a0",
+    "projectionHash": "fd0e4dcad8f3cd7ecf813fe5b2e7c474dd0a2049f33f3496148b12ad9657b8c9",
     "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "reviewedAt": "2026-10-13T23:48:00Z"
   },
@@ -35,7 +35,7 @@
     "projectionPath": "src/data/conventionPrograms.json",
     "contentHash": "0ba3fb49ed3d0b26a3d72db3c553dbdf6aa82cd493944fc7d8019948d92059ae",
     "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
-    "projectionHash": "4d25a048987db29d7394c85de3cb2d4cdd1cea7f8dd30963c8ae16eb892c68a0",
+    "projectionHash": "fd0e4dcad8f3cd7ecf813fe5b2e7c474dd0a2049f33f3496148b12ad9657b8c9",
     "contentLinkHash": "b9ee2e1c6f42ebf1264a1bcf42c3c838b5502fa5109f4acd7f3f425ea032f5ad",
     "reviewedAt": "2026-10-13T23:48:00Z"
   },

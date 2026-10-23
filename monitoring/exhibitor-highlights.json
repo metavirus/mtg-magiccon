@@ -1,4 +1,29 @@
 {
+  "671352": {
+    "sourceName": "Beadle & Grimm's",
+    "sourceBooth": "2071",
+    "summary": "Star Trek Deluxe Bundle ($125; 1,500 numbered sets per vendor) and Justine Jones Mana deck boxes ($40).",
+    "reason": "Named limited-edition accessories with official product images, not a discount or generic vendor flag. Vendor exclusivity does not establish Atlanta-only availability; stock and capacity claims are not independently verified.",
+    "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671352",
+    "reviewedAt": "2026-10-23",
+    "evidence": {
+      "descriptionIncludes": [],
+      "offers": [
+        {
+          "id": "64449",
+          "title": "Mana Sidewinder 133+ Deck Boxes from Beadle & Grimm's x Ultimate Guard",
+          "description": "Exclusive, limited-edition MTG deck boxes from Beadle & Grimm's and Ultimate Guard! Beadle & Grimm’s first released the iconic mana symbol artwork from Justine Jones with their Mana Token Sets. Justine’s amazingly colorful artwork embodied the unique attributes of each of the five colors of mana in Magic: The Gathering, and each set included a unique set of official MTG tokens themed to each mana color. Ultimate Guard's Sidewinder 133+ Xenoskin is a premium Magic: The Gathering deck box offering exceptional card protection with its durable Xenoskin material, microfiber inner lining, and strong magnetic closure—all while providing easy and convenient access to the cards inside. With space for 100 double-sleeved cards in Ultimate Guard sleeves*, the Sidewinder 100+ Xenoskin is the perfect MTG deck box for all Magic formats (Commander/EDH, Modern, Standard, etc.). Designed to combine with Ultimate Guard's Omnihive, Superhive, and Smarthive mass storage boxes. *Designed for Ultimate Guard sleeves. Sleeves from other brands may affect the capacity.",
+          "price": "40.00"
+        },
+        {
+          "id": "64450",
+          "title": "MTG STar Trek Deluxe Bundle",
+          "description": "LIMITED EDITION. ONLY 1,500 PRODUCED. THE SHIP IS YOURS, CAPTAIN Engage with the unforgettable crews, adversaries, and starships from across 60 years of Star Trek history. Your continuing mission? To boldly go where no one has gone before. This exclusive, limited edition and numbered Magic: The Gathering Deluxe Bundle includes: The Star Trek Token Set from Beadle & Grimm's will include: Embossed tin with Star Trek set art USS Enterprise Metal life counter 5 +1/+1 metal counters (+5/+5 on the other side) designed as various Star Trek ships 4 Borg-styled D6 counters 7 Aluminum token cards from the Star Trek set EXCLUSIVE Star Trek U.S.S. Enterprise Playmat by Ultimate Guard EXCLUSIVE Star Trek U.S.S. Defiant Sidewinder 133+ Deck Box by Ultimate Guard EXCLUSIVE Star Trek U.S.S. Farragut Full-art Card Sleeves by Ultimate Guard All beautifully presented in a numbered, limited-edition Collector's Box These exclusive items are ONLY available in this Deluxe Bundle Set and once they're gone, they're gone.",
+          "price": "125.00"
+        }
+      ]
+    }
+  },
   "669990": {
     "sourceName": "Card Kingdom",
     "sourceBooth": "3098",
@@ -49,7 +74,7 @@
     }
   },
   "669997": {
-    "sourceName": "heo GmbH",
+    "sourceName": "Ultimate Guard",
     "sourceBooth": "4061",
     "summary": "Band playmat signings, product engraving, and Glisterbairn playmat, Squaroes box and Atlanta apparel.",
     "reason": "Specific booth experiences and products justify discovery; the separately described concert does not imply admission.",

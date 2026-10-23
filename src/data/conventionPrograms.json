@@ -1,13 +1,13 @@
 {
-  "reviewedFrom": "Daily MagicCon surveyor run 39849825675; complete 48-session comparison, four participant-list updates; reviewed Family Spark access rules preserved",
+  "reviewedFrom": "Daily MagicCon surveyor run 40019184388; complete 48-session comparison and Andrea Mengucci participant additions; prior access rules preserved",
   "timezone": "America/New_York",
   "sources": [
     {
       "sourceId": "atlanta-experience-panels-and-events",
       "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events.html",
-      "contentHash": "d75380e998a3b49596c41f09a37a97eb7ed6c250eb272a197822ce5b4d0c4813",
+      "contentHash": "2d51a0bd197dc5d2789213923c13db3cb3aeb0812f417d893d9614c391d727b6",
       "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
-      "scheduleHash": "677aaa0e62943d43ee6fcdc2ac061172e85f3ce9decf7f0d72f3298cc7bef442",
+      "scheduleHash": "a5a4c846a2c6771714313790ee89f85ebd43cd3bbec7bfc870565283240016bc",
       "eventId": "21389",
       "eventSlug": "htwhdatl26shdl10",
       "categoryId": "20607",
@@ -114,7 +114,7 @@
       "startTime": "2026-11-15 12:00:00",
       "endTime": "2026-11-15 14:30:00",
       "location": "Mana Stage",
-      "description": "Join Ben Bateman, the world's leading expert in chaos drafting, for a live episode of Pack It Up, the craziest Magic show on YouTube. Witness a live pick-2 draft where four players will randomly select 12 total packs from throughout Magic’s entire history. Any booster pack ever created could be drafted, with one spicy detail: WINNER OF THE DRAFT KEEPS EVERY CARD IN THE DRAFT! Your own Chaos Draft experience is available at Star City Games' booth.\n\nParticipants: Ben Bateman, TheAsianAvenger.",
+      "description": "Join Ben Bateman, the world's leading expert in chaos drafting, for a live episode of Pack It Up, the craziest Magic show on YouTube. Witness a live pick-2 draft where four players will randomly select 12 total packs from throughout Magic’s entire history. Any booster pack ever created could be drafted, with one spicy detail: WINNER OF THE DRAFT KEEPS EVERY CARD IN THE DRAFT! Your own Chaos Draft experience is available at Star City Games' booth.\n\nParticipants: Ben Bateman, TheAsianAvenger, Andrea Mengucci.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954670"
     },
     {
@@ -214,7 +214,7 @@
       "startTime": "2026-11-15 14:00:00",
       "endTime": "2026-11-15 18:00:00",
       "location": "Showcase Room",
-      "description": "The weekend wraps up with the conclusion of World Championship 32 and the 2026 Pro Tour Hall of Fame Induction Ceremony livestreamed from the Worlds stage. Join current Pro Tour players as they share their insights about high-level Magic -- plus lots of booster packs for the audience -- as we crown a World Champion and honor Javier Dominguez, Ken Yukuhiro, and Jean-Emmanuel Depraz as the newest members of the Hall of Fame.",
+      "description": "The weekend wraps up with the conclusion of World Championship 32 and the 2026 Pro Tour Hall of Fame Induction Ceremony livestreamed from the Worlds stage. Join current Pro Tour players as they share their insights about high-level Magic -- plus lots of booster packs for the audience -- as we crown a World Champion and honor Javier Dominguez, Ken Yukuhiro, and Jean-Emmanuel Depraz as the newest members of the Hall of Fame.\n\nParticipants: Andrea Mengucci.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954681"
     },
     {
