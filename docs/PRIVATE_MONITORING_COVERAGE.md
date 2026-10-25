@@ -29,6 +29,10 @@ For each unresolved candidate, retain its stable source reference, exact missing
 
 ## Exact heartbeat prompt addition
 
+### Per-wake recovery guard (October 25)
+
+Never reuse a previous turn's empty browser inventory or unavailable connector result as current capability evidence. On every due private check, attempt the connector once and enumerate the current browser surfaces in that same wake. If Chrome exposes an already signed-in Gmail tab, complete all canonical searches there without changing mail state. A missing connector is not a missing mailbox. Browser recovery counts only after all three queries and pagination complete and the canonical receipt writer succeeds. October 25 recovery completed a search window beginning October 18 after the supervisor repeatedly reused an October 21 empty inventory despite later browser availability. Do not claim the connector itself is repaired by this fallback.
+
 Append this paragraph to the existing cloud-only supervision prompt; preserve the cloud freshness, closure, dispatch, notification and private-publication restrictions:
 
 > Track private Gmail coverage separately using docs/PRIVATE_MONITORING_COVERAGE.md and the ignored .monitoring-state/private/gmail-coverage.local.json receipt. Attempt all three canonical gmail-watch-queries once daily when the last complete private search is older than 24 hours, or reuse its fresh receipt. Use the documented overlapping search window, finish pagination, and record checked/partial/not_checked plus capability, query IDs, checked-through times, and unresolved candidate reasons through scripts/record_private_monitoring_coverage.mjs. Missing capability never advances private freshness; retain previous success and unresolved candidates. Public cloud success does not mean Gmail was checked. Do not modify Gmail or dispatch the manual receipt payload publisher. Search success is not receipt publication, flight application, shared download, or Wallet verification. Keep routine unchanged status quiet; notify only for a meaningful change, failure, or required action.

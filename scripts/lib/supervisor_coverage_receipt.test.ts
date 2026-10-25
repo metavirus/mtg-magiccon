@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { supervisionDue, supervisorReceipt, verifySupervisorCoverage } from './supervisor_coverage_receipt.mjs'
 import { completeSurveyorClosureManifest } from './surveyor_closure_contract.mjs'
+import { privateCoverageReceipt } from './private_monitoring_coverage.mjs'
 
 const report = { checkedAt: '2026-10-14T12:00:00Z', coverageStatus: 'complete', changes: [] }
 const input = () => ({ report, manifest: completeSurveyorClosureManifest(report, new Map()),
@@ -9,6 +10,18 @@ const input = () => ({ report, manifest: completeSurveyorClosureManifest(report,
   projectionCoverage: { status: 'complete' }, queryIds: ['a','b','c'], gmail: { lastSuccessfulSearchThrough: report.checkedAt, lastSuccessfulSearch: { queries: ['a','b','c'].map(id => ({ id, paginationComplete: true, checkedThrough: report.checkedAt })) } }, checkedAt: '2026-10-14T14:00:00Z' })
 
 describe('429 cannot manufacture completed supervision', () => {
+  it('accepts canonical writer timestamps with equivalent ISO precision, but not different instants', () => {
+    const data = input()
+    const receipt = privateCoverageReceipt(null, {
+      checkedAt: data.checkedAt, status: 'checked', capability: 'available',
+      queries: data.queryIds.map(id => ({ id, after: '2026-10-12T00:00:00Z', checkedThrough: report.checkedAt, matchCount: 0, paginationComplete: true })),
+    }, data.queryIds)
+    Object.assign(data.gmail, receipt)
+    expect(data.gmail.lastSuccessfulSearchThrough).toBe('2026-10-14T12:00:00.000Z')
+    expect(verifySupervisorCoverage(data).privateStatus).toBe('fresh_receipt_reused')
+    data.gmail.lastSuccessfulSearch.queries[0].checkedThrough = '2026-10-14T12:00:01Z'
+    expect(verifySupervisorCoverage(data).privateStatus).toBe('due')
+  })
   it('records exact verified coverage and independently fresh private receipt', () => expect(verifySupervisorCoverage(input())).toMatchObject({ publicStatus: 'complete', privateStatus: 'fresh_receipt_reused' }))
   it('keeps the last completed checkpoint when an attempt fails', () => {
     const prior = supervisorReceipt(null, verifySupervisorCoverage(input()))

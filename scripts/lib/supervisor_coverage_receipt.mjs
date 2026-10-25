@@ -16,7 +16,7 @@ export function verifySupervisorCoverage({ report, manifest, receipt, run, proje
   if (projectionCoverage.status !== 'complete') throw new Error('Current app artifacts do not match reviewed source projections')
   const privateFresh = now - Date.parse(gmail?.lastSuccessfulSearchThrough) < 24 * 60 * 60 * 1000
     && now >= Date.parse(gmail?.lastSuccessfulSearchThrough)
-    && queryIds.every(id => gmail.lastSuccessfulSearch?.queries?.some(query => query.id === id && query.paginationComplete && query.checkedThrough === gmail.lastSuccessfulSearchThrough))
+    && queryIds.every(id => gmail.lastSuccessfulSearch?.queries?.some(query => query.id === id && query.paginationComplete && Date.parse(query.checkedThrough) === Date.parse(gmail.lastSuccessfulSearchThrough)))
   return { checkedAt, publicStatus: 'complete', cloudRunId: String(receipt.runId), reportCheckedAt: report.checkedAt,
     privateStatus: privateFresh ? 'fresh_receipt_reused' : 'due', privateCheckedThrough: gmail?.lastSuccessfulSearchThrough ?? null,
     privateReason: privateFresh ? null : gmail?.lastAttempt?.reason ?? 'complete_private_search_due',
