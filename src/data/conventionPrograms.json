@@ -1,13 +1,13 @@
 {
-  "reviewedFrom": "Daily MagicCon surveyor run 40019184388; complete 48-session comparison and Andrea Mengucci participant additions; prior access rules preserved",
+  "reviewedFrom": "Daily MagicCon surveyor run 41131321317; complete 48-session comparison against accepted checkpoint 40231624036; two placeholders retired, two new exact source identities and eight participant changes; prior access rules preserved",
   "timezone": "America/New_York",
   "sources": [
     {
       "sourceId": "atlanta-experience-panels-and-events",
       "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events.html",
-      "contentHash": "2d51a0bd197dc5d2789213923c13db3cb3aeb0812f417d893d9614c391d727b6",
+      "contentHash": "0cd86197ff0db9cf35fd2e9965d5a63980f604f16e2c30285220efbc3a2b59ad",
       "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
-      "scheduleHash": "a5a4c846a2c6771714313790ee89f85ebd43cd3bbec7bfc870565283240016bc",
+      "scheduleHash": "93d67d75764234692e15a943c3e9f10e29fc553c71c9c52300a682c5eafb0b7d",
       "eventId": "21389",
       "eventSlug": "htwhdatl26shdl10",
       "categoryId": "20607",
@@ -44,7 +44,7 @@
       "startTime": "2026-11-13 13:00:00",
       "endTime": "2026-11-13 14:00:00",
       "location": "Mana Stage",
-      "description": "This Preview Panel has it all! In fact, the previews are so deep we can’t even tell you what half the panel is about! And the other half? Dive deeper into a First Look at Nauctis: The Sunken Realm for card previews and worldbuilding. As for the rest of it, let’s just say if you love Magic’s multiverse, you’ll want to be here to be the first in the world to see what this panel previews.",
+      "description": "This Preview Panel has it all! In fact, the previews are so deep we can’t even tell you what half the panel is about! And the other half? Dive deeper into a First Look at Nauctis: The Sunken Realm for card previews and worldbuilding. As for the rest of it, let’s just say if you love Magic’s multiverse, you’ll want to be here to be the first in the world to see what this panel previews.\n\nParticipants: Jack Saunders, Laurel Pratt, Mark Rosewater, Roy Graham.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954662"
     },
     {
@@ -78,14 +78,14 @@
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954665"
     },
     {
-      "id": "954666",
+      "id": "954667",
       "sourceId": "atlanta-experience-panels-and-events",
-      "title": "More Magic Coming Soon to the Mana Stage",
+      "title": "Ify Nwadiwe’s Big Facts with Brian David Gilbert",
       "startTime": "2026-11-14 15:30:00",
       "endTime": "2026-11-14 16:30:00",
       "location": "Mana Stage",
-      "description": "We are finalizing details on a panel taking place on this day & time at MagicCon. Check back for more information closer to the show!",
-      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954666"
+      "description": "The facts are weird. The lies are weirder. And nobody's entirely sure which is which. Big Facts, hosted by Ify Nwadiwe, is a live comedy panel show built around one simple question: real or fake? Comedians and audience members go head-to-head, defending bizarre facts – some true, some completely invented – while teams try to figure out who's bluffing. Sharp, silly, and genuinely surprising, it's the show where being right and being convincing are two very different skills. In this special “Magic” Facts edition of the show, Ify is joined by Brian David Gilbert as we watch some of our favorite Magic personalities pile on their best deep-cut facts (and bold-faced lies) about the game we all know and love. Will our contestants be able to separate these piles into Fact or Fiction?\n\nParticipants: Brian David Gilbert, Gavin Verhey, Ify Nwadiwe, Mark Rosewater, Tom Lum, ZmainCharacter.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954667"
     },
     {
       "id": "954668",
@@ -144,7 +144,7 @@
       "startTime": "2026-11-13 15:30:00",
       "endTime": "2026-11-13 16:30:00",
       "location": "Showcase Room",
-      "description": "The Magic Story Podcast loves a Jace no matter the face, but which Jace we would place at the front of the race? Join our story-loving crew as they go through every single Jace card printed in Magic, from Lorwyn to Reality Fracture, and rate them on their own unique tier list. Jace, Vryn's Prodigy was a Standard powerhouse, but how good is his outfit? The Theorist, Jace Beleren is a menace in Commander, but that's nothing compared to his narrative drama. By the end of the show, we will crown (or blue hood) the greatest Jace in all of the Multiverse. Cheer for your favorite Jace and see who sits atop the Theorist's tower!",
+      "description": "The Magic Story Podcast loves a Jace no matter the face, but which Jace we would place at the front of the race? Join our story-loving crew as they go through every single Jace card printed in Magic, from Lorwyn to Reality Fracture, and rate them on their own unique tier list. Jace, Vryn's Prodigy was a Standard powerhouse, but how good is his outfit? The Theorist, Jace Beleren is a menace in Commander, but that's nothing compared to his narrative drama. By the end of the show, we will crown (or blue hood) the greatest Jace in all of the Multiverse. Cheer for your favorite Jace and see who sits atop the Theorist's tower!\n\nParticipants: Blake Rasmussen, Ellie Rice, Harless Snyder, Hilary S. Thompson, Roy Graham.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954673"
     },
     {
@@ -154,7 +154,7 @@
       "startTime": "2026-11-13 17:00:00",
       "endTime": "2026-11-13 18:00:00",
       "location": "Showcase Room",
-      "description": "Spell Slayers are bringing “Cast Or Pass” to MagicCon for a live panel, with help from MTG World-Builders, Card Artists, and Creators! On YouTube, “Cast or Pass” features Spell Slayers (Bosco & Irene the Alien) humorously discussing the character design, mechanics, and \"fashions\" of Magic’s most iconic Creatures, Planeswalkers, and other card types (Think Fashion Police meets MTG Podcast). In the live panel edition, Bosco, Irene, and Spell Slayers' pod member Lucy Lips will discuss iconic Magic cards, their character designs, and the art we love... with those who know them best!",
+      "description": "Spell Slayers are bringing “Cast Or Pass” to MagicCon for a live panel, with help from MTG World-Builders, Card Artists, and Creators! On YouTube, “Cast or Pass” features Spell Slayers (Bosco & Irene the Alien) humorously discussing the character design, mechanics, and \"fashions\" of Magic’s most iconic Creatures, Planeswalkers, and other card types (Think Fashion Police meets MTG Podcast). In the live panel edition, Bosco, Irene, and Spell Slayers' pod member Lucy Lips will discuss iconic Magic cards, their character designs, and the art we love... with those who know them best!\n\nParticipants: Bosco, Irene the Alien, Lucy Lips, Evyn Fong, Lauren Bond.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954674"
     },
     {
@@ -164,7 +164,7 @@
       "startTime": "2026-11-14 11:30:00",
       "endTime": "2026-11-14 12:30:00",
       "location": "Showcase Room",
-      "description": "A mix of strange legends from across the Multiverse, playtest cards, Future Sight frames, and iconic Commander reprints are an eclectic bunch that all come together to make up Mystery Booster Commander Edition! How were these cards created and chosen? What are the behind-the-scenes stories from their designs? Come and find out what went into making this wild release from start to finish—and uncover some Easter eggs you probably didn't notice!",
+      "description": "A mix of strange legends from across the Multiverse, playtest cards, Future Sight frames, and iconic Commander reprints are an eclectic bunch that all come together to make up Mystery Booster Commander Edition! How were these cards created and chosen? What are the behind-the-scenes stories from their designs? Come and find out what went into making this wild release from start to finish—and uncover some Easter eggs you probably didn't notice!\n\nParticipants: Deborah Garcia, Gavin Verhey, Hilary S. Thompson.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954675"
     },
     {
@@ -194,18 +194,18 @@
       "startTime": "2026-11-14 17:30:00",
       "endTime": "2026-11-14 18:30:00",
       "location": "Showcase Room",
-      "description": "Join Pro Tour Historian Brian David-Marshall and some of the biggest names from the Magic: The Gathering Pro Tour Hall of Fame as they look back on what the Hall means to them, their career achievements, and much more on the eve of the 2026 Pro Tour Hall of Fame Induction Ceremony.",
+      "description": "Join Pro Tour Historian Brian David-Marshall and some of the biggest names from the Magic: The Gathering Pro Tour Hall of Fame as they look back on what the Hall means to them, their career achievements, and much more on the eve of the 2026 Pro Tour Hall of Fame Induction Ceremony.\n\nParticipants: Brian David-Marshall, Mike Turian, Reid Duke.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954678"
     },
     {
-      "id": "954680",
+      "id": "954679",
       "sourceId": "atlanta-experience-panels-and-events",
-      "title": "More Magic Coming Soon to the Showcase Room",
-      "startTime": "2026-11-15 12:30:00",
+      "title": "Tabletop Jocks Live Presents: Archenemy Commander D&D 3v1",
+      "startTime": "2026-11-15 12:00:00",
       "endTime": "2026-11-15 13:30:00",
       "location": "Showcase Room",
-      "description": "We are finalizing details on a panel taking place on this day & time at MagicCon. Check back for more information closer to the show!",
-      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954680"
+      "description": "Combining the role-playing elements of a D&D game with Commander, we take players on an adventure where they have to team up against the Dungeon Master to try and see if they can beat the final boss. Using their Commander and decks, players will roll initiative, make Dexterity checks, and turn creatures sideways as the DM takes them on an epic one-shot journey to beat the final boss. Players gain experience with each battle with new surprises around every corner. Will they have what it takes to defeat the DM or will their journey end here? Let's find out!\n\nParticipants: Anna Margaret, Joseph Johnson, Kurohitsuki, Lua Stardust.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954679"
     },
     {
       "id": "954681",
@@ -214,7 +214,7 @@
       "startTime": "2026-11-15 14:00:00",
       "endTime": "2026-11-15 18:00:00",
       "location": "Showcase Room",
-      "description": "The weekend wraps up with the conclusion of World Championship 32 and the 2026 Pro Tour Hall of Fame Induction Ceremony livestreamed from the Worlds stage. Join current Pro Tour players as they share their insights about high-level Magic -- plus lots of booster packs for the audience -- as we crown a World Champion and honor Javier Dominguez, Ken Yukuhiro, and Jean-Emmanuel Depraz as the newest members of the Hall of Fame.\n\nParticipants: Andrea Mengucci.",
+      "description": "The weekend wraps up with the conclusion of World Championship 32 and the 2026 Pro Tour Hall of Fame Induction Ceremony livestreamed from the Worlds stage. Join current Pro Tour players as they share their insights about high-level Magic -- plus lots of booster packs for the audience -- as we crown a World Champion and honor Javier Dominguez, Ken Yukuhiro, and Jean-Emmanuel Depraz as the newest members of the Hall of Fame.\n\nParticipants: Andrea Mengucci, Simon Nielsen.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954681"
     },
     {
@@ -224,7 +224,7 @@
       "startTime": "2026-11-13 13:30:00",
       "endTime": "2026-11-13 14:30:00",
       "location": "Spindown Room",
-      "description": "Assembling the most entertaining creators in the space for a discussion and snake draft centered around building the multiverse's ultimate Fantasy team. As first featured at MagicCon: Las Vegas to racuous audience, join your favorite personalities for a hilarious and informative spin on the education of Magic lore -- and maybe discover a new franchise player for your own deck building!",
+      "description": "Assembling the most entertaining creators in the space for a discussion and snake draft centered around building the multiverse's ultimate Fantasy team. As first featured at MagicCon: Las Vegas to racuous audience, join your favorite personalities for a hilarious and informative spin on the education of Magic lore -- and maybe discover a new franchise player for your own deck building!\n\nParticipants: Bosco, Irene the Alien, Aleks David Royt, Persephone Valentine, Zabracus, ZmainCharacter.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954682"
     },
     {
@@ -274,7 +274,7 @@
       "startTime": "2026-11-14 14:00:00",
       "endTime": "2026-11-14 15:00:00",
       "location": "Spindown Room",
-      "description": "Get an exciting peek at the new Magic Judge Program! Learn what the future holds for our biggest group of Magic community-builders. Join Program Manager Samantha Harr and members of the Rules and Game Experience teams as they discuss the upcoming launch of the program and ways you can get involved to build a better tomorrow for Magic play at all levels.",
+      "description": "Get an exciting peek at the new Magic Judge Program! Learn what the future holds for our biggest group of Magic community-builders. Join Program Manager Samantha Harr and members of the Rules and Game Experience teams as they discuss the upcoming launch of the program and ways you can get involved to build a better tomorrow for Magic play at all levels.\n\nParticipants: Brian David Gilbert, Toby Elliott.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954687"
     },
     {

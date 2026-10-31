@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-02",
+  "updatedAt": "2026-10-31",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
@@ -718,6 +718,44 @@
         "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "disposition": "noise",
         "reason": "Heading-only creator/exhibitor resource in fetched content; no schedule, person list or inventory verified. Watch existing URL for substantive publication."
+      }
+    },
+    {
+      "id": "atlanta-badge-activation",
+      "label": "Activate your physical badge before merchandise pickup",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/badge-activation.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official attendee requirements, access, viewing locations or timing changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-10-31T19:22:22.129Z",
+        "contentHash": "f89879fd5a57720da9cb933ac5f3d17e97d55c8df08c9bb37c22550fce9bf094",
+        "contentLinkHash": "1a1bde379d33ec4f2c6f6e3a1d717e8e1191021efc65843b8c816d2eb6c221d9",
+        "disposition": "home",
+        "title": "Activate your physical badge before merchandise pickup",
+        "summary": "The official guide requires each attendee to activate their own physical badge using its 10-digit code. Youth badges activate with the accompanying Adult badge. Activation is required for badge-package merchandise pickup and enables show-floor activities; it can be completed onsite.",
+        "reason": "Direct complete first-party page review on October 31, 2026 resolves the exact missing linked-source coverage from retained run 41131321317. No private activation code or attendance choice is collected."
+      }
+    },
+    {
+      "id": "atlanta-magic-world-championship-32",
+      "label": "Worlds viewing areas and Sunday Hall of Fame plans published",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/magic-world-championship-32.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official attendee requirements, access, viewing locations or timing changes",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-10-31T19:22:22.165Z",
+        "contentHash": "921b4a30ca172f12e66e67a6953225dba8b4dd2629e8a176fb5d2ba3ab5c8e66",
+        "contentLinkHash": "85f62a41c261cce9c2de220f8e81fe175bfc5c21c660297a6c890d013d122e6b",
+        "disposition": "home",
+        "title": "Worlds viewing areas and Sunday Hall of Fame plans published",
+        "summary": "Watch the broadcast at the Social Tables near the West Entrance all weekend. Friday and Saturday viewing beside the Worlds area is standing only. Sunday’s Showcase Room watch party starts at 2 PM; Hall of Fame seating at the Worlds stage opens after the semifinals.",
+        "reason": "Direct complete first-party page review on October 31, 2026 resolves the exact missing linked-source coverage from retained run 41131321317. No private activation code or attendance choice is collected."
       }
     }
   ],

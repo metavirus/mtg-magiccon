@@ -13,7 +13,7 @@ describe('reviewed official convention programs', () => {
     expect(conventionProgramEvents.filter(event => event.kind === 'Family Magic')).toHaveLength(19)
     for (const session of snapshot.sessions) expect(session.detailUrl).toContain(`gtID=${session.id}`)
     expect(snapshot.sources.map(source => [source.sourceId, source.scheduleHash])).toEqual([
-      ['atlanta-experience-panels-and-events', 'a5a4c846a2c6771714313790ee89f85ebd43cd3bbec7bfc870565283240016bc'],
+      ['atlanta-experience-panels-and-events', '93d67d75764234692e15a943c3e9f10e29fc553c71c9c52300a682c5eafb0b7d'],
       ['atlanta-experience-meet-and-greets', '0abf1fe70bb6f92cc788601e7c3b07ad4d978fc4dcf12f89c2ab1c7de7f72392'],
       ['atlanta-gathering-grounds-schedule', '0f69d52bbe11bbeecb7baddfb9a0128109b2de8416056a500a5ac0c3acde5a42'],
     ])
@@ -39,6 +39,14 @@ describe('reviewed official convention programs', () => {
     expect(conventionProgramEvents.find(event => event.id === 'program-954669')).toMatchObject({ day: 'Sat', time: '6:45 PM–9 PM' })
     expect(conventionProgramEvents.find(event => event.id === 'program-955653')).toMatchObject({ day: 'Sun', time: '1 PM–2 PM' })
     expect(snapshot.sessions.every(session => /^2026-11-(13|14|15) /.test(session.startTime))).toBe(true)
+  })
+  it('retires removed placeholders without transferring choices to newly published identities', () => {
+    expect(conventionProgramEvents.some(event => ['program-954666', 'program-954680'].includes(event.id))).toBe(false)
+    expect(conventionProgramEvents.find(event => event.id === 'program-954667')).toMatchObject({ day: 'Sat', time: '3:30 PM–4:30 PM', state: 'none' })
+    expect(conventionProgramEvents.find(event => event.id === 'program-954679')).toMatchObject({ day: 'Sun', time: '12 PM–1:30 PM', state: 'none' })
+    expect(conventionProgramEvents.find(event => event.id === 'program-954681')?.detail).toContain('Simon Nielsen')
+    expect(conventionProgramEvents.find(event => event.id === 'program-954675')?.detail).toContain('Hilary S. Thompson')
+    expect(conventionProgramEvents.find(event => event.id === 'program-954673')?.detail).not.toContain('Natalie Kreider')
   })
   it('does not seed attendance or purchase and distinguishes separate paid dinners', () => {
     expect([...conventionProgramEvents, ...councilsCallEvents].every(event => event.state === 'none')).toBe(true)

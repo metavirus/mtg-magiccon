@@ -247,5 +247,19 @@
   "d1f25704d7bf5f13f91ad61d95e0fce90f233cea22c7c870b866d1dc91faf26d": {
     "disposition": "noise",
     "reason": "Reviewed the exact Atlanta homepage change. The substantive convention copy is unchanged; a newsletter link was replaced by a sponsored doubleclick ad link. This is promotional page chrome, not planning-relevant Atlanta information."
+  },
+  "849cd81d99e0cff3179b8bf7c9eb5db88d738f3863eaa1a899a11565773b9591": {
+    "disposition": "noise",
+    "reason": "Complete 66-artist comparison of retained run 41131321317 with accepted checkpoint 40231624036: PINDURSKI adds bio, website and image; Phil Foglio adds image; Tran Nguyen adds Gatherer link. No roster, booth or participation change. Preserve directory evidence without a Home announcement for profile enrichment."
+  },
+  "7cf59fc876dc8ce834f22527bf552e2ab4fbcb00115a40b9aeab2257b670710c": {
+    "disposition": "noise",
+    "reason": "Complete 66-exhibitor comparison with accepted checkpoint 40231624036: routine profile/logo enrichment; same IDs and booths; Galactus TCG Corporation becomes Yakata Games, Galactus TCG becomes Galactus Roma, and 1985 Games drops LLC. Heavy Play adds purchase-plus-newsletter conditional sleeves; Face to Face revises mystery-pack promotional copy. No new distinctive experience or convention exclusive warrants Home amplification. Preserve all source offers and terms."
+  },
+  "fa07b390b6fab36740f62e4b2e28904afbe2ed1d039523a7c66d609663c3eb69": {
+    "disposition": "home",
+    "title": "Big Facts and Tabletop Jocks join the Atlanta schedule",
+    "summary": "Saturday adds Ify Nwadiwe’s Big Facts with Brian David Gilbert at 3:30–4:30 PM on the Mana Stage. Sunday adds Tabletop Jocks: Archenemy Commander D&D at noon–1:30 PM in the Showcase Room. Several existing panels update their participants, including Simon Nielsen joining Sunday’s Worlds watch party. Times are Atlanta local.",
+    "reason": "Compared all 48 sessions against accepted checkpoint 40231624036. New source IDs 954667 and 954679 replace removed placeholder IDs 954666 and 954680; no saved choice is transferred. Eight surviving sessions update participant evidence (954662,954673,954674,954675,954678,954681,954682,954687). Reconcile selectable details and preserve all other identities and Family Spark access rules."
   }
 }
