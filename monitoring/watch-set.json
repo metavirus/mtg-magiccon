@@ -795,6 +795,18 @@
       "reason": "Direct October 25 HTTP 200 review remains a heading-only Event Information shell (content hash e1dfa0cc286760f16407b7cfc8b3e6d7c2543d7b474dacdd333552b7e2089678). Unknown for Extra Life with Gavin Verhey, source event 944082, remains represented in the current authoritative Ticketed Play/LEAP report with checkout availability. Exact gtID=944082 only; no blanket event-detail exclusion.",
       "reviewedAt": "2026-10-25T20:34:51.268Z",
       "reviewAfter": "2026-11-01T00:00:00Z"
+    },
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html",
+      "reason": "Direct October 31 HTTP 200 review: heading-only Panel Information shell, content hash 15a1e33e6829f7ab4876c768fbde2a07b42c7848697f7c8917d40793093c0aab. Exact World Championship Sunday Watch Party 954681 is fully present in watched event-bound Panels feed and reviewed app schedule. Queryless shell was also retained due to encoded href parsing; no other event identity is excluded.",
+      "reviewedAt": "2026-10-31T19:32:15.592Z",
+      "reviewAfter": "2026-11-07T00:00:00Z"
+    },
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954681",
+      "reason": "Direct October 31 HTTP 200 review: heading-only Panel Information shell, content hash 15a1e33e6829f7ab4876c768fbde2a07b42c7848697f7c8917d40793093c0aab. Exact World Championship Sunday Watch Party 954681 is fully present in watched event-bound Panels feed and reviewed app schedule. Queryless shell was also retained due to encoded href parsing; no other event identity is excluded.",
+      "reviewedAt": "2026-10-31T19:32:15.592Z",
+      "reviewAfter": "2026-11-07T00:00:00Z"
     }
   ]
 }

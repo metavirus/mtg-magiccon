@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './monitoring_page_fingerprint.mjs'
+import { decodeLinkHref, pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './monitoring_page_fingerprint.mjs'
 
 const url = 'https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html'
 const page = (nav: string, text: string, footer = 'Privacy', link = '/en-us/magic-play/prize-wall.html') => `<!doctype html><html><body><header><nav>${nav}</nav></header><div id="main"><h1>Prize Wall</h1><p>${text}</p><a href="${link}">Prize details</a></div><footer>${footer}</footer></body></html>`
@@ -33,4 +33,11 @@ describe('substantive watched-page fingerprint', () => {
     expect(watchedPageChanged(upgraded, { ...current, contentHash: 'changed fact' })).toBe(true)
     expect(upgradeUnchangedPageBaseline({ ...legacy, textHash: 'different raw page' }, current)).not.toHaveProperty('contentHash')
   })
+})
+
+it('decodes numeric query delimiters before event URL parsing', () => {
+  const parsed = new URL(decodeLinkHref('https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID&#61;954681&amp;panel-name&#61;Worlds'))
+  expect(parsed.searchParams.get('gtID')).toBe('954681')
+  expect(parsed.searchParams.get('panel-name')).toBe('Worlds')
+  expect(parsed.hash).toBe('')
 })

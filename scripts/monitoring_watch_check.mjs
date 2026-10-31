@@ -10,7 +10,7 @@ import { assertOfficialTicketedPlayIdentityCoverage, assertTicketedPlayIdentityS
 import { stageTicketedPlayBaselineSnapshot } from './lib/monitoring_baseline_acceptance.mjs';
 import { activeDetailCoverageExclusions, relevantDetailCoverageGaps, retainedDetailCoverageGaps } from './lib/monitoring_detail_coverage.mjs';
 import { sourceOnboardingReview } from './lib/monitoring_source_onboarding.mjs';
-import { pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
+import { decodeLinkHref, pageContentFingerprint, upgradeUnchangedPageBaseline, watchedPageChanged } from './lib/monitoring_page_fingerprint.mjs';
 import { artistDirectoryFingerprint } from './lib/artist_directory_feed.mjs';
 import { exhibitorDirectoryFingerprint } from './lib/exhibitor_directory_feed.mjs';
 import { gatheringGroundsFingerprint } from './lib/gathering_grounds_feed.mjs';
@@ -60,7 +60,7 @@ function extractLinkRecords(html, baseUrl) {
   const re = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   for (const match of html.matchAll(re)) {
     try {
-      const url = new URL(match[1], baseUrl);
+      const url = new URL(decodeLinkHref(match[1]), baseUrl);
       if (url.protocol === 'http:' || url.protocol === 'https:') {
         url.hash = '';
         const label = normalizeHtml(match[2]).slice(0, 120);

@@ -261,5 +261,19 @@
     "title": "Big Facts and Tabletop Jocks join the Atlanta schedule",
     "summary": "Saturday adds Ify Nwadiwe’s Big Facts with Brian David Gilbert at 3:30–4:30 PM on the Mana Stage. Sunday adds Tabletop Jocks: Archenemy Commander D&D at noon–1:30 PM in the Showcase Room. Several existing panels update their participants, including Simon Nielsen joining Sunday’s Worlds watch party. Times are Atlanta local.",
     "reason": "Compared all 48 sessions against accepted checkpoint 40231624036. New source IDs 954667 and 954679 replace removed placeholder IDs 954666 and 954680; no saved choice is transferred. Eight surviving sessions update participant evidence (954662,954673,954674,954675,954678,954681,954682,954687). Reconcile selectable details and preserve all other identities and Family Spark access rules."
+  },
+  "588dae968e84e8cff6fddb0669995c7a28e27099f9d4187320cf22b504ca0dd4": {
+    "disposition": "noise",
+    "reason": "Complete 66-artist comparison of retained run 41131321317 with accepted checkpoint 40231624036: PINDURSKI adds bio, website and image; Phil Foglio adds image; Tran Nguyen adds Gatherer link. No roster, booth or participation change. Preserve directory evidence without a Home announcement for profile enrichment. Exact current run 41234203109 reviewed: complete structured feed and main-content/link hashes match run 41131321317; only shared page chrome changed. Raw evidence retains its new fingerprint."
+  },
+  "6f69e18648f8d63a3b5a54e0787e6361351e8532408139091d0796ea09e7ce9a": {
+    "disposition": "noise",
+    "reason": "Complete 66-exhibitor comparison with accepted checkpoint 40231624036: routine profile/logo enrichment; same IDs and booths; Galactus TCG Corporation becomes Yakata Games, Galactus TCG becomes Galactus Roma, and 1985 Games drops LLC. Heavy Play adds purchase-plus-newsletter conditional sleeves; Face to Face revises mystery-pack promotional copy. No new distinctive experience or convention exclusive warrants Home amplification. Preserve all source offers and terms. Exact current run 41234203109 reviewed: complete structured feed and main-content/link hashes match run 41131321317; only shared page chrome changed. Raw evidence retains its new fingerprint."
+  },
+  "9b1970c7b504f3af56b8456b77256edc9932077665a4138be98ab6d51bf2fa29": {
+    "disposition": "home",
+    "title": "Big Facts and Tabletop Jocks join the Atlanta schedule",
+    "summary": "Saturday adds Ify Nwadiwe’s Big Facts with Brian David Gilbert at 3:30–4:30 PM on the Mana Stage. Sunday adds Tabletop Jocks: Archenemy Commander D&D at noon–1:30 PM in the Showcase Room. Several existing panels update their participants, including Simon Nielsen joining Sunday’s Worlds watch party. Times are Atlanta local.",
+    "reason": "Compared all 48 sessions against accepted checkpoint 40231624036. New source IDs 954667 and 954679 replace removed placeholder IDs 954666 and 954680; no saved choice is transferred. Eight surviving sessions update participant evidence (954662,954673,954674,954675,954678,954681,954682,954687). Reconcile selectable details and preserve all other identities and Family Spark access rules. Exact current run 41234203109 reviewed: complete structured feed and main-content/link hashes match run 41131321317; only shared page chrome changed. Raw evidence retains its new fingerprint."
   }
 }

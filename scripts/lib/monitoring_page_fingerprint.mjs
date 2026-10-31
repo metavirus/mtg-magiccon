@@ -54,3 +54,11 @@ export function upgradeUnchangedPageBaseline(previous, current) {
     contentRegion: current.contentRegion,
   }
 }
+
+// Parse href entities before URL normalization; &#61; is an equals sign, not
+// part of a query key or a fragment that can silently discard event identity.
+const hrefDecoder = new JSDOM('<!doctype html><textarea></textarea>').window.document.querySelector('textarea')
+export function decodeLinkHref(value) {
+  hrefDecoder.innerHTML = String(value)
+  return hrefDecoder.value
+}

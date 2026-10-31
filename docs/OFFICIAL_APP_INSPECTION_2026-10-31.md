@@ -26,4 +26,14 @@ Next map action requires an official original map/shared download or a supported
 
 ## Remaining enrichment
 
+### Additional screenshot evidence received October 31
+
+Kavi supplied seven further close views, bringing the evidence set to 14 images. The four artist views are in attachment batch `57615DEF-0F70-46E1-B221-48904E109A64`; the three marketplace views are in batch `5340EE6C-FC47-41FD-9712-78921516B1C1`. The original seven overview/level views are in batch `FAAA7ECB-8637-4E26-8492-66CF3845A62C`. These are source locators in the chat attachment store, not public asset URLs.
+
+- Artist close views show named table groups and featured-artist stars, plus Portfolio Review and Artist Lounge by Dragon Shield. Tran Nguyen is visibly grouped beneath Thomas Baxa beside Ryan Pancoast, despite the current web directory lacking Tran's booth number. This is relative-location evidence, not permission to invent a booth code. Source spelling such as Cynthia Sheppard/Shepard must be reconciled through existing identity mappings.
+- Marketplace close views show the morning queue entry beside Star Trek/Jace's Tower; Family Magic/Bloomburrow; Tap Tap Mini Golf/Arcades's Arcade; Gathering Grounds; and the eastern marketplace beside Magic Meet & Greets. Sponsor, featured and late-night markers are distinct attributes, not identity keys or purchase evidence.
+- Some booth labels remain too small for confident transcription. Do not infer codes from neighboring numbers or interpret an unlabeled purple area as a named destination. The close views improve reconciliation coverage but do not supersede the original-file gate.
+
+Execution order and bounded handoffs are recorded in `docs/OCT31_APP_MAP_MERCH_WORK_PLAN.md`; current completion state remains in `CURRENT_FRONTIER.md`.
+
 The catalog's real product images can support clickable, larger zoomable details. Product-level ingestion, full image variants, offline image packaging and deployed readback remain separate work; this research checkpoint does not claim them complete. Meaningful ongoing catalog changes require the dynamic collection to be covered, not merely the static page fingerprint. Native-only specials and announcements remain uninspected; the map has screenshot-based partial coverage only.
