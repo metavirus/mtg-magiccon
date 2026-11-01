@@ -5002,7 +5002,7 @@ function catalogOfferDetail(offer: CatalogOffer, currentOwnerId?: string): Objec
       ...(offer.variant_label && offer.variant_label !== 'Variants pending' ? [{ label: 'Options', value: reviewOnly && Array.isArray(offer.attributes?.review_variant_labels) && offer.attributes.review_variant_labels.length ? offer.attributes.review_variant_labels.join(' · ') : offer.variant_label }] : []),
       ...(currentOwnerId && !reviewOnly ? [{ label: 'Your list', value: currentInterest ? 'Saved' : 'Not saved' }] : []),
     ],
-    links: offer.presentation_source_url ? [{ label: offer.presentation_source_provider ?? offer.observed_source_name, url: offer.presentation_source_url }] : undefined,
+    links: offer.presentation_source_url ? [{ label: 'Product image', url: offer.presentation_source_url }] : undefined,
     source: undefined,
     backlinks: [{ label: 'Store', destination: 'info' }],
   }
