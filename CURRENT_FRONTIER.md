@@ -2,7 +2,7 @@
 
 ## Offline reliability consolidation
 
-All seventeen account lanes share complete per-lane persistence, exact readback and owner/freshness fences. Failed device copies have an actionable, failure-only Retry notice. Exact release709tests/113files, build/integrity checks and independent phone/desktop review pass; local server-stop/reopen and original-image zoom passed. See docs/OFFLINE_RELIABILITY_REPAIR_2026-11-01.md for evidence and limits. Physical-iPhone airplane-mode proof remains required before travel. Parked map work is excluded.
+All seventeen account lanes share complete per-lane persistence, exact readback and owner/freshness fences. Failed device copies have an actionable, failure-only Retry notice. Code ac6f27b is live: exact709tests/113files, CI41325885692, Pages41325885700 and public artifact verification pass. Independent PM phone/desktop review and local server-stop/reopen/original-image zoom passed. Authenticated public Store retained60products/two bookmarks; warm CacheStorage paint353ms. See docs/OFFLINE_RELIABILITY_REPAIR_2026-11-01.md for evidence and limits. Physical-iPhone airplane-mode proof remains required before travel. Parked map work is excluded.
 
 ## Store and startup accepted public checkpoint
 

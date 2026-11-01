@@ -28,7 +28,11 @@ The existing root IAB client at 127.0.0.1:5205 adopted B2j0o5z5 → Cgtg70nK by 
 
 The capture script reports its launcher PID; stopping that launcher alone did not stop the site. Root identified and verified the Vite process actually listening on the specific port, stopped only that process, then proved HTTP unavailable before the PM offline check. Use listener identity plus HTTP proof for future stopped-origin tests.
 
-Public deployment verification is pending the release checkpoint below.
+Published code: `ac6f27bdf20ee99fbfba5a61b1c8f25ac94a3697`. CI 41325885692 and Pages 41325885700 succeeded; the exact-tree `pnpm verify:public` gate passed. Plain and cache-busted public sw.js matched the artifact SHA-256 `2ab37df65936b808a36350aa75318eeaf0346347c0eeed1a525c2d2495d31d3d`.
+
+Root's authenticated public IAB partition initially still held legacy 49ad3ee. Closing and immediately reopening could race its worker release. After closing its last public tab, confirming no public tab remained and allowing release before reopening, it adopted ac6f27b without deleting auth, snapshots or media. The live Store retained all sixty products and both existing bookmarks; catalog save readback reported cache-storage-ready. A further ordinary warm reload painted the complete catalog from CacheStorage at 353ms, with no failure notice or Chicago content. This is one observed warm reopen, not a first-visit speed guarantee.
+
+The PM independently accepted exact-release phone/desktop captures and the final authenticated public phone capture. Evidence: visualization merch-intake/offline-reliability-{phone,desktop,public-phone}.jpg. Root verified bundle, bookmark counts and timing; the PM reviewed actual rendered images. Worker browser availability ended after its local campaign, so root captured the final exact/public screens for independent image review. The local preview server is restored; the scoped release worktree is temporary, not a second source of truth.
 
 ## Limits
 
