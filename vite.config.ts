@@ -92,6 +92,8 @@ export default defineConfig({
       clientsClaim: true,
       cleanupOutdatedCaches: true,
       navigateFallback: 'index.html',
+      navigateFallbackDenylist: [/\/map-preview\//],
+      globIgnores: ['map-preview/**'],
       globPatterns: ['index.html', '**/*.{js,css,svg}'],
       maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       runtimeCaching: [{
