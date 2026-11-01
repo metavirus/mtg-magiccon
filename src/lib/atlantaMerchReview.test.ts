@@ -19,11 +19,15 @@ describe('Atlanta merchandise source review', () => {
   it('keeps review controls and the write handler fenced, including the shared detail layer', () => {
     const app = readFileSync('src/App.tsx', 'utf8')
     const browser = readFileSync('src/CatalogBrowser.tsx', 'utf8')
-    expect(app).toContain('if (offer.attributes?.local_review) return')
-    expect(app).toContain('catalogOffer && !catalogOffer.attributes?.local_review && catalogOwnerId')
+    expect(app).toContain('if (offer.attributes?.local_review && !atlantaMerchReview) return false')
+    expect(app).toContain('if (offer.attributes?.local_review || isPreviewOwnerMode) return false')
+    expect(app).toContain('const catalogInterestQa = catalogBrowserQa || atlantaMerchReview')
+    expect(app).toContain("bookmarks.button(catalogOffer, 'object-detail-interest')")
+    expect(app).toContain('catalogOfferDetail(preferredCatalogBookmarkOffer(catalogReadModel, offer, currentOwnerId), currentOwnerId)')
     expect(app).toContain("if (input.objectId.startsWith('catalog-offer-review:')) return")
     expect(app).toContain('{!catalogOffer?.attributes?.local_review && !isSyntheticNoteGroupId(detail.id) && <ObjectNotes')
-    expect(browser).toContain('{!reviewOnly && (')
+    expect(readFileSync('src/CatalogBookmark.tsx', 'utf8')).toContain('disabled={!currentOwnerId || !canEditInterest || busy}')
+    expect(browser).toContain('bookmarks.button(offer)')
   })
 
   it('preserves the event-wide Festival in a Box limit and lounge-only VIP purchase rule in both channels', () => {

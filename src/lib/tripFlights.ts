@@ -43,11 +43,12 @@ export const previewTripFlights: TripFlight[] = [{
   ],
 }]
 
-export function tripFlightCalendarProjection(flights: TripFlight[]): TripFlightCalendarProjection {
-  const flight = flights.find(item => item.itinerary_key === 'atlanta-2026-delta-hogfbx') ?? previewTripFlights[0]
+export function tripFlightCalendarProjection(flights: TripFlight[]): TripFlightCalendarProjection | null {
+  const flight = flights.find(item => item.itinerary_key === 'atlanta-2026-delta-hogfbx')
+  if (!flight) return null
   const outbound = flight.legs.find(leg => leg.leg_key === 'outbound') ?? flight.legs[0]
   const returnLeg = flight.legs.find(leg => leg.leg_key === 'return') ?? flight.legs[flight.legs.length - 1]
-  if (!outbound || !returnLeg) throw new Error('Canonical Atlanta flight itinerary is incomplete')
+  if (!outbound || !returnLeg) return null
   return { flight, outbound, returnLeg }
 }
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { auditDeviceAssets, cacheDeviceAssets, type DeviceAssetIntegrity, type DeviceAssetCacheResult } from '../lib/deviceAssets'
 import './ArtistAssetStatus.css'
 
-export function ArtistAssetStatus({ urls, missingImages, online, revision, label = 'Artist/card images', integrity = {} }: { urls: string[]; missingImages: number; online: boolean; revision: number; label?: string; integrity?: DeviceAssetIntegrity }) {
+export function ArtistAssetStatus({ urls, missingImages, online, revision, label = 'Artist/card images', integrity = {}, quiet = false }: { urls: string[]; missingImages: number; online: boolean; revision: number; label?: string; integrity?: DeviceAssetIntegrity; quiet?: boolean }) {
   const [result, setResult] = useState<DeviceAssetCacheResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [retry, setRetry] = useState(0)
@@ -21,6 +21,13 @@ export function ArtistAssetStatus({ urls, missingImages, online, revision, label
   }, [manifest, integrityManifest, online, revision, retry])
   const expected = (result?.expected ?? JSON.parse(manifest).length) + missingImages
   const cached = result?.cached ?? 0
+  if (quiet) {
+    if (loading || !result || cached >= result.expected) return null
+    return <div className="artist-asset-status" role="status">
+      <small>Some images aren’t saved offline.</small>
+      {online && <button type="button" onClick={() => setRetry(value => value + 1)}>Retry</button>}
+    </div>
+  }
   return <div className="artist-asset-status" role="status">
     <small>{loading ? (online ? `Saving ${label.toLowerCase()}` : `Checking saved ${label.toLowerCase()}`)
       : expected === 0 ? `No ${label.toLowerCase()} in this catalog`

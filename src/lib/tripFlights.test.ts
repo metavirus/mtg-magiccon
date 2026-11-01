@@ -52,8 +52,12 @@ describe('flight schedule auto-apply boundary', () => {
 })
 
 describe('calendar flight projection', () => {
+  it('does not invent a receipt itinerary before saved or canonical data arrives', () => {
+    expect(tripFlightCalendarProjection([])).toBeNull()
+    expect(tripFlightCalendarProjection([{ ...previewTripFlights[0], legs: [] }])).toBeNull()
+  })
   it('projects the current canonical itinerary instead of the original receipt schedule', () => {
-    const projection = tripFlightCalendarProjection(previewTripFlights)
+    const projection = tripFlightCalendarProjection(previewTripFlights)!
     expect(projection.outbound.flight_number).toBe('DL 329')
     expect(projection.outbound.arrival_at).toBe('2026-11-11T21:16:00-05:00')
     expect(projection.returnLeg.departure_at).toBe('2026-11-15T20:25:00-05:00')
@@ -62,6 +66,6 @@ describe('calendar flight projection', () => {
   it('follows a changed canonical leg without requiring Calendar copy changes', () => {
     const changed = structuredClone(previewTripFlights)
     changed[0].legs[0].flight_number = 'DL 999'
-    expect(tripFlightCalendarProjection(changed).outbound.flight_number).toBe('DL 999')
+    expect(tripFlightCalendarProjection(changed)!.outbound.flight_number).toBe('DL 999')
   })
 })

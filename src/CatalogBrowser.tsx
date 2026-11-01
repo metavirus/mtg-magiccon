@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { catalogBookmarkOptions, useCatalogBookmark } from './CatalogBookmark'
 import { formatCatalogOfferValue, type CatalogFamily, type CatalogOffer, type CatalogReadModel } from './lib/catalog'
 
 type CatalogViewFilter = 'all' | 'available' | 'interested' | 'sold_out'
@@ -34,10 +35,6 @@ function CatalogProductImage({ offer }: { offer: CatalogOffer }) {
   </span>
 }
 
-function BookmarkIcon({ filled }: { filled: boolean }) {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.75 4.75A1.75 1.75 0 0 1 8.5 3h7a1.75 1.75 0 0 1 1.75 1.75v15.1L12 16.65l-5.25 3.2V4.75Z" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>
-}
-
 export function CatalogBrowser({
   model,
   currentOwnerId,
@@ -45,13 +42,12 @@ export function CatalogBrowser({
   savingOfferId,
   onToggleInterest,
   onOpenOffer,
-  reviewOnly = false,
 }: {
   model: CatalogReadModel
   currentOwnerId?: string
   canEditInterest: boolean
   savingOfferId?: string | null
-  onToggleInterest: (offer: CatalogOffer, interested: boolean) => void
+  onToggleInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>
   onOpenOffer: (offer: CatalogOffer) => void
   reviewOnly?: boolean
 }) {
@@ -78,6 +74,9 @@ export function CatalogBrowser({
     if (!families.includes(family) && families[0]) setFamily(families[0])
   }, [families, family])
 
+  const bookmarks = useCatalogBookmark({ model, currentOwnerId, canEditInterest, savingOfferId, onToggleInterest, focusFallback: () => toolbarRef.current?.querySelector<HTMLElement>('[aria-label="Catalog view"]') })
+  const exactOffers = (offer: CatalogOffer) => catalogBookmarkOptions(model, offer)
+  const savedOffers = (offer: CatalogOffer) => exactOffers(offer).filter(item => item.interests.some(interest => interest.ownerId === currentOwnerId && interest.interested))
   const unifiedStore = families.includes('show_store') && !families.includes('prize_wall')
   const [lotusInfo, setLotusInfo] = useState<{ product_name: string; purchase_limit: number | null } | 'all' | null>(null)
   const lotusDialog = useRef<HTMLDialogElement>(null)
@@ -99,7 +98,7 @@ export function CatalogBrowser({
     if (category !== 'all' && offer.category !== category) return false
     if (view === 'available' && !['available', 'limited', 'restocking'].includes(offer.availability)) return false
     if (view === 'sold_out' && !offer.soldOut) return false
-    if (view === 'interested' && !model.offers.some(item => item.product_id === offer.product_id && interestedPeople(item).length)) return false
+    if (view === 'interested' && !savedOffers(offer).length) return false
     if (!normalizedQuery) return true
     return [offer.product_name, offer.category, offer.variant_label, offer.description]
       .filter(Boolean)
@@ -127,7 +126,7 @@ export function CatalogBrowser({
       <label className="catalog-search"><span aria-hidden="true">⌕</span><input type="search" list="catalog-product-suggestions" value={query} onChange={event => setQuery(event.target.value)} placeholder="Find an item" aria-label="Find a catalog item" /></label>
       <datalist id="catalog-product-suggestions">{familyOffers.map(offer => <option value={offer.product_name} key={offer.offer_id} />)}</datalist>
       <label className="catalog-select"><span>Type</span><select value={category} onChange={event => setCategory(event.target.value)} aria-label="Product type"><option value="all">All types</option>{categories.map(item => <option value={item} key={item}>{item}</option>)}</select></label>
-      <label className="catalog-select"><span>Show</span><select value={view} onChange={event => setView(event.target.value as CatalogViewFilter)} aria-label="Catalog view"><option value="all">Everything</option><option value="available">Available</option><option value="interested">Shopping list</option><option value="sold_out">Sold out</option></select></label>
+      <label className="catalog-select"><span>Show</span><select value={view} onChange={event => setView(event.target.value as CatalogViewFilter)} aria-label="Catalog view"><option value="all">All items</option><option value="available">Available</option><option value="interested">Bookmarked</option><option value="sold_out">Sold out</option></select></label>
       <div className="catalog-density" role="group" aria-label="Product tile size"><button type="button" className={density === 'compact' ? 'active' : ''} aria-pressed={density === 'compact'} onClick={() => setDensity('compact')} title="Small tiles">▦</button><button type="button" className={density === 'comfortable' ? 'active' : ''} aria-pressed={density === 'comfortable'} onClick={() => setDensity('comfortable')} title="Larger tiles">▥</button></div>
     </div>
 
@@ -136,7 +135,8 @@ export function CatalogBrowser({
         <summary><span>{group}</span><small>{offers.length} item{offers.length === 1 ? '' : 's'}</small></summary>
         <div className="catalog-product-grid">{offers.map(offer => {
           const lotus = lotusOffers.find(item => item.product_id === offer.product_id)
-          const currentInterest = offer.interests.find(interest => interest.ownerId === currentOwnerId)?.interested === true
+          const saved = savedOffers(offer)
+          const bubbleOffer = { ...offer, interests: [...new Map(exactOffers(offer).flatMap(item => item.interests).filter(item => item.interested).map(item => [item.ownerId, item])).values()] }
           return <article
             className={`catalog-product-card${offer.soldOut ? ' sold-out' : ''}`}
             key={offer.offer_id}
@@ -151,17 +151,17 @@ export function CatalogBrowser({
             }}
           >
             <CatalogProductImage offer={offer} />
-            <div className="catalog-product-copy">{offer.variant_label && <span>{offer.variant_label}</span>}<h3>{offer.product_name}</h3><strong>{formatCatalogOfferValue(offer)}</strong>{offer.availability !== 'unknown' && <span className={`catalog-compact-availability catalog-availability ${offer.availability}`}>{availabilityLabel(offer)}</span>}</div>
+            <div className="catalog-product-copy">{offer.variant_label && <span>{offer.variant_label}</span>}<h3>{offer.product_name}</h3><div className="catalog-product-value"><strong>{formatCatalogOfferValue(offer)}</strong>{unifiedStore && lotus && <span className="store-lotus-limit" title={offer.product_name.startsWith('Festival in a Box') ? `Black Lotus: Limit ${lotus.purchase_limit} per VIP for the event across preorder and onsite` : `Black Lotus preorder limit: ${lotus.purchase_limit ?? 'not listed'}`}><LotusIcon />Limit {lotus.purchase_limit ?? '—'}</span>}</div>{saved.some(item => item.variant_label) && <span className="catalog-saved-option">Saved: {saved.map(item => item.variant_label).filter(Boolean).join(', ')}</span>}{offer.availability !== 'unknown' && <span className={`catalog-compact-availability catalog-availability ${offer.availability}`}>{availabilityLabel(offer)}</span>}</div>
             <div className="catalog-product-state">
-              {unifiedStore && lotus && <button type="button" className="store-lotus-button" aria-label={`Black Lotus limits for ${offer.product_name}`} onClick={event => { event.stopPropagation(); lotusLauncher.current = event.currentTarget; setLotusInfo(lotus) }}><LotusIcon /></button>}
               {offer.availability !== 'unknown' && <span className={`catalog-availability catalog-state-availability ${offer.availability}`}>{availabilityLabel(offer)}</span>}
-              <CatalogInterestBubbles offer={offer} />
-              {!reviewOnly && (!Array.isArray(offer.attributes?.browse_offer_ids) || offer.attributes.browse_offer_ids.length === 1) && <button type="button" className={currentInterest ? 'active' : ''} aria-label={savingOfferId === offer.offer_id ? 'Saving shopping list' : currentInterest ? 'Remove from shopping list' : 'Save to shopping list'} aria-pressed={currentInterest} disabled={!currentOwnerId || !canEditInterest || savingOfferId === offer.offer_id} onClick={event => { event.stopPropagation(); onToggleInterest(offer, !currentInterest) }}><span className="catalog-interest-icon"><BookmarkIcon filled={currentInterest} /></span></button>}
+              <CatalogInterestBubbles offer={bubbleOffer} />
+              {bookmarks.button(offer)}
             </div>
           </article>
         })}</div>
       </details>)}
     </div> : <div className="catalog-filter-empty"><strong>No items match.</strong><button type="button" onClick={() => { setQuery(''); setCategory('all'); setView('all') }}>Clear filters</button></div>}
+    {bookmarks.dialog}
     <dialog ref={lotusDialog} className="store-lotus-dialog" aria-label="Black Lotus purchasing rules" onCancel={() => setLotusInfo(null)} onClose={() => { setLotusInfo(null); lotusLauncher.current?.focus() }} onKeyDown={event => { if (event.key === 'Tab') { event.preventDefault(); lotusDialog.current?.querySelector<HTMLButtonElement>('button')?.focus() } }}>
       <header><h2><LotusIcon />Black Lotus purchase limits</h2><button type="button" aria-label="Close Black Lotus rules" onClick={() => setLotusInfo(null)}>×</button></header>
       {lotusInfo && lotusInfo !== 'all' ? <><h3>{lotusInfo.product_name}</h3><p>{lotusInfo.product_name.startsWith('Festival in a Box') ? 'Limit: 2 per VIP for the event, including preorder and onsite purchases.' : `Preorder limit: ${lotusInfo.purchase_limit ?? 'Not listed'}.`}</p></> : <>

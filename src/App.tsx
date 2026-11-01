@@ -1,12 +1,13 @@
 import { CatalogProductImageDetail } from './components/CatalogProductImageDetail'
 import { atlantaMerchAssetUrls, atlantaMerchAssetIntegrity, atlantaMerchMissingImageCount } from './lib/atlantaMerchMedia'
-import { ReactNode, type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ReactNode, type MouseEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { retryOnceAfterUnauthorized } from './lib/sessionRefreshRetry'
 import { NavIcon, type NavIconName } from './NavIcon'
 import { CatalogBrowser } from './CatalogBrowser'
+import { catalogBookmarkOptions, preferredCatalogBookmarkOffer, useCatalogBookmark } from './CatalogBookmark'
 import { CatalogImportLab } from './CatalogImportLab'
 import { activityDestination, mobileDrawerDestinations, navigationDestination, primaryDestinations, surfaces, type Surface } from './lib/navigation'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
@@ -32,7 +33,7 @@ import { shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDis
 import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
 
-export { CalendarSurface, PlanSurface }
+export { CalendarSurface, PlanSurface, ObjectDetailLayer, InfoCatalogsPreview }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { ExhibitorDirectory, type Exhibitor } from './components/ExhibitorDirectory'
 import { loadExhibitors, exhibitorObjectId, exhibitorQaFixtures, safeExhibitorUrl, type DirectoryExhibitor } from './lib/exhibitors'
@@ -46,6 +47,7 @@ import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSo
 import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
+import { publishHydrationLane } from './lib/startupHydration'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
 import { cacheDeviceAssets, catalogAssetUrls, exhibitorAssetUrls } from './lib/deviceAssets'
 import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
@@ -251,7 +253,7 @@ function useWalletReceipts(currentOwnerId?: string) {
     return Array.isArray(cached) ? cached as WalletReceiptRow[] : []
   })
   const [proofPack, setProofPack] = useState<OfflineProofPackStatus>({ expected: 0, cached: 0, loading: false })
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) {
       setReceipts([])
       setProofPack({ expected: 0, cached: 0, loading: false })
@@ -810,7 +812,7 @@ export default function App() {
   const [mobileNavMenu, setMobileNavMenu] = useState<'main' | 'events' | 'more' | null>(null)
   const [desktopRailLocked, setDesktopRailLocked] = useState(() => window.innerWidth >= 901)
   const [navNotice, setNavNotice] = useState('')
-  const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(monitoringAlerts)
+  const [monitorAlerts, setMonitorAlerts] = useState<MonitoringAlert[]>(designPreview || isPreviewOwnerMode ? monitoringAlerts : [])
   const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(() => purchaseQaEvents(exploreEvents))
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
   const [walletProofRequest, setWalletProofRequest] = useState<{ target: WalletProofTarget; nonce: number } | null>(null)
@@ -823,21 +825,34 @@ export default function App() {
   const [monitoringConcepts, setMonitoringConcepts] = useState<MonitoringConceptRow[]>([])
   const [ticketedAvailability, setTicketedAvailability] = useState<TicketedPlayAvailabilityProjectionRow[]>([])
   const displayedExploreEvents = applyTicketedPlayAvailabilityProjection(exploreEventState, ticketedAvailability) as ExploreEvent[]
-  const [infoTopics, setInfoTopics] = useState<InfoTopic[]>(previewInfoTopics)
+  const [infoTopics, setInfoTopics] = useState<InfoTopic[]>(designPreview || isPreviewOwnerMode ? previewInfoTopics : [])
   const [exhibitors, setExhibitors] = useState<DirectoryExhibitor[]>(() => (designPreview || isPreviewOwnerMode) && qaFlags.includes('exhibitors') ? exhibitorQaFixtures : [])
   const [exhibitorError, setExhibitorError] = useState('')
-  const [infoFeed, setInfoFeed] = useState<InfoFeedEntry[]>(previewInfoFeed)
+  const [infoFeed, setInfoFeed] = useState<InfoFeedEntry[]>(designPreview || isPreviewOwnerMode ? previewInfoFeed : [])
   const [catalogReadModel, setCatalogReadModel] = useState<CatalogReadModel>(emptyCatalogReadModel)
   const [catalogInterestSavingOfferId, setCatalogInterestSavingOfferId] = useState<string | null>(null)
   const [catalogPromotionSaving, setCatalogPromotionSaving] = useState(false)
-  const [tripFlights, setTripFlights] = useState<TripFlight[]>(previewTripFlights)
+  const [tripFlights, setTripFlights] = useState<TripFlight[]>(designPreview || isPreviewOwnerMode ? previewTripFlights : [])
   const [continuityReady, setContinuityReady] = useState(false)
   const [continuityFailures, setContinuityFailures] = useState<string[]>([])
+  const startupMarks = useRef(new Set<string>())
+  const markStartup = useCallback((milestone: string) => {
+    if (!qaFlags.length || startupMarks.current.has(milestone)) return
+    startupMarks.current.add(milestone)
+    // Quiet QA-only navigation-relative timings, readable by viewport tooling.
+    document.documentElement.setAttribute(`data-startup-${milestone}-ms`, String(Math.round(performance.now())))
+  }, [appSearch])
+  const previewHydrated = useRef<string | null>(null)
+  const hydrationGeneration = useRef(0)
+  const activeOwner = useRef(effectiveOwnerId)
+  activeOwner.current = effectiveOwnerId
+  const continuityContext = useRef({ slice, effectiveSession, companionMembers: fallbackCompanionMembers })
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
   const { receipts: walletReceipts, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId)
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
+  continuityContext.current = { slice, effectiveSession, companionMembers }
   const currentCompanion = currentCompanionFromSession(effectiveSession, companionMembers)
   const isKaviOperator = Boolean(effectiveSession && (
     isKaviCompanion(currentCompanion)
@@ -845,6 +860,7 @@ export default function App() {
   ))
   const catalogBrowserQa = catalogBrowserQaRequested && isKaviOperator
   const atlantaMerchReview = canLoadAtlantaMerchReview(qaFlags, isPreviewOwnerMode, isKaviOperator)
+  const catalogInterestQa = catalogBrowserQa || atlantaMerchReview
   const shouldLoadOwnerTrustSlice = isKaviCompanion(currentCompanion)
   // Badge tier is useful trip context, not an authorization boundary. Active
   // companions can plan around every visible event, including Black Lotus.
@@ -927,7 +943,14 @@ export default function App() {
       setLoading(false)
       return
     }
+    let active = true
+    let authRevision = 0
     const applySession = (next: Session | null) => {
+      if (!active) return
+      if (next && activeOwner.current !== next.user.id) {
+        activeOwner.current = next.user.id
+        hydrationGeneration.current += 1
+      }
       setSession(next)
       if (next) {
         const identity = {
@@ -939,16 +962,27 @@ export default function App() {
         setOfflineIdentity(identity)
       }
       const cached = readTrustSliceCache()
-      const nextCompanion = currentCompanionFromSession(next, companionMembers)
+      const nextCompanion = currentCompanionFromSession(next, continuityContext.current.companionMembers)
       setSlice(next && isKaviCompanion(nextCompanion) && cached?.ownerId === next.user.id ? cached : null)
     }
     void supabase.auth.getSession().then(({ data }) => {
-      applySession(data.session)
-      setLoading(false)
+      if (active && authRevision === 0) applySession(data.session)
+      if (active) setLoading(false)
+    }).catch(() => { if (active) setLoading(false) })
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      authRevision += 1
+      if (event === 'SIGNED_OUT') {
+        // Explicit sign-out revokes this device's offline identity. A failed
+        // network session check alone must not destroy a usable offline pack.
+        activeOwner.current = undefined
+        hydrationGeneration.current += 1
+        try { clearOfflineIdentity() } catch { /* in-memory sign-out still applies */ }
+        setOfflineIdentity(null)
+      }
+      applySession(next)
     })
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => applySession(next))
-    return () => data.subscription.unsubscribe()
-  }, [companionMembers, designPreview, isPreviewOwnerMode])
+    return () => { active = false; data.subscription.unsubscribe() }
+  }, [designPreview, isPreviewOwnerMode])
 
   const refresh = useCallback(async (forceOnline = false) => {
     if (designPreview || isPreviewOwnerMode || !effectiveOwnerId || (!onlineRef.current && !forceOnline)) return
@@ -964,21 +998,87 @@ export default function App() {
         return
       }
       const next = await loadTrustSlice(effectiveOwnerId)
+      if (activeOwner.current !== effectiveOwnerId) return
       if (next) writeTrustSliceCache(next)
       setSlice(next)
     } catch (error) {
+      if (activeOwner.current !== effectiveOwnerId) return
       setMessageTone('error')
       setMessage(error instanceof Error ? error.message : 'The current view could not be refreshed.')
     } finally {
-      setLoading(false)
+      if (activeOwner.current === effectiveOwnerId) setLoading(false)
     }
   }, [designPreview, isPreviewOwnerMode, effectiveOwnerId, shouldLoadOwnerTrustSlice])
 
   useEffect(() => { void refresh() }, [refresh])
 
+  // Rebind before paint, including an apparently-online cold reopen. A resume
+  // keeps current server-acknowledged state instead of replaying an older cache.
+  useLayoutEffect(() => {
+    hydrationGeneration.current += 1
+    markStartup('shell')
+    if (designPreview || isPreviewOwnerMode) return
+    setContextNotesState([])
+    setMentionInboxState([])
+    setAlertReview({})
+    setUserSelections({})
+    setSharedSelectionRows([])
+    setUserActivityRows([])
+    setMonitoringFindings([])
+    setMonitoringConcepts([])
+    setTicketedAvailability([])
+    setInfoTopics([])
+    setExhibitors([])
+    setInfoFeed([])
+    setCatalogReadModel(emptyCatalogReadModel)
+    setTripFlights([])
+    setExploreEventState(purchaseQaEvents(exploreEvents))
+    setMonitorAlerts([])
+    setContinuityFailures([])
+    setExhibitorError('')
+    setObjectDetail(null)
+    const cachedTrust = readTrustSliceCache()
+    setSlice(cachedTrust?.ownerId === effectiveOwnerId ? cachedTrust : null)
+    const cached = effectiveOwnerId ? readOfflineContinuity(effectiveOwnerId) : null
+    if (cached) {
+      markStartup('cache')
+      const lanes = cached.lanes
+      if (lanes.notes) setContextNotesState(lanes.notes as ContextNote[])
+      if (lanes.mentions) setMentionInboxState(lanes.mentions as MentionInboxItem[])
+      if (lanes.activity) setUserActivityRows(lanes.activity as UserActivityEventRow[])
+      if (lanes.monitorAlerts) setMonitorAlerts(lanes.monitorAlerts as MonitoringAlert[])
+      if (lanes.findings) setMonitoringFindings(lanes.findings as MonitoringFindingRow[])
+      if (lanes.concepts) setMonitoringConcepts(lanes.concepts as MonitoringConceptRow[])
+      if (lanes.info) {
+        const info = lanes.info as { topics: InfoTopic[]; feed: InfoFeedEntry[] }
+        setInfoTopics(info.topics)
+        setInfoFeed(info.feed)
+      }
+      if (lanes.catalog) setCatalogReadModel(lanes.catalog as CatalogReadModel)
+      if (lanes.exhibitors) setExhibitors((lanes.exhibitors as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) })))
+      if (lanes.flights) setTripFlights(lanes.flights as TripFlight[])
+      if (lanes.ticketedAvailability) setTicketedAvailability(lanes.ticketedAvailability as TicketedPlayAvailabilityProjectionRow[])
+      if (lanes.selections) {
+        const rows = lanes.selections as UserSelectionRow[]
+        setSharedSelectionRows(rows)
+        const selections = userSelectionMap(rows.filter(row => row.owner_id === effectiveOwnerId))
+        setUserSelections(selections)
+        setAlertReview(Object.fromEntries(Object.entries(selections)
+          .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
+          .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
+        const context = continuityContext.current
+        setExploreEventState(applySelectionState(exploreEvents, selections, cachedTrust?.ownerId === effectiveOwnerId ? cachedTrust : null, currentCompanionFromSession(context.effectiveSession, context.companionMembers)))
+      }
+    }
+    setContinuityReady(Boolean(cached?.lanes.selections))
+  }, [designPreview, isPreviewOwnerMode, effectiveOwnerId, markStartup])
+
   const refreshUserContinuity = useCallback(async (forceOnline = false) => {
-    setContinuityReady(false)
+    const generation = ++hydrationGeneration.current
+    const isCurrent = () => activeOwner.current === effectiveOwnerId && hydrationGeneration.current === generation
     if (designPreview || isPreviewOwnerMode) {
+      const previewKey = `${effectiveOwnerId}:${atlantaMerchReview}:${catalogBrowserQa}`
+      if (previewHydrated.current === previewKey) return
       if (qaFlags.includes('exhibitors')) void cacheDeviceAssets(exhibitorAssetUrls(exhibitorQaFixtures), true)
       setMessage('')
       setContextNotesState(designPreview ? contextNotes : [])
@@ -994,136 +1094,61 @@ export default function App() {
         { event_id: 'ticketed-944083', source_event_key: '944083', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z', companion_code: null },
       ] : [])
       setTripFlights(previewTripFlights)
-      setCatalogReadModel(atlantaMerchReview ? (await import('./lib/atlantaMerchReview')).buildAtlantaMerchReview({ individualVariants: qaFlags.includes('store-options') }) : catalogBrowserQa ? catalogBrowserPreviewModel : emptyCatalogReadModel)
+      const model = atlantaMerchReview ? (await import('./lib/atlantaMerchReview')).buildAtlantaMerchReview({ individualVariants: true }) : catalogBrowserQa ? catalogBrowserPreviewModel : emptyCatalogReadModel
+      if (!isCurrent()) return
+      previewHydrated.current = previewKey
+      markStartup('catalog')
+      setCatalogReadModel(model)
       setExploreEventState(purchaseQaEvents(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers))))
       setContinuityReady(true)
       return
     }
-    if (!effectiveOwnerId || (!onlineRef.current && !forceOnline)) {
-      setContinuityFailures([])
-      if (!effectiveOwnerId) {
-        setContextNotesState([])
-        setMentionInboxState([])
-        setAlertReview({})
-        setUserSelections({})
-        setSharedSelectionRows([])
-        setUserActivityRows([])
-        setMonitoringFindings([])
-        setMonitoringConcepts([])
-        setTicketedAvailability([])
-        setInfoTopics(previewInfoTopics)
-        setExhibitors([])
-        setInfoFeed(previewInfoFeed)
-        setCatalogReadModel(emptyCatalogReadModel)
-        setTripFlights(previewTripFlights)
-        setExploreEventState(purchaseQaEvents(exploreEvents))
-        setContinuityReady(true)
-        return
-      }
-      const cached = effectiveOwnerId ? readOfflineContinuity(effectiveOwnerId) : null
-      if (cached) {
-        const lanes = cached.lanes
-        if (lanes.notes) setContextNotesState(lanes.notes as ContextNote[])
-        if (lanes.mentions) setMentionInboxState(lanes.mentions as MentionInboxItem[])
-        if (lanes.activity) setUserActivityRows(lanes.activity as UserActivityEventRow[])
-        if (lanes.monitorAlerts) setMonitorAlerts(lanes.monitorAlerts as MonitoringAlert[])
-        if (lanes.findings) setMonitoringFindings(lanes.findings as MonitoringFindingRow[])
-        if (lanes.concepts) setMonitoringConcepts(lanes.concepts as MonitoringConceptRow[])
-        if (lanes.info) {
-          const info = lanes.info as { topics: InfoTopic[]; feed: InfoFeedEntry[] }
-          setInfoTopics(info.topics)
-          setInfoFeed(info.feed)
-        }
-        if (lanes.catalog) setCatalogReadModel(lanes.catalog as CatalogReadModel)
-        if (lanes.exhibitors) setExhibitors((lanes.exhibitors as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) })))
-        if (lanes.flights) setTripFlights(lanes.flights as TripFlight[])
-        if (lanes.ticketedAvailability) setTicketedAvailability(lanes.ticketedAvailability as TicketedPlayAvailabilityProjectionRow[])
-        if (lanes.selections) {
-          const rows = lanes.selections as UserSelectionRow[]
-          setSharedSelectionRows(rows)
-          const selections = userSelectionMap(rows.filter(row => row.owner_id === effectiveOwnerId))
-          setUserSelections(selections)
-          setAlertReview(Object.fromEntries(Object.entries(selections)
-            .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
-            .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
-          setExploreEventState(applySelectionState(exploreEvents, selections, slice, currentCompanionFromSession(effectiveSession, companionMembers)))
-        }
-      }
-      setContinuityReady(true)
-      return
-    }
-    // Show the saved directory immediately, even when an apparently online
-    // connection is slow or unavailable. Server readback replaces it below.
-    const cachedExhibitors = readOfflineContinuity(effectiveOwnerId)?.lanes.exhibitors
-    if (Array.isArray(cachedExhibitors)) setExhibitors((cachedExhibitors as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) })))
-    const [notesResult, mentionsResult, selectionsResult, activityResult, findingsResult, conceptsResult, infoResult, flightsResult, ticketedAvailabilityResult, catalogResult] = await Promise.allSettled([
-        loadContextNotes(effectiveOwnerId),
-        loadMentionInbox(effectiveOwnerId),
-        loadUserSelections(effectiveOwnerId),
-        loadUserActivityEvents(effectiveOwnerId),
-        isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]),
-        isKaviCompanion(currentCompanionFromSession(effectiveSession, companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]),
-        loadInfoKnowledge(),
-        supabase ? loadTripFlights(supabase) : Promise.resolve(previewTripFlights),
-        loadTicketedPlayAvailability(),
-        supabase ? loadCatalogReadModel(supabase, 'magiccon_atlanta_2026') : Promise.resolve(emptyCatalogReadModel),
-        loadExhibitors().then(records => {
-          // This lane must render as soon as it resolves, rather than waiting
-          // for unrelated Wallet/catalog/notes requests to settle.
-          setExhibitors(records)
-          setExhibitorError('')
-          try { writeOfflineContinuityLane(effectiveOwnerId, 'exhibitors', records) } catch { /* best-effort read-only cache */ }
-          void cacheDeviceAssets(exhibitorAssetUrls(records), true)
-        }).catch(() => setExhibitorError('Exhibitors could not be refreshed. Showing any saved directory; try refreshing when online.')),
-      ])
+    if (!effectiveOwnerId || (!onlineRef.current && !forceOnline)) return
     const failures: string[] = []
-    const cacheLane = (lane: Parameters<typeof writeOfflineContinuityLane>[1], value: unknown) => {
-      try { writeOfflineContinuityLane(effectiveOwnerId, lane, value) } catch { /* read-only cache is best effort */ }
-    }
-    if (notesResult.status === 'fulfilled') { setContextNotesState(notesResult.value); cacheLane('notes', notesResult.value) }
-    else failures.push('notes')
-    if (mentionsResult.status === 'fulfilled') { setMentionInboxState(mentionsResult.value); cacheLane('mentions', mentionsResult.value) }
-    else failures.push('mentions')
-    if (activityResult.status === 'fulfilled') { setUserActivityRows(activityResult.value); cacheLane('activity', activityResult.value) }
-    else failures.push('activity')
-    if (findingsResult.status === 'fulfilled') { setMonitoringFindings(findingsResult.value); cacheLane('findings', findingsResult.value) }
-    else failures.push('monitoring findings')
-    if (conceptsResult.status === 'fulfilled') {
-      const qaConcepts = monitoringConceptQaRows()
-      const qaKeys = new Set(qaConcepts.map(row => row.concept_key))
-      const concepts = [...conceptsResult.value.filter(row => !qaKeys.has(row.concept_key)), ...qaConcepts]
-      setMonitoringConcepts(concepts)
-      cacheLane('concepts', concepts)
-    }
-    else failures.push('monitoring concepts')
-    if (infoResult.status === 'fulfilled') { setInfoTopics(infoResult.value.topics); setInfoFeed(infoResult.value.feed); cacheLane('info', infoResult.value) }
-    else failures.push('Info knowledge')
-    if (flightsResult.status === 'fulfilled') {
-      const flights = flightsResult.value.length ? flightsResult.value : previewTripFlights
-      setTripFlights(flights)
-      cacheLane('flights', flights)
-    }
-    else failures.push('Trip flights')
-    if (ticketedAvailabilityResult.status === 'fulfilled') {
-      setTicketedAvailability(ticketedAvailabilityResult.value)
-      cacheLane('ticketedAvailability', ticketedAvailabilityResult.value)
-    } else failures.push('Ticketed Play availability')
-    if (catalogResult.status === 'fulfilled') {
-      setCatalogReadModel(catalogResult.value)
-      cacheLane('catalog', catalogResult.value)
-      void cacheDeviceAssets(catalogAssetUrls(catalogResult.value.offers))
-    } else failures.push('catalogs')
-    if (selectionsResult.status === 'fulfilled') {
-      cacheLane('selections', selectionsResult.value)
-      setSharedSelectionRows(selectionsResult.value)
-      const selections = userSelectionMap(selectionsResult.value.filter(row => row.owner_id === effectiveOwnerId))
-      setUserSelections(selections)
-      setAlertReview(Object.fromEntries(Object.entries(selections)
-        .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
-        .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
-      setExploreEventState(applySelectionState(exploreEvents, selections, slice, currentCompanionFromSession(effectiveSession, companionMembers)))
-    } else failures.push('selections')
-    setContinuityFailures(failures)
+    setContinuityFailures([])
+    const lane = <T,>(key: Parameters<typeof writeOfflineContinuityLane>[1], label: string, read: Promise<T>, publish: (value: T) => void) =>
+      publishHydrationLane(read, isCurrent, value => {
+        publish(value)
+        try { writeOfflineContinuityLane(effectiveOwnerId, key, value) } catch { /* read-only cache is best effort */ }
+      }, () => {
+        failures.push(label)
+        setContinuityFailures(current => [...new Set([...current, label])])
+      })
+    await Promise.all([
+      lane('notes', 'notes', loadContextNotes(effectiveOwnerId), setContextNotesState),
+      lane('mentions', 'mentions', loadMentionInbox(effectiveOwnerId), setMentionInboxState),
+      lane('activity', 'activity', loadUserActivityEvents(effectiveOwnerId), setUserActivityRows),
+      lane('findings', 'monitoring findings', isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]), setMonitoringFindings),
+      lane('concepts', 'monitoring concepts', isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]), setMonitoringConcepts),
+      lane('info', 'Info knowledge', loadInfoKnowledge(), info => { setInfoTopics(info.topics); setInfoFeed(info.feed) }),
+      lane('flights', 'Trip flights', supabase ? loadTripFlights(supabase) : Promise.resolve([]), setTripFlights),
+      lane('ticketedAvailability', 'Ticketed Play availability', loadTicketedPlayAvailability(), setTicketedAvailability),
+      lane('catalog', 'catalogs', supabase ? loadCatalogReadModel(supabase, 'magiccon_atlanta_2026') : Promise.resolve(emptyCatalogReadModel), model => {
+        // An unavailable read is a refresh failure, never a replacement for the
+        // last complete saved catalog (an authoritative empty ready model is valid).
+        if (model.status !== 'ready') throw new Error('Catalog unavailable')
+        markStartup('catalog')
+        setCatalogReadModel(model)
+        void cacheDeviceAssets(catalogAssetUrls(model.offers))
+      }),
+      lane('exhibitors', 'exhibitors', loadExhibitors(), records => {
+        setExhibitors(records)
+        setExhibitorError('')
+        void cacheDeviceAssets(exhibitorAssetUrls(records), true)
+      }),
+      lane('selections', 'selections', loadUserSelections(effectiveOwnerId), rows => {
+        setSharedSelectionRows(rows)
+        const selections = userSelectionMap(rows.filter(row => row.owner_id === effectiveOwnerId))
+        setUserSelections(selections)
+        setAlertReview(Object.fromEntries(Object.entries(selections)
+          .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
+          .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
+        const context = continuityContext.current
+        setExploreEventState(applySelectionState(exploreEvents, selections, context.slice, currentCompanionFromSession(context.effectiveSession, context.companionMembers)))
+        setContinuityReady(true)
+      }),
+    ])
+    if (!isCurrent()) return
     const globalFailures = failures.filter(resource => resource !== 'notes')
     if (globalFailures.length) {
       console.warn('Continuity refresh partially failed', failures)
@@ -1135,18 +1160,17 @@ export default function App() {
       if (failures.length) console.warn('Continuity refresh partially failed', failures)
       setMessage('')
     }
-    setContinuityReady(true)
-  }, [atlantaMerchReview, catalogBrowserQa, companionMembers, designPreview, isPreviewOwnerMode, effectiveOwnerId, slice, effectiveSession])
+  }, [atlantaMerchReview, catalogBrowserQa, designPreview, isPreviewOwnerMode, effectiveOwnerId, markStartup])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
 
   const toggleCatalogInterest = useCallback(async (offer: CatalogOffer, interested: boolean) => {
-    if (offer.attributes?.local_review) return
-    const ownerId = catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId
+    if (offer.attributes?.local_review && !atlantaMerchReview) return false
+    const ownerId = catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId
     if (!ownerId) return
     setCatalogInterestSavingOfferId(offer.offer_id)
     try {
-      if (catalogBrowserQa) {
+      if (catalogInterestQa) {
         setCatalogReadModel(current => ({
           ...current,
           offers: current.offers.map(item => item.offer_id !== offer.offer_id ? item : {
@@ -1171,20 +1195,26 @@ export default function App() {
       if (!canWrite || !supabase) {
         setMessageTone('info')
         setMessage('Reconnect to update your shopping list.')
-        return
+        return false
       }
+      if (offer.attributes?.local_review || isPreviewOwnerMode) return false
       await setCatalogInterest(supabase, { ownerId, offerId: offer.offer_id, interested })
       const refreshed = await loadCatalogReadModel(supabase, 'magiccon_atlanta_2026')
+      const refreshedOffer = refreshed.offers.find(item => item.offer_id === offer.offer_id)
+      if (refreshed.status !== 'ready' || !refreshedOffer) throw new Error('Bookmark update could not be confirmed. Try again.')
+      const confirmed = refreshedOffer.interests.some(item => item.ownerId === ownerId && item.interested)
+      if (confirmed !== interested) throw new Error('Bookmark update was not confirmed. Try again.')
       setCatalogReadModel(refreshed)
       writeOfflineContinuityLane(ownerId, 'catalog', refreshed)
       void cacheDeviceAssets(catalogAssetUrls(refreshed.offers))
     } catch (error) {
       setMessageTone('error')
       setMessage(error instanceof Error ? `Shopping list could not be updated: ${error.message}` : 'Shopping list could not be updated.')
+      return false
     } finally {
       setCatalogInterestSavingOfferId(null)
     }
-  }, [canWrite, catalogBrowserQa, effectiveOwnerId])
+  }, [canWrite, catalogInterestQa, atlantaMerchReview, isPreviewOwnerMode, effectiveOwnerId])
 
   const promoteReviewedCatalog = useCallback(async (plan: CatalogPromotionPlan) => {
     if (!canWrite || !supabase || !effectiveOwnerId || !effectiveSession || !isKaviCompanion(currentCompanion)) {
@@ -1209,15 +1239,15 @@ export default function App() {
       setCompanionMembers(fallbackCompanionMembers)
       return
     }
-    if (!onlineRef.current && !forceOnline) {
-      const cached = readOfflineContinuity(effectiveOwnerId)?.lanes.companions
-      setCompanionMembers(Array.isArray(cached) ? cached as CompanionMember[] : fallbackCompanionMembers)
-      return
-    }
+    const cached = readOfflineContinuity(effectiveOwnerId)?.lanes.companions
+    if (Array.isArray(cached)) setCompanionMembers(cached as CompanionMember[])
+    if (!onlineRef.current && !forceOnline) return
     await loadCompanionMembers().then(members => {
+      if (activeOwner.current !== effectiveOwnerId) return
       setCompanionMembers(members)
       try { writeOfflineContinuityLane(effectiveOwnerId, 'companions', members) } catch { /* best-effort device continuity */ }
     }).catch(error => {
+      if (activeOwner.current !== effectiveOwnerId) return
       setMessageTone('error')
       setMessage(error instanceof Error ? `Companion roster could not be refreshed: ${error.message}` : 'Companion roster could not be refreshed.')
       const cached = readOfflineContinuity(effectiveOwnerId)?.lanes.companions
@@ -1279,7 +1309,7 @@ export default function App() {
       .then(payload => {
         if (!active || !payload || !Array.isArray(payload.alerts)) return
         const incoming = payload.alerts.filter(isMonitoringAlert)
-        const mergedById = new Map(monitoringAlerts.map(alert => [alert.id, alert]))
+        const mergedById = new Map((designPreview || isPreviewOwnerMode ? monitoringAlerts : []).map(alert => [alert.id, alert]))
         for (const alert of incoming) mergedById.set(alert.id, alert)
         const merged = [...mergedById.values()]
         setMonitorAlerts(merged)
@@ -1289,10 +1319,10 @@ export default function App() {
       })
       .catch(() => {
         // The intake file is optional. If it is missing or malformed, keep the
-        // built-in fixture alerts so local design review never goes blank.
+        // last acknowledged alerts; fixtures belong only to explicit previews.
       })
     return () => { active = false }
-  }, [effectiveOwnerId])
+  }, [designPreview, isPreviewOwnerMode, effectiveOwnerId])
 
   const { navigate, goBack, canGoBack } = useHashNavigation(hash => {
       setMobileNavMenu(null)
@@ -1375,7 +1405,7 @@ export default function App() {
   }
 
   if (!supabase) return <SetupCard />
-  if (loading && !session && !slice) return <div className="boot">Opening your field guide…</div>
+  if (loading && !effectiveSession && !slice) return <div className="boot">Opening your field guide…</div>
   if (!effectiveSession && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} messageTone={messageTone} />
 
   const daysToAtlanta = Math.max(0, Math.ceil((new Date('2026-11-13T00:00:00-08:00').getTime() - Date.now()) / 86_400_000))
@@ -2123,7 +2153,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-{surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogBrowserQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
+{surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface flights={tripFlights} receipts={walletReceipts} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
@@ -2155,7 +2185,7 @@ export default function App() {
       </>
 
     </main>
-      <ObjectDetailLayer canWriteNotes={canWrite} detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogBrowserQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
+      <ObjectDetailLayer canWriteNotes={canWrite} detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogInterestQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
       {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onMobileMenuChange={setMobileNavMenu} onClose={() => {
         setTutorialOpen(false)
         void upsertUserSelection('onboarding-tour', 'general', 'completed', 'true')
@@ -2930,8 +2960,9 @@ function InfoReaderEvidence({ sources }: { sources: InfoSource[] }) {
   </article>)}</section>
 }
 
-function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const bookmarks = useCatalogBookmark({ model: catalogReadModel, currentOwnerId: catalogOwnerId, canEditInterest: canEditCatalogInterest, savingOfferId: catalogInterestSavingOfferId, onToggleInterest: onToggleCatalogInterest, focusFallback: () => closeButtonRef.current, scopeKey: detail?.id ?? 'closed', onConfirmed: (offer, interested) => { if (interested) onOpenObject(catalogOfferDetail(offer, catalogOwnerId)) } })
   const closeRef = useRef(onClose)
   closeRef.current = onClose
   const isOpen = Boolean(detail)
@@ -2964,10 +2995,10 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
   if (!detail) return null
   const catalogOffer = detail.catalogOfferId ? catalogReadModel.offers.find(offer => offer.offer_id === detail.catalogOfferId) : undefined
   const catalogProductOptions = catalogOffer ? catalogReadModel.offers.filter(offer => offer.product_id === catalogOffer.product_id && offer.family === catalogOffer.family) : []
-  const catalogInterest = catalogOffer?.interests.find(interest => interest.ownerId === catalogOwnerId)?.interested === true
-  const catalogInterestSaving = catalogOffer?.offer_id === catalogInterestSavingOfferId
+  const catalogSavedOffers = catalogOffer ? catalogBookmarkOptions(catalogReadModel, catalogOffer).filter(offer => offer.interests.some(interest => interest.ownerId === catalogOwnerId && interest.interested)) : []
+  const detailFacts = catalogOffer ? [...(detail.facts ?? []).filter(fact => fact.label !== 'Your list' && fact.label !== 'Bookmarked'), ...(catalogSavedOffers.length ? [{ label: 'Bookmarked', value: catalogSavedOffers.map(offer => offer.variant_label ?? offer.display_label ?? 'Saved').join(', ') }] : [])] : detail.facts
   const soldOutListSpansDays = new Set(detail.soldOutEvents?.map(event => event.day)).size > 1
-  return <div className={`object-detail-backdrop ${detail.reader ? 'info-reader-backdrop' : ''}`} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
+  return <><div className={`object-detail-backdrop ${detail.reader ? 'info-reader-backdrop' : ''}`} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind} ${detail.reader ? 'object-detail-reader' : ''}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
       <button ref={closeButtonRef} className={`detail-close persistent-detail-close ${detail.reader ? 'reader-close-sticky' : 'object-detail-close'}`} type="button" onClick={onClose} aria-label={detail.reader ? 'Close article' : 'Close detail'}>×</button>
       <header className="object-detail-head">
@@ -2975,7 +3006,7 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
           <span className="eyebrow">{detail.eyebrow}</span>
           <span className="object-detail-top-actions">
             {detail.people?.length ? <PersonBubbles people={detail.people} /> : null}
-            {catalogOffer && !catalogOffer.attributes?.local_review && catalogOwnerId ? <button type="button" className={`object-detail-interest${catalogInterest ? ' active' : ''}`} aria-label={catalogInterestSaving ? 'Saving shopping list' : catalogInterest ? 'Remove from shopping list' : 'Save to shopping list'} aria-pressed={catalogInterest} disabled={!canEditCatalogInterest || catalogInterestSaving} onClick={() => onToggleCatalogInterest(catalogOffer, !catalogInterest)}><ActionIcon name="bookmark" /></button> : null}
+            {catalogOffer ? bookmarks.button(catalogOffer, 'object-detail-interest') : null}
             <span className="object-kind-chip">{detail.kindLabel ?? detailKindLabel(detail.kind)}</span>
           </span>
         </div>
@@ -2990,10 +3021,10 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
           {detail.image.caption && <span>{detail.image.caption}</span>}
         </div>
       </section>}
-      {detail.facts && <details className="object-detail-section" open={detail.monitoringMetadata ? undefined : true}>
+      {detailFacts && detailFacts.length > 0 && <details className="object-detail-section" open={detail.monitoringMetadata ? undefined : true}>
         <summary>{detail.monitoringMetadata ? 'Monitoring details' : 'Key facts'}</summary>
-        <div className="object-fact-grid">{detail.facts.map(fact => {
-          const value = fact.label === 'Your list' && catalogOffer ? (catalogInterest ? 'Saved' : 'Not saved') : fact.value
+        <div className="object-fact-grid">{detailFacts.map(fact => {
+          const value = fact.value
           return fact.detail
             ? <button key={`${fact.label}-${fact.value}`} type="button" className="object-fact object-fact-link" onClick={() => onOpenObject(fact.detail!)}><span>{fact.label}</span><strong>{value}</strong><b aria-hidden="true">›</b></button>
             : <div key={`${fact.label}-${fact.value}`} className="object-fact"><span>{fact.label}</span><strong>{value}</strong></div>
@@ -3050,7 +3081,7 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
         {detail.backlinks?.map(link => <button key={link.label} type="button" className="secondary" onClick={() => onNavigate(link.destination)}>{link.label}</button>)}
       </footer>}
     </aside>
-  </div>
+  </div>{bookmarks.dialog}</>
 }
 
 function detailKindLabel(kind: ObjectDetailKind) {
@@ -4977,7 +5008,6 @@ function infoCatalogItemDetail(catalog: InfoCatalog, item: InfoCatalogItem): Obj
 
 function catalogOfferDetail(offer: CatalogOffer, currentOwnerId?: string): ObjectDetail {
   const reviewOnly = offer.attributes?.local_review === true
-  const currentInterest = offer.interests.find(interest => interest.ownerId === currentOwnerId)?.interested === true
   const interested = offer.interests
     .filter(interest => interest.interested && interest.personKey)
     .map(interest => interest.displayName ?? interest.personKey)
@@ -5000,7 +5030,6 @@ function catalogOfferDetail(offer: CatalogOffer, currentOwnerId?: string): Objec
       
       ...(offer.purchase_limit ? [{ label: 'Purchase limit', value: String(offer.purchase_limit) }] : []),
       ...(offer.variant_label && offer.variant_label !== 'Variants pending' ? [{ label: 'Options', value: reviewOnly && Array.isArray(offer.attributes?.review_variant_labels) && offer.attributes.review_variant_labels.length ? offer.attributes.review_variant_labels.join(' · ') : offer.variant_label }] : []),
-      ...(currentOwnerId && !reviewOnly ? [{ label: 'Your list', value: currentInterest ? 'Saved' : 'Not saved' }] : []),
     ],
     links: offer.presentation_source_url ? [{ label: 'Product image', url: offer.presentation_source_url }] : undefined,
     source: undefined,
@@ -5096,17 +5125,17 @@ function CatalogMatchReview() {
   </article>
 }
 
-function InfoCatalogsPreview({ onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
+function InfoCatalogsPreview({ onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
   const [catalogId, setCatalogId] = useState<InfoCatalog['id']>('show-store')
   const catalog = priorEventCatalogs.find(item => item.id === catalogId) ?? priorEventCatalogs[0]
   const hasCurrentCatalog = catalogReadModel.status === 'ready' && catalogReadModel.offers.length > 0
   return <section className="info-catalog-preview" role="tabpanel" aria-label="Store preview">
-    {hasCurrentCatalog && <ArtistAssetStatus urls={atlantaMerchAssetUrls} integrity={atlantaMerchAssetIntegrity} missingImages={reviewOnly ? atlantaMerchMissingImageCount : new Set(catalogReadModel.offers.filter(offer => !offer.presentationUrl).map(offer => offer.product_id)).size} online={navigator.onLine} revision={0} label="Product images" />}
-    {!reviewOnly && (catalogBrowserQa || !hasCurrentCatalog) && <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event products—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>}
+    {hasCurrentCatalog && <ArtistAssetStatus urls={atlantaMerchAssetUrls} integrity={atlantaMerchAssetIntegrity} missingImages={reviewOnly ? atlantaMerchMissingImageCount : new Set(catalogReadModel.offers.filter(offer => !offer.presentationUrl).map(offer => offer.product_id)).size} online={navigator.onLine} revision={0} label="Product images" quiet />}
+    {!reviewOnly && catalogBrowserQa && <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event products—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>}
     {showMatchReview && <CatalogMatchReview />}
     {hasCurrentCatalog
-      ? <CatalogBrowser reviewOnly={reviewOnly} model={catalogReadModel} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(offer, currentOwnerId))} />
-      : <><div className="info-catalog-selector" role="tablist" aria-label="Catalog preview">
+      ? <CatalogBrowser reviewOnly={reviewOnly} model={catalogReadModel} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(preferredCatalogBookmarkOffer(catalogReadModel, offer, currentOwnerId), currentOwnerId))} />
+      : !catalogBrowserQa || reviewOnly ? <p role="status">{catalogReadModel.status === 'ready' ? 'No Store items yet.' : 'Loading Store…'}</p> : <><div className="info-catalog-selector" role="tablist" aria-label="Catalog preview">
       {priorEventCatalogs.map(item => <button type="button" role="tab" aria-selected={catalog.id === item.id} className={catalog.id === item.id ? 'active' : ''} key={item.id} onClick={() => setCatalogId(item.id)}>{item.id === 'black-lotus' ? 'Black Lotus' : item.title}</button>)}
     </div>
     <header className="info-catalog-heading"><div><span className="eyebrow">{catalog.precedentEvent.toUpperCase()}</span><h2>{catalog.title}</h2><p>{catalog.description}</p></div><a href={catalog.sourceUrl} target="_blank" rel="noreferrer">View precedent source ↗</a></header>
@@ -5143,7 +5172,7 @@ function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
   }
 }
 
-function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
   const qaFlags = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
   const catalogMatchReviewEnabled = canUseCatalogImport && qaFlags.includes('catalog-match-review')
   const catalogBrowserQa = canUseCatalogImport && qaFlags.includes('catalog-browser')
@@ -5571,10 +5600,10 @@ export function HotelWalletReference({ kind, receipts = [], currentOwnerId }: { 
 }
 
 export function WalletOtherTab({ flights, receipts = [], currentOwnerId, openModal, onOpenTrip }: { flights: TripFlight[]; receipts?: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void }) {
-  const { flight } = tripFlightCalendarProjection(flights)
+  const flight = tripFlightCalendarProjection(flights)?.flight
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Other wallet references">
-      <article className="receipt-card">
+      {flight && <article className="receipt-card">
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">CURRENT ITINERARY</span><h2>Flights · Kavi + Juan</h2><p>Confirmation {flight.confirmation_code} · SNA ⇄ ATL</p></div><PersonBubbles people={['Kavi', 'Juan']} /></div>
         <div className="receipt-lines">{flight.legs.map(leg => {
           const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: leg.departure_airport === 'ATL' ? 'America/New_York' : 'America/Los_Angeles' }).format(new Date(leg.departure_at))
@@ -5583,7 +5612,7 @@ export function WalletOtherTab({ flights, receipts = [], currentOwnerId, openMod
           return <button key={leg.leg_key} type="button" onClick={() => openModal('CURRENT FLIGHT', leg.flight_number, <p>{leg.departure_airport} to {leg.arrival_airport} · {date} · {departure}–{arrival} (local airport times) · confirmation {flight.confirmation_code}.</p>)}><span>{leg.flight_number} · {date} · {leg.departure_airport} to {leg.arrival_airport}</span><b>Departs {departure}</b></button>
         })}</div>
         <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
-      </article>
+      </article>}
       <article className="receipt-card">
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL REFERENCES</span><h2>Atlanta lodging</h2><p>Saved itinerary details and linked receipts</p></div><PersonBubbles people={['Kavi', 'Juan', 'Chris', 'Kyle']} /></div>
         <div className="receipt-lines">
@@ -5750,7 +5779,9 @@ function flightDateParts(leg: TripFlightLeg) {
 }
 
 function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
-  const { flight } = tripFlightCalendarProjection(flights)
+  const projection = tripFlightCalendarProjection(flights)
+  if (!projection) return <p role="status">Flight details are not available yet.</p>
+  const { flight } = projection
   return <div className="flight-grid" aria-label="Flight details">
     <section className="flight-card">
       <div className="flight-card-head">
@@ -6410,10 +6441,10 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
   const [toolbarPinned, setToolbarPinned] = useState(false)
   const [toolbarHeight, setToolbarHeight] = useState(0)
   const flightProjection = tripFlightCalendarProjection(flights)
-  const outboundDepartureTime = flightAirportTime(flightProjection.outbound.departure_at, flightProjection.outbound.departure_airport)
-  const outboundArrivalTime = flightAirportTime(flightProjection.outbound.arrival_at, flightProjection.outbound.arrival_airport)
-  const returnDepartureTime = flightAirportTime(flightProjection.returnLeg.departure_at, flightProjection.returnLeg.departure_airport)
-  const returnArrivalTime = flightAirportTime(flightProjection.returnLeg.arrival_at, flightProjection.returnLeg.arrival_airport)
+  const outboundDepartureTime = flightProjection ? flightAirportTime(flightProjection.outbound.departure_at, flightProjection.outbound.departure_airport) : ''
+  const outboundArrivalTime = flightProjection ? flightAirportTime(flightProjection.outbound.arrival_at, flightProjection.outbound.arrival_airport) : ''
+  const returnDepartureTime = flightProjection ? flightAirportTime(flightProjection.returnLeg.departure_at, flightProjection.returnLeg.departure_airport) : ''
+  const returnArrivalTime = flightProjection ? flightAirportTime(flightProjection.returnLeg.arrival_at, flightProjection.returnLeg.arrival_airport) : ''
   const candidateEvents = events
   const participantMap = new Map(candidateEvents.map(event => [event.id, planParticipants(event, currentPerson, selectionRows, companions)]))
   const committedEvents = sortScheduledEvents(candidateEvents.filter(event => event.id !== 'bl-first-look-thursday' && (participantMap.get(event.id) ?? []).some(participant => selectedPeople.includes(participant.person) && participant.state === 'committed')))
@@ -6529,7 +6560,7 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
     {showTravel && showConvention && <div className="calendar-gap"><span>then travel</span></div>}
     <div className="calendar-month"><span>NOV</span><strong>Atlanta trip</strong></div>
 
-    {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
+    {showTravel && flightProjection && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
       <div className="agenda-date"><strong>11</strong><span>WED</span><em>{outboundArrivalTime}</em></div>
       <div className="agenda-icon"><NavIcon name="trip" /></div>
       <div className="agenda-copy"><span className="agenda-kind">Flight + hotel</span><h2>Arrive ATL · Courtyard night</h2><p>{flightProjection.outbound.flight_number} lands {outboundArrivalTime}; Courtyard by Marriott Atlanta Downtown, one night.</p></div>
@@ -6566,7 +6597,7 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
     {showConvention && <AgendaMarker time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} />}
     {showConvention && <AgendaMarker time="6:00 PM" label="Gaming closes" detail="End of Sunday convention hours" />}
 
-    {showTravel && <button className="agenda-row agenda-action travel-row airport-row" type="button" onClick={() => setDetail('airport')}>
+    {showTravel && flightProjection && <button className="agenda-row agenda-action travel-row airport-row" type="button" onClick={() => setDetail('airport')}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>TBD</em></div>
       <div className="agenda-icon"><NavIcon name="trip" /></div>
       <div className="agenda-copy"><span className="agenda-kind">Travel reminder</span><h2>Leave for ATL airport</h2><p>Keep visible before {flightProjection.returnLeg.flight_number}; set the exact time once the Sunday plan and travel buffer are final.</p></div>
@@ -6574,7 +6605,7 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
       <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
     </button>}
 
-    {showTravel && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
+    {showTravel && flightProjection && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>{returnDepartureTime}</em></div>
       <div className="agenda-icon"><NavIcon name="trip" /></div>
       <div className="agenda-copy"><span className="agenda-kind">Checkout + flight</span><h2>Omni check-out · fly home</h2><p>Omni check-out 11 AM; {flightProjection.returnLeg.flight_number} departs ATL {returnDepartureTime}.</p></div>
@@ -6629,13 +6660,13 @@ function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDelete
 function CalendarDetailSheet({ detail, slice, flights, onClose, onOpenPlan, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { detail: CalendarDetail; slice: TrustSlice; flights: TripFlight[]; onClose: () => void; onOpenPlan: () => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const forecast = milestoneForecasts.find(item => item.id === detail)
   const flightProjection = tripFlightCalendarProjection(flights)
-  const outboundDepartureTime = flightAirportTime(flightProjection.outbound.departure_at, flightProjection.outbound.departure_airport)
-  const outboundArrivalTime = flightAirportTime(flightProjection.outbound.arrival_at, flightProjection.outbound.arrival_airport)
-  const returnDepartureTime = flightAirportTime(flightProjection.returnLeg.departure_at, flightProjection.returnLeg.departure_airport)
-  const returnArrivalTime = flightAirportTime(flightProjection.returnLeg.arrival_at, flightProjection.returnLeg.arrival_airport)
+  const outboundDepartureTime = flightProjection ? flightAirportTime(flightProjection.outbound.departure_at, flightProjection.outbound.departure_airport) : ''
+  const outboundArrivalTime = flightProjection ? flightAirportTime(flightProjection.outbound.arrival_at, flightProjection.outbound.arrival_airport) : ''
+  const returnDepartureTime = flightProjection ? flightAirportTime(flightProjection.returnLeg.departure_at, flightProjection.returnLeg.departure_airport) : ''
+  const returnArrivalTime = flightProjection ? flightAirportTime(flightProjection.returnLeg.arrival_at, flightProjection.returnLeg.arrival_airport) : ''
   const content = forecast
     ? { eyebrow: `FORECAST · ${forecast.window.toUpperCase()}`, title: forecast.title, copy: forecast.rationale }
-    : detail === 'arrival'
+    : detail === 'arrival' && flightProjection
       ? { eyebrow: 'TRIP · NOV 11', title: 'Arrival and Courtyard night', copy: `Kavi and Juan fly ${flightProjection.outbound.flight_number} from SNA to ATL, ${outboundDepartureTime}-${outboundArrivalTime}, confirmation ${flightProjection.flight.confirmation_code}. The first hotel anchor is Courtyard by Marriott Atlanta Downtown for Kavi, Juan, and Chris.` }
       : detail === 'preview'
         ? { eyebrow: 'BLACK LOTUS · NOV 12', title: 'First Look and Omni check-in', copy: 'Kavi and Chris have the Black Lotus First Look day. Courtyard ends before Omni check-in at 4 PM, so luggage handling is the only practical transition note currently worth keeping visible.' }
@@ -6645,9 +6676,9 @@ function CalendarDetailSheet({ detail, slice, flights, onClose, onOpenPlan, onOp
           ? { eyebrow: 'CONVENTION · NOV 13', title: 'Friday', copy: 'No committed or purchased events are captured yet.' }
           : detail === 'bl-friday'
             ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 13', title: 'Friday Black Lotus schedule', copy: blackLotusDaySummary('Fri') }
-          : detail === 'airport'
+          : detail === 'airport' && flightProjection
             ? { eyebrow: 'TRIP · NOV 15', title: 'Leave for ATL airport', copy: `The reminder is restored, but its time is intentionally unset. It should account for the final Sunday plan, bags, airport buffer, and local travel conditions before ${flightProjection.returnLeg.flight_number} departs at ${returnDepartureTime}.` }
-          : detail === 'sunday'
+          : detail === 'sunday' && flightProjection
             ? { eyebrow: 'TRIP · NOV 15', title: 'Closing day and flight home', copy: `Omni check-out is 11 AM. Kavi and Juan fly ${flightProjection.returnLeg.flight_number} from ATL to SNA, ${returnDepartureTime}-${returnArrivalTime}, confirmation ${flightProjection.flight.confirmation_code}. The leave-for-airport reminder stays visible until its exact time is set from the final Sunday plan.` }
             : detail === 'bl-sunday'
               ? { eyebrow: 'OFFICIAL BLACK LOTUS · NOV 15', title: 'Sunday Black Lotus schedule', copy: blackLotusDaySummary('Sun') }

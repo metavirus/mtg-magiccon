@@ -1,5 +1,10 @@
 # Current Frontier
 
+## Store and startup release checkpoint
+
+Reviewed Store bookmarks, owner-only Bookmarked filtering, noninteractive purple Limit X and quiet image caching are included with independent startup hydration and bounded shell updates. Local phone/desktop/offline PM review and 665 tests pass. The user reported Chicago preview flashing on the live app; the prior local-only result did not fix that deployed origin. This release must pass exact public startup/adoption review before live completion is claimed. No live personal interests were edited. Parked map implementation is excluded. See docs/STORE_BOOKMARK_REVIEW_2026-10-31.md and docs/STARTUP_HYDRATION_REVIEW_2026-10-31.md.
+
+
 ## Store release checkpoint
 
 Publication/upload/import blocked by automatic approval review pending explicit user approval. Local checks and PM review are complete; source upload and canonical promotion have not run.

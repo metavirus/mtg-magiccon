@@ -28,3 +28,17 @@ describe('artist image completion status', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 })
+
+it('warms Store images silently and shows only actionable cache failures', async () => {
+  vi.mocked(cacheDeviceAssets).mockResolvedValueOnce({ expected: 1, cached: 1, failures: [] })
+    .mockResolvedValueOnce({ expected: 1, cached: 0, failures: ['/a'] })
+    .mockResolvedValueOnce({ expected: 1, cached: 1, failures: [] })
+  const { rerender } = render(<ArtistAssetStatus urls={['/a']} missingImages={2} online revision={0} quiet />)
+  await waitFor(() => expect(cacheDeviceAssets).toHaveBeenCalledTimes(1))
+  expect(screen.queryByRole('status')).toBeNull()
+  rerender(<ArtistAssetStatus urls={['/a']} missingImages={2} online revision={1} quiet />)
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Some images aren’t saved offline.'))
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+  await waitFor(() => expect(screen.queryByRole('status')).toBeNull())
+  expect(cacheDeviceAssets).toHaveBeenCalledTimes(3)
+})

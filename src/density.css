@@ -1261,3 +1261,16 @@ html,body{max-width:100%;overflow-x:clip}
 .store-lotus-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:5px 8px;border:1px solid #574768;border-radius:9px;background:#251c34;color:#d9b8ef;font:inherit;font-size:11px;cursor:pointer}.store-lotus-button svg,.store-lotus-dialog svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;flex-shrink:0}.store-lotus-dialog{width:min(520px,calc(100% - 28px));max-height:80dvh;overflow:auto;box-sizing:border-box;padding:18px;border:1px solid #574768;border-radius:16px;background:#101b2c;color:#dce6f3;font-size:13px;line-height:1.5}.store-lotus-dialog::backdrop{background:#020712b8}.store-lotus-dialog header{display:flex;align-items:start;justify-content:space-between;gap:12px}.store-lotus-dialog h2{display:flex;gap:8px;margin:0;font-size:18px}.store-lotus-dialog header button{width:36px;height:36px;background:#192b42;color:#dce6f3;border:1px solid #456080;border-radius:8px;cursor:pointer}.store-lotus-dialog li{margin:8px 0}.catalog-browser-heading{flex-wrap:wrap;gap:8px}
 
 .store-option-select{display:flex;align-items:center;gap:10px;margin:12px 16px;color:#9fb2c9;font-size:12px}.store-option-select select{min-width:0;max-width:100%;height:36px;padding:0 10px;border:1px solid #36516f;border-radius:8px;background:#101f32;color:#edf3fb;font:inherit}
+
+.catalog-product-value{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px}
+.store-lotus-limit{display:inline-flex;align-items:center;gap:3px;color:#c8a0e4;font-size:10px;white-space:nowrap}
+.store-lotus-limit svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6}
+.catalog-product-copy .catalog-saved-option{color:#adc4df;font-size:10px;text-transform:none;letter-spacing:0}
+.catalog-bookmark-dialog{max-width:380px}
+.catalog-bookmark-dialog h3{margin:12px 0;font-size:14px}
+.catalog-bookmark-choice{display:grid;gap:6px;font-size:12px}
+.catalog-bookmark-choice select{min-width:0;width:100%;height:40px;padding:0 10px;border:1px solid #36516f;border-radius:8px;background:#101f32;color:#edf3fb;font:inherit}
+.catalog-bookmark-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.catalog-bookmark-actions button{min-height:40px;padding:0 16px;border:1px solid #456080;border-radius:8px;background:#192b42;color:#dce6f3;font:inherit;font-size:12px;cursor:pointer}
+.catalog-bookmark-actions button:last-child{background:#24466c;border-color:#6c95c4}
+.catalog-bookmark-dialog button:disabled{opacity:.45;cursor:not-allowed}

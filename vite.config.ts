@@ -61,7 +61,9 @@ self.addEventListener('fetch', event => event.respondWith(fetch(event.request)))
 export default defineConfig({
   base: './',
   plugins: [localCatalogIntake(), react(), VitePWA({
-    registerType: 'autoUpdate',
+    registerType: 'prompt',
+    // Startup owns activation/reload; later updates wait to preserve drafts and lazy chunks.
+    injectRegister: null,
     includeAssets: [
       'favicon-peach-v2.png',
       'apple-touch-icon.png',
@@ -86,6 +88,8 @@ export default defineConfig({
       ],
     },
     workbox: {
+      skipWaiting: false,
+      clientsClaim: true,
       cleanupOutdatedCaches: true,
       navigateFallback: 'index.html',
       globPatterns: ['index.html', '**/*.{js,css,svg}'],

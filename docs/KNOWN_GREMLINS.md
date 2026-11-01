@@ -552,3 +552,13 @@ October 21 exhibitor integration: adding partial offer arrays to the directory v
 **Symptom:** `pnpm verify:public` fails because `dist/index.html` lacks the Pages build marker after ordinary ship checks rebuilt `dist`.
 
 **Prevention:** `verify:public` must prepare its own Pages-stamped comparison artifact. Run the single command; do not manually sequence `build:pages` and verification.
+
+## CUA viewport override targets the active tab
+
+October 31: `viewport.set()` succeeded while a different QA tab was active, so reading the bound review tab still showed its old desktop width. That mismatch was initially mistaken for a broken browser lane. The override applies to the selected tab, not every bound handle or tabs opened afterward.
+
+Use fresh browser inventory, make the intended review tab active, set its viewport, then verify `document.documentElement.clientWidth/clientHeight` and the actual screenshot before claiming viewport control failed. A classic scrollbar can reduce DOM width below the requested screenshot width (390 px viewport measured 375 px content). New tabs need their own override after becoming active. Do not enter reset/retry loops or infer shell freshness from an initial stale AX snapshot; inspect the current DOM asset and rendered screen after the action.
+
+## Startup fix verified on a different origin from the reported failure
+
+October 31: the Chicago precedent flash was fixed and PM-reviewed locally, while the user was running the older published app. A clean localhost review did not fix the live startup. Inspect the exact reported tab URL and bundle before diagnosing cache. For a live startup regression, completion requires publishing the bounded repair and verifying that same public origin and its existing worker, not substituting a fresh local origin. Preserve auth, owner snapshots and image caches during adoption. Explicitly distinguish local, deployed and existing-client adoption evidence.
