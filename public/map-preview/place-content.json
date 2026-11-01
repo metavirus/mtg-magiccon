@@ -1,0 +1,2409 @@
+{
+  "schemaVersion": 1,
+  "events": [
+    {
+      "id": "program-954662",
+      "title": "The Preview Panel",
+      "day": "Fri",
+      "time": "1 PM–2 PM",
+      "locationId": "mana-stage",
+      "detail": "This Preview Panel has it all! In fact, the previews are so deep we can’t even tell you what half the panel is about! And the other half? Dive deeper into a First Look at Nauctis: The Sunken Realm for card previews and worldbuilding. As for the rest of it, let’s just say if you love Magic’s multiverse, you’ll want to be here to be the first in the world to see what this panel previews.\n\nParticipants: Jack Saunders, Laurel Pratt, Mark Rosewater, Roy Graham.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954662"
+    },
+    {
+      "id": "program-954663",
+      "title": "Mark Rosewater Presents: What If Magic Started Over?",
+      "day": "Fri",
+      "time": "2:30 PM–3:30 PM",
+      "locationId": "mana-stage",
+      "detail": "Inspired by Jace's redo of the Multiverse, Mark examines the game of Magic and walks through what he might do differently if we were starting the game from scratch. Will card types go away? Will he add and subtract supertypes and subtypes? Will core definitions change? Will the mechanical color pie be altered? Absolutely. Mark will take no prisoners in his quest to make Echoverse Magic.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954663"
+    },
+    {
+      "id": "program-954664",
+      "title": "Game Knights Live",
+      "day": "Fri",
+      "time": "4 PM–7 PM",
+      "locationId": "mana-stage",
+      "detail": "Game Knights Live is beaming down to MagicCon Atlanta for a four-way free-for-all in the final frontier! Don’t miss the out-of-this-world action as Jimmy Wong, Josh Lee Kwai, Rachel Weeks, Gavin Verhey, and more exciting guests boldly take the stage for a show full of hilarious gameplay and jaw-dropping moments. Who will live long? Who will prosper? Engage your warp drive and grab a seat early to find out!\n\nParticipants: Josh Lee Kwai, Jimmy Wong, Gavin Verhey, Rachel Weeks, Anna Margaret.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954664"
+    },
+    {
+      "id": "program-954665",
+      "title": "Commander at Home ... at MagicCon",
+      "day": "Sat",
+      "time": "1 PM–3 PM",
+      "locationId": "mana-stage",
+      "detail": "Commander at Home returns to the Mana Stage at MagicCon! Brian Kibler and Olivia Gobert-Hicks bring all the energy and laughs of their popular YouTube show back to MagicCon in Atlanta, with a live performance and incredible guests you won't want to miss!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954665"
+    },
+    {
+      "id": "program-954667",
+      "title": "Ify Nwadiwe’s Big Facts with Brian David Gilbert",
+      "day": "Sat",
+      "time": "3:30 PM–4:30 PM",
+      "locationId": "mana-stage",
+      "detail": "The facts are weird. The lies are weirder. And nobody's entirely sure which is which. Big Facts, hosted by Ify Nwadiwe, is a live comedy panel show built around one simple question: real or fake? Comedians and audience members go head-to-head, defending bizarre facts – some true, some completely invented – while teams try to figure out who's bluffing. Sharp, silly, and genuinely surprising, it's the show where being right and being convincing are two very different skills. In this special “Magic” Facts edition of the show, Ify is joined by Brian David Gilbert as we watch some of our favorite Magic personalities pile on their best deep-cut facts (and bold-faced lies) about the game we all know and love. Will our contestants be able to separate these piles into Fact or Fiction?\n\nParticipants: Brian David Gilbert, Gavin Verhey, Ify Nwadiwe, Mark Rosewater, Tom Lum, ZmainCharacter.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954667"
+    },
+    {
+      "id": "program-954668",
+      "title": "Cosplay Contest and Grand Championship",
+      "day": "Sat",
+      "time": "5 PM–6 PM",
+      "locationId": "mana-stage",
+      "detail": "Get your seat early for one of the true highlights of MagicCon! Witness the awesome creativity of the Magic community as they dazzle the audience with mind-blowing representations of your favorite cards and characters. Who will win? Planeswalker? Legendary Creature? Basic Land??? Anything’s possible. This event culminates with the Cosplay Grand Championship, featuring the top cosplay competitors from the previous three MagicCons.\n\nParticipants: Zabracus, Anna Margaret, Lua Stardust, Lauren Bond.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954668"
+    },
+    {
+      "id": "program-954669",
+      "title": "Spell Slayers Live: Miss Blind Eternities Showdown",
+      "day": "Sat",
+      "time": "6:45 PM–9 PM",
+      "locationId": "mana-stage",
+      "detail": "Spell Slayers Live is coming to MagicCon: Atlanta with a first-of-its-kind Commander showdown meets over-the-top Drag Pageant! Your favorite Magic player's favorite drag queens Bosco & Irene the Alien, \"Spell Slayers\" cast member Lucy Lips, and \"RuPaul's Drag Race\" star Jane Don't will square off for a high-stakes game of Commander, filled with sabotage, lip-sync battles, comedy, camp, glamour, and FIERCE decks. Pageant MC Joey Schultz (of \"JoeyDH\" and \"Spell Slayers\") not only hosts the showdown, but gives the audience power to influence the game. Four will enter... but who will snatch the crown, sash, trophy, and check for 100,000... booster packs?",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954669"
+    },
+    {
+      "id": "program-954670",
+      "title": "Pack It Up LIVE! - The Ultimate Chaos Draft Presented by Star City Games",
+      "day": "Sun",
+      "time": "12 PM–2:30 PM",
+      "locationId": "mana-stage",
+      "detail": "Join Ben Bateman, the world's leading expert in chaos drafting, for a live episode of Pack It Up, the craziest Magic show on YouTube. Witness a live pick-2 draft where four players will randomly select 12 total packs from throughout Magic’s entire history. Any booster pack ever created could be drafted, with one spicy detail: WINNER OF THE DRAFT KEEPS EVERY CARD IN THE DRAFT! Your own Chaos Draft experience is available at Star City Games' booth.\n\nParticipants: Ben Bateman, TheAsianAvenger, Andrea Mengucci.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954670"
+    },
+    {
+      "id": "program-954671",
+      "title": "Playchase: Hexhaven",
+      "day": "Sun",
+      "time": "3 PM–4:30 PM",
+      "locationId": "mana-stage",
+      "detail": "Five students are put through a rigorous final exam in this quest-based comedy game show! Administered by Proctor Reuben Bresler and judged by Headmaster Ryan Omega, contestants compete in multiple subjects to survive with the highest life total and graduate as Valedictorian of Hexhaven!\n\nParticipants: Ryan Omega, Reuben Bresler, DeQuan Watson, Rachel Weeks, Becca Scott.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954671"
+    },
+    {
+      "id": "program-954672",
+      "title": "Scrybabies Vs. Play To Win LIVE",
+      "day": "Fri",
+      "time": "1 PM–3 PM",
+      "locationId": "c101-showcase",
+      "detail": "Join your favorite wizards of the east coast in a battle of epic CEDH featuring chaos, mini games and a trip to the Echoverse!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954672"
+    },
+    {
+      "id": "program-954673",
+      "title": "Ranking Every Jace with The Magic Story Podcast",
+      "day": "Fri",
+      "time": "3:30 PM–4:30 PM",
+      "locationId": "c101-showcase",
+      "detail": "The Magic Story Podcast loves a Jace no matter the face, but which Jace we would place at the front of the race? Join our story-loving crew as they go through every single Jace card printed in Magic, from Lorwyn to Reality Fracture, and rate them on their own unique tier list. Jace, Vryn's Prodigy was a Standard powerhouse, but how good is his outfit? The Theorist, Jace Beleren is a menace in Commander, but that's nothing compared to his narrative drama. By the end of the show, we will crown (or blue hood) the greatest Jace in all of the Multiverse. Cheer for your favorite Jace and see who sits atop the Theorist's tower!\n\nParticipants: Blake Rasmussen, Ellie Rice, Harless Snyder, Hilary S. Thompson, Roy Graham.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954673"
+    },
+    {
+      "id": "program-954674",
+      "title": "Spell Slayers Cast or Pass",
+      "day": "Fri",
+      "time": "5 PM–6 PM",
+      "locationId": "c101-showcase",
+      "detail": "Spell Slayers are bringing “Cast Or Pass” to MagicCon for a live panel, with help from MTG World-Builders, Card Artists, and Creators! On YouTube, “Cast or Pass” features Spell Slayers (Bosco & Irene the Alien) humorously discussing the character design, mechanics, and \"fashions\" of Magic’s most iconic Creatures, Planeswalkers, and other card types (Think Fashion Police meets MTG Podcast). In the live panel edition, Bosco, Irene, and Spell Slayers' pod member Lucy Lips will discuss iconic Magic cards, their character designs, and the art we love... with those who know them best!\n\nParticipants: Bosco, Irene the Alien, Lucy Lips, Evyn Fong, Lauren Bond.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954674"
+    },
+    {
+      "id": "program-954675",
+      "title": "The Making of Mystery Booster Commander Edition",
+      "day": "Sat",
+      "time": "11:30 AM–12:30 PM",
+      "locationId": "c101-showcase",
+      "detail": "A mix of strange legends from across the Multiverse, playtest cards, Future Sight frames, and iconic Commander reprints are an eclectic bunch that all come together to make up Mystery Booster Commander Edition! How were these cards created and chosen? What are the behind-the-scenes stories from their designs? Come and find out what went into making this wild release from start to finish—and uncover some Easter eggs you probably didn't notice!\n\nParticipants: Deborah Garcia, Gavin Verhey, Hilary S. Thompson.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954675"
+    },
+    {
+      "id": "program-954676",
+      "title": "Play to Win Podcast LIVE",
+      "day": "Sat",
+      "time": "1 PM–2 PM",
+      "locationId": "c101-showcase",
+      "detail": "Dylan, Cam, and Tyler record an episode of their cEDH podcast LIVE from MagicCon: Atlanta as they talk about the strongest Commanders and cards in cEDH and answer questions from the live audience.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954676"
+    },
+    {
+      "id": "program-954677",
+      "title": "Commander Clash LIVE",
+      "day": "Sat",
+      "time": "3 PM–5 PM",
+      "locationId": "c101-showcase",
+      "detail": "The MTGGoldfish Crew plays a game of Commander Clash where you have the chance of affecting the game via the Chaos Dice!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954677"
+    },
+    {
+      "id": "program-954678",
+      "title": "Legends Roundtable: Inside the Pro Tour Hall of Fame",
+      "day": "Sat",
+      "time": "5:30 PM–6:30 PM",
+      "locationId": "c101-showcase",
+      "detail": "Join Pro Tour Historian Brian David-Marshall and some of the biggest names from the Magic: The Gathering Pro Tour Hall of Fame as they look back on what the Hall means to them, their career achievements, and much more on the eve of the 2026 Pro Tour Hall of Fame Induction Ceremony.\n\nParticipants: Brian David-Marshall, Mike Turian, Reid Duke.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954678"
+    },
+    {
+      "id": "program-954679",
+      "title": "Tabletop Jocks Live Presents: Archenemy Commander D&D 3v1",
+      "day": "Sun",
+      "time": "12 PM–1:30 PM",
+      "locationId": "c101-showcase",
+      "detail": "Combining the role-playing elements of a D&D game with Commander, we take players on an adventure where they have to team up against the Dungeon Master to try and see if they can beat the final boss. Using their Commander and decks, players will roll initiative, make Dexterity checks, and turn creatures sideways as the DM takes them on an epic one-shot journey to beat the final boss. Players gain experience with each battle with new surprises around every corner. Will they have what it takes to defeat the DM or will their journey end here? Let's find out!\n\nParticipants: Anna Margaret, Joseph Johnson, Kurohitsuki, Lua Stardust.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954679"
+    },
+    {
+      "id": "program-954681",
+      "title": "World Championship Sunday Watch Party",
+      "day": "Sun",
+      "time": "2 PM–6 PM",
+      "locationId": "c101-showcase",
+      "detail": "The weekend wraps up with the conclusion of World Championship 32 and the 2026 Pro Tour Hall of Fame Induction Ceremony livestreamed from the Worlds stage. Join current Pro Tour players as they share their insights about high-level Magic -- plus lots of booster packs for the audience -- as we crown a World Champion and honor Javier Dominguez, Ken Yukuhiro, and Jean-Emmanuel Depraz as the newest members of the Hall of Fame.\n\nParticipants: Andrea Mengucci, Simon Nielsen.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954681"
+    },
+    {
+      "id": "program-954682",
+      "title": "Planeswalker Fantasy Draft: Drafting The Universe's Ultimate Fantasy Team",
+      "day": "Fri",
+      "time": "1:30 PM–2:30 PM",
+      "locationId": "c102-spindown",
+      "detail": "Assembling the most entertaining creators in the space for a discussion and snake draft centered around building the multiverse's ultimate Fantasy team. As first featured at MagicCon: Las Vegas to racuous audience, join your favorite personalities for a hilarious and informative spin on the education of Magic lore -- and maybe discover a new franchise player for your own deck building!\n\nParticipants: Bosco, Irene the Alien, Aleks David Royt, Persephone Valentine, Zabracus, ZmainCharacter.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954682"
+    },
+    {
+      "id": "program-954683",
+      "title": "CASCADE CASCADE: Why Writing About Magic Is Important",
+      "day": "Fri",
+      "time": "3 PM–4 PM",
+      "locationId": "c102-spindown",
+      "detail": "In February, Cal Jones and Dan Sheehan launched CASCADE CASCADE, the first physical Magic: The Gathering magazine to exist in circulation in decades. The publication features best-in-class writing about Magic: The Gathering by people who love it, including everyone from regular fans to Pro Tour players to celebrity Magic lovers. We believe that the success of this publication has been in part because of Magic players' appreciation for the games past and for the recent surge in the popularity of physical media. This discussion delves ito why it's important to write about the things you love and to celebrate the game's past, present, and future. We'll talk about the process that went into launching the magazine our love of the Magic mags of yesteryear, share some of our favorite pieces and insights, and take questions from the audience. <b> Panelists: Dan Sheehan, Cal Jones </b>",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954683"
+    },
+    {
+      "id": "program-954684",
+      "title": "City Planning in the Multiverse",
+      "day": "Fri",
+      "time": "4:30 PM–5:30 PM",
+      "locationId": "c102-spindown",
+      "detail": "Brought to you by a real-world urban planner, this panel puts on its planner hat and asks: what would actually happen if Magic: The Gathering's cities existed? Ravnica is a city that covers an entire plane. New Capenna stacks a five-family megalopolis into demonic verticality. Kamigawa's Neon Dynasty retrofits a hypermodern city onto a world already ancient. Magic's worlds are full of urban design choices, with some inspired and some that would never survive a real planning commission. This panel brings real-world city planning, zoning, and land-use frameworks to Magic's most iconic planes to dig into infrastructure, governance, density, and public space through the lens of actual municipal practice. Expect rigorous urban theory alongside plenty of\"well, actually\" with room for audience questions about your own favorite Magic cities. <b> Panelists: Ravnica Building and Planning, Kunx</b>",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954684"
+    },
+    {
+      "id": "program-954685",
+      "title": "Would You Like Fries with that L? Joy of Stupid Rule-0 Deck Building",
+      "day": "Fri",
+      "time": "6 PM–7 PM",
+      "locationId": "c102-spindown",
+      "detail": "Hungry for rule breaking? Join us as we explore the Rule-0 conversation and showcase multi-format themed decks that defy all convention (except the one we’re at, of course)! Feast your eyes on some of the worst (and funniest) decks possible. <b> Panelists: Jamie Luttrell </b>",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954685"
+    },
+    {
+      "id": "program-954686",
+      "title": "You Make the Unknown Card",
+      "day": "Sat",
+      "time": "12:30 PM–1:30 PM",
+      "locationId": "c102-spindown",
+      "detail": "Principal Game Designer and MagicCon Unknown Event mastermind Gavin Verhey turns you all into game designers to create new cards to be played in a future Unknown Event! This event regularly fills up and attendees will be required to sign a release form before entering, so get there early!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954686"
+    },
+    {
+      "id": "program-954687",
+      "title": "The New Magic Judge Program",
+      "day": "Sat",
+      "time": "2 PM–3 PM",
+      "locationId": "c102-spindown",
+      "detail": "Get an exciting peek at the new Magic Judge Program! Learn what the future holds for our biggest group of Magic community-builders. Join Program Manager Samantha Harr and members of the Rules and Game Experience teams as they discuss the upcoming launch of the program and ways you can get involved to build a better tomorrow for Magic play at all levels.\n\nParticipants: Brian David Gilbert, Toby Elliott.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954687"
+    },
+    {
+      "id": "program-954688",
+      "title": "Power (9) Presentations",
+      "day": "Sat",
+      "time": "3:30 PM–5 PM",
+      "locationId": "c102-spindown",
+      "detail": "We challenged the Magic community to craft thought-provoking, carefully written, and hilariously clip-arted short presentations about something they love, obsess over, or just can't get off their mind about Magic: The Gathering. After a long and careful process we've selected nine to present live here at MagicCon: Atlanta. Our chosen nine finalists have less than 5 minutes to present their slides make their arguments, and try their hardest to impress both the live audience AND our panel of luminary judges in hopes of taking home the title in the first inaugural round of the Power 9 Presentation Hour!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954688"
+    },
+    {
+      "id": "program-954689",
+      "title": "Howling Salt Mine",
+      "day": "Sat",
+      "time": "5:30 PM–6:30 PM",
+      "locationId": "c102-spindown",
+      "detail": "Join Sam, Mike, and Tony as they delve into those salty salty mines of the Magic: The Gathering community with a live performance of their comedy/advice podcast! The hosts will be reading audience-submitted salty stories about Commander games gone wrong as they discuss playgroup dynamics, deck building strategies, and most of all... SALT! Keep all hands and arms within the mine cart at all times!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954689"
+    },
+    {
+      "id": "program-954690",
+      "title": "Debate This!",
+      "day": "Sun",
+      "time": "12 PM–1 PM",
+      "locationId": "c102-spindown",
+      "detail": "Would Winston Churchill be Boros or Orzhov? How would you \"partner\" Louis VIII with 6 other legendaries? Would a Henry Ford deck have an aristocrats theme or an artifact affinity theme? Join us for a live recording of our podcast, Debate This! We're a nerdy comedy show with a Magic problem, and in each episode we argue goofy, hypothetical questions just like this. Don't worry, there will be a PowerPoint component. <b> Panelists: Andrew Henderson, Todd Thomas, Matt Cole, Kyle Harper</b>",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954690"
+    },
+    {
+      "id": "program-954691",
+      "title": "Let's Build a Commander Deck All About ____",
+      "day": "Sun",
+      "time": "1:30 PM–2:30 PM",
+      "locationId": "c102-spindown",
+      "detail": "Let's Build a Commander all about... Well, whatever y'all decide! That's right, we're building a Commander deck TOGETHER! Full of randomized wheels, random themes , and more! It could be a Commander deck where all the art features hats! Or maybe every card has the same first letter? Who knows, anything can happen! Inspired by the alternative deckbuilding style of MTG Chopped and ManaBox Deck Building Contest Winner Dork4Short, 15 years of deckbuilding, content creation, and comedy experience all intertwine in one panel! And there are plenty more surprises we have in store! Can't wait to brew with y'all there!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954691"
+    },
+    {
+      "id": "program-954692",
+      "title": "The Best Magic Formats You're Not Playing",
+      "day": "Sun",
+      "time": "3 PM–4 PM",
+      "locationId": "c102-spindown",
+      "detail": "You know Commander, Modern, Standard, and Pauper. But what about those weird other formats? We'll be talking about Dandan (and its other colors!), Oathbreaker, Judge's Tower, and so many other great formats on the fringes of Magic. Come by and learn about some wonderful and wacky formats. <b> Panelists: Maximumoverbite, SwiftyCaesar</b>",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954692"
+    },
+    {
+      "id": "program-954693",
+      "title": "Draw with a Magic Artist: Phil Stone",
+      "day": "Fri",
+      "time": "12 PM–12:30 PM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954693"
+    },
+    {
+      "id": "program-954694",
+      "title": "Draw with a Magic Artist: Josu Solano",
+      "day": "Fri",
+      "time": "3:30 PM–4 PM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954694"
+    },
+    {
+      "id": "program-954695",
+      "title": "Draw with a Magic Artist: Andrea Radeck",
+      "day": "Fri",
+      "time": "4:30 PM–5 PM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954695"
+    },
+    {
+      "id": "program-954696",
+      "title": "Draw with a Magic Artist: Josiah \"Jo\" Cameron",
+      "day": "Sat",
+      "time": "12 PM–12:30 PM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954696"
+    },
+    {
+      "id": "program-954697",
+      "title": "Draw with a Magic Artist: Mathias Kollros",
+      "day": "Sat",
+      "time": "3:30 PM–4 PM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954697"
+    },
+    {
+      "id": "program-954698",
+      "title": "Draw with a Magic Artist: Vincent Proce",
+      "day": "Sat",
+      "time": "4:30 PM–5 PM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954698"
+    },
+    {
+      "id": "program-954699",
+      "title": "Birds of Prey with Magic Artist Alessandra Pisano",
+      "day": "Sun",
+      "time": "11 AM–11:30 AM",
+      "locationId": "family-magic",
+      "detail": "Experiance the beauty and mystique of owls up close! Meet a real Maha while learning about raptors, conservation and the history and importance of falconry. You'll leave this program with more bird facts then you'll know what to do with and a road map to get involved with raptors if you so choose! Take all the photos you want, this program is open to all ages.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954699"
+    },
+    {
+      "id": "program-954700",
+      "title": "Draw with a Magic Artist: Kai Carpenter",
+      "day": "Sun",
+      "time": "12 PM–12:30 PM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary. Priority seating for Family Spark badge holders on Sunday: arrive 15 minutes before the start; remaining seating is then released to general attendees. Official Family Magic access update reviewed October 19.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954700"
+    },
+    {
+      "id": "program-954701",
+      "title": "Draw with a Magic Artist: Ben Hill",
+      "day": "Sun",
+      "time": "3:30 PM–4 PM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary. Priority seating for Family Spark badge holders on Sunday: arrive 15 minutes before the start; remaining seating is then released to general attendees. Official Family Magic access update reviewed October 19.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954701"
+    },
+    {
+      "id": "program-954702",
+      "title": "Family League Play hosted by MagiKids",
+      "day": "Fri",
+      "time": "1 PM–3 PM",
+      "locationId": "family-magic",
+      "detail": "Please arrive 15 minutes prior to event start to participate as this event is first come, first serve. Seating will be limited to those with Youth Badges and 1 guardian per group, and play will be limited to those with a Youth Badge, unless additional capacity is available. League Play Details: There is no additional cost to participate Play 3, Best of One Games with anyone between 1 pm and 3 pm. Each player will begin the League with 2 Jumpstart 2025 Boosters. This is the deck that you will be playing with. Prizing: For every game a player wins, they will receive 1 additional Jumpstart 2025 Booster to add to their collection. If a player plays all three games, regardless of winning or losing, they will receive 1 additional Jumpstart 2025 Booster to add to their collection.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954702"
+    },
+    {
+      "id": "program-954703",
+      "title": "Family League Play hosted by MagiKids",
+      "day": "Sat",
+      "time": "1 PM–3 PM",
+      "locationId": "family-magic",
+      "detail": "Please arrive 15 minutes prior to event start to participate as this event is first come, first serve. Seating will be limited to those with Youth Badges and 1 guardian per group, and play will be limited to those with a Youth Badge, unless additional capacity is available. League Play Details: There is no additional cost to participate Play 3, Best of One Games with anyone between 1 pm and 3 pm. Each player will begin the League with 2 Jumpstart 2025 Boosters. This is the deck that you will be playing with. Prizing: For every game a player wins, they will receive 1 additional Jumpstart 2025 Booster to add to their collection. If a player plays all three games, regardless of winning or losing, they will receive 1 additional Jumpstart 2025 Booster to add to their collection.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954703"
+    },
+    {
+      "id": "program-954704",
+      "title": "Family League Play hosted by MagiKids",
+      "day": "Sun",
+      "time": "1 PM–3 PM",
+      "locationId": "family-magic",
+      "detail": "Please arrive 15 minutes prior to event start to participate as this event is first come, first serve. Seating will be limited to those with Youth Badges and 1 guardian per group, and play will be limited to those with a Youth Badge, unless additional capacity is available. League Play Details: There is no additional cost to participate Play 3, Best of One Games with anyone between 1 pm and 3 pm. Each player will begin the League with 2 Jumpstart 2025 Boosters. This is the deck that you will be playing with. Prizing: For every game a player wins, they will receive 1 additional Jumpstart 2025 Booster to add to their collection. If a player plays all three games, regardless of winning or losing, they will receive 1 additional Jumpstart 2025 Booster to add to their collection.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954704"
+    },
+    {
+      "id": "program-954705",
+      "title": "Magic Friendship Bracelets",
+      "day": "Fri",
+      "time": "11 AM–1 PM",
+      "locationId": "family-magic",
+      "detail": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954705"
+    },
+    {
+      "id": "program-954706",
+      "title": "Magic Friendship Bracelets",
+      "day": "Sat",
+      "time": "11 AM–1 PM",
+      "locationId": "family-magic",
+      "detail": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954706"
+    },
+    {
+      "id": "program-954707",
+      "title": "Magic Friendship Bracelets",
+      "day": "Sun",
+      "time": "11 AM–1 PM",
+      "locationId": "family-magic",
+      "detail": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954707"
+    },
+    {
+      "id": "program-954708",
+      "title": "Deck Box Decorating provided by Dragon Shield",
+      "day": "Fri",
+      "time": "2 PM–3 PM",
+      "locationId": "family-magic",
+      "detail": "\"The decks you work so hard to build deserve a deck box as unique as they are! Unleash your creativity and personalize a deck box of your own – you'll never have to guess what cards are inside that deck box again! Thank you to Dragon Shield for providing deck boxes for this activity! Stop by their booth to learn more about Dragon Shield products.\"",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954708"
+    },
+    {
+      "id": "program-954709",
+      "title": "Deck Box Decorating provided by Dragon Shield",
+      "day": "Sat",
+      "time": "2 PM–3 PM",
+      "locationId": "family-magic",
+      "detail": "The decks you work so hard to build deserve a deck box as unique as they are! Unleash your creativity and personalize a deck box of your own – you'll never have to guess what cards are inside that deck box again! Thank you to Dragon Shield for providing deck boxes for this activity! Stop by their booth to learn more about Dragon Shield products.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954709"
+    },
+    {
+      "id": "program-954710",
+      "title": "Deck Box Decorating provided by Dragon Shield",
+      "day": "Sun",
+      "time": "2 PM–3 PM",
+      "locationId": "family-magic",
+      "detail": "The decks you work so hard to build deserve a deck box as unique as they are! Unleash your creativity and personalize a deck box of your own – you'll never have to guess what cards are inside that deck box again! Thank you to Dragon Shield for providing deck boxes for this activity! Stop by their booth to learn more about Dragon Shield products.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954710"
+    },
+    {
+      "id": "program-955621",
+      "title": "Draw with a Magic Artist: SchmandrewART",
+      "day": "Sat",
+      "time": "11 AM–11:30 AM",
+      "locationId": "family-magic",
+      "detail": "Come learn to draw from one of the artists who helps bring Magic to life! They'll take you through a step-by-step lesson where you will walk away with your very own sketch that you created! This activity is geared to all ages, and no drawing experience is necessary.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=955621"
+    },
+    {
+      "id": "program-954711",
+      "title": "Meet Ben Bateman",
+      "day": "Fri",
+      "time": "11 AM–12 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet Ben Bateman.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954711"
+    },
+    {
+      "id": "program-954712",
+      "title": "Meet members of LoadingReadyRun",
+      "day": "Fri",
+      "time": "11 AM–12:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet members of LoadingReadyRun.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954712"
+    },
+    {
+      "id": "program-954713",
+      "title": "Meet Voxy and Amazonian",
+      "day": "Fri",
+      "time": "1 PM–2 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet Voxy and Amazonian.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954713"
+    },
+    {
+      "id": "program-954715",
+      "title": "Meet NumotTheNummy",
+      "day": "Fri",
+      "time": "3 PM–4 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet NumotTheNummy.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954715"
+    },
+    {
+      "id": "program-954716",
+      "title": "Meet members of the Commander Format Panel",
+      "day": "Fri",
+      "time": "3:30 PM–4:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet members of the Commander Format Panel - Lua Stardust, Rebell, Toby Elliot, and Alexander Heyer.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954716"
+    },
+    {
+      "id": "program-954717",
+      "title": "Meet Ify Nwadiwe and Brian David Gilbert",
+      "day": "Fri",
+      "time": "4:30 PM–6 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet Ify Nwadiwe and Brian David Gilbert.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954717"
+    },
+    {
+      "id": "program-954719",
+      "title": "Meet members of LoadingReadyRun",
+      "day": "Sat",
+      "time": "11 AM–12:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet members of LoadingReadyRun.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954719"
+    },
+    {
+      "id": "program-954720",
+      "title": "Meet Josh Lee Kwai, Jimmy Wong, and Rachel Weeks from Game Knights (Wristband Required)",
+      "day": "Sat",
+      "time": "11 AM–12:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Meet Josh Lee Kwai, Jimmy Wong, and Rachel Weeks from Game Knights. Wristband required. Wristbands will be distributed the morning of the session and are on a first come, first serve basis at the Wristband Distribution area by the Information Booth. Wristbands will be distributed while supplies last. Wristbands are free of charge. <br /> Attendees who secure a wristband must wear and show their wristband to participate in the Game Knights Meet & Greet at Magic Meet & Greets.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954720"
+    },
+    {
+      "id": "program-954722",
+      "title": "Meet The Howling Salt Mine",
+      "day": "Sat",
+      "time": "1 PM–2 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet The Howling Salt Mine.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954722"
+    },
+    {
+      "id": "program-954723",
+      "title": "Meet Scrybabies",
+      "day": "Sat",
+      "time": "2:30 PM–3:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet Scrybabies - Tori of the Vast and Lua Stardust.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954723"
+    },
+    {
+      "id": "program-954724",
+      "title": "Meet Brian Kibler and Olivia Gobert-Hicks (Wristband Required)",
+      "day": "Sat",
+      "time": "3:30 PM–5 PM",
+      "locationId": "meet-greets",
+      "detail": "Meet Brian Kibler and Olivia Gobert-Hicks! Wristband required. Wristbands will be distributed the morning of the session and are on a first come, first serve basis at the Wristband Distribution area by the Information Booth. Wristbands will be distributed while supplies last. Wristbands are free of charge. <br /> Attendees who secure a wristband must wear and show their wristband to participate in the Brian Kibler and Olivia Gobert-Hicks Meet & Greet at Magic Meet & Greets.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954724"
+    },
+    {
+      "id": "program-954725",
+      "title": "Meet Mark Rosewater",
+      "day": "Sat",
+      "time": "5 PM–6 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet Mark Rosewater.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954725"
+    },
+    {
+      "id": "program-954726",
+      "title": "Meet Josh Lee Kwai and Jimmy Wong from Game Knights (Wristband Required)",
+      "day": "Sun",
+      "time": "11 AM–12 PM",
+      "locationId": "meet-greets",
+      "detail": "Meet Josh Lee Kwai and Jimmy Wong from Game Knights. Wristband required. Wristbands will be distributed the morning of the session and are on a first come, first serve basis at the Wristband Distribution area by the Information Booth. Wristbands will be distributed while supplies last. Wristbands are free of charge. <br /> Attendees who secure a wristband must wear and show their wristband to participate in the Josh Lee Kwai and Jimmy Wong Meet & Greet at Magic Meet & Greets.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954726"
+    },
+    {
+      "id": "program-954727",
+      "title": "Meet Play to Win",
+      "day": "Sun",
+      "time": "11 AM–12:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet Play to Win.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954727"
+    },
+    {
+      "id": "program-954728",
+      "title": "Meet members of the Commander Format Panel",
+      "day": "Sun",
+      "time": "2 PM–3 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet members of the Commander Format Panel - Lua Stardust, Rebell, Toby Elliot, and Alexander Heyer.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954728"
+    },
+    {
+      "id": "program-954729",
+      "title": "Meet members of Birds of Paradise",
+      "day": "Sun",
+      "time": "2:30 PM–3:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Creator Centrals Creator Connection area to grab an autograph and meet Birds of Paradise - Jane Plays Magic, Magic_Mishamigo, and CooperLeeF. <br />No pre-registration required. This event is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954729"
+    },
+    {
+      "id": "program-954730",
+      "title": "Meet Mark Rosewater",
+      "day": "Sun",
+      "time": "3:30 PM–4:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet Mark Rosewater.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954730"
+    },
+    {
+      "id": "program-954731",
+      "title": "Meet Brian Kibler and Olivia Gobert-Hicks (Wristband Required)",
+      "day": "Sun",
+      "time": "4:30 PM–5:30 PM",
+      "locationId": "meet-greets",
+      "detail": "Meet Brian Kibler and Olivia Gobert-Hicks! Wristband required. Wristbands will be distributed the morning of the session and are on a first come, first serve basis at the Wristband Distribution area by the Information Booth. Wristbands will be distributed while supplies last. Wristbands are free of charge. <br /> Attendees who secure a wristband must wear and show their wristband to participate in the Brian Kibler and Olivia Gobert-Hicks Meet & Greet at Magic Meet & Greets.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=954731"
+    },
+    {
+      "id": "program-955653",
+      "title": "Meet Spell Slayers",
+      "day": "Sun",
+      "time": "1 PM–2 PM",
+      "locationId": "meet-greets",
+      "detail": "Head to Magic Meet & Greets to grab an autograph and meet the Spell Slayers.<br />No pre-registration required. This Meet & Greet is first come, first serve.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/meet-and-greets/schedule-event-information.html?gtID=955653"
+    },
+    {
+      "id": "program-954448",
+      "title": "MelaninMagic Booster Blitz",
+      "day": "Fri",
+      "time": "3 PM–7 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 10 Players With ONE pack you can share a fun game of Booster Blitz! Each player opens a single booster pack, looks at the contents, and distributes the contents into 5 face-down piles of 3 cards each. Afterward, the order of the face-down piles is randomized, for instance by having the opponent rearrange them. You play 5 consecutive, separate games of Magic. In game 1, each player's first pile becomes their opening hand. In game 2, each player's second pile becomes their opening hand. And so on. There are no libraries, and you can't lose to decking. In every game, each player starts at 5 life. All players have access to an unlimited amount of mana in any combination of colors. The player who is done first (with their distribution of cards into piles) gets to play first in the first game. In subsequent games, the loser of the previous game gets to play first. If the previous game was a draw, then the player who played first in the previous game gets to play first again. A player who wins 3 or more games automatically wins the match.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954448"
+    },
+    {
+      "id": "program-954449",
+      "title": "MelaninMagic Booster Blitz",
+      "day": "Sat",
+      "time": "3 PM–7 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 10 Players With ONE pack you can share a fun game of Booster Blitz! Each player opens a single booster pack, looks at the contents, and distributes the contents into 5 face-down piles of 3 cards each. Afterward, the order of the face-down piles is randomized, for instance by having the opponent rearrange them. You play 5 consecutive, separate games of Magic. In game 1, each player's first pile becomes their opening hand. In game 2, each player's second pile becomes their opening hand. And so on. There are no libraries, and you can't lose to decking. In every game, each player starts at 5 life. All players have access to an unlimited amount of mana in any combination of colors. The player who is done first (with their distribution of cards into piles) gets to play first in the first game. In subsequent games, the loser of the previous game gets to play first. If the previous game was a draw, then the player who played first in the previous game gets to play first again. A player who wins 3 or more games automatically wins the match.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954449"
+    },
+    {
+      "id": "program-954450",
+      "title": "MelaninMagic Booster Blitz",
+      "day": "Sun",
+      "time": "10 AM–1 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 10 Players With ONE pack you can share a fun game of Booster Blitz! Each player opens a single booster pack, looks at the contents, and distributes the contents into 5 face-down piles of 3 cards each. Afterward, the order of the face-down piles is randomized, for instance by having the opponent rearrange them. You play 5 consecutive, separate games of Magic. In game 1, each player's first pile becomes their opening hand. In game 2, each player's second pile becomes their opening hand. And so on. There are no libraries, and you can't lose to decking. In every game, each player starts at 5 life. All players have access to an unlimited amount of mana in any combination of colors. The player who is done first (with their distribution of cards into piles) gets to play first in the first game. In subsequent games, the loser of the previous game gets to play first. If the previous game was a draw, then the player who played first in the previous game gets to play first again. A player who wins 3 or more games automatically wins the match.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954450"
+    },
+    {
+      "id": "program-954451",
+      "title": "MelaninMagic Guess That Character!",
+      "day": "Sun",
+      "time": "1 PM–7 PM",
+      "locationId": "gathering-grounds",
+      "detail": "How much Magic Lore do you know?! In three categories can you name each character from the magic story? If you pass all three rounds of difficulty you could win yourself a booster pack. Only while supplies last.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954451"
+    },
+    {
+      "id": "program-954452",
+      "title": "MelaninMagic Guess That Character!",
+      "day": "Fri",
+      "time": "10 AM–3 PM",
+      "locationId": "gathering-grounds",
+      "detail": "How much Magic Lore do you know?! In three categories can you name each character from the magic story? If you pass all three rounds of difficulty you could win yourself a booster pack. Only while supplies last.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954452"
+    },
+    {
+      "id": "program-954453",
+      "title": "MelaninMagic Guess That Character!",
+      "day": "Sat",
+      "time": "10 AM–3 PM",
+      "locationId": "gathering-grounds",
+      "detail": "How much Magic Lore do you know?! In three categories can you name each character from the magic story? If you pass all three rounds of difficulty you could win yourself a booster pack. Only while supplies last.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954453"
+    },
+    {
+      "id": "program-954454",
+      "title": "BOP! Free Headshots Booth",
+      "day": "Fri",
+      "time": "10:30 AM–12:30 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Are you a marginalized creator in need of new headshots? Come by the Birds of Paradise booth and get some fresh headshots, free of charge! We'd love to help you look your best in your media kits and a professional photos are a big part of that. Photography services will be provided by Drew (showandtell2u)!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954454"
+    },
+    {
+      "id": "program-954455",
+      "title": "BOP! Booster Blitz",
+      "day": "Fri",
+      "time": "1:30 PM–3 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Open a pack, sort it into 5 piles of 3 cards, and battle it out to see who reigns supreme! We'd love to say hello, chat with you over a few packs, and help you have fun at the convention. The BOP! booth is a safe, inclusive play space. Meet us there and connect with other marginalized community members!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954455"
+    },
+    {
+      "id": "program-954456",
+      "title": "BOP! Booster Blitz",
+      "day": "Sat",
+      "time": "1:30 PM–3 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Open a pack, sort it into 5 piles of 3 cards, and battle it out to see who reigns supreme! We'd love to say hello, chat with you over a few packs, and help you have fun at the convention. The BOP! booth is a safe, inclusive play space. Meet us there and connect with other marginalized community members!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954456"
+    },
+    {
+      "id": "program-954457",
+      "title": "BOP! Booster Blitz",
+      "day": "Sun",
+      "time": "1:30 PM–3 PM",
+      "locationId": "gathering-grounds",
+      "detail": "",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954457"
+    },
+    {
+      "id": "program-954458",
+      "title": "BOP! Free Headshots Booth",
+      "day": "Sat",
+      "time": "10:30 AM",
+      "locationId": "gathering-grounds",
+      "detail": "Are you a marginalized creator in need of new headshots? Come by the Birds of Paradise booth and get some fresh headshots, free of charge! We'd love to help you look your best in your media kits and a professional photos are a big part of that. Photography services will be provided by Drew (showandtell2u)!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954458"
+    },
+    {
+      "id": "program-954459",
+      "title": "BOP! Mini Master Tournament",
+      "day": "Sun",
+      "time": "11 AM–12:30 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Do you have great luck cracking packs? Put that to use with a Mini Master showdown in the Gathering Grounds! This silly, fun format is all random; you crack a pack, add some lands, and shuffle up to play. If you win, you face down another winner and add a pack! Come play with the Birds of Paradise, share some laughs, and enjoy the vibe at our inclusive safe space. You CAN sit with us!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954459"
+    },
+    {
+      "id": "program-954460",
+      "title": "Wizards Pride Presents: Commander",
+      "day": "Fri",
+      "time": "11 AM–4 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Time: Pods firing at 11am and 2pm Spots: 40 players per time slot Wizards Pride presents Pride Commander! Come play Commander using the Pride ruleset. All commanders are legal and all have the Partner mechanic. Pride takes all forms so bring your favorite decks-this event is all about creating a deck that speaks to you, so build whatever brings you joy! If you play one match, you earn a prize! Sign-ups are available at the Wizards Pride booth.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954460"
+    },
+    {
+      "id": "program-954461",
+      "title": "Draft with Wizards Pride",
+      "day": "Sat",
+      "time": "12 PM–4 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 16 players Come draft with Wizards Pride as we draft one of our newest sets! We are keeping things fun and casual but try to win some prizes and get some cool cards!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954461"
+    },
+    {
+      "id": "program-954462",
+      "title": "Wizards Pride Presents: Commander",
+      "day": "Sun",
+      "time": "12 PM–4 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Time: Pods firing at 11am and 2pm Spots: 40 players per time slot Wizards Pride presents Pride Commander! Come play Commander using the Pride ruleset. All commanders are legal and all have the Partner mechanic. Pride takes all forms so bring your favorite decks-this event is all about creating a deck that speaks to you, so build whatever brings you joy! If you play one match, you earn a prize! Sign-ups are available at the Wizards Pride booth.\"",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954462"
+    },
+    {
+      "id": "program-954463",
+      "title": "Casual Commander",
+      "day": "Fri",
+      "time": "10:30 AM–2 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 40 Casual Commander. Come play commander with fellow veterans in a casual, no pressure setting. Enjoy the camaraderie and sarcasm that only fellow veterans can bring.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954463"
+    },
+    {
+      "id": "program-954464",
+      "title": "DOUBLE TAP EVENT",
+      "day": "Sat",
+      "time": "10:30 AM–2 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 40 Veterans The Gathering presents the commander Double Tap Event. All players receive a Sol Ring Token starting on the field.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954464"
+    },
+    {
+      "id": "program-954465",
+      "title": "PLANE CHASE",
+      "day": "Sun",
+      "time": "10:30 AM–2 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 40 PLANE CHASE: Veterans The Gathering presents a plane chase event centered around military and veteran culture. Regular 6D needed. Come enjoy the fun and shenanigans.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954465"
+    },
+    {
+      "id": "program-954466",
+      "title": "DAA Commander Sleeve Decorating",
+      "day": "Sat",
+      "time": "3 PM–5 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Seeking a cozy and calm activity to break up your Saturday? Come stop by the Gathering Grounds for a crafting break to decorate Commander sleeves. All are welcome to join as long as supplies persist! As long as supplies last!",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=954466"
+    },
+    {
+      "id": "program-955599",
+      "title": "Women of Wizards Commander Pods",
+      "day": "Fri",
+      "time": "12 PM–2 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 16 players Looking to play a round of Commander with exciting new faces? Come on by to get matched up, paired off, or find that missing fourth! Come on by for fun, friends, and chill vibes while you test that new deck or dust off an old one.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=955599"
+    },
+    {
+      "id": "program-955600",
+      "title": "Women of Wizards Learn to Play / Pod Pairing",
+      "day": "Sat",
+      "time": "12 PM–2 PM",
+      "locationId": "gathering-grounds",
+      "detail": "Spots: 8 players Newer to Magic, needing some tips, or hoping to play the least sweaty game possible? Women of Wizards is offering Learn to Play this year for any and all of the above! Already know how to play and aching to try out that Oops, All Bears Commander deck? Come on by to find other friendly faces and join a pod with your new best friends waiting to happen (or enemies, we don't make the rules).",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=955600"
+    },
+    {
+      "id": "bl-coffee-chat-fri",
+      "title": "Coffee Chat with Wizards & Special Guests",
+      "day": "Fri",
+      "time": "9-11 AM",
+      "locationId": "black-lotus",
+      "detail": "Coffee Chat with Wizards and special guests in the Black Lotus lounge.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+    },
+    {
+      "id": "bl-coffee-chat-sat",
+      "title": "Coffee Chat with Wizards & Special Guests",
+      "day": "Sat",
+      "time": "9-11 AM",
+      "locationId": "black-lotus",
+      "detail": "Coffee Chat with Wizards and special guests in the Black Lotus lounge.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+    },
+    {
+      "id": "bl-coffee-chat-sun",
+      "title": "Coffee Chat with Wizards & Special Guests",
+      "day": "Sun",
+      "time": "9-11 AM",
+      "locationId": "black-lotus",
+      "detail": "Coffee Chat with Wizards and special guests in the Black Lotus lounge.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+    },
+    {
+      "id": "bl-loadingreadyrun-fri",
+      "title": "Meet & Greet with LoadingReadyRun",
+      "day": "Fri",
+      "time": "1-2 PM",
+      "locationId": "black-lotus",
+      "detail": "Meet and greet in the Black Lotus lounge. The official source spells the name “LoadyReadyRun”; normalized here to LoadingReadyRun.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+    },
+    {
+      "id": "bl-loadingreadyrun-sat",
+      "title": "Meet & Greet with LoadingReadyRun",
+      "day": "Sat",
+      "time": "1-2 PM",
+      "locationId": "black-lotus",
+      "detail": "Meet and greet in the Black Lotus lounge. The official source spells the name “LoadyReadyRun”; normalized here to LoadingReadyRun.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+    },
+    {
+      "id": "bl-mark-rosewater-sat",
+      "title": "Meet & Greet with Mark Rosewater",
+      "day": "Sat",
+      "time": "10-11 AM",
+      "locationId": "black-lotus",
+      "detail": "Meet and greet with Mark Rosewater in the Black Lotus lounge.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+    },
+    {
+      "id": "bl-mark-rosewater-sun",
+      "title": "Meet & Greet with Mark Rosewater",
+      "day": "Sun",
+      "time": "10-11 AM",
+      "locationId": "black-lotus",
+      "detail": "Meet and greet with Mark Rosewater in the Black Lotus lounge.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+    },
+    {
+      "id": "bl-game-knights-sun",
+      "title": "Meet & Greet with Game Knights",
+      "day": "Sun",
+      "time": "12:30-1:30 PM",
+      "locationId": "black-lotus",
+      "detail": "Meet and greet with Game Knights in the Black Lotus lounge.",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html"
+    }
+  ],
+  "products": [
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392488980694",
+      "productId": "shopify-magiccon-product-15392488980694",
+      "locationId": "show-store",
+      "name": "Jace Reversible Hoodie",
+      "price": "$100",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/89db0f5a29d0b02886d9-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392528302294",
+      "productId": "shopify-magiccon-product-15392528302294",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Knit Polo",
+      "price": "$70",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/a5faccb7ab502c246ee4-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392531710166",
+      "productId": "shopify-magiccon-product-15392531710166",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Track Jacket",
+      "price": "$80",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/3e3ee18d06d729acf567-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392535150806",
+      "productId": "shopify-magiccon-product-15392535150806",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Snapback Hat",
+      "price": "$40",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/15adfe93d677ca5175cb-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392556286166",
+      "productId": "shopify-magiccon-product-15392556286166",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Logo Full Zip Hoodie",
+      "price": "$65",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/66ee4818fdb0b327be60-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392559726806",
+      "productId": "shopify-magiccon-product-15392559726806",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Feature Art Full Zip Hoodie",
+      "price": "$65",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/a7f4ba96116aeeae0a77-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392560840918",
+      "productId": "shopify-magiccon-product-15392560840918",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Mana Repeater Crewneck Sweatshirt",
+      "price": "$60",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/eeda808ae8d47515c389-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392561987798",
+      "productId": "shopify-magiccon-product-15392561987798",
+      "locationId": "show-store",
+      "name": "Hooded Cardigan",
+      "price": "$60",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/1df23331192239004b80-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392564543702",
+      "productId": "shopify-magiccon-product-15392564543702",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Logo T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/779bbe9ca84cfc1b7537-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392570671318",
+      "productId": "shopify-magiccon-product-15392570671318",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Feature Art T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/9f8a800b14fbb4ca8974-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392572965078",
+      "productId": "shopify-magiccon-product-15392572965078",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Tarot Card T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/734bbf359f4dea3b1ef9-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392574537942",
+      "productId": "shopify-magiccon-product-15392574537942",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Mana Repeater T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/96085cfa21f2f683c893-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392575586518",
+      "productId": "shopify-magiccon-product-15392575586518",
+      "locationId": "show-store",
+      "name": "Tezzeret's Etherium Emporium T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/b5c8f7f5e08b28c03b89-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392578371798",
+      "productId": "shopify-magiccon-product-15392578371798",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Mascots T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/b8e59e7a5e6d9af355e2-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392578830550",
+      "productId": "shopify-magiccon-product-15392578830550",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Metal T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/67ba64f4f466feedea34-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392580567254",
+      "productId": "shopify-magiccon-product-15392580567254",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Goose Hydra T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/fc21cf4a9a97de455002-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392581910742",
+      "productId": "shopify-magiccon-product-15392581910742",
+      "locationId": "show-store",
+      "name": "MagicCon Blue Monochrome T-Shirt",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/cc2cce66983e973516d2-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392587612374",
+      "productId": "shopify-magiccon-product-15392587612374",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Logo Dad Hat",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/4e34544e41796a3d4a28-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392588398806",
+      "productId": "shopify-magiccon-product-15392588398806",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Logo Magnet",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/39f396e92371ac2dab5e-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392588824790",
+      "productId": "shopify-magiccon-product-15392588824790",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Logo Patch",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/1dfca248a35ee8f37ea4-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15392949600470",
+      "productId": "shopify-magiccon-product-15392949600470",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Logo Tote",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/5a144c96de24872e06c0-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393016774870",
+      "productId": "shopify-magiccon-product-15393016774870",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Lanyard",
+      "price": "$10",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/84046d841ed80d6e310b-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393533395158",
+      "productId": "shopify-magiccon-product-15393533395158",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Metal Patch",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/044563521e60bf08d930-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393637531862",
+      "productId": "shopify-magiccon-product-15393637531862",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Event Playmat",
+      "price": "$30",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/4ea9a388847a6be228b6-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393673281750",
+      "productId": "shopify-magiccon-product-15393673281750",
+      "locationId": "show-store",
+      "name": "Way of the Deathbringer Playmat",
+      "price": "$30",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/a33d01c6e077b2be9184-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393708703958",
+      "productId": "shopify-magiccon-product-15393708703958",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Feature Art Woven Throw Blanket",
+      "price": "$60",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/457f029b69fe2c4e0517-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393715093718",
+      "productId": "shopify-magiccon-product-15393715093718",
+      "locationId": "show-store",
+      "name": "Magic: The Gathering x RockLove Black Lotus Signet Ring",
+      "price": "$200",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/222ce90bb9b36f68e8c0-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393883783382",
+      "productId": "shopify-magiccon-product-15393883783382",
+      "locationId": "show-store",
+      "name": "Magic: The Gathering x RockLove Black Lotus Medallion Necklace",
+      "price": "$250",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/700127aa71a9f7cca174-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393953186006",
+      "productId": "shopify-magiccon-product-15393953186006",
+      "locationId": "show-store",
+      "name": "Magic: The Gathering x RockLove Pip Medallion Necklace",
+      "price": "$250",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/f62b9e63008c68dd7898-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15393954955478",
+      "productId": "shopify-magiccon-product-15393954955478",
+      "locationId": "show-store",
+      "name": "Magic: The Gathering x RockLove Pip Signet Ring",
+      "price": "$200",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/f13bf486c53c8d898d82-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396366745814",
+      "productId": "shopify-magiccon-product-15396366745814",
+      "locationId": "show-store",
+      "name": "Eye of Jace Liquid Core Jumbo Spindown",
+      "price": "$50",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/6c5cc43af4f67220f054-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396367499478",
+      "productId": "shopify-magiccon-product-15396367499478",
+      "locationId": "show-store",
+      "name": "Children of the Nameless (Trade Edition)",
+      "price": "$45",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/07111252f88eecf6fdc8-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396369039574",
+      "productId": "shopify-magiccon-product-15396369039574",
+      "locationId": "show-store",
+      "name": "Geometric Rune Reusable Bag",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/2dd2e33b11c0278df431-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396369891542",
+      "productId": "shopify-magiccon-product-15396369891542",
+      "locationId": "show-store",
+      "name": "Emrakul ARTY Box - Gatherers' Tavern",
+      "price": "$50",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/992ad019362caedff833-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396370383062",
+      "productId": "shopify-magiccon-product-15396370383062",
+      "locationId": "show-store",
+      "name": "Mox Pearl Lanyard & Pin",
+      "price": "$25",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/ef91b2774437ae42e431-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396372480214",
+      "productId": "shopify-magiccon-product-15396372480214",
+      "locationId": "show-store",
+      "name": "Fblthp Puff Ball Keychain - Squishable",
+      "price": "$25",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/52462568544a2ac1fd68-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396381655254",
+      "productId": "shopify-magiccon-product-15396381655254",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Logo Pin",
+      "price": "$10",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/ef5dea989fc4c0f054e2-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396383260886",
+      "productId": "shopify-magiccon-product-15396383260886",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Feature Art Pin",
+      "price": "$10",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/8e9bb6d5dbb13034d329-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396384506070",
+      "productId": "shopify-magiccon-product-15396384506070",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Mystery Pin Pack",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/81f1e88b023b115f04d5-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396387356886",
+      "productId": "shopify-magiccon-product-15396387356886",
+      "locationId": "show-store",
+      "name": "Eye of Jace Lenticular Pin",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/5156673e58d5af263a68-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396395155670",
+      "productId": "shopify-magiccon-product-15396395155670",
+      "locationId": "show-store",
+      "name": "Tinybones Geeki Tiki",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/dabb6904a009b9454546-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396395974870",
+      "productId": "shopify-magiccon-product-15396395974870",
+      "locationId": "show-store",
+      "name": "Cantrip Candle - Mox Pearl",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/338642622d6ac7b2aa3d-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396401447126",
+      "productId": "shopify-magiccon-product-15396401447126",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Logo Sticker",
+      "price": "$5",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/21f03f418645797cef81-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396401545430",
+      "productId": "shopify-magiccon-product-15396401545430",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta 2026 Feature Art Sticker",
+      "price": "$5",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/9224ffbc52c754a676b0-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15396401643734",
+      "productId": "shopify-magiccon-product-15396401643734",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Metal Sticker",
+      "price": "$5",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/0a2a31eb11692f9426da-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15400576516310",
+      "productId": "shopify-magiccon-product-15400576516310",
+      "locationId": "show-store",
+      "name": "MagicCon: Atlanta Fblthp Ornament",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/8a1ff2310b5cc4aa3ec0-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15400578056406",
+      "productId": "shopify-magiccon-product-15400578056406",
+      "locationId": "show-store",
+      "name": "Goose Hydra Ornament",
+      "price": "$15",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/bdf9be780e13cd88b6f3-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15397190762710",
+      "productId": "shopify-magiccon-product-15397190762710",
+      "locationId": "show-store",
+      "name": "Festival in a Box: Atlanta 2026",
+      "price": "$249.99",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/204a61ba1508402dadb7-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15397199904982",
+      "productId": "shopify-magiccon-product-15397199904982",
+      "locationId": "show-store",
+      "name": "Magic: The Gathering® | Star Trek™ Play Booster",
+      "price": "$6.99",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/956f50fa83469241ce0d-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15397200429270",
+      "productId": "shopify-magiccon-product-15397200429270",
+      "locationId": "show-store",
+      "name": "Magic: The Gathering® | Star Trek™ Collector Booster",
+      "price": "$37.99",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/c3ad15cdf1aacd123067-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15397201117398",
+      "productId": "shopify-magiccon-product-15397201117398",
+      "locationId": "show-store",
+      "name": "Reality Fracture Play Booster",
+      "price": "$5.49",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/e67551d9fe71097f2cd5-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15397201707222",
+      "productId": "shopify-magiccon-product-15397201707222",
+      "locationId": "show-store",
+      "name": "Reality Fracture Collector Booster",
+      "price": "$26.99",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/d7daf6ecf02d99dda824-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15397202329814",
+      "productId": "shopify-magiccon-product-15397202329814",
+      "locationId": "show-store",
+      "name": "Magic: The Gathering® | The Hobbit™ Play Booster",
+      "price": "$6.99",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/a33a072911dc32a350ea-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-15397203247318",
+      "productId": "shopify-magiccon-product-15397203247318",
+      "locationId": "show-store",
+      "name": "Magic: The Gathering® | The Hobbit™ Collector Booster",
+      "price": "$37.99",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/463b9efa5356e79388e3-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-9293485637846",
+      "productId": "shopify-magiccon-product-9293485637846",
+      "locationId": "show-store",
+      "name": "Magic: the Gathering Crocs",
+      "price": "$80",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/0912e70507218875ea23-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-9292829098198",
+      "productId": "shopify-magiccon-product-9292829098198",
+      "locationId": "show-store",
+      "name": "Secret Lair: So Salty - Traditional Foil Edition",
+      "price": "$39.99",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/4f0e33d3cc7640345dc7-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-9293464338646",
+      "productId": "shopify-magiccon-product-9293464338646",
+      "locationId": "show-store",
+      "name": "Fblthp Snapback Hat",
+      "price": "$40",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/df6cecc8b0e984a44569-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-9293481574614",
+      "productId": "shopify-magiccon-product-9293481574614",
+      "locationId": "show-store",
+      "name": "Mana Symbol Rubber Coasters",
+      "price": "$35",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/4583dad003cdbdba5a0d-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-9293482131670",
+      "productId": "shopify-magiccon-product-9293482131670",
+      "locationId": "show-store",
+      "name": "Mana Symbol Shoe Charm Set",
+      "price": "$30",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/8935e2ada1cc53c3db52-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-show-store:shopify-magiccon-product-9293541605590",
+      "productId": "shopify-magiccon-product-9293541605590",
+      "locationId": "show-store",
+      "name": "Mana Symbol Mini Pin Set",
+      "price": "$30",
+      "limit": null,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/48ceb9254eb960a1ea4f-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-black-lotus:shopify-magiccon-product-15397203247318",
+      "productId": "shopify-magiccon-product-15397203247318",
+      "locationId": "black-lotus",
+      "name": "Magic: The Gathering® | The Hobbit™ Collector Booster",
+      "price": null,
+      "limit": 6,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/463b9efa5356e79388e3-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-black-lotus:shopify-magiccon-product-15397200429270",
+      "productId": "shopify-magiccon-product-15397200429270",
+      "locationId": "black-lotus",
+      "name": "Magic: The Gathering® | Star Trek™ Collector Booster",
+      "price": null,
+      "limit": 6,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/c3ad15cdf1aacd123067-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-black-lotus:shopify-magiccon-product-15397201707222",
+      "productId": "shopify-magiccon-product-15397201707222",
+      "locationId": "black-lotus",
+      "name": "Reality Fracture Collector Booster",
+      "price": null,
+      "limit": 6,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/d7daf6ecf02d99dda824-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-black-lotus:shopify-magiccon-product-9292829098198",
+      "productId": "shopify-magiccon-product-9292829098198",
+      "locationId": "black-lotus",
+      "name": "Secret Lair: So Salty - Traditional Foil Edition",
+      "price": null,
+      "limit": 1,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/4f0e33d3cc7640345dc7-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-black-lotus:shopify-magiccon-product-15397190762710",
+      "productId": "shopify-magiccon-product-15397190762710",
+      "locationId": "black-lotus",
+      "name": "Festival in a Box: Atlanta 2026",
+      "price": null,
+      "limit": 2,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/204a61ba1508402dadb7-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-black-lotus:shopify-magiccon-product-9293485637846",
+      "productId": "shopify-magiccon-product-9293485637846",
+      "locationId": "black-lotus",
+      "name": "Magic: the Gathering Crocs",
+      "price": null,
+      "limit": 1,
+      "availability": "unknown",
+      "image": "../merchandise/atlanta-2026/0912e70507218875ea23-thumb.webp"
+    },
+    {
+      "id": "review:atlanta-2026-black-lotus:extra-life-2026-rise-of-the-polygons-foil",
+      "productId": "extra-life-2026-rise-of-the-polygons-foil",
+      "locationId": "black-lotus",
+      "name": "Extra Life 2026: Rise of the Polygons Traditional Foil Edition",
+      "price": null,
+      "limit": 1,
+      "availability": "unknown",
+      "image": null
+    },
+    {
+      "id": "review:atlanta-2026-black-lotus:extra-life-2026-rise-of-the-polygons",
+      "productId": "extra-life-2026-rise-of-the-polygons",
+      "locationId": "black-lotus",
+      "name": "Extra Life 2026: Rise of the Polygons",
+      "price": null,
+      "limit": 1,
+      "availability": "unknown",
+      "image": null
+    }
+  ],
+  "profiles": [
+    {
+      "placeId": "artist-1-0-0",
+      "sourceId": "668813",
+      "name": "Alix Branwyn",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668813",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-0-1",
+      "sourceId": "668852",
+      "name": "Richard Kane Ferguson",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668852",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-0-2",
+      "sourceId": "668819",
+      "name": "Chris Rahn",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668819",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-1-0",
+      "sourceId": "668804",
+      "name": "Cynthia Sheppard",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668804",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-1-1",
+      "sourceId": "668840",
+      "name": "Kieran Yanner",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668840",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-1-3",
+      "sourceId": "668841",
+      "name": "Leon Tukker",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668841",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-0-0",
+      "sourceId": "668806",
+      "name": "Mark Poole",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668806",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-0-1",
+      "sourceId": "668872",
+      "name": "Ben Hill",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668872",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-0-3",
+      "sourceId": "668869",
+      "name": "Winona Nelson",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668869",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-1-0",
+      "sourceId": "668844",
+      "name": "Martina Fačková",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668844",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-1-1",
+      "sourceId": "668826",
+      "name": "Eli Minaya",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668826",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-1-2",
+      "sourceId": "668845",
+      "name": "Mathias Kollros",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668845",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-1-3",
+      "sourceId": "668871",
+      "name": "Josiah \"Jo\" Cameron",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668871",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-0-0",
+      "sourceId": "668823",
+      "name": "Daren Bader",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668823",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-0-1",
+      "sourceId": "668857",
+      "name": "Steven Belledin",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668857",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-0-2",
+      "sourceId": "668851",
+      "name": "Randy Gallegos",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668851",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-0-3",
+      "sourceId": "668824",
+      "name": "David Palumbo",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668824",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-1-0",
+      "sourceId": "668809",
+      "name": "Serena Malyon",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668809",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-1-1",
+      "sourceId": "668822",
+      "name": "Danny Schwartz",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668822",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-1-3",
+      "sourceId": "668837",
+      "name": "Justine Jones",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668837",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-0-0",
+      "sourceId": "668854",
+      "name": "Ryan Pancoast",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668854",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-0-1",
+      "sourceId": "668862",
+      "name": "Thomas Baxa",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668862",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-1-0",
+      "sourceId": "668846",
+      "name": "Mike Bierek",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668846",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-1-1",
+      "sourceId": "668815",
+      "name": "Nino Vecia",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668815",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-1-2",
+      "sourceId": "668821",
+      "name": "Nicholas Gregory",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668821",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-1-3",
+      "sourceId": "668847",
+      "name": "Olena \"Lena\" Richards",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668847",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-0-0",
+      "sourceId": "668812",
+      "name": "Alessandra Pisano",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668812",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-0-1",
+      "sourceId": "668817",
+      "name": "Bruce Brenneise",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668817",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-0-2",
+      "sourceId": "668814",
+      "name": "Andrea Radeck",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668814",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-0-3",
+      "sourceId": "668818",
+      "name": "Chase Stone",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668818",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-1-0",
+      "sourceId": "668867",
+      "name": "Victor Adame Minguez",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668867",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-1-1",
+      "sourceId": "668848",
+      "name": "Paul Scott Canavan",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668848",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-1-3",
+      "sourceId": "668849",
+      "name": "phil stone",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668849",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-0-0",
+      "sourceId": "668810",
+      "name": "Aaron Miller",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668810",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-0-1",
+      "sourceId": "668850",
+      "name": "Chris Rallis",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668850",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-0-3",
+      "sourceId": "668825",
+      "name": "Douglas Shuler",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668825",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-1-0",
+      "sourceId": "668842",
+      "name": "Lucas Graciano",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668842",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-1-1",
+      "sourceId": "668858",
+      "name": "Kaja Foglio",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668858",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-1-3",
+      "sourceId": "668859",
+      "name": "Phil Foglio",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668859",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-0-0",
+      "sourceId": "668827",
+      "name": "Eric Deschamps",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668827",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-0-1",
+      "sourceId": "668832",
+      "name": "Jason Engle",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668832",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-0-3",
+      "sourceId": "668834",
+      "name": "Joe Slucher",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668834",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-1-0",
+      "sourceId": "668856",
+      "name": "Steve Prescott",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668856",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-1-1",
+      "sourceId": "668873",
+      "name": "SchmandrewART",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668873",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-1-2",
+      "sourceId": "668860",
+      "name": "Svetlin Velinov",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668860",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-1-3",
+      "sourceId": "668866",
+      "name": "Tomas Wanerstrand",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668866",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-0-0",
+      "sourceId": "668835",
+      "name": "John stanko",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668835",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-0-1",
+      "sourceId": "668838",
+      "name": "Kai Carpenter",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668838",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-0-2",
+      "sourceId": "668836",
+      "name": "Josu Solano",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668836",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-0-3",
+      "sourceId": "668839",
+      "name": "kelogsloops",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668839",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-1-0",
+      "sourceId": "668833",
+      "name": "Jeff Miracola",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668833",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-1-1",
+      "sourceId": "668863",
+      "name": "Tyler Jacobson",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668863",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-1-3",
+      "sourceId": "668868",
+      "name": "Vincent Proce",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668868",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-0",
+      "sourceId": "668870",
+      "name": "Wizard of Barge",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668870",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-1",
+      "sourceId": "668865",
+      "name": "Tyler Walpole",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668865",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-2",
+      "sourceId": "668843",
+      "name": "Mark Tedin",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668843",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-3",
+      "sourceId": "668853",
+      "name": "rk post",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668853",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-4",
+      "sourceId": "668811",
+      "name": "Alayna Danner",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668811",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-0",
+      "sourceId": "668816",
+      "name": "PINDURSKI",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668816",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-1",
+      "sourceId": "668820",
+      "name": "Chris Seaman",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668820",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-2",
+      "sourceId": "668828",
+      "name": "Evyn Fong",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668828",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-3",
+      "sourceId": "668829",
+      "name": "Gabor Szikszai",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668829",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-4",
+      "sourceId": "668830",
+      "name": "Izzy",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668830",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-5",
+      "sourceId": "668831",
+      "name": "Jarel Threat",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668831",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-6",
+      "sourceId": "668855",
+      "name": "Sam Burley",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668855",
+      "offers": []
+    },
+    {
+      "placeId": "dragon-shield",
+      "sourceId": "671333",
+      "name": "Dragon Shield",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671333",
+      "offers": [
+        {
+          "id": "63969",
+          "title": "Elesh Norn",
+          "price": "30.00"
+        },
+        {
+          "id": "63970",
+          "title": "Jin- Gitaxias",
+          "price": "30.00"
+        },
+        {
+          "id": "63971",
+          "title": "Vorinclex",
+          "price": "30.00"
+        }
+      ]
+    },
+    {
+      "placeId": "heroes-villains",
+      "sourceId": "669991",
+      "name": "Heroes and Villains",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669991",
+      "offers": []
+    },
+    {
+      "placeId": "ultimate-guard",
+      "sourceId": "669997",
+      "name": "Ultimate Guard",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669997",
+      "offers": []
+    },
+    {
+      "placeId": "young-nails-dungeon",
+      "sourceId": "670010",
+      "name": "Young Nails",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670010",
+      "offers": []
+    },
+    {
+      "placeId": "good-games",
+      "sourceId": "670178",
+      "name": "Good Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670178",
+      "offers": []
+    },
+    {
+      "placeId": "misty-mountain",
+      "sourceId": "671331",
+      "name": "Misty Mountain Gaming",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671331",
+      "offers": []
+    },
+    {
+      "placeId": "gatherers-tavern",
+      "sourceId": "670970",
+      "name": "Gatherers’ Tavern",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670970",
+      "offers": [
+        {
+          "id": "63704",
+          "title": "Emrakul ARTY Box",
+          "price": "50.00"
+        },
+        {
+          "id": "63705",
+          "title": "MAGICCON ATLANTA 2026 EXCLUSIVE PLAYMAT: WHISPERS OF THE DEEP",
+          "price": "25.00"
+        },
+        {
+          "id": "63706",
+          "title": "MagicCon: Atlanta 2026 Fblthp Seastruck Gaze Kliggs Keychain",
+          "price": "10.00"
+        },
+        {
+          "id": "63708",
+          "title": "MagicCon Atlanta 2026 KLIGGS Woven Keychain",
+          "price": "15.00"
+        },
+        {
+          "id": "63713",
+          "title": "MagicCon: Atlanta 2026 Exclusive Patches",
+          "price": "10.00"
+        }
+      ]
+    },
+    {
+      "placeId": "tcgplayer",
+      "sourceId": "671382",
+      "name": "TCGplayer",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671382",
+      "offers": []
+    },
+    {
+      "placeId": "magnolia",
+      "sourceId": "671116",
+      "name": "Magnolia Gaming",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671116",
+      "offers": []
+    },
+    {
+      "placeId": "card-kingdom",
+      "sourceId": "669990",
+      "name": "Card Kingdom",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669990",
+      "offers": [
+        {
+          "id": "64321",
+          "title": "Event Exclusive Monarch Coin!",
+          "price": null
+        },
+        {
+          "id": "64322",
+          "title": "Compete in Local Game Show!",
+          "price": null
+        },
+        {
+          "id": "64323",
+          "title": "Special Guests and Artist Signings!",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "stomping-grounds",
+      "sourceId": "670003",
+      "name": "Stomping Grounds",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670003",
+      "offers": []
+    },
+    {
+      "placeId": "cm-games",
+      "sourceId": "670009",
+      "name": "CM Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670009",
+      "offers": [
+        {
+          "id": "63674",
+          "title": "Drop Off Services!",
+          "price": null
+        },
+        {
+          "id": "63677",
+          "title": "Order Pick-Up!",
+          "price": null
+        },
+        {
+          "id": "63680",
+          "title": "Mega Monster Collector Boxes!",
+          "price": "500.00"
+        },
+        {
+          "id": "63681",
+          "title": "Monster Collector Boxes!",
+          "price": "150.00"
+        },
+        {
+          "id": "63687",
+          "title": "Mythic Monster Collector Boxes!",
+          "price": "1000.00"
+        },
+        {
+          "id": "64411",
+          "title": "FREE Star Trek Collectible Pin with Any $50+ Purchase or Trade",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "pastimes",
+      "sourceId": "670336",
+      "name": "Pastimes Incorporated",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670336",
+      "offers": [
+        {
+          "id": "64161",
+          "title": "Get a fantastic PLAYMAT for FREE!",
+          "price": "0.00"
+        },
+        {
+          "id": "64162",
+          "title": "Get a fantastic PLAYMAT for FREE!",
+          "price": "0.00"
+        }
+      ]
+    },
+    {
+      "placeId": "tier-1",
+      "sourceId": "671353",
+      "name": "Tier 1 Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671353",
+      "offers": []
+    },
+    {
+      "placeId": "strike-zone",
+      "sourceId": "670008",
+      "name": "Strike Zone",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670008",
+      "offers": [
+        {
+          "id": "62818",
+          "title": "Collectible Pins",
+          "price": "10.00"
+        }
+      ]
+    },
+    {
+      "placeId": "genesis",
+      "sourceId": "671114",
+      "name": "Genesis Hobbies",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671114",
+      "offers": []
+    },
+    {
+      "placeId": "card-cache",
+      "sourceId": "671341",
+      "name": "Card Cache",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671341",
+      "offers": []
+    },
+    {
+      "placeId": "three-for-one",
+      "sourceId": "669993",
+      "name": "Three for One Trading",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669993",
+      "offers": [
+        {
+          "id": "63536",
+          "title": "Skip the Line",
+          "price": null
+        },
+        {
+          "id": "63537",
+          "title": "Sell & Trade",
+          "price": null
+        },
+        {
+          "id": "63538",
+          "title": "Online Order",
+          "price": null
+        },
+        {
+          "id": "63539",
+          "title": "Fast Lane",
+          "price": null
+        },
+        {
+          "id": "63540",
+          "title": "Collection Drop-Off",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "journeys-end",
+      "sourceId": "671336",
+      "name": "Journey’s End Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671336",
+      "offers": [
+        {
+          "id": "64054",
+          "title": "Make an Appointment!",
+          "price": null
+        },
+        {
+          "id": "64055",
+          "title": "Get a Free Pin!",
+          "price": null
+        },
+        {
+          "id": "64056",
+          "title": "Get up to 35% Bonus in Store Credit!",
+          "price": null
+        },
+        {
+          "id": "64327",
+          "title": "Win a Collector Booster Box!",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "hot-sauce",
+      "sourceId": "671346",
+      "name": "Hotsauce Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671346",
+      "offers": []
+    },
+    {
+      "placeId": "propaganda",
+      "sourceId": "671117",
+      "name": "Propaganda",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671117",
+      "offers": [
+        {
+          "id": "64151",
+          "title": "Get a Quote",
+          "price": "0.00"
+        },
+        {
+          "id": "64159",
+          "title": "Schedule an Appointment",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "collector-legion",
+      "sourceId": "669998",
+      "name": "Collector Legion",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669998",
+      "offers": [
+        {
+          "id": "64224",
+          "title": "Express Lane!",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "laughing-dragon",
+      "sourceId": "671972",
+      "name": "Laughing Dragon MTG",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671972",
+      "offers": []
+    },
+    {
+      "placeId": "pro-play",
+      "sourceId": "670179",
+      "name": "Pro-Play Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670179",
+      "offers": []
+    },
+    {
+      "placeId": "jk",
+      "sourceId": "670838",
+      "name": "J.K. Entertainment",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670838",
+      "offers": [
+        {
+          "id": "63659",
+          "title": "Sell your Cards here - Bonuses for selling your cards to us.",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "heavy-play",
+      "sourceId": "671113",
+      "name": "Heavy Play",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671113",
+      "offers": [
+        {
+          "id": "63688",
+          "title": "ETB Playmat ART MASTERS x Dan Scott",
+          "price": "90.00"
+        }
+      ]
+    },
+    {
+      "placeId": "game-universe",
+      "sourceId": "670004",
+      "name": "Game Universe",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670004",
+      "offers": []
+    },
+    {
+      "placeId": "top-deck",
+      "sourceId": "671332",
+      "name": "Top Deck Keep",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671332",
+      "offers": []
+    },
+    {
+      "placeId": "star-city",
+      "sourceId": "669996",
+      "name": "Star City Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669996",
+      "offers": [
+        {
+          "id": "62805",
+          "title": "We Pay More for Magic’s Most Wanted!",
+          "price": null
+        },
+        {
+          "id": "62806",
+          "title": "30% Trade Bonus. Get More for Your Cards!",
+          "price": null
+        },
+        {
+          "id": "62807",
+          "title": "Order Ahead, Pick Up at the Event!",
+          "price": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,38 +1,43 @@
 'use strict';
 const $=s=>document.querySelector(s), esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
-let DATA, places=[], selected=null, area='floor', box=[0,0,1100,920], stack=[], query='', detailMode=null;
+let placeProfiles=[],panelOpen=false,publicEvents=[],sourceProducts=[],catalogProducts=null;
+let DATA, places=[], selected=null, area='floor', box=[0,0,1100,920], stack=[], query='', detailMode=null, overviewCamera=true;
 const areas={floor:'Floor',marketplace:'Market','art-of-magic':'Artists','magic-experiences':'Activities',play:'Play',rooms:'Rooms',facilities:'Facilities'};
 const frames={floor:[0,-50,1100,970],marketplace:[345,125,310,235],'art-of-magic':[350,342,110,135],'magic-experiences':[180,140,158,215],play:[460,140,625,745],rooms:[0,65,155,420],facilities:[0,40,1100,470]};
 const colors={marketplace:'#ccd9c6','art-of-magic':'#e5d4b4','magic-experiences':'#ddd3b9',play:'#cdd1e2',rooms:'#d7d5c9',facilities:'#d3e1df',floor:'#d8d9ce'};
 const byId=id=>places.find(p=>p.id===id);
 function group(p){return p.id.startsWith('c10')||p.id==='c110'?'rooms':p.id==='marketplace'?'marketplace':p.id==='art-of-magic'?'art-of-magic':p.id==='magic-experiences'?'magic-experiences':/play|command|league|prize|world|meet-greets/.test(p.id)?'play':'floor'}
-function checkpoint(){stack.push({area,selected,detailMode,box:[...box]});if(stack.length>30)stack.shift()}
+function checkpoint(){stack.push({area,selected,detailMode,overviewCamera,panelOpen,box:[...box]});if(stack.length>30)stack.shift()}
 function fit(b){const r=$('#stage').getBoundingClientRect(),ratio=r.width/r.height;let [x,y,w,h]=b;if(w/h>ratio){const hh=w/ratio;y-=(hh-h)/2;h=hh}else{const ww=h*ratio;x-=(ww-w)/2;w=ww}return [x,y,w,h]}
-function marketFrame(p){const w=$('#stage').clientWidth/3.8,h=$('#stage').clientHeight/3.8;return clampMarket([p?p.x+p.width/2-w/2:328,p?p.y+p.height/2-h/2:145,w,h])}
+function marketFrame(p){const scale=$('#stage').clientWidth>=700?$('#stage').clientWidth/317:3.8,w=$('#stage').clientWidth/scale,h=$('#stage').clientHeight/scale;return clampMarket([p?p.x+p.width/2-w/2:328,p?p.y+p.height/2-h/2:145,w,h])}
 function clampMarket(b){return clampCamera(b)}
 function clampCamera(b){const bounds=fit(frames.floor),[x,y,w,h]=b;return [Math.max(bounds[0],Math.min(x,bounds[0]+bounds[2]-w)),Math.max(bounds[1],Math.min(y,bounds[1]+bounds[3]-h)),w,h]}
 function atOverview(){return box[2]>=fit(frames.floor)[2]-.01}
 function visible(p){return p.x>=box[0]+3&&p.y>=box[1]+3&&p.x+p.width<=box[0]+box[2]-3&&p.y+p.height<=box[1]+box[3]-3}
-function focus(p){if(p.kind==='vendor')return marketFrame(p);if(p.kind==='facility'||p.group==='rooms')return fit([p.x-110,p.y-90,250,220]);if(p.kind==='activity')return fit([p.x-65,p.y-50,210,180]);if(p.kind==='artist'&&!p.unbound)return fit([p.x-31,p.row==='perimeter'?470:342,85,92]);if(p.kind==='island')return fit([p.x-24,p.y-20,p.width+48,p.height+40]);return fit(frames[p.group]||frames.floor)}
-function go(id){checkpoint();area=id;selected=null;detailMode=({'marketplace':'market','art-of-magic':'artists','magic-experiences':'activities'})[id]||null;query='';$('#search').value='';box=id==='marketplace'?marketFrame():fit(frames[id]||frames.floor);render()}
-function choose(id){const p=byId(id);if(!p)return;if(p.kind==='zone'&&['marketplace','art-of-magic','magic-experiences'].includes(id))return go(id);checkpoint();const previousMode=detailMode;selected=id;area=p.group;query='';$('#search').value='';
-if(p.kind==='vendor'){detailMode='market';if(previousMode!=='market')box=marketFrame(p);else if(!visible(p))box=clampMarket([p.x+p.width/2-box[2]/2,p.y+p.height/2-box[3]/2,box[2],box[3]])}
-else if(p.kind==='artist'||p.kind==='island'){detailMode='artists';box=p.unbound?fit(frames['art-of-magic']):focus(p)}
-else if(p.kind==='activity'){detailMode='activities';box=focus(p)}
-else if(p.kind==='facility'||p.group==='rooms'){detailMode=null;box=focus(p)}
-else if(!p.level){detailMode=null;if(previousMode)box=fit(frames.floor)}
-render()}
+// Camera intent belongs to the destination's role, never its input handler.
+// Direct map selections preserve camera and LOD; directory/search may pan an offscreen destination into view.
+const denseAreas={marketplace:'market','art-of-magic':'artists','magic-experiences':'activities'};
+const interactionPolicies={destination:{camera:'preserve'},container:{camera:'enter'},artistGroup:{camera:'enter-group'}};
+function interactionPolicy(p){return interactionPolicies[p.kind==='island'?'artistGroup':p.kind==='zone'&&denseAreas[p.id]?'container':'destination']}
+function go(id){checkpoint();panelOpen=['rooms','play','facilities','levels'].includes(id);activeEvent=null;area=id;selected=null;query='';$('#search').value='';
+ if(id==='floor'){overviewCamera=true;detailMode=null;box=fit(frames.floor)}
+ else if(denseAreas[id]){overviewCamera=false;detailMode=denseAreas[id];box=id==='marketplace'?marketFrame():fit(frames[id])}
+ render()}
+function choose(id,{reveal=false}={}){const p=byId(id);if(!p)return;const policy=interactionPolicy(p);if(policy.camera==='enter')return go(id);checkpoint();panelOpen=true;selected=id;query='';$('#search').value='';
+ if(policy.camera==='enter-group'){overviewCamera=false;area=p.group;detailMode='artists';box=fit([p.x-24,p.y-20,p.width+48,p.height+40])}
+ else if(reveal&&Number.isFinite(p.x)&&!visible(p)){box=clampCamera([p.x+p.width/2-box[2]/2,p.y+p.height/2-box[3]/2,box[2],box[3]])}
+ activeEvent=null;render()}
 function pan(direction){if(detailMode!=='market')return;box=clampCamera([Math.max(328,Math.min(645-box[2],box[0]+direction*box[2]*.65)),box[1],box[2],box[3]]);draw()}
 function label(name,x,y,w,h,size){const max=Math.max(5,Math.floor(w/(size*.61))),words=name.split(' ').map(word=>word.length>max?word.slice(0,max-1)+'…':word),lines=[''];words.forEach(word=>{let i=lines.length-1;if(lines[i]&&lines[i].length+word.length+1>max)lines.push(word);else lines[i]+=(lines[i]?' ':'')+word});const capacity=Math.max(1,Math.floor((h-2)/(size*1.15)));if(lines.length>capacity){lines.splice(capacity);lines[capacity-1]=lines[capacity-1].slice(0,Math.max(1,max-1))+'…';}return `<text x="${x+w/2}" y="${y+h/2-(lines.length-1)*size*.58}" text-anchor="middle" dominant-baseline="middle" font-size="${size}">${lines.map((s,i)=>`<tspan x="${x+w/2}" dy="${i?size*1.16:0}">${esc(s)}</tspan>`).join('')}</text>`}
-function shape(p,mini=false){if(byId(selected)?.kind==='facility'&&['artist','island','vendor','activity'].includes(p.kind))return '';const scale=$('#stage').clientWidth/box[2],detailed=scale>1.3,active=p.id===selected;let name=p.short||p.name;
- if(p.kind==='vendor'&&detailMode!=='market')return '';if((p.kind==='artist'||p.kind==='island')&&detailMode!=='artists')return '';if(p.kind==='activity'&&detailMode!=='activities')return '';if(p.kind==='zone'&&p.parentId&&!detailed)return '';
- if(p.kind==='artist'||p.kind==='vendor'||p.kind==='activity'||p.kind==='island'){if(scale<.9)return '';const individual=byId(selected)?.kind==='artist'||scale>=5;if(p.kind==='artist'&&!individual)return '';if(p.kind==='island'&&individual)return '';}
+function shape(p,mini=false){if(p.unbound)return '';const scale=$('#stage').clientWidth/box[2],detailed=scale>1.3,active=p.id===selected;let name=p.short||p.name;
+ if(!active){if(p.kind==='vendor'&&detailMode!=='market')return '';if((p.kind==='artist'||p.kind==='island')&&detailMode!=='artists')return '';if(p.kind==='activity'&&detailMode!=='activities')return '';if(p.kind==='zone'&&p.parentId&&!detailed)return '';}
+ if(p.kind==='artist'||p.kind==='vendor'||p.kind==='activity'||p.kind==='island'){if(scale<.9&&!active)return '';const individual=scale>=5;if(p.kind==='artist'&&!individual&&!active)return '';if(p.kind==='island'&&individual)return '';}
  const fill=colors[p.group]||colors.floor;let geom=p.path?`<path d="${p.path}"`:`<rect x="${p.x}" y="${p.y}" width="${p.width}" height="${p.height}" rx="${p.kind==='zone'?2:.4}"`;
- let s=`<g data-id="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}">${geom} fill="${fill}" class="foot ${active?'chosen':''}"/>`;
+ let s=`<g class="${p.kind==='vendor'?'market-vendor':''}" data-id="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}">${geom} fill="${fill}" class="foot ${active?'chosen':''}"/>`;
  const isRegion=['marketplace','art-of-magic','magic-experiences'].includes(p.id);if(!mini&&!(isRegion&&((p.id==='marketplace'&&detailMode==='market')||(p.id==='art-of-magic'&&detailMode==='artists')||(p.id==='magic-experiences'&&detailMode==='activities')))){
- let fs=12/scale;if(p.kind==='vendor')fs=Math.min(12/scale,Math.max(9/scale,(p.width-4/scale)/(.61*Math.max(...name.split(' ').map(w=>w.length)))));if(p.kind==='artist')fs=Math.min(fs,Math.max(8/scale,(p.width-4/scale)/(.61*Math.max(...name.split(' ').map(w=>w.length)))));if(p.kind==='zone')fs=Math.min(32,Math.max(7,(p.width<120?8:11)/scale));
- let allow=p.kind==='zone'||p.kind==='vendor'||scale*p.width>35&&scale*p.height>24||active;if(p.kind==='island'){allow=true;fs=12/scale;name=p.name}
- if(['morning-queue','magic-experiences'].includes(p.id)&&scale<.65){s+=`<text x="${p.x+p.width/2}" y="${p.y+p.height/2}" text-anchor="middle" dominant-baseline="middle" font-size="${10/scale}" transform="rotate(-90 ${p.x+p.width/2} ${p.y+p.height/2})">${esc(name)}</text>`;}else if(p.id==='ticketed-play-upper')s+=label(name,p.x,p.y+65,p.width,p.height-65,fs);else if(allow){const pad=2/scale;s+=label(name,p.x+pad,p.y+pad,p.width-pad*2,p.height-pad*2,fs);}
+ let fs=12/scale;if(p.kind==='vendor')fs=12/scale;if(p.kind==='artist')fs=Math.min(fs,Math.max(8/scale,(p.width-4/scale)/(.61*Math.max(...name.split(' ').map(w=>w.length)))));if(p.kind==='zone')fs=Math.min(32,Math.max(7,(p.width<120?8:11)/scale));
+ let allow=p.kind==='zone'||p.kind==='vendor'&&scale*p.width>=85&&scale*p.height>=56||scale*p.width>35&&scale*p.height>24||active;if(p.kind==='vendor')allow=scale*p.width>=85&&scale*p.height>=56;if(p.kind==='island'){allow=true;fs=12/scale;name=p.name}
+ if(['morning-queue','magic-experiences'].includes(p.id)&&scale<.65){s+=`<text x="${p.x+p.width/2}" y="${p.y+p.height/2}" text-anchor="middle" dominant-baseline="middle" font-size="${10/scale}" transform="rotate(-90 ${p.x+p.width/2} ${p.y+p.height/2})">${esc(name)}</text>`;}else if(p.id==='ticketed-play-upper')s+=label(name,p.x,p.y+65,p.width,p.height-65,fs);else if(allow){const pad=(p.kind==='vendor'?7:2)/scale;s+=p.kind==='vendor'?vendorLabel(name,p,scale):label(name,p.x+pad,p.y+pad,p.width-pad*2,p.height-pad*2,fs);}
  }return s+'</g>';
 }
 function floorBase(){return `<defs><pattern id="outside" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 12L12 0" stroke="#d5d1c6" stroke-width=".7"/></pattern></defs><rect x="-3000" y="-3000" width="7000" height="7000" fill="url(#outside)"/><path d="M12 65H130V110Q620 85 1074 150V485H1090V890H460V700H532V485H12Z" fill="#f7f5ed" stroke="#aeb5a9" stroke-width="2"/><path d="M130 143H235M260 143H470M495 143H700M725 143H850M875 143H1050" stroke="#a5ada3" stroke-width="3"/>`}
@@ -41,59 +46,114 @@ const pictograms={restroom:'<circle cx="8" cy="5" r="2"/><path d="M5 9h6v6H9v6H7
 function facility(p){const scale=$('#stage').clientWidth/box[2],r=12/scale,cx=p.x+p.width/2,cy=p.y+p.height/2;return `<g role="button" tabindex="0" data-id="${p.id}" aria-label="${esc(p.name)}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${selected===p.id?'#efd19b':'#fffdf6'}" stroke="#6d857e" stroke-width="1" vector-effect="non-scaling-stroke"/><g transform="translate(${cx-r*.8} ${cy-r*.8}) scale(${r*1.6/24})" fill="#465f58" color="#465f58" pointer-events="none">${pictograms[p.id==='information'?'information':p.id==='registration'?'registration':'restroom']}</g></g>`}
 function draw(){const p=byId(selected);$('#minus').disabled=atOverview();$('#plus').disabled=box[2]<=$('#stage').clientWidth/8+.01;$('#pan-controls').style.display=detailMode==='market'&&!p?.level?'flex':'none';$('#pan-left').disabled=box[0]<=328.1;$('#pan-right').disabled=box[0]+box[2]>=644.9;$('.zoom').style.display=p?.level?'none':'flex';$('.map-caption').style.display=p?.level?'none':'flex';$('#map').style.display=p?.level?'none':'block';$('#locator').style.display=p?.level?'none':box[2]<1050?'block':'none';document.querySelector('.no-map')?.remove();
  if(p?.level){$('#stage').insertAdjacentHTML('beforeend',`<div class="no-map"><div><div class="floor">${p.level}</div><h2>${esc(p.name)}</h2><p>Level ${p.level} · ${esc(p.room)}</p><button data-go="floor">Return to Level 1 map</button></div></div>`);return}
- $('#map').setAttribute('viewBox',box.join(' '));$('#map').innerHTML=floorBase()+entrances()+places.filter(p=>p.kind==='zone').map(p=>shape(p)).join('')+places.filter(p=>['island','artist','vendor','activity'].includes(p.kind)).map(p=>shape(p)).join('')+places.filter(p=>p.kind==='facility'&&(p.id!=='information'||area==='facilities'||$('#stage').clientWidth/box[2]>.8)).map(facility).join('');
+ $('#map').setAttribute('viewBox',box.join(' '));$('#map').innerHTML=floorBase()+entrances()+places.filter(p=>p.kind==='zone').map(p=>shape(p)).join('')+places.filter(p=>['island','artist','vendor','activity'].includes(p.kind)).map(p=>shape(p)).join('')+eventBubbles()+places.filter(p=>p.kind==='facility'&&(p.id!=='information'||p.id===selected||area==='facilities'||$('#stage').clientWidth/box[2]>.8)).map(facility).join('');
  $('#locator').innerHTML=`<svg viewBox="0 0 1100 920">${places.filter(p=>p.kind==='zone'&&!p.parentId).map(p=>p.path?`<path d="${p.path}" fill="${colors[p.group]}"/>`:`<rect x="${p.x}" y="${p.y}" width="${p.width}" height="${p.height}" fill="${colors[p.group]}"/>`).join('')}<rect x="${box[0]}" y="${box[1]}" width="${box[2]}" height="${box[3]}" fill="none" stroke="#8f5b1d" stroke-width="12"/></svg>`;
 }
+
+const params=new URLSearchParams(window.location?.search||'');
+const sampleMode=params.get('sampleEvents')==='1';
+let personalEvents=[],activeEvent=null,personalConnected=false;
+if(sampleMode)personalEvents=[
+{id:'sample-paid',title:'Collector Booster Sealed',day:'Fri',time:'11 AM–2:55 PM',status:'paid',locationId:'c101-showcase',detail:'Sample event for map review. This is not a purchase or a published room assignment.'},
+{id:'sample-committed',title:'Commander panel',day:'Sat',time:'1–2 PM',status:'committed',locationId:'c101-showcase',detail:'Sample event for map review. This is not a saved commitment or published room assignment.'},
+{id:'sample-grounds',title:'Community games',day:'Sun',time:'12–1 PM',status:'committed',locationId:'gathering-grounds',detail:'Sample event for map review.'},
+{id:'sample-unplaced',title:'Event awaiting a room',day:'Fri',time:'3 PM',status:'paid',locationId:null,detail:'Sample event with no assigned location.'}
+];
+const eventsAt=id=>personalEvents.filter(event=>event.locationId===id);
+function eventRow(event){return '<button data-event="'+esc(event.id)+'"><span class="event-status '+event.status+'">'+(event.status==='paid'?'Paid':'Committed')+'</span><span class="copy"><strong>'+esc(event.title)+'</strong><small>'+esc(event.day+' · '+event.time)+'</small></span><span class="chev">›</span></button>'}
+function eventDetail(event){return '<div class="event-detail"><button data-clear-event>← Back to '+(area==='events'?'events':'place')+'</button><h3>'+esc(event.title)+'</h3><p>'+esc(event.day+' · '+event.time)+'</p>'+(!event.locationId?'<p>Location not assigned</p>':'')+'<p>'+esc(event.detail)+'</p>'+(event.url?'<a href="'+esc(event.url)+'" target="_blank" rel="noopener">Event details ↗</a>':'')+'</div>'}
+function activateEvent(id){const event=[...personalEvents,...publicEvents].find(e=>e.id===id);if(!event)return;if(area==='events'&&event.locationId&&byId(event.locationId))choose(event.locationId,{reveal:true});activeEvent=id;panelOpen=true;render()}
+function eventList(p){const events=eventsAt(p.id);return events.length?'<section class="personal-events"><h3>'+(sampleMode?'Sample events':'Your events')+'</h3><div class="rows">'+events.map(eventRow).join('')+'</div></section>':''}
+function eventBubbles(){const scale=$('#stage').clientWidth/box[2];return places.filter(p=>Number.isFinite(p.x)&&eventsAt(p.id).length&&(p.kind==='zone'||p.kind==='activity'&&detailMode==='activities')).map(p=>{const events=eventsAt(p.id),paid=events.filter(e=>e.status==='paid').length,cx=p.x+p.width-10/scale,cy=p.y+10/scale;return '<g data-id="'+p.id+'" role="button" tabindex="0" aria-label="'+esc(p.name)+': '+events.length+' '+(sampleMode?'sample ':'')+'events"><circle cx="'+cx+'" cy="'+cy+'" r="'+12/scale+'" fill="'+(paid?'#efd19b':'#fffdf6')+'" stroke="#735d35" vector-effect="non-scaling-stroke"/><text x="'+cx+'" y="'+cy+'" dominant-baseline="middle" text-anchor="middle" font-size="'+12/scale+'">'+events.length+'</text></g>'}).join('')}
+function personalNotice(){return sampleMode?'<p class="sample-notice">Sample events · not your saved plan</p>':params.get('personal')==='1'&&!personalConnected?'<p>Waiting for your saved events.</p>':''}
+window.addEventListener?.('message',event=>{
+ if(window.parent===window||event.source!==window.parent||event.origin!==window.location.origin||event.data?.type!=='magiccon:map-study-events'||event.data?.version!==1||!Array.isArray(event.data.events)||sampleMode)return;
+ personalEvents=event.data.events.filter(e=>e&&typeof e.id==='string'&&typeof e.title==='string'&&typeof e.day==='string'&&typeof e.time==='string'&&typeof e.detail==='string'&&['paid','committed'].includes(e.status)&&(e.locationId===null||typeof e.locationId==='string'));
+ catalogProducts=Array.isArray(event.data.products)?event.data.products.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&typeof p.locationId==='string'&&typeof p.productId==='string'&&['show-store','black-lotus','prize-wall'].includes(p.locationId)&&(!p.image||(/https:\/\//.test(p.image)||p.image.startsWith('../merchandise/')))):null;personalConnected=true;activeEvent=null;if(places.length)render();
+});
+if(params.get('personal')==='1')window.parent?.postMessage({type:'magiccon:map-study-ready',version:1},window.location.origin);
+
 function row(p){return `<button data-select="${p.id}"><span class="swatch" style="background:${colors[p.group]||'#d3bd8d'}"></span><span class="copy"><strong>${esc(p.name)}</strong><small>${esc(p.level?'Level '+p.level+' · '+p.room:p.unbound?'Art of Magic · table not placed':p.location||p.booth&&'Booth '+p.booth||areas[p.group]||'Level 1')}</small></span><span class="chev">›</span></button>`}
 function near(p){return places.filter(q=>q.id!==p.id&&q.kind===p.kind&&!q.unbound).map(q=>({q,d:Math.hypot((q.x+q.width/2)-(p.x+p.width/2),(q.y+q.height/2)-(p.y+p.height/2))})).sort((a,b)=>a.d-b.d).slice(0,4).map(a=>a.q)}
 function relation(p,q){const dx=q.x+q.width/2-p.x-p.width/2,dy=q.y+q.height/2-p.y-p.height/2;return Math.abs(dx)>Math.abs(dy)?dx>0?'To the right':'To the left':dy>0?'Below':'Above'}
-function render(){const p=byId(selected);$('#tabs').innerHTML=Object.entries(areas).map(([id,n])=>`<button data-go="${id}" class="${area===id?'active':''}">${n}</button>`).join('');$('#context').textContent=p?.level?'Level '+p.level:('Level 1 · '+(areas[area]||'Show floor'));$('#back').disabled=!stack.length;let html='';
+function openEvents(){checkpoint();panelOpen=true;area='events';selected=null;activeEvent=null;query='';$('#search').value='';render()}
+function dismissPanel(){panelOpen=false;selected=null;activeEvent=null;query='';$('#search').value='';render()}
+function placeContent(p){
+ const ids=new Set(eventsAt(p.id).map(e=>e.id)),events=publicEvents.filter(e=>e.locationId===p.id&&!ids.has(e.id));let html='';
+ const profile=placeProfiles.find(profile=>profile.placeId===p.id);
+ if(profile){html+='<p><a href="'+esc(profile.url)+'" target="_blank" rel="noopener">Official profile ↗</a></p>';if(profile.offers.length)html+='<section><h3>At this booth</h3>'+profile.offers.map(offer=>'<p><strong>'+esc(offer.title)+'</strong>'+(offer.price?' · $'+esc(offer.price):'')+'</p>').join('')+'</section>'}
+ if(events.length)html+='<section><h3>Scheduled events</h3><div class="rows">'+events.map(e=>'<button data-public-event="'+esc(e.id)+'"><span class="copy"><strong>'+esc(e.title)+'</strong><small>'+esc(e.day+' · '+e.time)+'</small></span><span class="chev">›</span></button>').join('')+'</div></section>';
+ const items=(catalogProducts??sourceProducts).filter(item=>item.locationId===p.id);
+ if(items.length){html+='<section class="place-products"><h3>Products</h3>'+(catalogProducts?'':'<p>Stock not confirmed.</p>');if(p.id==='black-lotus')html+='<p>Preorder: Nov 2–8 · One checkout<br>Pickup: Black Lotus Lounge, Nov 13 from 8:30 AM</p>';html+='<div class="product-rows">'+items.map(item=>'<div class="product-row">'+(item.image?'<img loading="lazy" onerror="this.hidden=true" src="'+esc(item.image)+'" alt="">':'')+'<div><strong>'+esc(item.name)+'</strong><small>'+esc([item.price,item.limit?(catalogProducts?'Limit: ':'Preorder limit: ')+item.limit:null,item.availability!=='unknown'?item.availability.replaceAll('_',' '):null].filter(Boolean).join(' · '))+'</small>'+(item.name==='Festival in a Box: Atlanta 2026'?'<small>VIP allotment: lounge fulfillment through Nov 14, 2 PM · Limit 2 across preorder and onsite</small>':'')+'</div></div>').join('')+'</div></section>'}return html;
+}
+function render(){const p=byId(selected);$('#plan').hidden=!personalEvents.length;$('#plan').textContent=sampleMode?'Sample events':'Your events';$('#tabs').innerHTML=Object.entries(areas).map(([id,n])=>`<button data-go="${id}" class="${area===id?'active':''}">${n}</button>`).join('');$('#context').textContent=p?.level?'Level '+p.level:('Level 1 · '+(areas[area]||'Show floor'));$('#back').disabled=!stack.length;let html='';
  if(query){const q=query.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const found=places.filter(p=>p.name&&p.kind!=='island'&&(p.name+' '+(p.booth||'')+' '+(p.location||'')+' '+(p.room||'')+' '+areas[p.group]).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(q));html=`<h2>${found.length} ${found.length===1?'place':'places'}</h2><div class="rows">${found.map(row).join('')||'<p>No matching places.</p>'}</div>`}
  else if(p){const region=p.group==='art-of-magic'?'Art of Magic':p.group==='marketplace'?'Marketplace':areas[p.group]||'Show floor';html=`<div class="eyebrow">${p.level?'Level '+p.level:'Level 1 · '+region}${p.booth?' · '+esc(p.booth):''}</div><div class="panel-heading"><h2 class="selected-name">${esc(p.name)}</h2><button id="close" aria-label="Close place">×</button></div>`;
  if(p.unbound)html+='<p>Listed in Art of Magic. Table location is not available.</p>';
  else if(p.level)html+=`<p>${esc(p.room)}</p>`;
  else if(p.kind==='artist')html+=`<p>${p.row==='perimeter'?'Lower perimeter':(p.row==='upper'?'Upper':'Lower')+' row'}</p>`;
  else if(p.id==='morning-queue')html+='<p>Line up here before the show floor opens.</p>';
- else if(p.kind==='zone')html+=`<p>${esc(p.location||'Level 1 · '+region)}</p>`;
+ else if(p.kind==='zone'&&p.location)html+=`<p>${esc(p.location)}</p>`;
  else if(p.kind==='facility')html+=`<p>${esc(p.location)}</p>`;
  if(p.kind==='zone'&&frames[p.id])html+=`<button class="primary" data-go="${p.id}">Explore ${esc(p.name)} →</button>`;
- if(['artist','vendor','activity'].includes(p.kind)&&!p.unbound)html+='<h3>Next to this place</h3><div class="rows">'+near(p).map(q=>row({...q,location:relation(p,q)})).join('')+'</div>';
- else if(p.kind==='island')html+='<div class="rows">'+(places.filter(q=>q.kind==='artist'&&q.column===p.column&&q.row===p.row).map(row).join('')||'<p>Names unavailable for this group.</p>')+'</div>';
- }else if(area==='levels'){html='<h2>Other levels</h2><div class="rows">'+places.filter(p=>p.level).map(row).join('')+'</div>'}
+ if(p.kind==='island')html+='<div class="rows">'+(places.filter(q=>q.kind==='artist'&&q.column===p.column&&q.row===p.row).map(row).join('')||'<p>Names unavailable for this group.</p>')+'</div>';
+ }else if(area==='events'){const event=personalEvents.find(e=>e.id===activeEvent);html=event?eventDetail(event):'<h2>'+(sampleMode?'Sample events':'Your events')+'</h2><div class="rows">'+personalEvents.map(eventRow).join('')+'</div>'}else if(area==='levels'){html='<h2>Other levels</h2><div class="rows">'+places.filter(p=>p.level).map(row).join('')+'</div>'}
  else{html=`<h2>${area==='floor'?'Explore the floor':area==='facilities'?'Facilities':areas[area]}</h2><div class="rows">`;
  if(area==='floor')html+=['marketplace','art-of-magic','magic-experiences','ticketed-play-upper','command-zone'].map(id=>row(byId(id))).join('');else if(area==='art-of-magic')html+=places.filter(p=>p.kind==='island').map(row).join('');else html+=places.filter(p=>p.group===area&&p.kind!=='island'&&!p.unbound&&p.id!==area).map(row).join('');html+='</div>'}
- $('#panel').innerHTML=html;$('#panel').scrollTop=0;draw();
+ const unplaced=personalEvents.filter(e=>!e.locationId||!byId(e.locationId));if(p&&!query){const event=[...personalEvents,...publicEvents].find(e=>e.id===activeEvent&&e.locationId===p.id);html+=event?eventDetail(event):eventList(p)+placeContent(p)}else if(!p&&!query&&area==='floor'&&unplaced.length)html+='<h3>Location not assigned</h3><div class="rows">'+unplaced.map(eventRow).join('')+'</div>';if(!p&&!query&&area==='floor'&&activeEvent){const event=unplaced.find(e=>e.id===activeEvent);if(event)html+='<div class="event-detail"><h3>'+esc(event.title)+'</h3><p>'+esc(event.day+' · '+event.time)+'</p><p>'+esc(event.detail)+'</p></div>'}if(!p&&panelOpen)html='<div class="panel-heading"><span></span><button id="close" aria-label="Close results">×</button></div>'+html;$('#panel').hidden=!panelOpen;$('#panel').innerHTML=panelOpen?personalNotice()+html:'';$('#panel').scrollTop=0;draw();
 }
 function zoom(f){const full=fit(frames.floor),[x,y,w,h]=box,nw=Math.max($('#stage').clientWidth/8,Math.min(full[2],w*f)),nh=nw*h/w;
- if(nw>=full[2]-.01){box=full;detailMode=null;selected=null;area='floor';render();return}
- box=clampCamera([x+(w-nw)/2,y+(h-nh)/2,nw,nh]);draw()}
-document.addEventListener('click',e=>{const el=e.target.closest('[data-go],[data-select],[data-id]');if(el?.dataset.go)go(el.dataset.go);else if(el?.dataset.select)choose(el.dataset.select);if(e.target.id==='close'){selected=null;render()}});
-$('#pan-left').onclick=()=>pan(-1);$('#pan-right').onclick=()=>pan(1);$('#overview').onclick=()=>go('floor');$('#levels').onclick=()=>{checkpoint();area='levels';selected=null;detailMode=null;box=fit(frames.floor);render()};$('#back').onclick=()=>{const s=stack.pop();if(s){({area,selected,box,detailMode}=s);query='';$('#search').value='';render()}};$('#plus').onclick=()=>zoom(.65);$('#minus').onclick=()=>zoom(1.5);$('#search').oninput=e=>{query=e.target.value;render()};
+ if(nw>=full[2]-.01){overviewCamera=true;box=full;detailMode=null;selected=null;area='floor';render();return}
+ overviewCamera=false;box=clampCamera([x+(w-nw)/2,y+(h-nh)/2,nw,nh]);draw()}
+let pointerClickHandled=false;
+document.addEventListener('click',e=>{if(e.target.closest('[data-clear-event]')){activeEvent=null;render();return}const publicButton=e.target.closest('[data-public-event]');if(publicButton){activateEvent(publicButton.dataset.publicEvent);return}const eventButton=e.target.closest('[data-event]');if(eventButton){activateEvent(eventButton.dataset.event);return}const el=e.target.closest('[data-go],[data-select],[data-id]');if(el?.dataset.go)go(el.dataset.go);else if(el?.dataset.select)choose(el.dataset.select,{reveal:true});else if(el?.dataset.id&&!pointerClickHandled)choose(el.dataset.id);if(e.target.id==='close')dismissPanel()});
+$('#plan').onclick=openEvents;$('#pan-left').onclick=()=>pan(-1);$('#pan-right').onclick=()=>pan(1);$('#overview').onclick=()=>go('floor');$('#levels').onclick=()=>{checkpoint();panelOpen=true;area='levels';selected=null;detailMode=null;overviewCamera=true;box=fit(frames.floor);render()};$('#back').onclick=()=>{const s=stack.pop();if(s){({area,selected,box,detailMode,overviewCamera,panelOpen}=s);query='';$('#search').value='';render()}};$('#plus').onclick=()=>zoom(.65);$('#minus').onclick=()=>zoom(1.5);$('#search').oninput=e=>{query=e.target.value;panelOpen=Boolean(query);selected=null;render()};
 let start=null;
 const stage=$('#stage');
 stage.onpointerdown=e=>{if(e.target.closest('button')||start||e.button>0)return;start={pointerId:e.pointerId,x:e.clientX,y:e.clientY,b:[...box],id:e.target.closest('[data-id]')?.dataset.id,moved:false};stage.setPointerCapture(e.pointerId)};
-stage.onpointermove=e=>{if(!start||e.pointerId!==start.pointerId)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.hypot(dx,dy)>5)start.moved=true;if(start.moved){box=clampCamera([start.b[0]-dx*start.b[2]/stage.clientWidth,start.b[1]-dy*start.b[3]/stage.clientHeight,start.b[2],start.b[3]]);draw()}};
-stage.onpointerup=e=>{if(!start||e.pointerId!==start.pointerId)return;const gesture=start;start=null;if(stage.hasPointerCapture?.(e.pointerId))stage.releasePointerCapture(e.pointerId);if(gesture.id&&!gesture.moved){const p=byId(gesture.id);if(p?.kind==='zone'&&frames[p.id])go(p.id);else choose(gesture.id)}};
+stage.onpointermove=e=>{if(!start||e.pointerId!==start.pointerId)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.hypot(dx,dy)>5&&!start.moved){start.moved=true;dismissPanel();resizeCamera();start.b=[...box];}if(start.moved){box=clampCamera([start.b[0]-dx*start.b[2]/stage.clientWidth,start.b[1]-dy*start.b[3]/stage.clientHeight,start.b[2],start.b[3]]);draw()}};
+stage.onpointerup=e=>{if(!start||e.pointerId!==start.pointerId)return;const gesture=start;start=null;pointerClickHandled=true;setTimeout(()=>{pointerClickHandled=false},0);if(stage.hasPointerCapture?.(e.pointerId))stage.releasePointerCapture(e.pointerId);if(gesture.id&&!gesture.moved)choose(gesture.id);else if(!gesture.moved)dismissPanel()};
 stage.onpointercancel=stage.onlostpointercapture=e=>{if(start?.pointerId===e.pointerId)start=null};
 $('#map').onwheel=e=>{e.preventDefault();zoom(e.deltaY>0?1.15:.87)};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#back').click();if(['Enter',' '].includes(e.key)&&e.target.matches('[data-id]')){e.preventDefault();choose(e.target.dataset.id)}});
-// Strictly increasing axis warps compress empty aisles while preserving source edge order.
-function compactAxis(objects,key,size,lo,hi){const intervals=objects.map(p=>[p[key],p[key]+p[size]]).sort((a,b)=>a[0]-b[0]),gaps=[];let end=lo;for(const [a,b]of intervals){if(a>end)gaps.push([end,a]);end=Math.max(end,b)}if(end<hi)gaps.push([end,hi]);const raw=v=>v-lo-gaps.reduce((sum,[a,b])=>sum+Math.max(0,Math.min(v,b)-a)*.7,0),total=raw(hi);return v=>raw(v)/total}
-fetch('data.json?v=9450d2fb1fcc').then(r=>r.json()).then(d=>{DATA=d;places=d.zones.map(p=>({...p,kind:'zone',group:group(p)}));Object.assign(byId('c102-spindown'),{x:124,y:91,width:72,height:40});Object.assign(byId('c101-showcase'),{x:16,y:65,width:88,height:48});byId('c101-showcase').short='C101';byId('c102-spindown').short='C102';byId('c104-quiet').short='Quiet';byId('c105-c106-family-spark').short='Family Spark';byId('ticketed-play-on-demand').short='On Demand';byId('magic-experiences').short='Activities';byId('world-championship').short='Worlds';byId('morning-queue').short='Morning Queue';
+document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissPanel();if(['Enter',' '].includes(e.key)&&e.target.matches('[data-id]')){e.preventDefault();choose(e.target.dataset.id)}});
+// A display-only schematic: common tiles and regular bands, retaining source row/neighbor order.
+// The three tall central booths occupy two bands; the source's lower rows have no seventh-column vendor.
+const marketColumns=[
+ ['dragon-shield','gamesgenic','ultimate-guard','trading-cart','galactus-roma'],
+ ['beadle-grimms','heroes-villains','young-nails-dungeon','good-games'],
+ ['misty-mountain','daria','gatherers-tavern','genesis','mana-vault','collector-legion','heavy-play','nerd-gear-pink-bunny'],
+ ['tcgplayer','magnolia','card-cache','hot-sauce','laughing-dragon','foam-brain','game-universe'],
+ ['card-kingdom','three-for-one','mages-sanctum','manamart','top-deck'],
+ ['stomping-grounds','frost-giant','propaganda','pro-play','mythic-goblin','star-city'],
+ ['cm-games'],
+ ['pastimes','cool-stuff','face-to-face','journeys-end','toamagic','jk','yakata','manatrust'],
+ ['tier-1','strike-zone']
+];
+function marketTile(p){const column=marketColumns.findIndex(ids=>ids.includes(p.id));if(column<0)throw new Error('Unplaced marketplace vendor: '+p.id);
+ const band=p.y<140?0:p.y<210?1:p.y<280?2:p.y<345?3:p.y<415?4:p.y<485?5:p.y<550?6:7;
+ return {...p,x:340+column*33,y:157+band*23,width:29,height:['card-kingdom','stomping-grounds','cm-games'].includes(p.id)?42:19,displayColumn:column,displayBand:band};
+}
+function vendorLabel(name,p,scale){
+ // One screen font, full words. Do not shrink a long vendor to rescue a traced source footprint.
+ const size=12/scale,max=Math.floor((p.width*scale-14)/6.6),lines=[''];
+ for(const word of name.split(' ')){const i=lines.length-1;if(lines[i]&&lines[i].length+word.length+1>max)lines.push(word);else lines[i]+=(lines[i]?' ':'')+word;}
+ return `<text class="vendor-label" x="${p.x+p.width/2}" y="${p.y+p.height/2-(lines.length-1)*size*.625}" text-anchor="middle" dominant-baseline="middle" font-size="${size}">${lines.map((line,i)=>`<tspan x="${p.x+p.width/2}" dy="${i?size*1.25:0}">${esc(line)}</tspan>`).join('')}</text>`;
+}
+Promise.all([fetch('place-content.json?v=3e4db8130f58').then(r=>r.json()),fetch('data.json?v=9450d2fb1fcc').then(r=>r.json())]).then(([content,d])=>{publicEvents=content.events;sourceProducts=content.products;placeProfiles=content.profiles;DATA=d;places=d.zones.map(p=>({...p,kind:'zone',group:group(p)}));Object.assign(byId('c102-spindown'),{x:124,y:91,width:72,height:40});Object.assign(byId('c101-showcase'),{x:16,y:65,width:88,height:48});byId('c101-showcase').short='C101';byId('c102-spindown').short='C102';byId('c104-quiet').short='Quiet';byId('c105-c106-family-spark').short='Family Spark';byId('ticketed-play-on-demand').short='On Demand';byId('magic-experiences').short='Activities';byId('world-championship').short='Worlds';byId('morning-queue').short='Morning Queue';
  Object.assign(byId('morning-queue'),{width:44});Object.assign(byId('magic-experiences'),{x:190,width:138});Object.assign(byId('creator-central'),{x:190,width:138});Object.assign(byId('marketplace'),{x:340,width:295});
- const vendors=d.marketplace.objects.filter(p=>p.kind==='vendor'),mx=compactAxis(vendors,'x','width',350,1190),my=compactAxis(vendors,'y','height',100,605);
- const marketTransform=p=>({...p,x:340+mx(p.x)*295,y:157+my(p.y)*182,width:(mx(p.x+p.width)-mx(p.x))*295,height:(my(p.y+p.height)-my(p.y))*182});
- places.push(...d.marketplace.objects.filter(p=>['vendor','activity'].includes(p.kind)&&p.names.length).map(p=>({...marketTransform(p),name:p.names.join(' / '),group:p.kind==='activity'?'magic-experiences':'marketplace'})));
+ places.push(...d.marketplace.objects.filter(p=>p.kind==='vendor'&&p.names.length).map(p=>({...marketTile(p),name:p.names.join(' / '),group:'marketplace'})));
+ places.push(...d.marketplace.objects.filter(p=>p.kind==='activity'&&p.names.length).map(p=>({...p,name:p.names.join(' / '),group:'magic-experiences'})));
  // Activities share the marketplace registration, retaining aisle and neighbor relationships.
  places.filter(p=>p.kind==='activity').forEach(p=>{const original=d.marketplace.objects.find(q=>q.id===p.id);p.x=190+(original.x-59)*138/288;p.width=original.width*138/288;p.y=157+(original.y-100)*182/505;p.height=original.height*182/505});
  const artTransform=p=>({...p,x:365+p.x*270/1770,y:350+p.y*120/650,width:p.width*270/1770,height:p.height*120/650});
  places.push(...d.artistIslands.map(p=>({...artTransform(p),id:'island-'+p.column+'-'+p.row,name:'Island '+p.column+' · '+p.row+' row',kind:'island',group:'art-of-magic'})),...d.artists.map(p=>({...artTransform(p),kind:'artist',group:'art-of-magic'})),...d.unboundDirectoryArtists.map((p,i)=>({...p,id:'unbound-'+i,kind:'artist',group:'art-of-magic',unbound:true})));
  const facilities=[['wc-west-top','Restrooms · upper west corridor',119,160,'WC'],['wc-west-mid','Restrooms · west corridor',119,325,'WC'],['wc-west-bottom','Restrooms · lower west corridor',119,415,'WC'],['wc-lobby','Restrooms · central lobby',470,124,'WC'],['wc-lobby-east','Restrooms · east lobby',1008,139,'WC'],['wc-southwest','Restrooms · below Free Play',180,480,'WC'],['wc-southcenter','Restrooms · below Creator Central',285,480,'WC'],['wc-southart','Restrooms · below Art of Magic',420,480,'WC'],['information','Information',470,109,'i'],['registration','Registration / badge pickup',780,110,'ID']];places.push(...facilities.map(([id,name,x,y,glyph])=>({id,name,x,y,width:12,height:12,glyph,group:'facilities',kind:'facility',location:name.split(' · ')[1]||'Lobby'})));
  places.push({id:'show-store',name:'Show Store',level:5,room:'Thomas Murphy Ballroom',group:'levels'},{id:'merch-pickup',name:'Ticketed merchandise pickup',level:4,room:'Level 4',group:'levels'},{id:'mana-stage',name:'Mana Stage',level:3,room:'Georgia Ballroom',group:'levels'},{id:'black-lotus',name:'Black Lotus VIP Lounge',level:3,room:'Triumph Ballroom · Signia',group:'levels'});
- places.filter(p=>p.kind==='island').forEach(p=>{const members=places.filter(q=>q.kind==='artist'&&q.column===p.column&&q.row===p.row);p.name=members.length?members.slice(0,2).map(q=>q.name).join(' · '):'Names unavailable';p.location=p.row==='upper'?'Upper artist row':'Lower artist row'});stageSize=[stage.clientWidth,stage.clientHeight];box=fit(frames.floor);render();window.mapStudy={places,choose,go,zoom,pan,getState:()=>({area,selected,box,detailMode}),near,resizeCamera};
+ places.filter(p=>p.kind==='island').forEach(p=>{const members=places.filter(q=>q.kind==='artist'&&q.column===p.column&&q.row===p.row);p.name=members.length?members.slice(0,2).map(q=>q.name).join(' · '):'Names unavailable';p.location=p.row==='upper'?'Upper artist row':'Lower artist row'});stageSize=[stage.clientWidth,stage.clientHeight];box=fit(frames.floor);render();window.mapStudy={places,choose,go,zoom,pan,interactionPolicy,getState:()=>({area,selected,box,detailMode,panelOpen}),dismissPanel,openEvents,near,resizeCamera,eventsAt,openEvent:activateEvent,setPersonalEvents:events=>{personalEvents=events;render()}};
 });
 let stageSize=null;
 function resizeCamera(){const w=stage.clientWidth,h=stage.clientHeight;if(!places.length||!w||!h)return;if(!stageSize){stageSize=[w,h];return}if(stageSize[0]===w&&stageSize[1]===h)return;
- const wasOverview=box[2]>=Math.max(frames.floor[2],frames.floor[3]*stageSize[0]/stageSize[1])-.01;
+ // Preserve the explicit overview intent across intermediate responsive layouts.
+ const wasOverview=overviewCamera;
  const scale=stageSize[0]/box[2],cx=box[0]+box[2]/2,cy=box[1]+box[3]/2;stageSize=[w,h];box=wasOverview?fit(frames.floor):clampCamera([cx-w/scale/2,cy-h/scale/2,w/scale,h/scale]);draw()}
 new ResizeObserver(resizeCamera).observe(stage);

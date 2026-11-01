@@ -4,3 +4,14 @@
 #pan-controls{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:none;gap:4px}#pan-controls button{background:#faf9f4;color:#414b46;border-color:#bbbeb2;min-height:40px;font-size:11px;padding:6px 10px}#pan-controls button:disabled{opacity:.45;cursor:default}
 
 #stage{touch-action:none}#panel{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.zoom button:disabled{opacity:.4;cursor:default}.rows strong{font-size:13px;line-height:1.35}.rows small{font-size:11px}#map text{font-weight:600;letter-spacing:.01em}
+
+.personal-events h3{margin-top:12px}.event-status{font-size:10px;line-height:1.2;padding:4px 6px;border:1px solid #a4a9ad;border-radius:4px;color:#d5d8db;flex-shrink:0}.event-status.paid{background:#efd19b;border-color:#efd19b;color:#3f3118;font-weight:700}.sample-notice{color:#e4c88c;border-bottom:1px solid #45494e;padding-bottom:8px;font-size:11px}.event-detail{padding:4px 0}.event-detail h3{letter-spacing:0;text-transform:none;font-size:13px;color:#f2d59e}
+
+/* Marketplace uses one footprint and label grammar; selection retains the shared gold signal. */
+#map .market-vendor .foot{fill:#d8e2d2;stroke:#84977d;stroke-width:1}#map .market-vendor .chosen{fill:#f0d19a;stroke:#865710;stroke-width:3}#map .vendor-label{font-weight:600;letter-spacing:0;fill:#2e4134}
+
+aside[hidden]{display:none!important}.product-rows{display:grid}.product-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #3e4349}.product-row img{width:52px;height:52px;object-fit:contain;background:#f7f5ed;border-radius:4px}.product-row strong{font-size:13px;font-weight:550}.product-row small{display:block;font-size:11px;color:#bfc3ca;margin-top:3px}.event-detail a{font-size:12px;color:#eed1a0}
+
+#panel .panel-heading{position:sticky;top:-1px;background:#22262b;z-index:2;padding:4px 0}#panel .event-detail{scroll-margin-top:50px}.event-detail [data-clear-event]{font-size:11px;min-height:32px;margin:2px 0 6px}
+
+#panel a{color:#eed1a0}

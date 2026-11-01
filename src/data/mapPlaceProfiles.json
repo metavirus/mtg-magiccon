@@ -1,0 +1,863 @@
+{
+  "artistRoster": "research/precanon/artists/2026-09-25-official-roster.json",
+  "exhibitorCheckpoint": "40231624036",
+  "matchPolicy": "Single exact canonical/source artist name or exact vendor source name; IDs frozen here. No runtime name matching.",
+  "profiles": [
+    {
+      "placeId": "artist-1-0-0",
+      "sourceId": "668813",
+      "name": "Alix Branwyn",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668813",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-0-1",
+      "sourceId": "668852",
+      "name": "Richard Kane Ferguson",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668852",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-0-2",
+      "sourceId": "668819",
+      "name": "Chris Rahn",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668819",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-1-0",
+      "sourceId": "668804",
+      "name": "Cynthia Sheppard",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668804",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-1-1",
+      "sourceId": "668840",
+      "name": "Kieran Yanner",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668840",
+      "offers": []
+    },
+    {
+      "placeId": "artist-1-1-3",
+      "sourceId": "668841",
+      "name": "Leon Tukker",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668841",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-0-0",
+      "sourceId": "668806",
+      "name": "Mark Poole",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668806",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-0-1",
+      "sourceId": "668872",
+      "name": "Ben Hill",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668872",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-0-3",
+      "sourceId": "668869",
+      "name": "Winona Nelson",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668869",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-1-0",
+      "sourceId": "668844",
+      "name": "Martina Fačková",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668844",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-1-1",
+      "sourceId": "668826",
+      "name": "Eli Minaya",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668826",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-1-2",
+      "sourceId": "668845",
+      "name": "Mathias Kollros",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668845",
+      "offers": []
+    },
+    {
+      "placeId": "artist-2-1-3",
+      "sourceId": "668871",
+      "name": "Josiah \"Jo\" Cameron",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668871",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-0-0",
+      "sourceId": "668823",
+      "name": "Daren Bader",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668823",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-0-1",
+      "sourceId": "668857",
+      "name": "Steven Belledin",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668857",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-0-2",
+      "sourceId": "668851",
+      "name": "Randy Gallegos",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668851",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-0-3",
+      "sourceId": "668824",
+      "name": "David Palumbo",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668824",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-1-0",
+      "sourceId": "668809",
+      "name": "Serena Malyon",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668809",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-1-1",
+      "sourceId": "668822",
+      "name": "Danny Schwartz",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668822",
+      "offers": []
+    },
+    {
+      "placeId": "artist-3-1-3",
+      "sourceId": "668837",
+      "name": "Justine Jones",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668837",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-0-0",
+      "sourceId": "668854",
+      "name": "Ryan Pancoast",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668854",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-0-1",
+      "sourceId": "668862",
+      "name": "Thomas Baxa",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668862",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-1-0",
+      "sourceId": "668846",
+      "name": "Mike Bierek",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668846",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-1-1",
+      "sourceId": "668815",
+      "name": "Nino Vecia",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668815",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-1-2",
+      "sourceId": "668821",
+      "name": "Nicholas Gregory",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668821",
+      "offers": []
+    },
+    {
+      "placeId": "artist-4-1-3",
+      "sourceId": "668847",
+      "name": "Olena \"Lena\" Richards",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668847",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-0-0",
+      "sourceId": "668812",
+      "name": "Alessandra Pisano",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668812",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-0-1",
+      "sourceId": "668817",
+      "name": "Bruce Brenneise",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668817",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-0-2",
+      "sourceId": "668814",
+      "name": "Andrea Radeck",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668814",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-0-3",
+      "sourceId": "668818",
+      "name": "Chase Stone",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668818",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-1-0",
+      "sourceId": "668867",
+      "name": "Victor Adame Minguez",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668867",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-1-1",
+      "sourceId": "668848",
+      "name": "Paul Scott Canavan",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668848",
+      "offers": []
+    },
+    {
+      "placeId": "artist-5-1-3",
+      "sourceId": "668849",
+      "name": "phil stone",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668849",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-0-0",
+      "sourceId": "668810",
+      "name": "Aaron Miller",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668810",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-0-1",
+      "sourceId": "668850",
+      "name": "Chris Rallis",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668850",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-0-3",
+      "sourceId": "668825",
+      "name": "Douglas Shuler",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668825",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-1-0",
+      "sourceId": "668842",
+      "name": "Lucas Graciano",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668842",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-1-1",
+      "sourceId": "668858",
+      "name": "Kaja Foglio",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668858",
+      "offers": []
+    },
+    {
+      "placeId": "artist-6-1-3",
+      "sourceId": "668859",
+      "name": "Phil Foglio",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668859",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-0-0",
+      "sourceId": "668827",
+      "name": "Eric Deschamps",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668827",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-0-1",
+      "sourceId": "668832",
+      "name": "Jason Engle",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668832",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-0-3",
+      "sourceId": "668834",
+      "name": "Joe Slucher",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668834",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-1-0",
+      "sourceId": "668856",
+      "name": "Steve Prescott",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668856",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-1-1",
+      "sourceId": "668873",
+      "name": "SchmandrewART",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668873",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-1-2",
+      "sourceId": "668860",
+      "name": "Svetlin Velinov",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668860",
+      "offers": []
+    },
+    {
+      "placeId": "artist-8-1-3",
+      "sourceId": "668866",
+      "name": "Tomas Wanerstrand",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668866",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-0-0",
+      "sourceId": "668835",
+      "name": "John stanko",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668835",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-0-1",
+      "sourceId": "668838",
+      "name": "Kai Carpenter",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668838",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-0-2",
+      "sourceId": "668836",
+      "name": "Josu Solano",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668836",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-0-3",
+      "sourceId": "668839",
+      "name": "kelogsloops",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668839",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-1-0",
+      "sourceId": "668833",
+      "name": "Jeff Miracola",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668833",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-1-1",
+      "sourceId": "668863",
+      "name": "Tyler Jacobson",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668863",
+      "offers": []
+    },
+    {
+      "placeId": "artist-9-1-3",
+      "sourceId": "668868",
+      "name": "Vincent Proce",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668868",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-0",
+      "sourceId": "668870",
+      "name": "Wizard of Barge",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668870",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-1",
+      "sourceId": "668865",
+      "name": "Tyler Walpole",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668865",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-2",
+      "sourceId": "668843",
+      "name": "Mark Tedin",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668843",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-3",
+      "sourceId": "668853",
+      "name": "rk post",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668853",
+      "offers": []
+    },
+    {
+      "placeId": "artist-perimeter-4",
+      "sourceId": "668811",
+      "name": "Alayna Danner",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668811",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-0",
+      "sourceId": "668816",
+      "name": "PINDURSKI",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668816",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-1",
+      "sourceId": "668820",
+      "name": "Chris Seaman",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668820",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-2",
+      "sourceId": "668828",
+      "name": "Evyn Fong",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668828",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-3",
+      "sourceId": "668829",
+      "name": "Gabor Szikszai",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668829",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-4",
+      "sourceId": "668830",
+      "name": "Izzy",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668830",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-5",
+      "sourceId": "668831",
+      "name": "Jarel Threat",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668831",
+      "offers": []
+    },
+    {
+      "placeId": "unbound-6",
+      "sourceId": "668855",
+      "name": "Sam Burley",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/art-of-magic/artist-directory/artist-showroom.html?gtID=668855",
+      "offers": []
+    },
+    {
+      "placeId": "dragon-shield",
+      "sourceId": "671333",
+      "name": "Dragon Shield",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671333",
+      "offers": [
+        {
+          "id": "63969",
+          "title": "Elesh Norn",
+          "price": "30.00"
+        },
+        {
+          "id": "63970",
+          "title": "Jin- Gitaxias",
+          "price": "30.00"
+        },
+        {
+          "id": "63971",
+          "title": "Vorinclex",
+          "price": "30.00"
+        }
+      ]
+    },
+    {
+      "placeId": "heroes-villains",
+      "sourceId": "669991",
+      "name": "Heroes and Villains",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669991",
+      "offers": []
+    },
+    {
+      "placeId": "ultimate-guard",
+      "sourceId": "669997",
+      "name": "Ultimate Guard",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669997",
+      "offers": []
+    },
+    {
+      "placeId": "young-nails-dungeon",
+      "sourceId": "670010",
+      "name": "Young Nails",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670010",
+      "offers": []
+    },
+    {
+      "placeId": "good-games",
+      "sourceId": "670178",
+      "name": "Good Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670178",
+      "offers": []
+    },
+    {
+      "placeId": "misty-mountain",
+      "sourceId": "671331",
+      "name": "Misty Mountain Gaming",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671331",
+      "offers": []
+    },
+    {
+      "placeId": "gatherers-tavern",
+      "sourceId": "670970",
+      "name": "Gatherers’ Tavern",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670970",
+      "offers": [
+        {
+          "id": "63704",
+          "title": "Emrakul ARTY Box",
+          "price": "50.00"
+        },
+        {
+          "id": "63705",
+          "title": "MAGICCON ATLANTA 2026 EXCLUSIVE PLAYMAT: WHISPERS OF THE DEEP",
+          "price": "25.00"
+        },
+        {
+          "id": "63706",
+          "title": "MagicCon: Atlanta 2026 Fblthp Seastruck Gaze Kliggs Keychain",
+          "price": "10.00"
+        },
+        {
+          "id": "63708",
+          "title": "MagicCon Atlanta 2026 KLIGGS Woven Keychain",
+          "price": "15.00"
+        },
+        {
+          "id": "63713",
+          "title": "MagicCon: Atlanta 2026 Exclusive Patches",
+          "price": "10.00"
+        }
+      ]
+    },
+    {
+      "placeId": "tcgplayer",
+      "sourceId": "671382",
+      "name": "TCGplayer",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671382",
+      "offers": []
+    },
+    {
+      "placeId": "magnolia",
+      "sourceId": "671116",
+      "name": "Magnolia Gaming",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671116",
+      "offers": []
+    },
+    {
+      "placeId": "card-kingdom",
+      "sourceId": "669990",
+      "name": "Card Kingdom",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669990",
+      "offers": [
+        {
+          "id": "64321",
+          "title": "Event Exclusive Monarch Coin!",
+          "price": null
+        },
+        {
+          "id": "64322",
+          "title": "Compete in Local Game Show!",
+          "price": null
+        },
+        {
+          "id": "64323",
+          "title": "Special Guests and Artist Signings!",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "stomping-grounds",
+      "sourceId": "670003",
+      "name": "Stomping Grounds",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670003",
+      "offers": []
+    },
+    {
+      "placeId": "cm-games",
+      "sourceId": "670009",
+      "name": "CM Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670009",
+      "offers": [
+        {
+          "id": "63674",
+          "title": "Drop Off Services!",
+          "price": null
+        },
+        {
+          "id": "63677",
+          "title": "Order Pick-Up!",
+          "price": null
+        },
+        {
+          "id": "63680",
+          "title": "Mega Monster Collector Boxes!",
+          "price": "500.00"
+        },
+        {
+          "id": "63681",
+          "title": "Monster Collector Boxes!",
+          "price": "150.00"
+        },
+        {
+          "id": "63687",
+          "title": "Mythic Monster Collector Boxes!",
+          "price": "1000.00"
+        },
+        {
+          "id": "64411",
+          "title": "FREE Star Trek Collectible Pin with Any $50+ Purchase or Trade",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "pastimes",
+      "sourceId": "670336",
+      "name": "Pastimes Incorporated",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670336",
+      "offers": [
+        {
+          "id": "64161",
+          "title": "Get a fantastic PLAYMAT for FREE!",
+          "price": "0.00"
+        },
+        {
+          "id": "64162",
+          "title": "Get a fantastic PLAYMAT for FREE!",
+          "price": "0.00"
+        }
+      ]
+    },
+    {
+      "placeId": "tier-1",
+      "sourceId": "671353",
+      "name": "Tier 1 Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671353",
+      "offers": []
+    },
+    {
+      "placeId": "strike-zone",
+      "sourceId": "670008",
+      "name": "Strike Zone",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670008",
+      "offers": [
+        {
+          "id": "62818",
+          "title": "Collectible Pins",
+          "price": "10.00"
+        }
+      ]
+    },
+    {
+      "placeId": "genesis",
+      "sourceId": "671114",
+      "name": "Genesis Hobbies",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671114",
+      "offers": []
+    },
+    {
+      "placeId": "card-cache",
+      "sourceId": "671341",
+      "name": "Card Cache",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671341",
+      "offers": []
+    },
+    {
+      "placeId": "three-for-one",
+      "sourceId": "669993",
+      "name": "Three for One Trading",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669993",
+      "offers": [
+        {
+          "id": "63536",
+          "title": "Skip the Line",
+          "price": null
+        },
+        {
+          "id": "63537",
+          "title": "Sell & Trade",
+          "price": null
+        },
+        {
+          "id": "63538",
+          "title": "Online Order",
+          "price": null
+        },
+        {
+          "id": "63539",
+          "title": "Fast Lane",
+          "price": null
+        },
+        {
+          "id": "63540",
+          "title": "Collection Drop-Off",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "journeys-end",
+      "sourceId": "671336",
+      "name": "Journey’s End Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671336",
+      "offers": [
+        {
+          "id": "64054",
+          "title": "Make an Appointment!",
+          "price": null
+        },
+        {
+          "id": "64055",
+          "title": "Get a Free Pin!",
+          "price": null
+        },
+        {
+          "id": "64056",
+          "title": "Get up to 35% Bonus in Store Credit!",
+          "price": null
+        },
+        {
+          "id": "64327",
+          "title": "Win a Collector Booster Box!",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "hot-sauce",
+      "sourceId": "671346",
+      "name": "Hotsauce Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671346",
+      "offers": []
+    },
+    {
+      "placeId": "propaganda",
+      "sourceId": "671117",
+      "name": "Propaganda",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671117",
+      "offers": [
+        {
+          "id": "64151",
+          "title": "Get a Quote",
+          "price": "0.00"
+        },
+        {
+          "id": "64159",
+          "title": "Schedule an Appointment",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "collector-legion",
+      "sourceId": "669998",
+      "name": "Collector Legion",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669998",
+      "offers": [
+        {
+          "id": "64224",
+          "title": "Express Lane!",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "laughing-dragon",
+      "sourceId": "671972",
+      "name": "Laughing Dragon MTG",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671972",
+      "offers": []
+    },
+    {
+      "placeId": "pro-play",
+      "sourceId": "670179",
+      "name": "Pro-Play Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670179",
+      "offers": []
+    },
+    {
+      "placeId": "jk",
+      "sourceId": "670838",
+      "name": "J.K. Entertainment",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670838",
+      "offers": [
+        {
+          "id": "63659",
+          "title": "Sell your Cards here - Bonuses for selling your cards to us.",
+          "price": null
+        }
+      ]
+    },
+    {
+      "placeId": "heavy-play",
+      "sourceId": "671113",
+      "name": "Heavy Play",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671113",
+      "offers": [
+        {
+          "id": "63688",
+          "title": "ETB Playmat ART MASTERS x Dan Scott",
+          "price": "90.00"
+        }
+      ]
+    },
+    {
+      "placeId": "game-universe",
+      "sourceId": "670004",
+      "name": "Game Universe",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=670004",
+      "offers": []
+    },
+    {
+      "placeId": "top-deck",
+      "sourceId": "671332",
+      "name": "Top Deck Keep",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=671332",
+      "offers": []
+    },
+    {
+      "placeId": "star-city",
+      "sourceId": "669996",
+      "name": "Star City Games",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/exhibitors/exhibitor-showroom.html?gtID=669996",
+      "offers": [
+        {
+          "id": "62805",
+          "title": "We Pay More for Magic’s Most Wanted!",
+          "price": null
+        },
+        {
+          "id": "62806",
+          "title": "30% Trade Bonus. Get More for Your Cards!",
+          "price": null
+        },
+        {
+          "id": "62807",
+          "title": "Order Ahead, Pick Up at the Event!",
+          "price": null
+        }
+      ]
+    }
+  ]
+}
