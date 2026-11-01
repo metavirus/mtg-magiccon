@@ -1,10 +1,8 @@
 # Current Frontier
 
-## Store and startup release checkpoint
+## Store and startup accepted public checkpoint
 
-Reviewed Store bookmarks, owner-only Bookmarked filtering, noninteractive purple Limit X and quiet image caching are included with independent startup hydration and bounded shell updates. Local phone/desktop/offline PM review and 665 tests pass. The user reported Chicago preview flashing on the live app; the prior local-only result did not fix that deployed origin. This release must pass exact public startup/adoption review before live completion is claimed. No live personal interests were edited. Parked map implementation is excluded. See docs/STORE_BOOKMARK_REVIEW_2026-10-31.md and docs/STARTUP_HYDRATION_REVIEW_2026-10-31.md.
-
-
+Code c694d10 is live: exact682tests/build/integrity checks, CI41279295632, Pages41279295668 and verify:public pass. A full localStorage quota had silently rejected catalog/findings snapshots; complete owner-bound CacheStorage fallback now preserves them without deletion/truncation. Independent PM observed saved Store/60products/two existing bookmarks from CacheStorage at489ms phone and342ms desktop, before the background server read. Actual phone/desktop screens, Bookmarked and rules popup pass. The user's exact IAB legacy shell was also recovered without clearing auth/data/images. See docs/STARTUP_HYDRATION_REVIEW_2026-10-31.md for evidence and test boundaries. Public network-off and physical-iPhone proof remain untested; automated offline/failure/race coverage and exact local server-stop/image-zoom checks passed. Parked map work is excluded from the public release.
 ## Store release checkpoint
 
 Publication/upload/import blocked by automatic approval review pending explicit user approval. Local checks and PM review are complete; source upload and canonical promotion have not run.
