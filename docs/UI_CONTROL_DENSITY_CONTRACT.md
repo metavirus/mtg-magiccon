@@ -67,3 +67,13 @@ Before calling a control or density change complete:
 5. If the new surface is visibly denser or looser than its peers, explain the product reason or normalize it.
 
 The default judgment is consistency. A surface earns an exception through a distinct interaction need, not because its CSS was written later.
+
+## Independent PM handoff gate
+
+Per Kavi's October 31 standing instruction, a reviewer independent of implementation must inspect actual rendered phone and desktop screens before changed UI is handed back. Compare an accepted peer at the same viewport; check computed typography when visual inconsistency is suspected, including active versus inactive states. Fix and re-review basic findings before handoff. Root records the exact reviewed build and remaining limitations. Prototype functionality and build/overflow passes do not approve visual design. Use existing shared control classes, not copied approximate styling. See AGENTS.md for the controlling standing rule.
+
+Compact row review must include real long product names with option metadata, price and status together. Use minimum row heights with natural content growth, never fixed row tracks that squeeze text; square thumbnails stay independently sized. Verify both purchasing lists, not only short search results.
+
+## Persistent browse context
+
+Long grouped lists keep search/filter/view controls and the active group heading visible during scroll. Measure responsive toolbar height rather than hard-code category offsets; the next group pushes out the previous heading. Ancestor overflow must not introduce a non-scrolling container that breaks sticky positioning (use overflow-x:clip for page horizontal containment). Group clipping must preserve sticky headings. Before handoff, scroll through a long group and across a group boundary at phone and desktop widths; test filtering/collapsing while scrolled and verify controls do not obscure rows or bottom navigation. A top-of-page screenshot does not prove this behavior.

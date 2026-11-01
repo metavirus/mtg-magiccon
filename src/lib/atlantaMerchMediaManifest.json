@@ -1,0 +1,1453 @@
+{
+  "detailPolicy": "Faithful WebP quality 90, maximum 2000px, no upscaling. Exact originals archived locally; source URLs retained for online originals.",
+  "packagedBytes": 14983498,
+  "sourcePath": "research/merchandise/2026-10-31/normalized-merch-review.json",
+  "sourceSha256": "063511954e28357faa7de9e726a408c267eb5982c480810e4b55991d59daf2f0",
+  "generatedAt": "2026-11-01T01:53:34.406Z",
+  "images": [
+    {
+      "productKey": "shopify-magiccon-product-15392488980694",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26537-JaceReversibleHoodie.png?v=1792512125",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/89db0f5a29d0b02886d9.png",
+        "sha256": "aaa540e06ddd76905d39ff39b894023dc3983b0317590878dabfc0941bb05a2e",
+        "bytes": 4408064,
+        "width": 2521,
+        "height": 2521
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/89db0f5a29d0b02886d9-detail.webp",
+        "sha256": "ccef2954da42fc8de5705fa6a9d385978526a0e18b08b62d8a03e8b7006159e1",
+        "bytes": 679306,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/89db0f5a29d0b02886d9-thumb.webp",
+        "sha256": "e0901f7fae6bafcb5e7dd9e7410d378fa08d39ee0680f80afeeed8af76c9e908",
+        "bytes": 23896
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392528302294",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26538-MagicConAtlantaKnitPolo.png?v=1792513930",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/a5faccb7ab502c246ee4.png",
+        "sha256": "13ec9fdf827dc37d7d5fdb5070a69825e96753a9a36cd025817f5234718bf90c",
+        "bytes": 6653720,
+        "width": 2880,
+        "height": 2880
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/a5faccb7ab502c246ee4-detail.webp",
+        "sha256": "1376f03f25fe72165b0888a2df71298977b8b4e94807ef9fc1f41ee526b0e1a7",
+        "bytes": 480634,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/a5faccb7ab502c246ee4-thumb.webp",
+        "sha256": "479f53898b35e49608b56d2ba06f73ec7268995bbd359799eff4d3377c322d7f",
+        "bytes": 11976
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392531710166",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26539-MagicConAtlantaTrackJacket.png?v=1792514161",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/3e3ee18d06d729acf567.png",
+        "sha256": "6e01d70282d05baa893090e0928ff1af5a5902cb4d50181a8ca6f9bae609afbf",
+        "bytes": 9545799,
+        "width": 2880,
+        "height": 2880
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/3e3ee18d06d729acf567-detail.webp",
+        "sha256": "0fb360b6da96e28f3eb8af3b24106851681b166524a39c381e4ae0d8c8c9462e",
+        "bytes": 411384,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/3e3ee18d06d729acf567-thumb.webp",
+        "sha256": "9c6835b11b510f74810a1dc1efdf64e1f96c101e7a33c7ccd77ea7749925e5ea",
+        "bytes": 15004
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392535150806",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26540-MagicConAtlantaSnapbackHat.png?v=1792514255",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/15adfe93d677ca5175cb.png",
+        "sha256": "b18be5e88af599fba56f5f3563acf3df63be5a02a2cda9081aa92b2ed8a0bb44",
+        "bytes": 6867243,
+        "width": 2880,
+        "height": 2880
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/15adfe93d677ca5175cb-detail.webp",
+        "sha256": "88affaa4013ffc58af78eb58ac1f952ecde1f5b1199250f5ac65af8a76997f9e",
+        "bytes": 487658,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/15adfe93d677ca5175cb-thumb.webp",
+        "sha256": "464b4cb6bfd279c57562c4c5ba670995a4160d2f1cd5ed4e1234929bfdffdd41",
+        "bytes": 12270
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392556286166",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26501-MagicConAtlanta2026LogoFullZipHoodie.png?v=1792515394",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/66ee4818fdb0b327be60.png",
+        "sha256": "7d574754762708e0eb41aa066651eaa55d41fca0722af50380fff33439e13468",
+        "bytes": 3090409,
+        "width": 3270,
+        "height": 3270
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/66ee4818fdb0b327be60-detail.webp",
+        "sha256": "a7941a8019f30171071003cf744af72cbd5ab8e8cde48f8e8785eb20b9230c85",
+        "bytes": 170186,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/66ee4818fdb0b327be60-thumb.webp",
+        "sha256": "35f1d943ee345beb8001abe1994a83523a7d652f0321daee98f8b6f585570e09",
+        "bytes": 10116
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392559726806",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26509-MagicConAtlanta2026FeatureArtFullZipHoodie.png?v=1792515667",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/a7f4ba96116aeeae0a77.png",
+        "sha256": "0ed2d807dc0bef5066e4a1075fe250219bd60c564d319ea79de869d49eece9c7",
+        "bytes": 2490127,
+        "width": 4040,
+        "height": 4040
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/a7f4ba96116aeeae0a77-detail.webp",
+        "sha256": "dd3c34d7cbd95bbf9e38b8d6c9be1e1f6b8b9a1bbc80783378a3f97ec2c69310",
+        "bytes": 255438,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/a7f4ba96116aeeae0a77-thumb.webp",
+        "sha256": "344575e5e8fa67125e0fb9c9d5253481aa40c2cc66cfbea078ed5353aec7985b",
+        "bytes": 13248
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392560840918",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26515-MagicConAtlantaManaRepeaterCrewneck.png?v=1792515970",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/eeda808ae8d47515c389.png",
+        "sha256": "618f599383b6f98859cd0206a28f1c57a7ac79aea2661c51a6cd48d6fe187bf9",
+        "bytes": 936877,
+        "width": 3059,
+        "height": 3058
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/eeda808ae8d47515c389-detail.webp",
+        "sha256": "8b1d1d43bffb260f6db98dc46501e340b1261e4440906c23f60cb5471a14f8f3",
+        "bytes": 140334,
+        "width": 2000,
+        "height": 1999
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/eeda808ae8d47515c389-thumb.webp",
+        "sha256": "7c1ac4ebbd596de9974390591fc4fc4d3e7241b3fe99c61f7fb93cfeaaed34b4",
+        "bytes": 11182
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392561987798",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26547-HoodedCardigan.png?v=1792516256",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/1df23331192239004b80.png",
+        "sha256": "b8d13cafbfe00ec30fa7b071a0590543694eef9bcaafec3287b767e70846bbbd",
+        "bytes": 6378039,
+        "width": 3478,
+        "height": 3478
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/1df23331192239004b80-detail.webp",
+        "sha256": "0f0bfe836c62c0e903e4215c2f934a8f85f45560eb8e7eb49ca5a1b28a2bb0c6",
+        "bytes": 362720,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/1df23331192239004b80-thumb.webp",
+        "sha256": "87c0fc42eb9e556a798da69f8a303410543d68b63ffa016cd8b5f3ecb6105f89",
+        "bytes": 14132
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392564543702",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26500-MagicConAtlanta2026LogoUnisexT-Shirt.png?v=1792516365",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/779bbe9ca84cfc1b7537.png",
+        "sha256": "78a9557405833c77345eade375a5e5fc1b0f33859939576c731e4f6b0bb6a52c",
+        "bytes": 1341480,
+        "width": 3122,
+        "height": 3123
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/779bbe9ca84cfc1b7537-detail.webp",
+        "sha256": "0523044d6794d8d58e3b0838e089fefefa11f4082efed00601ab24af37ec9eb4",
+        "bytes": 110896,
+        "width": 1999,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/779bbe9ca84cfc1b7537-thumb.webp",
+        "sha256": "3af34a404aff5491ce62eaf824ebdd8de9274822630e1893f9c020a09378db61",
+        "bytes": 10078
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392570671318",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26508-MagicConAtlanta2026FeatureArtUnisexT-Shirt.png?v=1792516761",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/9f8a800b14fbb4ca8974.png",
+        "sha256": "c41bade15622e283f5a9b97acf146c15f8575647fbb4e4229e0619864b987e86",
+        "bytes": 1266227,
+        "width": 3152,
+        "height": 3153
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/9f8a800b14fbb4ca8974-detail.webp",
+        "sha256": "2645a9a9441bb993315c29d69573d0e35539132ce23b91118093f7305a11344b",
+        "bytes": 236462,
+        "width": 1999,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/9f8a800b14fbb4ca8974-thumb.webp",
+        "sha256": "5f4e9f99f196c50aa0e78072fa20448447e72611f2354287a23e89ed9948208b",
+        "bytes": 12414
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392572965078",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26517-MagicConAtlantaTarotCardT-Shirt.png?v=1792517045",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/734bbf359f4dea3b1ef9.png",
+        "sha256": "14a11f94097ba219a66a47b5a97f8a778ddc440960a20336795a960e3a89bf60",
+        "bytes": 1574373,
+        "width": 3168,
+        "height": 3167
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/734bbf359f4dea3b1ef9-detail.webp",
+        "sha256": "9e554f3111c42c94ae2a707ffefbcca8e50d4c01557ed2a58db41b8f2ded5551",
+        "bytes": 171898,
+        "width": 2000,
+        "height": 1999
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/734bbf359f4dea3b1ef9-thumb.webp",
+        "sha256": "84ab6a54f800f92350c972a8c516ad0f402ee47ee15c1c5be9f0b4f48e4ced7d",
+        "bytes": 11176
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392574537942",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26514-MagicConAtlantaManaRepeaterT-Shirt.png?v=1792517190",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/96085cfa21f2f683c893.png",
+        "sha256": "8ecc76cc011b23e69618ba6cbe60b6ec0084b5e3219402e7d4da62df2fa67c31",
+        "bytes": 791697,
+        "width": 3158,
+        "height": 3157
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/96085cfa21f2f683c893-detail.webp",
+        "sha256": "778e7a46c5ecba1a3dae2c3e535972ca5c090133f0c0eecdb8fe9d9748634295",
+        "bytes": 104278,
+        "width": 2000,
+        "height": 1999
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/96085cfa21f2f683c893-thumb.webp",
+        "sha256": "6be8b5a733b26a7d14e938317b3791eb3a510b4f03ff70b20b1ed85c0a26d0d3",
+        "bytes": 9674
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392575586518",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26516-Tezzeret_sEtheriumEmporiumT-Shirt.png?v=1792517321",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/b5c8f7f5e08b28c03b89.png",
+        "sha256": "0ea647804cb4718f6f6a1160504e08cb62b7c1c861da6a7587154a4723675f9b",
+        "bytes": 2905633,
+        "width": 3176,
+        "height": 3176
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/b5c8f7f5e08b28c03b89-detail.webp",
+        "sha256": "72b69c973e43dee65205b87e1d2b356ed064cfbac71c07a9b17dc751c4188924",
+        "bytes": 228072,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/b5c8f7f5e08b28c03b89-thumb.webp",
+        "sha256": "725f2ea7dc43a17f60593a68f715d146b9fbac90f2612b2539bf631dd81608e1",
+        "bytes": 12036
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392578371798",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26517-MagicConAtlantaMascotsT-Shirt.png?v=1792517456",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/b8e59e7a5e6d9af355e2.png",
+        "sha256": "7ef47e18fc11b3a64546323ae2f9f80f4f0b95942e4bb47a0b6f8b7f7c1d0a60",
+        "bytes": 2044387,
+        "width": 3084,
+        "height": 3085
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/b8e59e7a5e6d9af355e2-detail.webp",
+        "sha256": "8e2f17f38a1c7d0f17e63117096beb4ba1931f8e9d9b973e831578b2531fa662",
+        "bytes": 173160,
+        "width": 1999,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/b8e59e7a5e6d9af355e2-thumb.webp",
+        "sha256": "a6243d66a0fc7aa329c0fdd4a49635aa4dc354e9f2835f516fb74a105a8b35f1",
+        "bytes": 12882
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392578830550",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26524-MagicConAtlantaMetalT-Shirt.png?v=1792517627",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/67ba64f4f466feedea34.png",
+        "sha256": "c3d6a9b9d5839da3c2ab07e0077678d49819bfd2cc8b77fd9ec1ab94a861861b",
+        "bytes": 755105,
+        "width": 3078,
+        "height": 3079
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/67ba64f4f466feedea34-detail.webp",
+        "sha256": "464587fb9e971d158b8fbd72f288ccc5c93a2acd3f66688b4e41fbbdeffe7aca",
+        "bytes": 116042,
+        "width": 1999,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/67ba64f4f466feedea34-thumb.webp",
+        "sha256": "d810df8db081e41a0f294c99c0aa1b1af25fd2b006797a3debaede9f5108c03a",
+        "bytes": 10164
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392580567254",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26518-MagicConAtlantaGooseHydraT-Shirt.png?v=1792517788",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/fc21cf4a9a97de455002.png",
+        "sha256": "3a0f877e715ae747e7e3f317ae773da59ed5121b98e2940211a294cf0073d431",
+        "bytes": 1179810,
+        "width": 3064,
+        "height": 3064
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/fc21cf4a9a97de455002-detail.webp",
+        "sha256": "6fc3392d754301a3150bcac3a63400714d740dc02e2f2dcc59d866d1fbf719fe",
+        "bytes": 156630,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/fc21cf4a9a97de455002-thumb.webp",
+        "sha256": "a9decbca5821e4542f30b7df5fe10c2fa97fb25e3aea7279b2fca5b89c72931d",
+        "bytes": 11746
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392581910742",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26543-MagicConBlueMonochromeT-Shirt.png?v=1792518070",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/cc2cce66983e973516d2.png",
+        "sha256": "71d407a203b0c02854e2245d19b7f31b6da8d2236016913a73c89a33be587c61",
+        "bytes": 1421168,
+        "width": 3092,
+        "height": 3093
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/cc2cce66983e973516d2-detail.webp",
+        "sha256": "0a1b235050fb9eac064abee646dc64e5a886efd7e53e019a042364a4c87bd4c9",
+        "bytes": 226324,
+        "width": 1999,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/cc2cce66983e973516d2-thumb.webp",
+        "sha256": "7c4443095c5c2533046b8bc606181ca9384b6f720725dadf814229eafd88c361",
+        "bytes": 13030
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392587612374",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26504-MagicConAtlanta2026LogoDadHat.png?v=1792518558",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/4e34544e41796a3d4a28.png",
+        "sha256": "80b551c292ed238ad0ec1b24f8fd07ff9738cbe5fc8feb594a533a53ba3770ce",
+        "bytes": 2086422,
+        "width": 2683,
+        "height": 2683
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/4e34544e41796a3d4a28-detail.webp",
+        "sha256": "7266003b7b3c8a081f48999a519888f1abf92296a6f17d2019aa44a93a166180",
+        "bytes": 230482,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/4e34544e41796a3d4a28-thumb.webp",
+        "sha256": "c8b2895396e92c207b93da69a2b71a85b0d71c4d97e390ef890e804911d81331",
+        "bytes": 10832
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392588398806",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26503-MagicConAtlanta2026LogoMagnet.png?v=1792518711",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/39f396e92371ac2dab5e.png",
+        "sha256": "b1913f3b5034cc87bb0e85ef73d2400fe665e622170c1e3e71bc39ea85aca227",
+        "bytes": 77477,
+        "width": 1355,
+        "height": 1356
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/39f396e92371ac2dab5e-detail.webp",
+        "sha256": "d3a88a5c4e1be8271e7bcc9e113d813dfd59b4e5d953755cd7ef112beba69e16",
+        "bytes": 42828,
+        "width": 1355,
+        "height": 1356
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/39f396e92371ac2dab5e-thumb.webp",
+        "sha256": "1065fb7ed1c7791558ce9a7f7c69cb01bbc6511830a8e3bbf89d7e6284256680",
+        "bytes": 8984
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392588824790",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26504-MagicConAtlanta2026LogoPatch.png?v=1792518789",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/1dfca248a35ee8f37ea4.png",
+        "sha256": "5942899cbb197a5f26ee81be74dee06d7a842a5577b4fbf11361dceab2c175da",
+        "bytes": 534635,
+        "width": 1804,
+        "height": 1805
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/1dfca248a35ee8f37ea4-detail.webp",
+        "sha256": "589a4a92ea822ded4f2ceba47337be86039596c46899711794d4a22bf7bd8354",
+        "bytes": 182494,
+        "width": 1804,
+        "height": 1805
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/1dfca248a35ee8f37ea4-thumb.webp",
+        "sha256": "95eb71121b2e01f35eb4a1f6cb86937c0aef60a61ecf28bf6a84caadc57f84ac",
+        "bytes": 15280
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392949600470",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26507-MagicConAtlanta2026LogoTote.png?v=1792520556",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/5a144c96de24872e06c0.png",
+        "sha256": "50f764988458246b8ea72064afd48f83964d1f4da17e30d6b37081b1d1ba4f40",
+        "bytes": 659734,
+        "width": 3007,
+        "height": 3007
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/5a144c96de24872e06c0-detail.webp",
+        "sha256": "44ca30e577cf55ad48e8315e74172484355dd69c2b4be494747626ab6fbcf285",
+        "bytes": 94462,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/5a144c96de24872e06c0-thumb.webp",
+        "sha256": "744195e6a9c090146a56ca66c5304a71df7e358f5dc010457c0d00856e3d4d8a",
+        "bytes": 8400
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393016774870",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26512-MagicConAtlanta2026Lanyard.png?v=1792520663",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/84046d841ed80d6e310b.png",
+        "sha256": "7a9d3940aca35c52bd022cbd0289abaa0c0a78c6471682ab2fb25adc0901f367",
+        "bytes": 348511,
+        "width": 1438,
+        "height": 1438
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/84046d841ed80d6e310b-detail.webp",
+        "sha256": "2b71d6e77919e86e7d17192c123766bce0027f19862d27cb39aed98a8f489c8e",
+        "bytes": 75068,
+        "width": 1438,
+        "height": 1438
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/84046d841ed80d6e310b-thumb.webp",
+        "sha256": "59f4738a128bbad26c4c9b8a5933fb89a15ada9757fa41f9364a692321e5877c",
+        "bytes": 11092
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393533395158",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26525-MagicConAtlantaMetalPatch.png?v=1792523118",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/044563521e60bf08d930.png",
+        "sha256": "0d32edb10c4896a4b6d42599efc457e3db51fd663b68a1a800fe6e123dd1ee0e",
+        "bytes": 568014,
+        "width": 1714,
+        "height": 1713
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/044563521e60bf08d930-detail.webp",
+        "sha256": "eb453972dae20885c75627230ea9445bcc5d1f27c169355440f9d64edf8021cc",
+        "bytes": 201684,
+        "width": 1714,
+        "height": 1713
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/044563521e60bf08d930-thumb.webp",
+        "sha256": "76f905ff78db12fe50c785f22d62a8d6caf487953b46a6d4028368725d1ae75f",
+        "bytes": 20396
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393637531862",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26521-MagicConAtlanta2026EventPlaymat.png?v=1792523354",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/4ea9a388847a6be228b6.png",
+        "sha256": "9088fce38eba621cd7a7ff526ff84ada4e612a4b51ff54540d63ebef79572058",
+        "bytes": 11830348,
+        "width": 3955,
+        "height": 3955
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/4ea9a388847a6be228b6-detail.webp",
+        "sha256": "5336f221205be7c22b351b958ea7433d64d860b97565d1fc322f6f160d431c8f",
+        "bytes": 332630,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/4ea9a388847a6be228b6-thumb.webp",
+        "sha256": "c4c798d27abebbaf4a77b84228295e5e26f14830d820c1196aa62c535a523131",
+        "bytes": 16050
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393673281750",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26544-WayoftheDeathbringerPlaymat.png?v=1792523467",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/a33d01c6e077b2be9184.png",
+        "sha256": "1c37c670980d043a2c730e0be745f03dfc8b7646d6e37c149c078af9c03c607a",
+        "bytes": 3858099,
+        "width": 3000,
+        "height": 3000
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/a33d01c6e077b2be9184-detail.webp",
+        "sha256": "6c50b0ff99199150b78e44f898bd721dc7f6e145cbb88c55032d0fe2b3aa52da",
+        "bytes": 283688,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/a33d01c6e077b2be9184-thumb.webp",
+        "sha256": "1488077195ea066b5fe9930209f65cf701ab81e2be2e57bdcff98a39264259a3",
+        "bytes": 14234
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393708703958",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26527-MagicConAtlanta2026FeatureArtWovenThrow.png?v=1792523544",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/457f029b69fe2c4e0517.png",
+        "sha256": "7ccfe509a01e66ae609fdac5146b41c022e27ded3b520f75bc3c45b2c4b2c0ff",
+        "bytes": 4282563,
+        "width": 2955,
+        "height": 2955
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/457f029b69fe2c4e0517-detail.webp",
+        "sha256": "4989e633a39815846cafec15ffd27e6bb12f2bf1fee51509a8437e4501ec9e04",
+        "bytes": 791986,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/457f029b69fe2c4e0517-thumb.webp",
+        "sha256": "21ef2389738f0657b5fa20dc6e46fd2079d8547af6cb0766731c22c079fe525e",
+        "bytes": 31712
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393715093718",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26530-MagicTheGatheringxRockLoveBlackLotusSignetRing_81a5ac7a-8341-4768-a7b7-b264a038059e.png?v=1792524427",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/222ce90bb9b36f68e8c0.png",
+        "sha256": "c487d593247953a1db715f997c34790cfbfa236a51c5fb19683a480c4fb3445c",
+        "bytes": 8243008,
+        "width": 4150,
+        "height": 4150
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/222ce90bb9b36f68e8c0-detail.webp",
+        "sha256": "733fd6935c58682c5a3e146d7ea63b7ecc3a3f85bfaf0a092888ff25de5326a9",
+        "bytes": 271204,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/222ce90bb9b36f68e8c0-thumb.webp",
+        "sha256": "02ce8c6f07741e853f76ea43acca32236e2d035ef1f73c35d5e91d195bfd8f0b",
+        "bytes": 17336
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393883783382",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26529-MagicTheGatheringxRockLoveBlackLotusMeallionNecklace.png?v=1792524536",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/700127aa71a9f7cca174.png",
+        "sha256": "3195112677ddccced5561f7f6d15bb8b4d151a5709ced6d28980185aa7030d66",
+        "bytes": 6880657,
+        "width": 4150,
+        "height": 4150
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/700127aa71a9f7cca174-detail.webp",
+        "sha256": "6410b18972835e0f442116a4ee5311f70ce729387a7e7da67298d7998736a406",
+        "bytes": 260964,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/700127aa71a9f7cca174-thumb.webp",
+        "sha256": "ffe31c016ab93de125121cfa3b0cba41f45f0c15c16575d4015b598204eaa8a9",
+        "bytes": 14760
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393953186006",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26531-MagicTheGatheringxRockLovePipMeallionNecklace.png?v=1792525650",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/f62b9e63008c68dd7898.png",
+        "sha256": "46897978d49b2b6d2b8f353f1f6acdd42c626185d736881170c06b174c3650fa",
+        "bytes": 4355854,
+        "width": 2778,
+        "height": 2779
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/f62b9e63008c68dd7898-detail.webp",
+        "sha256": "c8f5f2cd2a290f1ae3eb9f63f5926ea010fbd8b23635f33350854986a9d263e1",
+        "bytes": 352472,
+        "width": 1999,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/f62b9e63008c68dd7898-thumb.webp",
+        "sha256": "8c315b3e044d04937057eb7252e364d4096243f3eef997f6dd509a8ce8585f12",
+        "bytes": 17378
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393954955478",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26532-MagicTheGatheringxRockLovePipSignetRing.png?v=1792525871",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/f13bf486c53c8d898d82.png",
+        "sha256": "b28f7c41370afe9c4d678c6176c24c066f3dee0a49f6d5a5d74af0389a03ce6d",
+        "bytes": 3310611,
+        "width": 2367,
+        "height": 2367
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/f13bf486c53c8d898d82-detail.webp",
+        "sha256": "c57d0ee1833add9e5d181ffa8665e819a7db2ffa95bbc0c346392d3c349779d4",
+        "bytes": 235118,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/f13bf486c53c8d898d82-thumb.webp",
+        "sha256": "0e122cd31e135c8e8a254e87ccd461e8b1f1cd571f6017d7e991d4dcf1f81075",
+        "bytes": 13652
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396366745814",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26533-EyeofJaceLiquidCore55mmSpindown_a4a2854d-053b-4606-836c-3f800b4986da.png?v=1792612498",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/6c5cc43af4f67220f054.png",
+        "sha256": "61cf624d31a8563fe9e4992f8d2f10947057f11ccb0166a3d8d330245068caf9",
+        "bytes": 569340,
+        "width": 970,
+        "height": 970
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/6c5cc43af4f67220f054-detail.webp",
+        "sha256": "4d6f8ece26914d15ca4df3ab9158363040aea9f8b7955a80f0c30cacddb4cac5",
+        "bytes": 74502,
+        "width": 970,
+        "height": 970
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/6c5cc43af4f67220f054-thumb.webp",
+        "sha256": "582f2b186bd726191f520c91f165f03757952a8e4e973ec8c30ab73fb03370cd",
+        "bytes": 12588
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396367499478",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26536-ChildrenoftheNameless_TradeEdition.png?v=1792612209",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/07111252f88eecf6fdc8.png",
+        "sha256": "be2a529269f08bd817e40ca54d55317881abcf3b27b2630532ddc27c0e6ddb3d",
+        "bytes": 401300,
+        "width": 640,
+        "height": 640
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/07111252f88eecf6fdc8-detail.webp",
+        "sha256": "ff23f83e88a28dc04a2ed042c40b4f7301a824c7909272a7d89465d4514867dc",
+        "bytes": 65660,
+        "width": 640,
+        "height": 640
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/07111252f88eecf6fdc8-thumb.webp",
+        "sha256": "3cdbfda9417d96f1cb15e40c11c327098759c1497bf31f8120f777e72e0fca51",
+        "bytes": 16442
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396369039574",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26545-GeometricRuneReusableBag.png?v=1792612403",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/2dd2e33b11c0278df431.png",
+        "sha256": "64c7a3d225f24b200bb11b34efdf10a0ca463e20f5aee6bb3fb51a3fe8725e95",
+        "bytes": 1103669,
+        "width": 3031,
+        "height": 3030
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/2dd2e33b11c0278df431-detail.webp",
+        "sha256": "967fe483e5d1742f1bd90e52ddb003f6c51eeafbbae5e0eb801ebbda0b4485ca",
+        "bytes": 236366,
+        "width": 2000,
+        "height": 1999
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/2dd2e33b11c0278df431-thumb.webp",
+        "sha256": "70c135cc6eacf6ca2582b91ce7e5545e7e4410fcfef1dac32b60ce8b807e3545",
+        "bytes": 16030
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396369891542",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26546-Gatherers_TavernEmrakulARTYBox.png?v=1792612580",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/992ad019362caedff833.png",
+        "sha256": "8da0ce8e9e13941516c945105a463c0c14efb83d5d0f912b40ef84a96fc3d08e",
+        "bytes": 5712317,
+        "width": 2337,
+        "height": 2337
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/992ad019362caedff833-detail.webp",
+        "sha256": "a628f488b736a23ec00ecc367c99bf69810c2a24768bb9dfdafdfedd882b0419",
+        "bytes": 672050,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/992ad019362caedff833-thumb.webp",
+        "sha256": "6333366626832ce0580b67359521f9d87bf82898c9f503428856a25f86313fe5",
+        "bytes": 23154
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396370383062",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26548-MoxPearlLanyard_Pin.png?v=1792612697",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/ef91b2774437ae42e431.png",
+        "sha256": "dc7a9e044a4365088bab33b38d0de6a9bfe142fee2e5d68539512769d97b9ada",
+        "bytes": 1652579,
+        "width": 2538,
+        "height": 2537
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/ef91b2774437ae42e431-detail.webp",
+        "sha256": "73be6584a2f3d9eb15ad5efb8559b95395b1e22cbd6fd6c37781e22e0e6e5711",
+        "bytes": 197534,
+        "width": 2000,
+        "height": 1999
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/ef91b2774437ae42e431-thumb.webp",
+        "sha256": "a0749cc885b0996b6607aad92456820f7ec197511aa00e91b0261c4a2f8e522e",
+        "bytes": 10182
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396372480214",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26535-FblthpPuffBallSquishableKeychain.png?v=1792612806",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/52462568544a2ac1fd68.png",
+        "sha256": "3db10afa1ab8161bc67f4dafae56265dafb5a6e20739e809884908c8e8099536",
+        "bytes": 816520,
+        "width": 1090,
+        "height": 1090
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/52462568544a2ac1fd68-detail.webp",
+        "sha256": "0763c5309e524caf254901188fac6a76cc129ae5f09ff3b317fbc71b9529e9d8",
+        "bytes": 127926,
+        "width": 1090,
+        "height": 1090
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/52462568544a2ac1fd68-thumb.webp",
+        "sha256": "ee2bb97d3db1d54defb17be93ae931b18c96fe6be9167f3f0514c8874ac08a41",
+        "bytes": 12522
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396381655254",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26507-MagicConAtlanta2026LogoPin.png?v=1792613074",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/ef5dea989fc4c0f054e2.png",
+        "sha256": "6bd390e005755a2937ce8d21cd0f939fc912c27f5de7165c17eaa33677fbc602",
+        "bytes": 122455,
+        "width": 604,
+        "height": 604
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/ef5dea989fc4c0f054e2-detail.webp",
+        "sha256": "4cbe12c69a816dc5622ae1ae98e2154f1e13ce0a1042401ca492fb947fc9614f",
+        "bytes": 25512,
+        "width": 604,
+        "height": 604
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/ef5dea989fc4c0f054e2-thumb.webp",
+        "sha256": "f5342ea3bb3ff32bc626c519a54e3a6e04b4d6800d06f4b8d5cc5ab4539b9a1d",
+        "bytes": 10726
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396383260886",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26511-MagicConAtlanta2026FeatureArtPin.png?v=1792613208",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/8e9bb6d5dbb13034d329.png",
+        "sha256": "298ed0fb51b9a4a82a4b496966143dc1078fd4fc806de07ea8f19b206167e89f",
+        "bytes": 333226,
+        "width": 569,
+        "height": 569
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/8e9bb6d5dbb13034d329-detail.webp",
+        "sha256": "034b07b2b45c8884626ad7604405e1080b3835803757c36431ba4425c84ff2e9",
+        "bytes": 79030,
+        "width": 569,
+        "height": 569
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/8e9bb6d5dbb13034d329-thumb.webp",
+        "sha256": "6e7edf1895db82bf7989d07a4660a46404ec7b9395bb9b2ee53cfc090eb88906",
+        "bytes": 28172
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396384506070",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26519-MagicConAtlantaMysteryPinPack.png?v=1792613278",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/81f1e88b023b115f04d5.png",
+        "sha256": "8cd832d6d5aae2006c9ef68cfa3974ff818db575a589ff17de863537bc36cee2",
+        "bytes": 241294,
+        "width": 1377,
+        "height": 1377
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/81f1e88b023b115f04d5-detail.webp",
+        "sha256": "fade9f5942d65d7e2b84269ec43443f8e161a09279934f95c131bfc5d048abf0",
+        "bytes": 48136,
+        "width": 1377,
+        "height": 1377
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/81f1e88b023b115f04d5-thumb.webp",
+        "sha256": "1e9bc513f23321610d725a1e8e20150dbfb817d75b56d2968c832bfcebb738ff",
+        "bytes": 6574
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396387356886",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26533-EyeofJaceLenticularPin.png?v=1792613353",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/5156673e58d5af263a68.png",
+        "sha256": "c4a96a40462094dca60ce4a91965310a150c61cb47dcdffde08e732ae8dd480e",
+        "bytes": 566525,
+        "width": 1154,
+        "height": 1154
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/5156673e58d5af263a68-detail.webp",
+        "sha256": "2b61f635821390afa4c3adb0e8a127a2eadcfbd5275a2354047f6cf0bbb530ab",
+        "bytes": 76024,
+        "width": 1154,
+        "height": 1154
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/5156673e58d5af263a68-thumb.webp",
+        "sha256": "12221e05b2478ee660822d99131e9a8bf562745e2314a6440c2d0c2c33ba5aec",
+        "bytes": 11024
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396395155670",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26528-TinybonesGeekiTiki.png?v=1792613689",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/dabb6904a009b9454546.png",
+        "sha256": "51d41bf69492be9718be18a67858c20c0c4d5f2e7e2a9786e21cdd6988bf3ae3",
+        "bytes": 2117093,
+        "width": 2184,
+        "height": 2184
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/dabb6904a009b9454546-detail.webp",
+        "sha256": "78aa54b98de7febd80ebbcac746f5e6e272031fa7a607847a6eeb68aaf6c2e90",
+        "bytes": 176454,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/dabb6904a009b9454546-thumb.webp",
+        "sha256": "e6d3627f04b2285fadf29deeaf2065db4687cb6fb2dbbdd82666dfe9e988d4f2",
+        "bytes": 13172
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396395974870",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26542-CantripCandle-MoxPearl_f4dbb22a-d2ee-4a89-a47b-ab39093b9f00.png?v=1793218044",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/338642622d6ac7b2aa3d.png",
+        "sha256": "29a6118d41b9261d386640c25bbab10946a7c1b27dda493e26f9302cab788c1f",
+        "bytes": 1274202,
+        "width": 1500,
+        "height": 1500
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/338642622d6ac7b2aa3d-detail.webp",
+        "sha256": "94f106f94c5940539d203c8ef0602faf9871d01e57b7e3c56f0110a5aa122d95",
+        "bytes": 222240,
+        "width": 1500,
+        "height": 1500
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/338642622d6ac7b2aa3d-thumb.webp",
+        "sha256": "7f607ac8fb35967a7d43a46cf9340e0af9fb8ea60783ae9c5a7791eb20f1bdd4",
+        "bytes": 18152
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396401447126",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26506-MagicConAtlanta2026LogoSticker.png?v=1792614072",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/21f03f418645797cef81.png",
+        "sha256": "ec5d74f0e7aa27b9fbc819c6e09a524ef058c5151dcb1b4fd21e9b1a70e12d14",
+        "bytes": 84185,
+        "width": 1439,
+        "height": 1439
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/21f03f418645797cef81-detail.webp",
+        "sha256": "c8c348a184188a212cf4ae392362d47c89864fc29c250e1e8d21e5670cf5f92e",
+        "bytes": 45822,
+        "width": 1439,
+        "height": 1439
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/21f03f418645797cef81-thumb.webp",
+        "sha256": "f3977f5bc1d692e18ea915c57bf82b1dfb13a861bd03a6281e44f2fddc15d2bd",
+        "bytes": 8906
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396401545430",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26510-MagicConAtlanta2026FeatureArtSticker.png?v=1792614178",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/9224ffbc52c754a676b0.png",
+        "sha256": "4fad10e26c796989bb026c314b299c606f0b6aff28ef5e74b631f2d91cd61323",
+        "bytes": 593103,
+        "width": 1412,
+        "height": 1411
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/9224ffbc52c754a676b0-detail.webp",
+        "sha256": "61d6de87804f990b2b6f0328cfb2dd0bd10eb8b54dcacf613c7d6e7971bef55a",
+        "bytes": 258804,
+        "width": 1412,
+        "height": 1411
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/9224ffbc52c754a676b0-thumb.webp",
+        "sha256": "30f3b309a230b21b8c65272928267654c3d1b5c7a4d89d76e8f6dd918162a024",
+        "bytes": 24286
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396401643734",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26526-MagicConAtlantaMetalSticker.png?v=1792614231",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/0a2a31eb11692f9426da.png",
+        "sha256": "bff3992394ddf6e58da70d60080e06e6579108a8786d4942d7a2ee9c9734df96",
+        "bytes": 173668,
+        "width": 1232,
+        "height": 1231
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/0a2a31eb11692f9426da-detail.webp",
+        "sha256": "5b84685131eefde269b41d6f04bb87e9e58c7cf554c353648c05330ac1a49c1a",
+        "bytes": 81312,
+        "width": 1232,
+        "height": 1231
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/0a2a31eb11692f9426da-thumb.webp",
+        "sha256": "23aadf42a78e57aa72d9605b2734d0e49392516f144bd89fa8021759553f9a6e",
+        "bytes": 17758
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15400576516310",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26549-MagicConAtlantaFblthpOrnament.png?v=1792773975",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/8a1ff2310b5cc4aa3ec0.png",
+        "sha256": "7b401684e7468de047d41b7109256ff2af2e0d37a737d63991dfbd565aaad9c0",
+        "bytes": 360700,
+        "width": 1387,
+        "height": 1387
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/8a1ff2310b5cc4aa3ec0-detail.webp",
+        "sha256": "0739e6bf944ab542536af2fa17ff34b918cbddc75236bbbe877fb2e2a300f31f",
+        "bytes": 55850,
+        "width": 1387,
+        "height": 1387
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/8a1ff2310b5cc4aa3ec0-thumb.webp",
+        "sha256": "7503fb7a67e8088ac0b1e0295e8ca64f7f8e62e31742d4ad930324ca9f0173f9",
+        "bytes": 10016
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15400578056406",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26550-GooseHydraOrnament.png?v=1792774165",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/bdf9be780e13cd88b6f3.png",
+        "sha256": "8ca999b8aa6fc619560268d17ac1e570a19f228cf0eff37d2332ac273deb8feb",
+        "bytes": 425325,
+        "width": 1272,
+        "height": 1272
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/bdf9be780e13cd88b6f3-detail.webp",
+        "sha256": "0e5290592f1597c071bff0e596276fe56e03b6914114ba7301dfbf47e151ee81",
+        "bytes": 91006,
+        "width": 1272,
+        "height": 1272
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/bdf9be780e13cd88b6f3-thumb.webp",
+        "sha256": "6b77d5ff6b957af26c64faeb29aa4bfcdc6adb609bd4aba6338d5d3ba1e7552c",
+        "bytes": 18048
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397190762710",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/SL2026_FIABAtlanta_EverythingBundle_PrimaryThumbnail_57cad75f-f9f4-4cb5-a4b9-24fd4a98d673.png?v=1792676744",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/204a61ba1508402dadb7.png",
+        "sha256": "846dcaf24bef115bac53952fdb31ce06f29a3d86755d5a069a4d268d235a5aa0",
+        "bytes": 2650550,
+        "width": 1194,
+        "height": 1194
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/204a61ba1508402dadb7-detail.webp",
+        "sha256": "6b4e6324813300cab8764bf87b3c983347afc48add13346b6b60fac5fc4404b4",
+        "bytes": 328728,
+        "width": 1194,
+        "height": 1194
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/204a61ba1508402dadb7-thumb.webp",
+        "sha256": "ec797e428a28aedc16120411abcbd1ed83d0eccf17638bd16f433005542c4aef",
+        "bytes": 29204
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397199904982",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/StarTrekPlayBooster.png?v=1792676904",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/956f50fa83469241ce0d.png",
+        "sha256": "c162f2197b58ee814b97322633d85b927fdedc57f50b94b69c79f330926367fa",
+        "bytes": 8650956,
+        "width": 3302,
+        "height": 3302
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/956f50fa83469241ce0d-detail.webp",
+        "sha256": "1ad03b248e900886acbc27ec5224d5accaced23a544d152f06dd37325add49e4",
+        "bytes": 271678,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/956f50fa83469241ce0d-thumb.webp",
+        "sha256": "17de0c50918aceeac97ea188fe7ec5120a6e5bfcce3874be76e9db37d3ef7542",
+        "bytes": 16386
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397200429270",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/StarTrekCollectorBooster.png?v=1792676982",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/c3ad15cdf1aacd123067.png",
+        "sha256": "9f5e14e1d5b6dcc0a8c5286c72460adbf8c60c784a8e33766b00a546b76f6ea5",
+        "bytes": 3870301,
+        "width": 2238,
+        "height": 2237
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/c3ad15cdf1aacd123067-detail.webp",
+        "sha256": "b396cab0af4198bdd1235f08b12e0dfd051d29a5223c1792c4e9fbbbee16e16b",
+        "bytes": 253512,
+        "width": 2000,
+        "height": 1999
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/c3ad15cdf1aacd123067-thumb.webp",
+        "sha256": "9354c958358d92ac342ca5074bb0e9bba9b4841933608c5840aeb0672108e9fa",
+        "bytes": 11184
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397201117398",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/RealityFracturePlayBooster.png?v=1792677067",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/e67551d9fe71097f2cd5.png",
+        "sha256": "d40531e513412024b88f2fa2b0bc33b9bab17d7bc6f62cee309f52101f81d9fd",
+        "bytes": 9085326,
+        "width": 3266,
+        "height": 3266
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/e67551d9fe71097f2cd5-detail.webp",
+        "sha256": "6ae02a991652e661e4184b174e06edc7aaf226b6dd767f43f5947c37ab5b3e3d",
+        "bytes": 320366,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/e67551d9fe71097f2cd5-thumb.webp",
+        "sha256": "895a69151d2c6f8d517b0135e02418ee2392008fd09c936dd6ac98c2f90e0b96",
+        "bytes": 18274
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397201707222",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/RealityFractureCollectorBooster.png?v=1792677138",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/d7daf6ecf02d99dda824.png",
+        "sha256": "3b217780f626cfb64358d0c56cc575cdf2c8ece233cc641f39c9ccb0efa9ed30",
+        "bytes": 4216217,
+        "width": 2166,
+        "height": 2165
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/d7daf6ecf02d99dda824-detail.webp",
+        "sha256": "a8b6ed7c8a769be3f495f13fac6197322127ce9361e8b70bc4d6825b610f5f57",
+        "bytes": 351268,
+        "width": 2000,
+        "height": 1999
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/d7daf6ecf02d99dda824-thumb.webp",
+        "sha256": "6d56996294fbf80979dc2e8a8ffd5d558786af5534465f82bc8f09c0c65657c6",
+        "bytes": 14158
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397202329814",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/HobbitPlayBooster.png?v=1792677219",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/a33a072911dc32a350ea.png",
+        "sha256": "b426c5ebc3871db80336ec348d823e01dd9364e1e4b34ae6ee5c8298d44b169e",
+        "bytes": 9712468,
+        "width": 3260,
+        "height": 3260
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/a33a072911dc32a350ea-detail.webp",
+        "sha256": "60f0e136ae339cfbb05bf6ea08a8becfe1de712d984de2dc815ca63417c08cea",
+        "bytes": 464964,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/a33a072911dc32a350ea-thumb.webp",
+        "sha256": "095f091e8b7e941cf76d350ec8f52fbe7a5824d49a0407f813f2542c8735e3ab",
+        "bytes": 22592
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397203247318",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/HobbitCollectorBooster.png?v=1792677279",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/463b9efa5356e79388e3.png",
+        "sha256": "78955e3c4e2f7049a2d5fb8dfbec4294038e0068bb54ef3b9cbbd670cf4689a0",
+        "bytes": 3998489,
+        "width": 2166,
+        "height": 2165
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/463b9efa5356e79388e3-detail.webp",
+        "sha256": "7d7034497eff56d2a623ad7bc0f42f7aa0f3c1a776ed599df237f46d3ef4fa52",
+        "bytes": 337778,
+        "width": 2000,
+        "height": 1999
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/463b9efa5356e79388e3-thumb.webp",
+        "sha256": "92c98cb8c1ce7967eba2f2688e3e298742946687887aad38987b6fdd21c43e9a",
+        "bytes": 14348
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293485637846",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26237-MagictheGatheringCrocs.png?v=1773844867",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/0912e70507218875ea23.png",
+        "sha256": "92c61c7f0abe0c03a8e40582ece17e8a7aadea0668e0b9acc4dbea4a6a85951b",
+        "bytes": 1830551,
+        "width": 1365,
+        "height": 1365
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/0912e70507218875ea23-detail.webp",
+        "sha256": "1decb128a80d33f87c8519dbdfbc3fe21cfdf6cdf25636dadd28fe958ee0dd25",
+        "bytes": 303624,
+        "width": 1365,
+        "height": 1365
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/0912e70507218875ea23-thumb.webp",
+        "sha256": "fd92aac10d652a8765a98c3bee0f5a5ba691dd939a414aab4c0d459de19d8ee0",
+        "bytes": 24426
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-9292829098198",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/SecretLairDropSoSalty-TraditionalFoilEdition.png?v=1773768303",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/4f0e33d3cc7640345dc7.png",
+        "sha256": "6d651aadb6fb35ef821d1b6177ef37b2d6380f6bdc2d073a5335d6388c983b88",
+        "bytes": 57926,
+        "width": 1334,
+        "height": 1333
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/4f0e33d3cc7640345dc7-detail.webp",
+        "sha256": "deb32bce4175a6e8df9694c7793420c28d5f6cad60d25ddc899cab1aa2c4987b",
+        "bytes": 30296,
+        "width": 1334,
+        "height": 1333
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/4f0e33d3cc7640345dc7-thumb.webp",
+        "sha256": "55ceffbf08dfc35fe72c89389b356489e9c249cb4d8e7e30175bcc90d7edc3da",
+        "bytes": 15586
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293464338646",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26223-FblthpSnapbackHat.png?v=1773843684",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/df6cecc8b0e984a44569.png",
+        "sha256": "5604508d9daf66cbb88757dbd7dd3bcc507320c0ea5f8e44259e02014c126802",
+        "bytes": 5762431,
+        "width": 3024,
+        "height": 3024
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/df6cecc8b0e984a44569-detail.webp",
+        "sha256": "84a596b8eb5c036b0818c65050f50a728c28642587c22ab96090e7505f40da8e",
+        "bytes": 354708,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/df6cecc8b0e984a44569-thumb.webp",
+        "sha256": "0e0734bb18a02f4129f84b050b4b3741a2aeac5a8b57dae153174a15da6ae8a7",
+        "bytes": 14250
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293481574614",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26215-ManaSymbolRubberCoasters.png?v=1773844000",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/4583dad003cdbdba5a0d.png",
+        "sha256": "e4330d732f478481d2a187aaa3d50cc7e097a75d2444f408c57906e1f8457a34",
+        "bytes": 11660070,
+        "width": 4284,
+        "height": 4284
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/4583dad003cdbdba5a0d-detail.webp",
+        "sha256": "e9cd7031e24b2748dfc1b06583e4648f95049ba6e6a7302f515066abe7a67685",
+        "bytes": 243654,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/4583dad003cdbdba5a0d-thumb.webp",
+        "sha256": "4bbe94eb13172b085ae25fcbca6a455ec3abed8226c95c3565d7af813161b950",
+        "bytes": 21120
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293482131670",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26214-ManaSymbolShoeCharmSet.png?v=1773844174",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/8935e2ada1cc53c3db52.png",
+        "sha256": "e1d8824d44b3ce8f56fc6385bfc5210bb30a693ade8dfe7065a54ead4f932a21",
+        "bytes": 1907033,
+        "width": 2148,
+        "height": 2148
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/8935e2ada1cc53c3db52-detail.webp",
+        "sha256": "2492066f8f884d571cf9651a1ba278a93321f7e191b4622e6fcb0dca1d4288e3",
+        "bytes": 196656,
+        "width": 2000,
+        "height": 2000
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/8935e2ada1cc53c3db52-thumb.webp",
+        "sha256": "d0f13d74aecd26efb330d898a53c2fcb8d2156d61c5f45a3b9957932046c9aa2",
+        "bytes": 9110
+      }
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293541605590",
+      "sourceUrl": "https://cdn.shopify.com/s/files/1/0665/9381/6790/files/26213-ManaSymbolMiniPinSet_19a7a823-49e9-425f-9964-988910f1aa02.png?v=1773853032",
+      "sourceOriginal": {
+        "archivePath": ".codex-local/merchandise/atlanta-2026-originals/48ceb9254eb960a1ea4f.png",
+        "sha256": "96d35ed9de7bbc41b8022be48f629ffefb280b34cba5b34d64d50bd2d0b363b2",
+        "bytes": 2137991,
+        "width": 1914,
+        "height": 1914
+      },
+      "original": {
+        "role": "detail-derivative",
+        "path": "merchandise/atlanta-2026/48ceb9254eb960a1ea4f-detail.webp",
+        "sha256": "ba097c9c06e6fe4b502d4a1be42fdc1c6c905d4804633e0d203289ba072915ec",
+        "bytes": 231176,
+        "width": 1914,
+        "height": 1914
+      },
+      "thumbnail": {
+        "path": "merchandise/atlanta-2026/48ceb9254eb960a1ea4f-thumb.webp",
+        "sha256": "7182123761213ce5fa85294026e587ce6319736535db9cfbf503d5a3d2fd070c",
+        "bytes": 10840
+      }
+    }
+  ],
+  "missingProductKeys": [
+    "extra-life-2026-rise-of-the-polygons-foil",
+    "extra-life-2026-rise-of-the-polygons"
+  ]
+}

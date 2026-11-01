@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { atlantaMerchMedia } from './atlantaMerchMedia'
 
 export type CatalogFamily = 'show_store' | 'black_lotus' | 'prize_wall'
 
@@ -119,9 +120,62 @@ export type CatalogOffer = Omit<CatalogCurrentOfferRow, 'presentation_media_id'>
   soldOut: boolean
 }
 
+export type CatalogPurchaseRule = {
+  canonicalKey: string
+  name: string
+  purchaseLimit: number
+  limitScope: 'preorder' | 'per_vip_per_event_across_preorder_and_onsite'
+}
+export type CatalogPurchaseRules = {
+  schemaVersion: 1
+  kind: 'black_lotus_purchase_rules'
+  sourceKind: 'official_email_reviewed_synopsis'
+  sourcePublicationDate: string
+  opensAt: string
+  closesAt: string
+  checkoutLimit: 1
+  pickup: string
+  rules: string[]
+  items: CatalogPurchaseRule[]
+}
+export const BLACK_LOTUS_RULES_SOURCE_LABEL = 'Black Lotus purchasing rules · October 26, 2026'
+
+export function parseCatalogPurchaseRules(notes: unknown): CatalogPurchaseRules | null {
+  if (typeof notes !== 'string') return null
+  try {
+    const v = JSON.parse(notes)
+    const text = (x: unknown): x is string => typeof x === 'string' && x.trim().length > 0
+    if (v?.schemaVersion !== 1 || v.kind !== 'black_lotus_purchase_rules' || v.sourceKind !== 'official_email_reviewed_synopsis'
+      || !/^\d{4}-\d{2}-\d{2}$/.test(v.sourcePublicationDate) || !text(v.opensAt) || !text(v.closesAt)
+      || !Number.isFinite(Date.parse(v.opensAt)) || !Number.isFinite(Date.parse(v.closesAt)) || Date.parse(v.opensAt) >= Date.parse(v.closesAt)
+      || v.checkoutLimit !== 1 || !text(v.pickup) || !Array.isArray(v.rules) || !v.rules.every(text)
+      || !Array.isArray(v.items) || v.items.length === 0 || v.items.length > 100
+      || !v.items.every((i: CatalogPurchaseRule) => i && text(i.canonicalKey) && /^[a-z0-9][a-z0-9_-]{0,119}$/.test(i.canonicalKey) && text(i.name)
+        && Number.isInteger(i.purchaseLimit) && i.purchaseLimit > 0
+        && ['preorder', 'per_vip_per_event_across_preorder_and_onsite'].includes(i.limitScope))
+      || new Set(v.items.map((i: CatalogPurchaseRule) => i.canonicalKey)).size !== v.items.length) return null
+    return { schemaVersion: 1, kind: 'black_lotus_purchase_rules', sourceKind: 'official_email_reviewed_synopsis', sourcePublicationDate: v.sourcePublicationDate, opensAt: v.opensAt, closesAt: v.closesAt, checkoutLimit: 1, pickup: v.pickup, rules: [...v.rules], items: v.items.map((i: CatalogPurchaseRule) => ({ canonicalKey: i.canonicalKey, name: i.name, purchaseLimit: i.purchaseLimit, limitScope: i.limitScope })) }
+  } catch { return null }
+}
+
+export async function loadCatalogPurchaseRules(client: SupabaseClient, eventKey: string): Promise<Pick<CatalogReadModel, 'purchaseRules' | 'purchaseRulesStatus'>> {
+  try {
+    const result = await client.from('catalog_source_captures')
+      .select('notes,catalogs!inner(event_key,family,purpose)')
+      .eq('catalogs.event_key', eventKey).eq('catalogs.family', 'black_lotus').eq('catalogs.purpose', 'inventory')
+      .eq('source_label', BLACK_LOTUS_RULES_SOURCE_LABEL).order('captured_at', { ascending: false }).limit(1)
+    if (result.error) return { purchaseRulesStatus: 'unavailable' }
+    if (!result.data?.length) return { purchaseRulesStatus: 'absent' }
+    const purchaseRules = parseCatalogPurchaseRules(result.data[0].notes)
+    return purchaseRules ? { purchaseRulesStatus: 'ready', purchaseRules } : { purchaseRulesStatus: 'unavailable' }
+  } catch { return { purchaseRulesStatus: 'unavailable' } }
+}
+
 export type CatalogReadModel = {
   status: 'ready' | 'unavailable'
   offers: CatalogOffer[]
+  purchaseRules?: CatalogPurchaseRules
+  purchaseRulesStatus?: 'ready' | 'absent' | 'unavailable'
 }
 
 export function formatCatalogOfferValue(offer: Pick<CatalogOffer, 'family' | 'prize_ticket_cost' | 'price_amount' | 'currency'>) {
@@ -185,9 +239,12 @@ export function normalizeCatalogReadModel(
     offers: offerRows.map(row => {
       const { presentation_media_id: presentationMediaId, ...offer } = row
       const media = presentationMediaId ? mediaById.get(presentationMediaId) : undefined
+      const packaged = atlantaMerchMedia(row.canonical_key)
+      const exactPackaged = packaged && media?.source_url === packaged.sourceUrl ? packaged : null
       return {
         ...offer,
         presentationMediaId,
+        attributes: exactPackaged ? { ...offer.attributes, original_image_url: exactPackaged.originalUrl } : offer.attributes,
         presentationMedia: media
           ? {
               ...media,
@@ -196,7 +253,7 @@ export function normalizeCatalogReadModel(
                 && media.width_px === media.height_px,
             }
           : null,
-        presentationUrl: null,
+        presentationUrl: exactPackaged?.thumbnailUrl ?? null,
         interests: (interestsByOfferId.get(row.offer_id) ?? []).map(interest => {
           const companion = companionByUserId.get(interest.owner_id)
           return {
@@ -291,7 +348,8 @@ export async function loadCatalogReadModel(
     // This migration is intentionally allowed to be absent until its publish gate.
     // Supabase's generated Database type therefore does not know this view yet.
     const offerRows = (currentOffersResult.data ?? []) as unknown as CatalogCurrentOfferRow[]
-    if (offerRows.length === 0) return { status: 'ready', offers: [] }
+    const purchasing = eventKey ? await loadCatalogPurchaseRules(client, eventKey) : { purchaseRulesStatus: 'absent' as const }
+    if (offerRows.length === 0) return { status: 'ready', offers: [], ...purchasing }
 
     const offerIds = offerRows.map(row => row.offer_id)
     const mediaIds = offerRows.flatMap(row => row.presentation_media_id ? [row.presentation_media_id] : [])
@@ -314,9 +372,9 @@ export async function loadCatalogReadModel(
     )
     const offers = await Promise.all(model.offers.map(async offer => ({
       ...offer,
-      presentationUrl: await resolveCatalogPresentationUrl(client, offer.presentationMedia),
+      presentationUrl: offer.presentationUrl ?? await resolveCatalogPresentationUrl(client, offer.presentationMedia),
     })))
-    return { ...model, offers }
+    return { ...model, offers, ...purchasing }
   } catch {
     return emptyCatalogReadModel
   }

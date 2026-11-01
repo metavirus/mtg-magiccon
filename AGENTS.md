@@ -42,3 +42,7 @@ Run only the validation required by the active risk tier. Database changes requi
 - When visual feedback says a version is wrong, infer and fix the design principle/class of issue rather than defending the patch.
 - Be honest but decisive: state the best judgment, evidence, and cheap rollback. Backlog anything that is not now, with a reason.
 - When Kavi is angry, skip apology theater: name the violated expectation, correct the root issue, encode prevention, and move forward.
+
+## Standing independent visual review (Kavi, October 31, 2026)
+
+Before handing changed UI back to Kavi, an independent PM reviewer must critique actual rendered phone and desktop screens against an accepted peer surface. This is explicitly authorized delegation, including small visual fixes. The implementer cannot serve as that reviewer. Review typography, selected/unselected consistency, spacing, hierarchy, clipping, controls, content density, and internal/debug copy. Fix basic findings and have the reviewer recheck changed screens before handoff; record remaining limitations honestly. Functional tests and overflow measurements are not visual acceptance. Preparatory prototypes are not approved visual design and must not silently become production defaults. Reuse existing control classes/tokens before inventing new ones. Root remains accountable for the result.

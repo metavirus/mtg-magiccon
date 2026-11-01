@@ -9,7 +9,7 @@ describe('artist image completion status', () => {
     vi.mocked(cacheDeviceAssets).mockResolvedValueOnce({ expected: 3, cached: 2, failures: ['/unopened-offer'] }).mockResolvedValueOnce({ expected: 3, cached: 3, failures: [] })
     render(<ArtistAssetStatus urls={['/logo', '/special', '/unopened-offer']} missingImages={0} online revision={0} label="Exhibitor images" />)
     await waitFor(() => expect(screen.getByText('Exhibitor images incomplete · 2/3')).toBeTruthy())
-    expect(cacheDeviceAssets).toHaveBeenCalledWith(['/logo', '/special', '/unopened-offer'])
+    expect(cacheDeviceAssets).toHaveBeenCalledWith(['/logo', '/special', '/unopened-offer'], false, {})
     fireEvent.click(screen.getByRole('button', { name: 'Retry image download' }))
     await waitFor(() => expect(screen.getByText('Exhibitor images saved · 3/3')).toBeTruthy())
   })

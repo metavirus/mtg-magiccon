@@ -89,6 +89,71 @@ const batch = (decisions: CatalogItemReviewDecision[], manifest = reviewManifest
 })
 
 describe('buildCatalogPromotionPlan', () => {
+  it('retains reviewed variant options, SKU and purchasing-path rules', () => {
+    const result = buildCatalogPromotionPlan(batch([approvedReview('item-a', {
+      identityStatus: 'exact_variant', variantKey: 'large', variantLabel: 'Large',
+      variantSku: 'SKU-L', variantAttributes: { Size: 'Large', Color: 'Blue' },
+      purchaseLimit: 2, eligibilityNote: 'Black Lotus VIP', pickupNote: 'Lounge Friday 8:30 AM',
+    })], reviewManifest([manifestItem('item-a', 'Shirt', 2500)])))
+    expect(result.status).toBe('ready')
+    if (result.status !== 'ready') return
+    expect(result.plan.promotions[0]).toMatchObject({
+      variant: { variantKey: 'large', label: 'Large', sku: 'SKU-L', attributes: { Size: 'Large', Color: 'Blue' } },
+      offer: { purchaseLimit: 2, eligibilityNote: 'Black Lotus VIP', pickupNote: 'Lounge Friday 8:30 AM' },
+    })
+    expect(result.plan.catalog.purpose).toBe('inventory')
+  })
+
+  it('blocks reference evidence and variant fields that would otherwise disappear', () => {
+    const manifest = reviewManifest([manifestItem('item-a', 'Shirt', 2500)])
+    manifest.catalog!.purpose = 'reference'
+    expect(buildCatalogPromotionPlan(batch([approvedReview('item-a')], manifest))).toMatchObject({ status: 'blocked', issues: [expect.objectContaining({ code: 'reference_catalog' })] })
+    manifest.catalog!.purpose = 'inventory'
+    expect(buildCatalogPromotionPlan(batch([approvedReview('item-a', { variantKey: 'large' })], manifest))).toMatchObject({ status: 'blocked', issues: [expect.objectContaining({ code: 'missing_product_identity' })] })
+  })
+
+  it('blocks two source items that would overwrite the same catalog offer', () => {
+    const result = buildCatalogPromotionPlan(batch([
+      approvedReview('item-a', { offerKey: 'shared-offer' }),
+      approvedReview('item-b', { offerKey: 'shared-offer' }),
+    ]))
+    expect(result).toMatchObject({ status: 'blocked', issues: [expect.objectContaining({ code: 'duplicate_offer' })] })
+  })
+
+  it('blocks conflicting descriptions of one shared product or variant', () => {
+    const shared = { canonicalKey: 'shared-shirt', productName: 'Event Shirt', category: 'Apparel' }
+    for (const conflict of [{ productName: 'Different Shirt' }, { category: 'Accessories' }]) {
+      const result = buildCatalogPromotionPlan(batch([
+        approvedReview('item-a', shared),
+        approvedReview('item-b', { ...shared, ...conflict }),
+      ]))
+      expect(result).toMatchObject({ status: 'blocked', issues: [expect.objectContaining({ code: 'conflicting_product_identity' })] })
+    }
+    const result = buildCatalogPromotionPlan(batch([
+      approvedReview('item-a', { ...shared, identityStatus: 'exact_variant', variantKey: 'large', variantLabel: 'Large' }),
+      approvedReview('item-b', { ...shared, identityStatus: 'exact_variant', variantKey: 'large', variantLabel: 'Small' }),
+    ]))
+    expect(result).toMatchObject({ status: 'blocked', issues: [expect.objectContaining({ code: 'conflicting_product_identity' })] })
+  })
+
+  it('allows shared product identity with distinct variants and separate catalog offers', () => {
+    const shared = { canonicalKey: 'shared-shirt', productName: 'Event Shirt', category: 'Apparel', identityStatus: 'exact_variant' as const }
+    const decisions = [
+      approvedReview('item-a', { ...shared, variantKey: 'large', variantLabel: 'Large' }),
+      approvedReview('item-b', { ...shared, variantKey: 'small', variantLabel: 'Small' }),
+    ]
+    const showStore = buildCatalogPromotionPlan(batch(decisions))
+    const lotusManifest = reviewManifest()
+    lotusManifest.catalog = { ...lotusManifest.catalog, catalog_key: 'atlanta-2026-black-lotus', family: 'black_lotus', title: 'Black Lotus' }
+    const lotus = buildCatalogPromotionPlan({ ...batch(decisions, lotusManifest), batchKey: 'atlanta-2026-black-lotus' })
+    expect(showStore.status).toBe('ready')
+    expect(lotus.status).toBe('ready')
+    if (showStore.status !== 'ready' || lotus.status !== 'ready') return
+    expect(lotus.plan.promotions.map(item => [item.product, item.variant])).toEqual(showStore.plan.promotions.map(item => [item.product, item.variant]))
+    expect(lotus.plan.catalog.family).toBe('black_lotus')
+    expect(showStore.plan.catalog.family).toBe('show_store')
+  })
+
   it('routes weak board crops to exact-image search instead of presentation', () => {
     expect(catalogPresentationRoute({ presentation_quality: 'thumbnail_only', media: { card: 'items/item/card.webp' } })).toBe('search_required')
     expect(catalogPresentationRoute({

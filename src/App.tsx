@@ -1,3 +1,5 @@
+import { CatalogProductImageDetail } from './components/CatalogProductImageDetail'
+import { atlantaMerchAssetUrls, atlantaMerchAssetIntegrity, atlantaMerchMissingImageCount } from './lib/atlantaMerchMedia'
 import { ReactNode, type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Session } from '@supabase/supabase-js'
@@ -21,6 +23,7 @@ import { infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './l
 import { priorEventCatalogs, type InfoCatalog, type InfoCatalogItem } from './lib/infoCatalog'
 import { emptyCatalogReadModel, formatCatalogOfferValue, loadCatalogReadModel, setCatalogInterest, type CatalogOffer, type CatalogReadModel } from './lib/catalog'
 import { catalogBrowserPreviewModel, catalogBrowserPreviewOwnerId } from './lib/catalogPreview'
+import { canLoadAtlantaMerchReview } from './lib/catalogReviewMode'
 import { catalogImportPreviewBatch } from './lib/catalogImportPreview'
 import type { CatalogPromotionPlan } from './lib/catalogImport'
 import { promoteCatalogPlan } from './lib/catalogPromotion'
@@ -44,7 +47,7 @@ import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, anno
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
-import { cacheDeviceAssets, exhibitorAssetUrls } from './lib/deviceAssets'
+import { cacheDeviceAssets, catalogAssetUrls, exhibitorAssetUrls } from './lib/deviceAssets'
 import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
 import { ReceiptPages } from './components/ReceiptPages'
 import { ArtistAssetStatus } from './components/ArtistAssetStatus'
@@ -841,6 +844,7 @@ export default function App() {
     || effectiveSession.user.email?.trim().toLowerCase() === 'kavigrace@gmail.com'
   ))
   const catalogBrowserQa = catalogBrowserQaRequested && isKaviOperator
+  const atlantaMerchReview = canLoadAtlantaMerchReview(qaFlags, isPreviewOwnerMode, isKaviOperator)
   const shouldLoadOwnerTrustSlice = isKaviCompanion(currentCompanion)
   // Badge tier is useful trip context, not an authorization boundary. Active
   // companions can plan around every visible event, including Black Lotus.
@@ -990,7 +994,7 @@ export default function App() {
         { event_id: 'ticketed-944083', source_event_key: '944083', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z', companion_code: null },
       ] : [])
       setTripFlights(previewTripFlights)
-      setCatalogReadModel(catalogBrowserQa ? catalogBrowserPreviewModel : emptyCatalogReadModel)
+      setCatalogReadModel(atlantaMerchReview ? (await import('./lib/atlantaMerchReview')).buildAtlantaMerchReview({ individualVariants: qaFlags.includes('store-options') }) : catalogBrowserQa ? catalogBrowserPreviewModel : emptyCatalogReadModel)
       setExploreEventState(purchaseQaEvents(applySelectionState(exploreEvents, {}, null, currentCompanionFromSession(effectiveSession, companionMembers))))
       setContinuityReady(true)
       return
@@ -1107,7 +1111,7 @@ export default function App() {
     if (catalogResult.status === 'fulfilled') {
       setCatalogReadModel(catalogResult.value)
       cacheLane('catalog', catalogResult.value)
-      void cacheDeviceAssets(catalogResult.value.offers.map(offer => offer.presentationUrl))
+      void cacheDeviceAssets(catalogAssetUrls(catalogResult.value.offers))
     } else failures.push('catalogs')
     if (selectionsResult.status === 'fulfilled') {
       cacheLane('selections', selectionsResult.value)
@@ -1132,11 +1136,12 @@ export default function App() {
       setMessage('')
     }
     setContinuityReady(true)
-  }, [catalogBrowserQa, companionMembers, designPreview, isPreviewOwnerMode, effectiveOwnerId, slice, effectiveSession])
+  }, [atlantaMerchReview, catalogBrowserQa, companionMembers, designPreview, isPreviewOwnerMode, effectiveOwnerId, slice, effectiveSession])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
 
   const toggleCatalogInterest = useCallback(async (offer: CatalogOffer, interested: boolean) => {
+    if (offer.attributes?.local_review) return
     const ownerId = catalogBrowserQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId
     if (!ownerId) return
     setCatalogInterestSavingOfferId(offer.offer_id)
@@ -1172,7 +1177,7 @@ export default function App() {
       const refreshed = await loadCatalogReadModel(supabase, 'magiccon_atlanta_2026')
       setCatalogReadModel(refreshed)
       writeOfflineContinuityLane(ownerId, 'catalog', refreshed)
-      void cacheDeviceAssets(refreshed.offers.map(item => item.presentationUrl))
+      void cacheDeviceAssets(catalogAssetUrls(refreshed.offers))
     } catch (error) {
       setMessageTone('error')
       setMessage(error instanceof Error ? `Shopping list could not be updated: ${error.message}` : 'Shopping list could not be updated.')
@@ -1191,7 +1196,7 @@ export default function App() {
       const refreshed = await loadCatalogReadModel(supabase, 'magiccon_atlanta_2026')
       setCatalogReadModel(refreshed)
       writeOfflineContinuityLane(effectiveOwnerId, 'catalog', refreshed)
-      void cacheDeviceAssets(refreshed.offers.map(item => item.presentationUrl))
+      void cacheDeviceAssets(catalogAssetUrls(refreshed.offers))
       setMessageTone('info')
       setMessage(`${readback.promoted_count} catalog item${readback.promoted_count === 1 ? '' : 's'} promoted with exact readback.`)
     } finally {
@@ -1564,6 +1569,7 @@ export default function App() {
   }
 
   const addContextNote = (input: AddContextNoteInput) => {
+    if (input.objectId.startsWith('catalog-offer-review:')) return
     if (input.objectKind === 'exhibitor') {
       if (!canWrite) return
       input = { ...input, visibility: 'private' }
@@ -1974,7 +1980,7 @@ export default function App() {
   }).sort((a, b) => Date.parse(b.checkedAtIso) - Date.parse(a.checkedAtIso))
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
   const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
-  const headerSubtitle = surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
+  const headerSubtitle = surface === 'map' && (designPreview || isPreviewOwnerMode) ? 'Browse the show floor, artists and Marketplace.' : surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
   const homeDestination = navigationDestination('home')
   const mapDestination = navigationDestination('map')
   const infoDestination = navigationDestination('info')
@@ -2957,6 +2963,7 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
   }, [detail])
   if (!detail) return null
   const catalogOffer = detail.catalogOfferId ? catalogReadModel.offers.find(offer => offer.offer_id === detail.catalogOfferId) : undefined
+  const catalogProductOptions = catalogOffer ? catalogReadModel.offers.filter(offer => offer.product_id === catalogOffer.product_id && offer.family === catalogOffer.family) : []
   const catalogInterest = catalogOffer?.interests.find(interest => interest.ownerId === catalogOwnerId)?.interested === true
   const catalogInterestSaving = catalogOffer?.offer_id === catalogInterestSavingOfferId
   const soldOutListSpansDays = new Set(detail.soldOutEvents?.map(event => event.day)).size > 1
@@ -2968,15 +2975,16 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
           <span className="eyebrow">{detail.eyebrow}</span>
           <span className="object-detail-top-actions">
             {detail.people?.length ? <PersonBubbles people={detail.people} /> : null}
-            {catalogOffer && catalogOwnerId ? <button type="button" className={`object-detail-interest${catalogInterest ? ' active' : ''}`} aria-label={catalogInterestSaving ? 'Saving shopping list' : catalogInterest ? 'Remove from shopping list' : 'Save to shopping list'} aria-pressed={catalogInterest} disabled={!canEditCatalogInterest || catalogInterestSaving} onClick={() => onToggleCatalogInterest(catalogOffer, !catalogInterest)}><ActionIcon name="bookmark" /></button> : null}
+            {catalogOffer && !catalogOffer.attributes?.local_review && catalogOwnerId ? <button type="button" className={`object-detail-interest${catalogInterest ? ' active' : ''}`} aria-label={catalogInterestSaving ? 'Saving shopping list' : catalogInterest ? 'Remove from shopping list' : 'Save to shopping list'} aria-pressed={catalogInterest} disabled={!canEditCatalogInterest || catalogInterestSaving} onClick={() => onToggleCatalogInterest(catalogOffer, !catalogInterest)}><ActionIcon name="bookmark" /></button> : null}
             <span className="object-kind-chip">{detail.kindLabel ?? detailKindLabel(detail.kind)}</span>
           </span>
         </div>
         <h2 id="object-detail-title">{detail.title}</h2>
         <p>{detail.summary}</p>
       </header>
+      {catalogOffer && catalogProductOptions.length > 1 && <label className="store-option-select">Option<select aria-label="Product option" value={catalogOffer.offer_id} onChange={event => { const selected = catalogProductOptions.find(offer => offer.offer_id === event.target.value); if (selected) onOpenObject(catalogOfferDetail(selected, catalogOwnerId)) }}>{catalogProductOptions.map(offer => <option key={offer.offer_id} value={offer.offer_id}>{offer.variant_label ?? offer.product_name}</option>)}</select></label>}
       {detail.monitoringMetadata && detail.source && /^https?:\/\//i.test(detail.source.value) && <nav className="object-resource-links" aria-label="Article source"><a href={detail.source.value} target="_blank" rel="noreferrer">Read original source ↗</a></nav>}
-      {detail.reader ? <InfoReaderContent detail={detail.reader} /> : <>{detail.image && <section className="object-detail-section object-detail-image-section">
+      {detail.reader ? <InfoReaderContent detail={detail.reader} /> : <>{detail.image && catalogOffer ? <CatalogProductImageDetail src={detail.image.src} title={detail.title} /> : detail.image && <section className="object-detail-section object-detail-image-section">
         <div className={`object-detail-image-card${detail.image.tone === 'product' ? ' product-image-card' : ''}`}>
           <img src={detail.image.src} alt={detail.image.alt} loading="lazy" />
           {detail.image.caption && <span>{detail.image.caption}</span>}
@@ -3020,7 +3028,7 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
         <h3>Source / provenance</h3>
         <p><strong>{detail.source.label}</strong><br />{renderLinkedText(detail.source.value)}</p>
       </section>}</>}
-      {!isSyntheticNoteGroupId(detail.id) && <ObjectNotes
+      {!catalogOffer?.attributes?.local_review && !isSyntheticNoteGroupId(detail.id) && <ObjectNotes
         key={detail.id}
         canEdit={detail.kind !== 'exhibitor' || canWriteNotes}
         notes={notes}
@@ -4968,6 +4976,7 @@ function infoCatalogItemDetail(catalog: InfoCatalog, item: InfoCatalogItem): Obj
 }
 
 function catalogOfferDetail(offer: CatalogOffer, currentOwnerId?: string): ObjectDetail {
+  const reviewOnly = offer.attributes?.local_review === true
   const currentInterest = offer.interests.find(interest => interest.ownerId === currentOwnerId)?.interested === true
   const interested = offer.interests
     .filter(interest => interest.interested && interest.personKey)
@@ -4979,22 +4988,23 @@ function catalogOfferDetail(offer: CatalogOffer, currentOwnerId?: string): Objec
     id: `catalog-offer-${offer.offer_id}`,
     catalogOfferId: offer.offer_id,
     kind: 'alert',
-    kindLabel: 'Catalog item',
+    kindLabel: 'Product',
     eyebrow: offer.category.toUpperCase(),
     title: offer.product_name,
-    summary: offer.description ?? offer.variant_label ?? `${offer.catalog_title} catalog item.`,
-    image: offer.presentationUrl ? { src: offer.presentationUrl, alt: offer.product_name, tone: 'product' } : undefined,
+    summary: reviewOnly ? '' : offer.description ?? '',
+    image: offer.presentationUrl ? { src: typeof offer.attributes?.original_image_url === 'string' ? offer.attributes.original_image_url : offer.presentationUrl, alt: offer.product_name, tone: 'product' } : undefined,
     people: interested,
     facts: [
       { label: offer.family === 'prize_wall' || offer.prize_ticket_cost !== null ? 'Prize Tix' : 'Price', value },
-      { label: 'Availability', value: availability },
-      { label: 'Catalog', value: offer.catalog_title },
-      ...(offer.variant_label ? [{ label: 'Variant', value: offer.variant_label }] : []),
-      ...(currentOwnerId ? [{ label: 'Your list', value: currentInterest ? 'Saved' : 'Not saved' }] : []),
+      ...(offer.availability !== 'unknown' ? [{ label: 'Availability', value: availability }] : []),
+      
+      ...(offer.purchase_limit ? [{ label: 'Purchase limit', value: String(offer.purchase_limit) }] : []),
+      ...(offer.variant_label && offer.variant_label !== 'Variants pending' ? [{ label: 'Options', value: reviewOnly && Array.isArray(offer.attributes?.review_variant_labels) && offer.attributes.review_variant_labels.length ? offer.attributes.review_variant_labels.join(' · ') : offer.variant_label }] : []),
+      ...(currentOwnerId && !reviewOnly ? [{ label: 'Your list', value: currentInterest ? 'Saved' : 'Not saved' }] : []),
     ],
     links: offer.presentation_source_url ? [{ label: offer.presentation_source_provider ?? offer.observed_source_name, url: offer.presentation_source_url }] : undefined,
-    source: { label: offer.observed_source_name, value: offer.presentation_source_url ? 'Canonical catalog record with retained presentation-image provenance.' : 'Canonical catalog record with retained source capture.' },
-    backlinks: [{ label: 'Catalogs', destination: 'info' }],
+    source: undefined,
+    backlinks: [{ label: 'Store', destination: 'info' }],
   }
 }
 
@@ -5086,15 +5096,16 @@ function CatalogMatchReview() {
   </article>
 }
 
-function InfoCatalogsPreview({ onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa }: { onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; catalogBrowserQa: boolean }) {
+function InfoCatalogsPreview({ onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
   const [catalogId, setCatalogId] = useState<InfoCatalog['id']>('show-store')
   const catalog = priorEventCatalogs.find(item => item.id === catalogId) ?? priorEventCatalogs[0]
   const hasCurrentCatalog = catalogReadModel.status === 'ready' && catalogReadModel.offers.length > 0
-  return <section className="info-catalog-preview" role="tabpanel" aria-label="Catalogs preview">
-    {(catalogBrowserQa || !hasCurrentCatalog) && <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event products—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>}
+  return <section className="info-catalog-preview" role="tabpanel" aria-label="Store preview">
+    {hasCurrentCatalog && <ArtistAssetStatus urls={atlantaMerchAssetUrls} integrity={atlantaMerchAssetIntegrity} missingImages={reviewOnly ? atlantaMerchMissingImageCount : new Set(catalogReadModel.offers.filter(offer => !offer.presentationUrl).map(offer => offer.product_id)).size} online={navigator.onLine} revision={0} label="Product images" />}
+    {!reviewOnly && (catalogBrowserQa || !hasCurrentCatalog) && <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event products—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>}
     {showMatchReview && <CatalogMatchReview />}
     {hasCurrentCatalog
-      ? <CatalogBrowser model={catalogReadModel} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(offer, currentOwnerId))} />
+      ? <CatalogBrowser reviewOnly={reviewOnly} model={catalogReadModel} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(offer, currentOwnerId))} />
       : <><div className="info-catalog-selector" role="tablist" aria-label="Catalog preview">
       {priorEventCatalogs.map(item => <button type="button" role="tab" aria-selected={catalog.id === item.id} className={catalog.id === item.id ? 'active' : ''} key={item.id} onClick={() => setCatalogId(item.id)}>{item.id === 'black-lotus' ? 'Black Lotus' : item.title}</button>)}
     </div>
@@ -5136,9 +5147,10 @@ function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhi
   const qaFlags = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
   const catalogMatchReviewEnabled = canUseCatalogImport && qaFlags.includes('catalog-match-review')
   const catalogBrowserQa = canUseCatalogImport && qaFlags.includes('catalog-browser')
+  const atlantaMerchReview = catalogReadModel.offers.some(offer => offer.attributes?.local_review === true)
   const catalogImportQa = canUseCatalogImport && qaFlags.includes('catalog-import-lab')
   const catalogsEnabled = catalogReadModel.offers.length > 0 || canUseCatalogImport
-  const [mode, setMode] = useState<'guide' | 'catalogs' | 'import' | 'exhibitors'>(qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa ? 'catalogs' : 'guide')
+  const [mode, setMode] = useState<'guide' | 'catalogs' | 'import' | 'exhibitors'>(qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa || (canUseCatalogImport && qaFlags.includes('atlanta-merch-review')) ? 'catalogs' : 'guide')
   const visibleTopics = publishedInfoTopics(topics).map(topic => topic.topic_key === 'ticketed-play' && ticketedPlaySaleHasOpened()
     ? {
         ...topic,
@@ -5155,7 +5167,7 @@ function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhi
     <div className="trip-tabs" role="tablist" aria-label="Info view">
       <button type="button" role="tab" aria-selected={mode === 'guide'} className={mode === 'guide' ? 'active' : ''} onClick={() => setMode('guide')}>Guide</button>
       <button type="button" role="tab" aria-selected={mode === 'exhibitors'} className={mode === 'exhibitors' ? 'active' : ''} onClick={() => setMode('exhibitors')}>Exhibitors</button>
-      {catalogsEnabled && <button type="button" role="tab" aria-selected={mode === 'catalogs'} className={mode === 'catalogs' ? 'active' : ''} onClick={() => setMode('catalogs')}>Catalogs</button>}
+      {catalogsEnabled && <button type="button" role="tab" aria-selected={mode === 'catalogs'} className={mode === 'catalogs' ? 'active' : ''} onClick={() => setMode('catalogs')}>Store</button>}
       {canUseCatalogImport && <button type="button" role="tab" aria-selected={mode === 'import'} className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>Import</button>}
     </div>
     {mode === 'guide' && <InfoGuide topics={visibleTopics} feed={visibleFeed} onOpenObject={onOpenObject} />}
@@ -5163,7 +5175,7 @@ function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhi
       <ArtistAssetStatus urls={exhibitorAssetUrls(exhibitors).filter((url): url is string => Boolean(url))} missingImages={0} online={navigator.onLine} revision={0} label="Exhibitor images" />
       <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />
     </>}
-    {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} />}
+    {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
     {mode === 'import' && canUseCatalogImport && <CatalogImportLab initialBatch={catalogImportPreviewBatch} canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />}
   </section>
 }

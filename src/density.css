@@ -7,7 +7,7 @@
 /* Tranche 1: shared shell and quiet Home. */
 .brand{padding:0;border:0;background:transparent;cursor:pointer}
 .rail nav button,.activity-link{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:10px;background:transparent;color:#9cabbe;font-size:14px;font-weight:540;text-align:left;cursor:pointer}
-html,body{max-width:100%;overflow-x:hidden}
+html,body{max-width:100%;overflow-x:clip}
 .rail nav button:hover,.activity-link:hover,.rail nav button.active,.activity-link.active{color:#f4f7fb;background:#182a44}
 .rail nav button.active{font-weight:680}
 .rail nav button span,.activity-link span{width:19px;color:#83adf0;font-size:18px;text-align:center}
@@ -1225,7 +1225,7 @@ html,body{max-width:100%;overflow-x:hidden}
 /* Compact is a thumbnail list; comfortable is the image-led browse grid. */
 .catalog-compact-availability{display:none}
 .catalog-groups.density-compact .catalog-product-grid{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-.catalog-groups.density-compact .catalog-product-card{grid-template-columns:84px minmax(0,1fr) auto;grid-template-rows:84px;align-items:stretch}
+.catalog-groups.density-compact .catalog-product-card{grid-template-columns:84px minmax(0,1fr) auto;grid-template-rows:minmax(84px,auto);align-items:stretch}
 .catalog-product-card[role=button]{cursor:pointer;transition:border-color .14s ease,background-color .14s ease,box-shadow .14s ease}.catalog-product-card[role=button]:hover{border-color:#52749a;background:#12243a}.catalog-product-card[role=button]:focus-visible{outline:2px solid #7fb0ef;outline-offset:2px}.catalog-product-state>button:focus-visible{outline:2px solid #9bc5fb;outline-offset:2px}
 /* A catalog thumbnail is always a square presentation surface. Never stretch
    it across the variable-height copy/action rows: opaque source images then
@@ -1242,6 +1242,22 @@ html,body{max-width:100%;overflow-x:hidden}
 .catalog-toolbar{gap:6px;padding:6px;border-radius:12px}.catalog-search{height:36px;padding:0 9px;border-radius:9px}.catalog-search input{font-size:12px}.catalog-select{height:34px;padding:0 8px}.catalog-select select{font-size:10px}.catalog-density button{width:30px;height:30px;font-size:14px}
 @media(max-width:650px){.catalog-groups.density-compact .catalog-product-grid{grid-template-columns:1fr}}
 @media(max-width:380px){
-  .catalog-groups.density-compact .catalog-product-card{grid-template-columns:76px minmax(0,1fr) auto;grid-template-rows:76px}
+  .catalog-groups.density-compact .catalog-product-card{grid-template-columns:76px minmax(0,1fr) auto;grid-template-rows:minmax(76px,auto)}
 }
 .receipt-proof-ingest-lab{display:grid;gap:8px;margin:0 0 12px;padding:12px;border:1px solid #3d5877;border-radius:12px;background:#0d1929}.receipt-proof-ingest-lab textarea{min-height:80px;padding:8px;border:1px solid #36516f;border-radius:8px;background:#081421;color:#dce8f5;font:10px/1.35 ui-monospace,monospace}.receipt-proof-ingest-lab button{min-height:36px;border:1px solid #55b894;border-radius:8px;background:#173c33;color:#a4e6ce;font-weight:800}.receipt-proof-ingest-lab p{margin:0;color:#91a4bb;font-size:9px}
+
+/* Catalog choices reuse Info navigation typography; review context stays secondary. */
+.catalog-family-tabs{justify-self:start;max-width:100%}
+.catalog-review-status{color:#91a6c0;font-size:10px;line-height:1.5}
+.catalog-review-status summary{cursor:pointer;width:fit-content;padding:4px 0;color:#b4bfd0}
+.catalog-review-status p{margin:4px 0 0;max-width:62ch}
+
+/* Preserve the viewport scroll container and stack category context below responsive filters. */
+.catalog-group{overflow:clip}
+.catalog-group>summary{position:sticky;top:var(--catalog-toolbar-height,88px);z-index:6;background:#0d1929;border-radius:13px 13px 0 0;box-shadow:0 1px 0 #2d435f}
+.catalog-toolbar{align-self:start}
+.catalog-product-card{scroll-margin-top:calc(var(--catalog-toolbar-height,88px) + 54px)}
+
+.store-lotus-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:5px 8px;border:1px solid #574768;border-radius:9px;background:#251c34;color:#d9b8ef;font:inherit;font-size:11px;cursor:pointer}.store-lotus-button svg,.store-lotus-dialog svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;flex-shrink:0}.store-lotus-dialog{width:min(520px,calc(100% - 28px));max-height:80dvh;overflow:auto;box-sizing:border-box;padding:18px;border:1px solid #574768;border-radius:16px;background:#101b2c;color:#dce6f3;font-size:13px;line-height:1.5}.store-lotus-dialog::backdrop{background:#020712b8}.store-lotus-dialog header{display:flex;align-items:start;justify-content:space-between;gap:12px}.store-lotus-dialog h2{display:flex;gap:8px;margin:0;font-size:18px}.store-lotus-dialog header button{width:36px;height:36px;background:#192b42;color:#dce6f3;border:1px solid #456080;border-radius:8px;cursor:pointer}.store-lotus-dialog li{margin:8px 0}.catalog-browser-heading{flex-wrap:wrap;gap:8px}
+
+.store-option-select{display:flex;align-items:center;gap:10px;margin:12px 16px;color:#9fb2c9;font-size:12px}.store-option-select select{min-width:0;max-width:100%;height:36px;padding:0 10px;border:1px solid #36516f;border-radius:8px;background:#101f32;color:#edf3fb;font:inherit}

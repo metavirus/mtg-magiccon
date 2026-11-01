@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it } from 'vitest'
+import { atlantaMerchMedia } from './atlantaMerchMedia'
 import {
   emptyCatalogReadModel,
   formatCatalogOfferValue,
@@ -84,6 +85,7 @@ function fakeClient(results: Partial<Record<string, QueryResult | Error>>): Supa
         order: () => builder,
         eq: () => builder,
         in: () => builder,
+        limit: () => builder,
         then(resolve: (result: QueryResult) => unknown, reject: (error: Error) => unknown) {
           const result = results[table] ?? { data: [], error: null }
           return result instanceof Error ? Promise.reject(result).then(resolve, reject) : Promise.resolve(result).then(resolve, reject)
@@ -128,6 +130,35 @@ function fakeInterestMutationClient(mode: 'success' | 'error' | 'missing') {
 }
 
 describe('catalog read model', () => {
+  it('uses the verified packaged source for canonical media and preserves provenance', () => {
+    const canonicalKey = 'shopify-magiccon-product-15392488980694'
+    const packaged = atlantaMerchMedia(canonicalKey)!
+    const canonical = { ...offerRow, canonical_key: canonicalKey, attributes: { Size: 'S' }, presentation_source_url: packaged.sourceUrl }
+    const media = { ...mediaRow, source_url: packaged.sourceUrl }
+    const offer = normalizeCatalogReadModel([canonical], [media], [], []).offers[0]
+    expect(offer.presentationUrl).toBe(packaged.thumbnailUrl)
+    expect(offer.attributes).toEqual({ Size: 'S', original_image_url: packaged.originalUrl })
+    expect(offer.presentationMedia?.external_url).toBe(mediaRow.external_url)
+    expect(offer.presentationMedia?.source_url).toBe(packaged.sourceUrl)
+    const changedSource = normalizeCatalogReadModel([canonical], [mediaRow], [], []).offers[0]
+    expect(changedSource.presentationUrl).toBeNull()
+    expect(changedSource.attributes).toEqual({ Size: 'S' })
+  })
+
+  it('keeps Show Store and Black Lotus facts and personal interest separate for the same variant', () => {
+    const shared = { ...offerRow, product_id: 'shared-shirt', variant_id: 'large', variant_label: 'Large' }
+    const model = normalizeCatalogReadModel([
+      { ...shared, offer_id: 'store-shirt', availability: 'sold_out', purchase_limit: 1 },
+      { ...shared, offer_id: 'lotus-shirt', catalog_id: 'lotus', family: 'black_lotus', price_amount: 20, availability: 'unknown', purchase_limit: 2 },
+    ], [], [
+      { owner_id: 'user-kavi', offer_id: 'store-shirt', interested: true, note: 'Gift', updated_at: '2026-10-31T00:00:00Z' },
+      { owner_id: 'user-kavi', offer_id: 'lotus-shirt', interested: false, note: null, updated_at: '2026-10-31T00:00:00Z' },
+    ], [])
+    expect(model.offers).toHaveLength(2)
+    expect(model.offers[0]).toMatchObject({ offer_id: 'store-shirt', price_amount: 25, soldOut: true, purchase_limit: 1, interests: [{ interested: true, note: 'Gift' }] })
+    expect(model.offers[1]).toMatchObject({ offer_id: 'lotus-shirt', price_amount: 20, soldOut: false, purchase_limit: 2, interests: [{ interested: false, note: null }] })
+  })
+
   it('renders Prize Wall costs with the full Prize Tix unit and never as money', () => {
     expect(formatCatalogOfferValue({ ...offerRow, family: 'prize_wall', price_amount: null, currency: null, prize_ticket_cost: 5000 })).toBe('5,000 Prize Tix')
     expect(formatCatalogOfferValue({ ...offerRow, family: 'prize_wall', price_amount: null, currency: null, prize_ticket_cost: null })).toBe('Prize Tix pending')
@@ -266,7 +297,7 @@ describe('catalog read model', () => {
   it('returns a ready empty model when no published current offers exist', async () => {
     await expect(loadCatalogReadModel(fakeClient({
       catalog_current_offers: { data: [], error: null },
-    }), 'atlanta-2026')).resolves.toEqual({ status: 'ready', offers: [] })
+    }), 'atlanta-2026')).resolves.toEqual({ status: 'ready', offers: [], purchaseRulesStatus: 'absent' })
   })
 
   it.each([

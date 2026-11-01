@@ -19,8 +19,22 @@ function requestForAsset(url: string) {
     : { mode: 'no-cors', credentials: 'omit' })
 }
 
+export type DeviceAssetIntegrity = Readonly<Record<string, string>>
+
+async function validAsset(response: Response | undefined, expectedHash?: string) {
+  if (!response) return false
+  if (!expectedHash) return true
+  // Packaged originals/thumbnails are readable same-origin bytes. Opaque,
+  // empty, corrupt, and HTML fallback responses cannot satisfy their digest.
+  if (!response.ok || !response.headers.get('content-type')?.startsWith('image/')) return false
+  try {
+    const digest = await crypto.subtle.digest('SHA-256', await response.clone().arrayBuffer())
+    return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('') === expectedHash
+  } catch { return false }
+}
+
 /** Inspect existing bytes, including offline; a prior successful download is not proof against eviction. */
-export async function auditDeviceAssets(urls: Array<string | null | undefined>): Promise<DeviceAssetCacheResult> {
+export async function auditDeviceAssets(urls: Array<string | null | undefined>, integrity: DeviceAssetIntegrity = {}): Promise<DeviceAssetCacheResult> {
   const unique = [...new Set(urls.filter((url): url is string => Boolean(url)))]
   const failures: string[] = []
   let cached = 0
@@ -29,7 +43,7 @@ export async function auditDeviceAssets(urls: Array<string | null | undefined>):
     const cache = await caches.open(DEVICE_ASSET_CACHE)
     for (const url of unique) {
       try {
-        if (await cache.match(requestForAsset(url))) cached += 1
+        if (await validAsset(await cache.match(requestForAsset(url)), integrity[url])) cached += 1
         else failures.push(url)
       } catch { failures.push(url) }
     }
@@ -37,11 +51,16 @@ export async function auditDeviceAssets(urls: Array<string | null | undefined>):
   return { expected: unique.length, cached, failures }
 }
 
+/** Enumerate both compact presentation media and full detail media across shared offers. */
+export function catalogAssetUrls(offers: Array<{ presentationUrl?: string | null; attributes?: Record<string, unknown> | null }>) {
+  return [...new Set(offers.flatMap(offer => [offer.presentationUrl, typeof offer.attributes?.original_image_url === 'string' ? offer.attributes.original_image_url : null]).filter((url): url is string => Boolean(url)))]
+}
+
 export function exhibitorAssetUrls(exhibitors: Array<{ imageUrl?: string; specials?: Array<{ imageUrl?: string }>; exclusives?: Array<{ imageUrl?: string }> }>) {
   return exhibitors.flatMap(exhibitor => [exhibitor.imageUrl, ...(exhibitor.specials ?? []).map(offer => offer.imageUrl), ...(exhibitor.exclusives ?? []).map(offer => offer.imageUrl)])
 }
 
-export async function cacheDeviceAssets(urls: Array<string | null | undefined>, refreshExisting = false): Promise<DeviceAssetCacheResult> {
+export async function cacheDeviceAssets(urls: Array<string | null | undefined>, refreshExisting = false, integrity: DeviceAssetIntegrity = {}): Promise<DeviceAssetCacheResult> {
   const unique = [...new Set(urls.filter((url): url is string => Boolean(url)))]
   if (!unique.length) return { expected: 0, cached: 0, failures: [] }
   if (!('caches' in globalThis) || !navigator.onLine) return { expected: unique.length, cached: 0, failures: unique }
@@ -56,13 +75,15 @@ export async function cacheDeviceAssets(urls: Array<string | null | undefined>, 
       const url = unique[cursor++]
       try {
         const request = requestForAsset(url)
-        const present = await cache.match(request)
+        const previous = await cache.match(request)
+        const present = await validAsset(previous, integrity[url])
         if (!present || (refreshExisting && Date.now() - (recentlyRefreshed.get(request.url) ?? 0) >= MEDIA_REFRESH_INTERVAL)) {
           let download = downloads.get(request.url)
           if (!download) {
             download = (async () => {
-              const response = await fetch(request, refreshExisting ? { cache: 'reload' } : undefined)
+              const response = await fetch(request, refreshExisting || (previous && !present) ? { cache: 'reload' } : undefined)
               if (!response.ok && response.type !== 'opaque') throw new Error(`HTTP ${response.status}`)
+              if (!await validAsset(response, integrity[url])) throw new Error('Image integrity mismatch')
               await cache.put(request, response)
               recentlyRefreshed.set(request.url, Date.now())
             })().finally(() => { downloads.delete(request.url) })
@@ -70,6 +91,7 @@ export async function cacheDeviceAssets(urls: Array<string | null | undefined>, 
           }
           await download
         }
+        if (integrity[url] && !await validAsset(await cache.match(request), integrity[url])) throw new Error('Cached image integrity mismatch')
         cached += 1
       } catch {
         failures.push(url)

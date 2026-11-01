@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { auditDeviceAssets, cacheDeviceAssets, DEVICE_ASSET_CACHE, exhibitorAssetUrls } from './deviceAssets'
+import { webcrypto, createHash } from 'node:crypto'
+import { auditDeviceAssets, cacheDeviceAssets, DEVICE_ASSET_CACHE, exhibitorAssetUrls, catalogAssetUrls } from './deviceAssets'
 
 describe('device asset pack', () => {
   beforeEach(() => {
@@ -73,5 +74,60 @@ describe('device asset pack', () => {
     vi.stubGlobal('caches', { open: vi.fn(async () => ({ match: vi.fn(async (request: Request) => request.url.endsWith('/saved.jpg') ? new Response('image') : undefined) })) })
     expect(await auditDeviceAssets(['/saved.jpg', '/evicted.jpg'])).toEqual({ expected: 2, cached: 1, failures: ['/evicted.jpg'] })
     expect(fetch).not.toHaveBeenCalled()
+  })
+})
+
+
+describe('verified merchandise image bytes', () => {
+  it('rejects corrupt and HTML cache bodies, repairs online, and detects offline eviction', async () => {
+    vi.stubGlobal('crypto', webcrypto)
+    vi.stubGlobal('navigator', { onLine: true })
+    const bytes = 'original-image-bytes'
+    const digest = createHash('sha256').update(bytes).digest('hex')
+    const image = (body: string) => new Response(body, { headers: { 'content-type': 'image/png' } })
+    const matches = new Map<string, Response>([[new URL('/verified.png', window.location.href).href, image('corrupt')]])
+    const cache = { match: vi.fn(async (request: Request) => matches.get(request.url)?.clone()), put: vi.fn(async (request: Request, response: Response) => { matches.set(request.url, response) }) }
+    vi.stubGlobal('caches', { open: vi.fn(async () => cache) })
+    vi.stubGlobal('fetch', vi.fn(async () => image(bytes)))
+    const integrity = { '/verified.png': digest }
+    expect((await auditDeviceAssets(['/verified.png'], integrity)).cached).toBe(0)
+    expect((await cacheDeviceAssets(['/verified.png'], false, integrity)).cached).toBe(1)
+    expect(fetch).toHaveBeenCalledWith(expect.any(Request), { cache: 'reload' })
+    vi.stubGlobal('navigator', { onLine: false })
+    expect((await auditDeviceAssets(['/verified.png'], integrity)).cached).toBe(1)
+    matches.set(new URL('/verified.png', window.location.href).href, new Response(bytes, { headers: { 'content-type': 'text/html' } }))
+    expect((await auditDeviceAssets(['/verified.png'], integrity)).cached).toBe(0)
+    matches.clear()
+    expect((await auditDeviceAssets(['/verified.png'], integrity)).cached).toBe(0)
+  })
+})
+
+
+describe('catalog image enumeration', () => {
+  it('deduplicates shared offers while retaining both detail and thumbnail images', () => {
+    const offer = { presentationUrl: '/thumb.webp', attributes: { original_image_url: '/detail.webp' } }
+    expect(catalogAssetUrls([offer, offer, { presentationUrl: null }])).toEqual(['/thumb.webp', '/detail.webp'])
+  })
+})
+
+
+describe('concurrent integrity expectations', () => {
+  it('does not count an unverified shared download as verified', async () => {
+    vi.stubGlobal('crypto', webcrypto)
+    vi.stubGlobal('navigator', { onLine: true })
+    const entries = new Map<string, Response>()
+    const cache = { match: vi.fn(async (request: Request) => entries.get(request.url)?.clone()), put: vi.fn(async (request: Request, response: Response) => { entries.set(request.url, response) }) }
+    vi.stubGlobal('caches', { open: vi.fn(async () => cache) })
+    let finish!: () => void
+    const pending = new Promise<void>(resolve => { finish = resolve })
+    vi.stubGlobal('fetch', vi.fn(async () => { await pending; return new Response('wrong-bytes', { headers: { 'content-type': 'image/png' } }) }))
+    const plain = cacheDeviceAssets(['/shared-mixed.png'])
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(1))
+    const verified = cacheDeviceAssets(['/shared-mixed.png'], false, { '/shared-mixed.png': createHash('sha256').update('right-bytes').digest('hex') })
+    await new Promise(resolve => setTimeout(resolve, 0))
+    finish()
+    expect((await plain).cached).toBe(1)
+    expect(await verified).toEqual({ expected: 1, cached: 0, failures: ['/shared-mixed.png'] })
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 })

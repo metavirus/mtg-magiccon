@@ -19,6 +19,13 @@ interface ItemDraft {
   category: string
   canonicalKey: string
   offerKey: string
+  variantKey: string
+  variantLabel: string
+  variantSku: string
+  variantAttributes: string
+  purchaseLimit: string
+  eligibilityNote: string
+  pickupNote: string
   identityStatus: 'exact_product' | 'exact_variant' | 'ambiguous' | 'unmatched'
   valueKind: 'price' | 'prize_tix'
   value: string
@@ -121,8 +128,15 @@ function initialDraft(item: CatalogPhotoIntakeItem, decision: CatalogItemReviewD
     productName: name,
     category: approved?.category ?? manifest.catalog?.section ?? '',
     canonicalKey: approved?.canonicalKey ?? keyify(name),
+    variantKey: approved?.variantKey ?? item.variant_key ?? '',
+    variantLabel: approved?.variantLabel ?? item.variant_label ?? '',
+    variantSku: approved?.variantSku ?? item.variant_sku ?? '',
+    variantAttributes: JSON.stringify(approved?.variantAttributes ?? item.variant_attributes ?? {}),
+    purchaseLimit: (approved?.purchaseLimit ?? item.purchase_limit) == null ? '' : String(approved?.purchaseLimit ?? item.purchase_limit),
+    eligibilityNote: approved?.eligibilityNote ?? item.eligibility_note ?? '',
+    pickupNote: approved?.pickupNote ?? item.pickup_note ?? '',
     offerKey: approved?.offerKey ?? `${keyify(name)}-offer`,
-    identityStatus: approved?.identityStatus ?? (item.presentation?.match_status === 'exact_variant' ? 'exact_variant' : item.presentation?.match_status === 'exact_product' ? 'exact_product' : 'ambiguous'),
+    identityStatus: decision?.identityStatus ?? (item.presentation?.match_status === 'exact_variant' ? 'exact_variant' : item.presentation?.match_status === 'exact_product' ? 'exact_product' : 'ambiguous'),
     valueKind: isPrizeWall ? 'prize_tix' : approved?.value.kind ?? (tix != null ? 'prize_tix' : 'price'),
     value: String(isPrizeWall ? tix ?? '' : approved?.value.kind === 'price' ? approved.value.amountMinor / 100 : approved?.value.kind === 'prize_tix' ? approved.value.cost : tix ?? (priceMinor != null ? priceMinor / 100 : '')),
     currency: approved?.value.kind === 'price' ? approved.value.currency : item.currency ?? 'USD',
@@ -265,7 +279,14 @@ export function CatalogImportLab({ initialBatch, canPromote, promoting, onPromot
     } else {
       const manifestMediaExists = draft.mediaChoice !== 'external' && Boolean(item.media?.[draft.mediaChoice] && item.hashes?.[`${draft.mediaChoice}_sha256` as keyof NonNullable<CatalogPhotoIntakeItem['hashes']>])
       const mediaApproved = (draft.mediaMatch === 'exact_product' || draft.mediaMatch === 'exact_variant') && (draft.mediaChoice === 'external' ? Boolean(draft.externalUrl && draft.sourceProvider && draft.sourceUrl) : manifestMediaExists)
-      const amount = Number(draft.value)
+      let variantAttributes: Record<string, string> | undefined
+      try {
+        variantAttributes = draft.identityStatus === 'exact_variant' ? JSON.parse(draft.variantAttributes || '{}') : undefined
+      } catch {
+        setLoadError('Variant options must be a JSON object, for example {"Size":"Large"}.')
+        return
+      }
+      const amount = draft.value.trim() ? Number(draft.value) : NaN
       decision = {
         ...base,
         decision: 'approve',
@@ -274,6 +295,10 @@ export function CatalogImportLab({ initialBatch, canPromote, promoting, onPromot
         offerKey: draft.offerKey,
         productName: draft.productName,
         category: draft.category,
+        ...(draft.identityStatus === 'exact_variant' ? { variantKey: draft.variantKey, variantLabel: draft.variantLabel, variantSku: draft.variantSku, variantAttributes } : {}),
+        ...(draft.purchaseLimit.trim() ? { purchaseLimit: Number(draft.purchaseLimit) } : {}),
+        eligibilityNote: draft.eligibilityNote,
+        pickupNote: draft.pickupNote,
         value: draft.valueKind === 'price'
           ? { kind: 'price', amountMinor: Number.isFinite(amount) ? Math.round(amount * 100) : -1, currency: draft.currency }
           : { kind: 'prize_tix', cost: Number.isFinite(amount) ? Math.round(amount) : -1 },
@@ -430,6 +455,15 @@ export function CatalogImportLab({ initialBatch, canPromote, promoting, onPromot
               <label><span>Canonical name</span><input value={draft.productName} onChange={event => updateDraft(key, { productName: event.target.value })} /></label>
               <label><span>Category</span><input value={draft.category} onChange={event => updateDraft(key, { category: event.target.value })} /></label>
               <label><span>Identity</span><select value={draft.identityStatus} onChange={event => updateDraft(key, { identityStatus: event.target.value as ItemDraft['identityStatus'] })}><option value="exact_product">Exact product</option><option value="exact_variant">Exact variant</option><option value="ambiguous">Ambiguous</option><option value="unmatched">Unmatched</option></select></label>
+              <label><span>Product key</span><input value={draft.canonicalKey} onChange={event => updateDraft(key, { canonicalKey: event.target.value })} /></label>
+              <label><span>Offer key</span><input value={draft.offerKey} onChange={event => updateDraft(key, { offerKey: event.target.value })} /></label>
+              {draft.identityStatus === 'exact_variant' && <label><span>Variant key</span><input value={draft.variantKey} onChange={event => updateDraft(key, { variantKey: event.target.value })} /></label>}
+              {draft.identityStatus === 'exact_variant' && <label><span>Variant label</span><input value={draft.variantLabel} onChange={event => updateDraft(key, { variantLabel: event.target.value })} /></label>}
+              {draft.identityStatus === 'exact_variant' && <label><span>Variant SKU</span><input value={draft.variantSku} onChange={event => updateDraft(key, { variantSku: event.target.value })} /></label>}
+              {draft.identityStatus === 'exact_variant' && <label><span>Variant options (JSON)</span><input value={draft.variantAttributes} onChange={event => updateDraft(key, { variantAttributes: event.target.value })} /></label>}
+              <label><span>Purchase limit</span><input value={draft.purchaseLimit} onChange={event => updateDraft(key, { purchaseLimit: event.target.value })} /></label>
+              <label><span>Eligibility</span><input value={draft.eligibilityNote} onChange={event => updateDraft(key, { eligibilityNote: event.target.value })} /></label>
+              <label><span>Pickup</span><input value={draft.pickupNote} onChange={event => updateDraft(key, { pickupNote: event.target.value })} /></label>
               <label><span>Value</span><span className="catalog-import-value"><select value={isPrizeWall ? 'prize_tix' : draft.valueKind} disabled={isPrizeWall} onChange={event => updateDraft(key, { valueKind: event.target.value as ItemDraft['valueKind'] })}>{!isPrizeWall && <option value="price">Price</option>}<option value="prize_tix">Prize Tix</option></select><input inputMode="numeric" value={draft.value} onChange={event => updateDraft(key, { value: event.target.value })} /></span></label>
               <label><span>Availability</span><select value={draft.availability} onChange={event => updateDraft(key, { availability: event.target.value as CatalogAvailability })}>{availabilityOptions.map(option => <option value={option} key={option}>{option.replace('_', ' ')}</option>)}</select></label>
               <label><span>Event day</span><input type="date" value={draft.eventDay} onChange={event => updateDraft(key, { eventDay: event.target.value, observedAt: event.target.value ? `${event.target.value}T12:00:00-04:00` : '' })} /></label>

@@ -1,0 +1,18 @@
+[
+  {
+    "localPath": "research/merchandise/2026-10-31/public-collection-page-0.json.capture",
+    "bucket": "private-catalog-artifacts",
+    "objectPath": "c09321e9-06e2-49de-a48e-b776f2021f78/originals/59ec23858087b953ecda3d819da84deb3c6ae33c374ba606caa4d69439e952a9.json",
+    "sha256": "59ec23858087b953ecda3d819da84deb3c6ae33c374ba606caa4d69439e952a9",
+    "contentType": "application/json",
+    "upsert": false
+  },
+  {
+    "localPath": "research/merchandise/2026-10-31/black-lotus-rules.json",
+    "bucket": "private-catalog-artifacts",
+    "objectPath": "1c55dc8f-8c8e-4588-af4c-40a29e9d6b26/originals/1a3e8931b7f905f25b255fa50483ecf2e9e52bfc2231d09202ba6e3b3dad6e58.json",
+    "sha256": "1a3e8931b7f905f25b255fa50483ecf2e9e52bfc2231d09202ba6e3b3dad6e58",
+    "contentType": "application/json",
+    "upsert": false
+  }
+]

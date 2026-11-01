@@ -1,0 +1,38 @@
+name: Upload reviewed Store source artifacts
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlanta-2026-store-source-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    env:
+      NODE_OPTIONS: --use-system-ca
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Set up pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.16.0 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify exact reviewed source artifacts
+        run: node scripts/upload_atlanta_catalog_artifacts.mjs
+      - name: Upload and verify immutable private source bytes
+        env:
+          SUPABASE_URL: https://pavjsexxbueuzhzgemgy.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/upload_atlanta_catalog_artifacts.mjs --apply

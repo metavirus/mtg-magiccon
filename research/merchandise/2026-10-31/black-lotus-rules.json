@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "kind": "black_lotus_purchase_rules",
+  "sourceKind": "official_email_reviewed_synopsis",
+  "sourcePublicationDate": "2026-10-26",
+  "opensAt": "2026-11-02T10:00:00-08:00",
+  "closesAt": "2026-11-08T10:00:00-08:00",
+  "checkoutLimit": 1,
+  "pickup": "Black Lotus Lounge from November 13, 8:30 AM local; onsite pickup only",
+  "rules": [
+    "Some limited-print or late-arriving products may be excluded.",
+    "Only the eight named items are guaranteed for preorder; size availability may be limited.",
+    "Festival in a Box remaining VIP allotment is purchased at lounge fulfillment until November 14, 2 PM, not the Show Store."
+  ],
+  "items": [
+    {
+      "canonicalKey": "shopify-magiccon-product-15397203247318",
+      "name": "Magic: The Gathering® | The Hobbit™ Collector Booster",
+      "purchaseLimit": 6,
+      "limitScope": "preorder"
+    },
+    {
+      "canonicalKey": "shopify-magiccon-product-15397200429270",
+      "name": "Magic: The Gathering® | Star Trek™ Collector Booster",
+      "purchaseLimit": 6,
+      "limitScope": "preorder"
+    },
+    {
+      "canonicalKey": "shopify-magiccon-product-15397201707222",
+      "name": "Reality Fracture Collector Booster",
+      "purchaseLimit": 6,
+      "limitScope": "preorder"
+    },
+    {
+      "canonicalKey": "shopify-magiccon-product-9292829098198",
+      "name": "Secret Lair: So Salty - Traditional Foil Edition",
+      "purchaseLimit": 1,
+      "limitScope": "preorder"
+    },
+    {
+      "canonicalKey": "shopify-magiccon-product-15397190762710",
+      "name": "Festival in a Box: Atlanta 2026",
+      "purchaseLimit": 2,
+      "limitScope": "per_vip_per_event_across_preorder_and_onsite"
+    },
+    {
+      "canonicalKey": "shopify-magiccon-product-9293485637846",
+      "name": "Magic: the Gathering Crocs",
+      "purchaseLimit": 1,
+      "limitScope": "preorder"
+    },
+    {
+      "canonicalKey": "extra-life-2026-rise-of-the-polygons-foil",
+      "name": "Extra Life 2026: Rise of the Polygons Traditional Foil Edition",
+      "purchaseLimit": 1,
+      "limitScope": "preorder"
+    },
+    {
+      "canonicalKey": "extra-life-2026-rise-of-the-polygons",
+      "name": "Extra Life 2026: Rise of the Polygons",
+      "purchaseLimit": 1,
+      "limitScope": "preorder"
+    }
+  ]
+}

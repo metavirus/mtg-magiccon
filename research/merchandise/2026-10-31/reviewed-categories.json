@@ -1,0 +1,380 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31",
+  "kind": "editorial_classification",
+  "sourceCategoriesPreserved": true,
+  "products": [
+    {
+      "productKey": "shopify-magiccon-product-15392488980694",
+      "productName": "Jace Reversible Hoodie",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392528302294",
+      "productName": "MagicCon: Atlanta Knit Polo",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392531710166",
+      "productName": "MagicCon: Atlanta Track Jacket",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392535150806",
+      "productName": "MagicCon: Atlanta Snapback Hat",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392556286166",
+      "productName": "MagicCon: Atlanta 2026 Logo Full Zip Hoodie",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392559726806",
+      "productName": "MagicCon: Atlanta 2026 Feature Art Full Zip Hoodie",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392560840918",
+      "productName": "MagicCon: Atlanta Mana Repeater Crewneck Sweatshirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392561987798",
+      "productName": "Hooded Cardigan",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392564543702",
+      "productName": "MagicCon: Atlanta 2026 Logo T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392570671318",
+      "productName": "MagicCon: Atlanta 2026 Feature Art T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392572965078",
+      "productName": "MagicCon: Atlanta Tarot Card T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392574537942",
+      "productName": "MagicCon: Atlanta Mana Repeater T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392575586518",
+      "productName": "Tezzeret's Etherium Emporium T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392578371798",
+      "productName": "MagicCon: Atlanta Mascots T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392578830550",
+      "productName": "MagicCon: Atlanta Metal T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392580567254",
+      "productName": "MagicCon: Atlanta Goose Hydra T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392581910742",
+      "productName": "MagicCon Blue Monochrome T-Shirt",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392587612374",
+      "productName": "MagicCon: Atlanta 2026 Logo Dad Hat",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392588398806",
+      "productName": "MagicCon: Atlanta 2026 Logo Magnet",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392588824790",
+      "productName": "MagicCon: Atlanta 2026 Logo Patch",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15392949600470",
+      "productName": "MagicCon: Atlanta 2026 Logo Tote",
+      "category": "Bags",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393016774870",
+      "productName": "MagicCon: Atlanta 2026 Lanyard",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393533395158",
+      "productName": "MagicCon: Atlanta Metal Patch",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393637531862",
+      "productName": "MagicCon: Atlanta 2026 Event Playmat",
+      "category": "Play accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393673281750",
+      "productName": "Way of the Deathbringer Playmat",
+      "category": "Play accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393708703958",
+      "productName": "MagicCon: Atlanta 2026 Feature Art Woven Throw Blanket",
+      "category": "Home & collectibles",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393715093718",
+      "productName": "Magic: The Gathering x RockLove Black Lotus Signet Ring",
+      "category": "Jewelry",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393883783382",
+      "productName": "Magic: The Gathering x RockLove Black Lotus Medallion Necklace",
+      "category": "Jewelry",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393953186006",
+      "productName": "Magic: The Gathering x RockLove Pip Medallion Necklace",
+      "category": "Jewelry",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15393954955478",
+      "productName": "Magic: The Gathering x RockLove Pip Signet Ring",
+      "category": "Jewelry",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396366745814",
+      "productName": "Eye of Jace Liquid Core Jumbo Spindown",
+      "category": "Play accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396367499478",
+      "productName": "Children of the Nameless (Trade Edition)",
+      "category": "Books",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396369039574",
+      "productName": "Geometric Rune Reusable Bag",
+      "category": "Bags",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396369891542",
+      "productName": "Emrakul ARTY Box - Gatherers' Tavern",
+      "category": "Home & collectibles",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396370383062",
+      "productName": "Mox Pearl Lanyard & Pin",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396372480214",
+      "productName": "Fblthp Puff Ball Keychain - Squishable",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396381655254",
+      "productName": "MagicCon: Atlanta 2026 Logo Pin",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396383260886",
+      "productName": "MagicCon: Atlanta 2026 Feature Art Pin",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396384506070",
+      "productName": "MagicCon: Atlanta 2026 Mystery Pin Pack",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396387356886",
+      "productName": "Eye of Jace Lenticular Pin",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396395155670",
+      "productName": "Tinybones Geeki Tiki",
+      "category": "Home & collectibles",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396395974870",
+      "productName": "Cantrip Candle - Mox Pearl",
+      "category": "Home & collectibles",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396401447126",
+      "productName": "MagicCon: Atlanta 2026 Logo Sticker",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396401545430",
+      "productName": "MagicCon: Atlanta 2026 Feature Art Sticker",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15396401643734",
+      "productName": "MagicCon: Atlanta Metal Sticker",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15400576516310",
+      "productName": "MagicCon: Atlanta Fblthp Ornament",
+      "category": "Home & collectibles",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15400578056406",
+      "productName": "Goose Hydra Ornament",
+      "category": "Home & collectibles",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397190762710",
+      "productName": "Festival in a Box: Atlanta 2026",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397199904982",
+      "productName": "Magic: The Gathering® | Star Trek™ Play Booster",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397200429270",
+      "productName": "Magic: The Gathering® | Star Trek™ Collector Booster",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397201117398",
+      "productName": "Reality Fracture Play Booster",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397201707222",
+      "productName": "Reality Fracture Collector Booster",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397202329814",
+      "productName": "Magic: The Gathering® | The Hobbit™ Play Booster",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-15397203247318",
+      "productName": "Magic: The Gathering® | The Hobbit™ Collector Booster",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293485637846",
+      "productName": "Magic: the Gathering Crocs",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-9292829098198",
+      "productName": "Secret Lair: So Salty - Traditional Foil Edition",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293464338646",
+      "productName": "Fblthp Snapback Hat",
+      "category": "Clothing & footwear",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293481574614",
+      "productName": "Mana Symbol Rubber Coasters",
+      "category": "Home & collectibles",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293482131670",
+      "productName": "Mana Symbol Shoe Charm Set",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "shopify-magiccon-product-9293541605590",
+      "productName": "Mana Symbol Mini Pin Set",
+      "category": "Pins & small accessories",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "extra-life-2026-rise-of-the-polygons-foil",
+      "productName": "Extra Life 2026: Rise of the Polygons Traditional Foil Edition",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    },
+    {
+      "productKey": "extra-life-2026-rise-of-the-polygons",
+      "productName": "Extra Life 2026: Rise of the Polygons",
+      "category": "Cards & sealed products",
+      "basis": "Reviewed product name and product type; app browse grouping, not official source taxonomy"
+    }
+  ]
+}

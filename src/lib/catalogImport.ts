@@ -19,6 +19,13 @@ export interface CatalogPhotoIntakeItem {
   name?: string
   display_price?: string
   currency?: string
+  variant_key?: string
+  variant_label?: string
+  variant_sku?: string
+  variant_attributes?: Record<string, string>
+  purchase_limit?: number
+  eligibility_note?: string
+  pickup_note?: string
   price_minor?: number
   prize_ticket_cost?: number
   presentation_quality?: CatalogImageQuality
@@ -65,6 +72,7 @@ export interface CatalogPhotoIntakeReviewManifest {
     title?: string
     section?: string
     event_key?: string
+    purpose?: 'inventory' | 'reference'
     fixture_only?: boolean
   }
   source?: {
@@ -132,6 +140,10 @@ export type CatalogItemReviewDecision =
       category: string
       variantKey?: string
       variantLabel?: string
+      variantSku?: string
+      variantAttributes?: Record<string, string>
+      eligibilityNote?: string
+      pickupNote?: string
       value: CatalogOfferValue
       presentationMedia: CatalogPresentationMediaReview
       availability: CatalogAvailabilityReview
@@ -158,6 +170,7 @@ export type CatalogImportIssueCode =
   | 'invalid_batch'
   | 'invalid_manifest'
   | 'fixture_catalog'
+  | 'reference_catalog'
   | 'missing_catalog_identity'
   | 'missing_source_identity'
   | 'duplicate_source_item'
@@ -167,6 +180,8 @@ export type CatalogImportIssueCode =
   | 'unresolved_review'
   | 'ambiguous_identity'
   | 'missing_product_identity'
+  | 'conflicting_product_identity'
+  | 'duplicate_offer'
   | 'missing_value'
   | 'invalid_value_for_family'
   | 'missing_media_review'
@@ -191,10 +206,14 @@ export interface CatalogPromotionItem {
   variant: null | {
     variantKey: string
     label: string
+    sku?: string | null
+    attributes?: Record<string, string>
   }
   offer: {
     offerKey: string
     value: CatalogOfferValue
+    eligibilityNote?: string | null
+    pickupNote?: string | null
     purchaseLimit: number | null
     sortOrder: number
     published: true
@@ -240,6 +259,7 @@ export interface CatalogPromotionPlan {
     family: CatalogFamily
     title: string
     section: string | null
+    purpose?: 'inventory'
   }
   sourceCapture: {
     identityKey: string
@@ -352,6 +372,7 @@ export function buildCatalogPromotionPlan(batch: CatalogImportBatch): CatalogPro
       !nonBlank(catalog.title) || !catalog.family || !(['show_store', 'black_lotus', 'prize_wall'] as const).includes(catalog.family)) {
     issues.push(issue('missing_catalog_identity', 'Catalog key, event key, family, and title are required.'))
   }
+  if (catalog?.purpose != null && catalog.purpose !== 'inventory') issues.push(issue('reference_catalog', 'Reference evidence cannot be promoted as inventory.'))
   if (catalog?.fixture_only === true) issues.push(issue('fixture_catalog', 'Fixture-only intake evidence cannot be promoted.'))
 
   const source = manifest.source
@@ -421,6 +442,13 @@ export function buildCatalogPromotionPlan(batch: CatalogImportBatch): CatalogPro
         (exactVariant && (!nonBlank(decision.variantKey) || !KEY.test(decision.variantKey) || !nonBlank(decision.variantLabel)))) {
       issues.push(issue('missing_product_identity', 'Approved items require canonical product, offer, name, category, and any exact variant identity.', sourceItemKey))
     }
+    if ((!exactVariant && (nonBlank(decision.variantKey) || nonBlank(decision.variantLabel) || decision.variantAttributes != null || nonBlank(decision.variantSku))) ||
+        (decision.variantAttributes != null && (typeof decision.variantAttributes !== 'object' || Array.isArray(decision.variantAttributes) || Object.entries(decision.variantAttributes).some(([key, value]) => !nonBlank(key) || !nonBlank(value))))) {
+      issues.push(issue('missing_product_identity', 'Variant fields require an exact variant and options must be a map of nonempty names and values.', sourceItemKey))
+    }
+    if ([decision.eligibilityNote, decision.pickupNote, decision.variantSku].some(value => value != null && typeof value !== 'string')) {
+      issues.push(issue('invalid_offer', 'SKU, eligibility and pickup notes must be text.', sourceItemKey))
+    }
     if (!validateValue(decision.value)) issues.push(issue('missing_value', 'Approved items require a valid price or Prize Tix value.', sourceItemKey))
     if (catalog?.family === 'prize_wall' && decision.value?.kind !== 'prize_tix') {
       issues.push(issue('invalid_value_for_family', 'Prize Wall items require a Prize Tix cost and cannot use a money price.', sourceItemKey))
@@ -461,10 +489,12 @@ export function buildCatalogPromotionPlan(batch: CatalogImportBatch): CatalogPro
     promotions.push({
       sourceItemKey,
       product: { canonicalKey: decision.canonicalKey.trim(), name: decision.productName.trim(), category: decision.category.trim() },
-      variant: exactVariant ? { variantKey: decision.variantKey!.trim(), label: decision.variantLabel!.trim() } : null,
+      variant: exactVariant ? { variantKey: decision.variantKey!.trim(), label: decision.variantLabel!.trim(), ...(decision.variantSku != null ? { sku: decision.variantSku.trim() || null } : {}), ...(decision.variantAttributes != null ? { attributes: Object.fromEntries(Object.entries(decision.variantAttributes).sort(([a], [b]) => a.localeCompare(b))) } : {}) } : null,
       offer: {
         offerKey: decision.offerKey.trim(),
         value,
+        ...(decision.eligibilityNote != null ? { eligibilityNote: decision.eligibilityNote.trim() || null } : {}),
+        ...(decision.pickupNote != null ? { pickupNote: decision.pickupNote.trim() || null } : {}),
         purchaseLimit: decision.purchaseLimit ?? null,
         sortOrder: decision.sortOrder ?? 0,
         published: true,
@@ -502,6 +532,32 @@ export function buildCatalogPromotionPlan(batch: CatalogImportBatch): CatalogPro
     })
   }
 
+  // Shared products and variants may recur, but one catalog offer must identify
+  // exactly one source item. Otherwise the writer's upsert can silently rebind it.
+  const offerKeys = new Set<string>()
+  const products = new Map<string, CatalogPromotionItem['product']>()
+  const variants = new Map<string, string>()
+  for (const promotion of promotions) {
+    const { product, variant, offer, sourceItemKey } = promotion
+    if (offerKeys.has(offer.offerKey)) {
+      issues.push(issue('duplicate_offer', 'Each source item needs a distinct offer key within its catalog.', sourceItemKey))
+    }
+    offerKeys.add(offer.offerKey)
+    const priorProduct = products.get(product.canonicalKey)
+    if (priorProduct && (priorProduct.name !== product.name || priorProduct.category !== product.category)) {
+      issues.push(issue('conflicting_product_identity', 'A shared canonical product must have consistent reviewed name and category.', sourceItemKey))
+    }
+    products.set(product.canonicalKey, product)
+    if (variant) {
+      const identity = `${product.canonicalKey}:${variant.variantKey}`
+      const priorLabel = variants.get(identity)
+      if (priorLabel !== undefined && priorLabel !== JSON.stringify(variant)) {
+        issues.push(issue('conflicting_product_identity', 'A shared product variant must have a consistent reviewed label.', sourceItemKey))
+      }
+      variants.set(identity, JSON.stringify(variant))
+    }
+  }
+
   if (issues.length > 0) {
     return {
       status: 'blocked',
@@ -515,6 +571,7 @@ export function buildCatalogPromotionPlan(batch: CatalogImportBatch): CatalogPro
       schemaVersion: 1,
       batchKey: batch.batchKey,
       catalog: {
+        purpose: 'inventory',
         catalogKey: catalog!.catalog_key!,
         eventKey: catalog!.event_key!,
         family: catalog!.family!,

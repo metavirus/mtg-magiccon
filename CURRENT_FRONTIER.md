@@ -1,5 +1,12 @@
 # Current Frontier
 
+## Store release checkpoint
+
+Publication/upload/import blocked by automatic approval review pending explicit user approval. Local checks and PM review are complete; source upload and canonical promotion have not run.
+
+
+One Store groups 60 sourced products and 202 variants with eight independent Black Lotus purchase rules. Local import/JSON/identity safeguards and full regression gate pass; hosted safeguard migration is applied and source captures staged unpublished. Offline origin-unreachable reload/reopen and zoom proof passed. Source upload, canonical promotion and final public readback follow the reviewed root execution order in docs/MERCHANDISE_INTAKE_2026-10-31.md. Store-only release; parked map work stays local.
+
 ## October 21 exhibitor freshness and offline media
 
 Online visible resumes now refresh server data (without requiring an offline edge), cached exhibitors render immediately, and a successful directory read no longer waits for unrelated continuity lanes. Every vendor logo and offer image is included in device warming; same-URL bytes revalidate with a five-minute bound and in-flight deduplication. The image cache no longer silently evicts hydrated packs at 250 entries. Exhibitor image completeness is audited and exposes retry; browser storage eviction is detectable, not preventable.
