@@ -1040,6 +1040,7 @@ export default function App() {
     const cachedTrust = readTrustSliceCache()
     setSlice(cachedTrust?.ownerId === effectiveOwnerId ? cachedTrust : null)
     const cached = effectiveOwnerId ? readOfflineContinuity(effectiveOwnerId) : null
+    if (qaFlags.includes('startup')) document.documentElement.setAttribute('data-startup-cache-has-catalog', String(Boolean(cached?.lanes.catalog)))
     if (cached) {
       markStartup('cache')
       const lanes = cached.lanes
@@ -1109,7 +1110,17 @@ export default function App() {
     const lane = <T,>(key: Parameters<typeof writeOfflineContinuityLane>[1], label: string, read: Promise<T>, publish: (value: T) => void) =>
       publishHydrationLane(read, isCurrent, value => {
         publish(value)
-        try { writeOfflineContinuityLane(effectiveOwnerId, key, value) } catch { /* read-only cache is best effort */ }
+        try {
+          writeOfflineContinuityLane(effectiveOwnerId, key, value)
+          if (qaFlags.includes('startup')) document.documentElement.setAttribute(`data-startup-cache-write-${key}`, 'ready')
+        } catch (error) {
+          if (qaFlags.includes('startup')) {
+            const name = error instanceof Error || error instanceof DOMException ? error.name : 'Error'
+            const safeName = ['Error', 'QuotaExceededError', 'SecurityError', 'InvalidStateError', 'UnknownError', 'TypeError', 'RangeError', 'NS_ERROR_DOM_QUOTA_REACHED'].includes(name) ? name : 'Error'
+            document.documentElement.setAttribute('data-startup-cache-write-failed', `${key}:${safeName}`)
+            document.documentElement.setAttribute(`data-startup-cache-write-${key}`, safeName)
+          }
+        }
       }, () => {
         failures.push(label)
         setContinuityFailures(current => [...new Set([...current, label])])
@@ -2153,7 +2164,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
-{surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
+{surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogRefreshFailed={continuityFailures.includes('catalogs')} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface flights={tripFlights} receipts={walletReceipts} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
@@ -5125,17 +5136,18 @@ function CatalogMatchReview() {
   </article>
 }
 
-function InfoCatalogsPreview({ onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
+function InfoCatalogsPreview({ refreshFailed = false, onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; refreshFailed?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
   const [catalogId, setCatalogId] = useState<InfoCatalog['id']>('show-store')
   const catalog = priorEventCatalogs.find(item => item.id === catalogId) ?? priorEventCatalogs[0]
   const hasCurrentCatalog = catalogReadModel.status === 'ready' && catalogReadModel.offers.length > 0
   return <section className="info-catalog-preview" role="tabpanel" aria-label="Store preview">
+    {refreshFailed && <p role="status">{hasCurrentCatalog ? 'Store could not be refreshed. Showing saved items.' : 'Store could not be loaded. Try refreshing.'}</p>}
     {hasCurrentCatalog && <ArtistAssetStatus urls={atlantaMerchAssetUrls} integrity={atlantaMerchAssetIntegrity} missingImages={reviewOnly ? atlantaMerchMissingImageCount : new Set(catalogReadModel.offers.filter(offer => !offer.presentationUrl).map(offer => offer.product_id)).size} online={navigator.onLine} revision={0} label="Product images" quiet />}
     {!reviewOnly && catalogBrowserQa && <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event products—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>}
     {showMatchReview && <CatalogMatchReview />}
     {hasCurrentCatalog
       ? <CatalogBrowser reviewOnly={reviewOnly} model={catalogReadModel} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(preferredCatalogBookmarkOffer(catalogReadModel, offer, currentOwnerId), currentOwnerId))} />
-      : !catalogBrowserQa || reviewOnly ? <p role="status">{catalogReadModel.status === 'ready' ? 'No Store items yet.' : 'Loading Store…'}</p> : <><div className="info-catalog-selector" role="tablist" aria-label="Catalog preview">
+      : refreshFailed ? null : !catalogBrowserQa || reviewOnly ? <p role="status">{catalogReadModel.status === 'ready' ? 'No Store items yet.' : 'Loading Store…'}</p> : <><div className="info-catalog-selector" role="tablist" aria-label="Catalog preview">
       {priorEventCatalogs.map(item => <button type="button" role="tab" aria-selected={catalog.id === item.id} className={catalog.id === item.id ? 'active' : ''} key={item.id} onClick={() => setCatalogId(item.id)}>{item.id === 'black-lotus' ? 'Black Lotus' : item.title}</button>)}
     </div>
     <header className="info-catalog-heading"><div><span className="eyebrow">{catalog.precedentEvent.toUpperCase()}</span><h2>{catalog.title}</h2><p>{catalog.description}</p></div><a href={catalog.sourceUrl} target="_blank" rel="noreferrer">View precedent source ↗</a></header>
@@ -5172,7 +5184,7 @@ function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
   }
 }
 
-function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
+function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { catalogRefreshFailed?: boolean; canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
   const qaFlags = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
   const catalogMatchReviewEnabled = canUseCatalogImport && qaFlags.includes('catalog-match-review')
   const catalogBrowserQa = canUseCatalogImport && qaFlags.includes('catalog-browser')
@@ -5204,7 +5216,7 @@ function InfoSurface({ canWriteExhibitors, exhibitors, exhibitorError, savedExhi
       <ArtistAssetStatus urls={exhibitorAssetUrls(exhibitors).filter((url): url is string => Boolean(url))} missingImages={0} online={navigator.onLine} revision={0} label="Exhibitor images" />
       <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />
     </>}
-    {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
+    {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview refreshFailed={catalogRefreshFailed} onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
     {mode === 'import' && canUseCatalogImport && <CatalogImportLab initialBatch={catalogImportPreviewBatch} canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />}
   </section>
 }

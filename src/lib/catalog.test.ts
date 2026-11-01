@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { atlantaMerchMedia } from './atlantaMerchMedia'
 import {
   emptyCatalogReadModel,
@@ -318,4 +318,51 @@ it('hides the source default-option label while retaining the exact variant iden
   const model = normalizeCatalogReadModel([{ ...offerRow, variant_id: 'source-default-variant', variant_label: 'Default Title' }], [], [], [])
   expect(model.offers[0].variant_label).toBeNull()
   expect(model.offers[0].variant_id).toBe('source-default-variant')
+})
+
+
+describe('explicit startup catalog diagnostics', () => {
+  let originalUrl: string
+  const root = document.documentElement
+  beforeEach(() => {
+    originalUrl = window.location.href
+    for (const attr of [...root.attributes]) if (attr.name.startsWith('data-startup-catalog-read-')) root.removeAttribute(attr.name)
+  })
+  afterEach(() => {
+    window.history.replaceState(null, '', originalUrl)
+    for (const attr of [...root.attributes]) if (attr.name.startsWith('data-startup-catalog-read-')) root.removeAttribute(attr.name)
+  })
+  it.each(['', '?qa=catalog-browser', '?qa=startup-other'])('records nothing without the exact startup QA flag (%s)', async search => {
+    window.history.replaceState(null, '', `/${search}`)
+    await loadCatalogReadModel(fakeClient({}))
+    expect(root.getAttribute('data-startup-catalog-read-phase')).toBeNull()
+  })
+  it('shows a held own-loader phase immediately and records completion without extra reads', async () => {
+    window.history.replaceState(null, '', '/?qa=other,startup')
+    let release!: (result: QueryResult) => void
+    const held = new Promise<QueryResult>(resolve => { release = resolve })
+    let reads = 0
+    const builder = {
+      select: () => builder, order: () => builder, eq: () => builder,
+      then: held.then.bind(held),
+    }
+    const client = { from: () => { reads += 1; return builder } } as unknown as SupabaseClient
+    const read = loadCatalogReadModel(client)
+    expect(root.getAttribute('data-startup-catalog-read-phase')).toBe('offers-pending')
+    expect(root.getAttribute('data-startup-catalog-read-offers-ms')).toMatch(/^[0-9]+$/)
+    release({ data: [], error: null })
+    await read
+    expect(root.getAttribute('data-startup-catalog-read-phase')).toBe('complete-ready')
+    expect(reads).toBe(1)
+  })
+  it('records safe provider codes without messages, owner identifiers or payload', async () => {
+    window.history.replaceState(null, '', '/?qa=startup')
+    const result = await loadCatalogReadModel(fakeClient({ catalog_current_offers: { data: null, error: { code: 'PGRST301', message: 'PRIVATE-OWNER-TOKEN' } } }))
+    expect(result.status).toBe('unavailable')
+    expect(root.getAttribute('data-startup-catalog-read-phase')).toBe('offers-error')
+    expect(root.getAttribute('data-startup-catalog-read-error-code')).toBe('PGRST301')
+    expect(root.outerHTML).not.toContain('PRIVATE-OWNER-TOKEN')
+    await loadCatalogReadModel(fakeClient({ catalog_current_offers: { data: null, error: { code: 'PRIVATE-OWNER-TOKEN' } } }))
+    expect(root.getAttribute('data-startup-catalog-read-error-code')).toBe('READ_FAILED')
+  })
 })

@@ -46,6 +46,8 @@ function saved(owner: string, title: string) {
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
   HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
+  for (const attr of [...document.documentElement.attributes]) if (attr.name.startsWith('data-startup-cache-write-')) document.documentElement.removeAttribute(attr.name)
+  document.documentElement.removeAttribute('data-startup-cache-has-catalog')
   localStorage.clear()
   mocked.info.mockReset().mockImplementation(() => new Promise(() => {}))
   mocked.catalog.mockReset().mockImplementation(() => new Promise(() => {}))
@@ -87,6 +89,49 @@ describe('startup hydration', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
     expect(screen.getByText('Fresh canonical product')).toBeInTheDocument()
     expect(readOfflineContinuity('owner-a')?.lanes.catalog).toMatchObject({ offers: [{ product_name: 'Fresh canonical product' }] })
+  })
+
+  it.each([false, true])('reports a failed Store lane immediately while unrelated reads remain held (saved=%s)', async cached => {
+    saved('owner-a', 'Saved current hours')
+    if (cached) writeOfflineContinuityLane('owner-a', 'catalog', { ...catalogBrowserPreviewModel, offers: [{ ...catalogBrowserPreviewModel.offers[0], product_name: 'Saved canonical product', interests: [] }] })
+    const store = deferred<CatalogReadModel>()
+    mocked.catalog.mockReturnValue(store.promise)
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    await act(async () => { store.resolve({ status: 'unavailable', offers: [] }) })
+    expect(screen.queryByText('Loading Store…')).not.toBeInTheDocument()
+    expect(screen.getByText(cached ? 'Store could not be refreshed. Showing saved items.' : 'Store could not be loaded. Try refreshing.')).toHaveAttribute('role', 'status')
+    if (cached) {
+      expect(screen.getByText('Saved canonical product')).toBeInTheDocument()
+      expect(readOfflineContinuity('owner-a')?.lanes.catalog).toMatchObject({ offers: [{ product_name: 'Saved canonical product' }] })
+    } else expect(readOfflineContinuity('owner-a')?.lanes.catalog).toBeUndefined()
+  })
+
+  it.each(['startup', 'catalog-browser'])('records quota failure without losing rendered Store only in startup QA (qa=%s)', async qa => {
+    window.history.replaceState(null, '', `/?auth=1&qa=${qa}#info`)
+    saved('owner-a', 'Saved current hours')
+    const store = deferred<CatalogReadModel>()
+    mocked.catalog.mockReturnValue(store.promise)
+    const original = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key, value) {
+      if (key.startsWith('magiccon:offline-continuity:')) throw new DOMException('private ignored message', 'QuotaExceededError')
+      original.call(this, key, value)
+    })
+    render(<App />)
+    await act(async () => { store.resolve({ ...catalogBrowserPreviewModel, offers: [{ ...catalogBrowserPreviewModel.offers[0], product_name: 'Fresh retained in memory', interests: [] }] }) })
+    if (qa === 'startup') fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    expect(screen.getByText('Fresh retained in memory')).toBeInTheDocument()
+    expect(document.documentElement.getAttribute('data-startup-cache-write-failed')).toBe(qa === 'startup' ? 'catalog:QuotaExceededError' : null)
+    expect(document.documentElement.getAttribute('data-startup-cache-write-catalog')).toBe(qa === 'startup' ? 'QuotaExceededError' : null)
+    expect(document.documentElement.getAttribute('data-startup-cache-has-catalog')).toBe(qa === 'startup' ? 'false' : null)
+    expect(readOfflineContinuity('owner-a')?.lanes.catalog).toBeUndefined()
+  })
+
+  it('marks an acknowledged saved catalog when the owner snapshot binds', () => {
+    saved('owner-a', 'Saved current hours')
+    writeOfflineContinuityLane('owner-a', 'catalog', catalogBrowserPreviewModel)
+    render(<App />)
+    expect(document.documentElement.getAttribute('data-startup-cache-has-catalog')).toBe('true')
   })
 
   it('rebinds saved state on owner switch and ignores a late old-owner response', async () => {

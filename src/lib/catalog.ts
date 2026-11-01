@@ -1,3 +1,4 @@
+import { catalogStartupDiagnostics } from './catalogStartupDiagnostics'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { atlantaMerchMedia } from './atlantaMerchMedia'
 
@@ -158,17 +159,17 @@ export function parseCatalogPurchaseRules(notes: unknown): CatalogPurchaseRules 
   } catch { return null }
 }
 
-export async function loadCatalogPurchaseRules(client: SupabaseClient, eventKey: string): Promise<Pick<CatalogReadModel, 'purchaseRules' | 'purchaseRulesStatus'>> {
+export async function loadCatalogPurchaseRules(client: SupabaseClient, eventKey: string, onError?: (error: unknown) => void): Promise<Pick<CatalogReadModel, 'purchaseRules' | 'purchaseRulesStatus'>> {
   try {
     const result = await client.from('catalog_source_captures')
       .select('notes,catalogs!inner(event_key,family,purpose)')
       .eq('catalogs.event_key', eventKey).eq('catalogs.family', 'black_lotus').eq('catalogs.purpose', 'inventory')
       .eq('source_label', BLACK_LOTUS_RULES_SOURCE_LABEL).order('captured_at', { ascending: false }).limit(1)
-    if (result.error) return { purchaseRulesStatus: 'unavailable' }
+    if (result.error) { onError?.(result.error); return { purchaseRulesStatus: 'unavailable' } }
     if (!result.data?.length) return { purchaseRulesStatus: 'absent' }
     const purchaseRules = parseCatalogPurchaseRules(result.data[0].notes)
     return purchaseRules ? { purchaseRulesStatus: 'ready', purchaseRules } : { purchaseRulesStatus: 'unavailable' }
-  } catch { return { purchaseRulesStatus: 'unavailable' } }
+  } catch (error) { onError?.(error); return { purchaseRulesStatus: 'unavailable' } }
 }
 
 export type CatalogReadModel = {
@@ -335,7 +336,9 @@ export async function loadCatalogReadModel(
   client: SupabaseClient,
   eventKey?: string,
 ): Promise<CatalogReadModel> {
+  const diagnose = catalogStartupDiagnostics()
   try {
+    diagnose('offers-pending')
     let currentOffersQuery = client
       .from('catalog_current_offers')
       .select(currentOfferColumns)
@@ -344,26 +347,40 @@ export async function loadCatalogReadModel(
     if (eventKey) currentOffersQuery = currentOffersQuery.eq('event_key', eventKey)
 
     const currentOffersResult = await currentOffersQuery
-    if (currentOffersResult.error) return emptyCatalogReadModel
+    if (currentOffersResult.error) { diagnose('offers-error', currentOffersResult.error); return emptyCatalogReadModel }
+    diagnose('offers-ready')
 
     // This migration is intentionally allowed to be absent until its publish gate.
     // Supabase's generated Database type therefore does not know this view yet.
     const offerRows = (currentOffersResult.data ?? []) as unknown as CatalogCurrentOfferRow[]
-    const purchasing = eventKey ? await loadCatalogPurchaseRules(client, eventKey) : { purchaseRulesStatus: 'absent' as const }
-    if (offerRows.length === 0) return { status: 'ready', offers: [], ...purchasing }
+    diagnose('rules-pending')
+    const purchasing = eventKey ? await loadCatalogPurchaseRules(client, eventKey, error => diagnose('rules-error', error)) : { purchaseRulesStatus: 'absent' as const }
+    diagnose(purchasing.purchaseRulesStatus === 'unavailable' ? 'rules-unavailable' : 'rules-ready')
+    if (offerRows.length === 0) { diagnose('complete-ready'); return { status: 'ready', offers: [], ...purchasing } }
 
     const offerIds = offerRows.map(row => row.offer_id)
     const mediaIds = offerRows.flatMap(row => row.presentation_media_id ? [row.presentation_media_id] : [])
 
+    const readDetail = async (stage: string, read: PromiseLike<{ data: unknown[] | null; error: unknown }>) => {
+      diagnose(`${stage}-pending`)
+      try {
+        const result = await read
+        diagnose(`${stage}-${result.error ? 'error' : 'ready'}`, result.error)
+        return result
+      } catch (error) { diagnose(`${stage}-error`, error); throw error }
+    }
     const [mediaResult, interestsResult, companionsResult] = await Promise.all([
-      mediaIds.length > 0
+      readDetail('media', mediaIds.length > 0
         ? client.from('catalog_media').select(presentationMediaColumns).in('id', mediaIds)
-        : Promise.resolve({ data: [], error: null }),
-      client.from('catalog_interests').select(interestColumns).in('offer_id', offerIds),
-      client.from('companion_members').select(companionColumns).eq('active', true),
+        : Promise.resolve({ data: [], error: null })),
+      readDetail('interests', client.from('catalog_interests').select(interestColumns).in('offer_id', offerIds)),
+      readDetail('companions', client.from('companion_members').select(companionColumns).eq('active', true)),
     ])
 
-    if (mediaResult.error || interestsResult.error || companionsResult.error) return emptyCatalogReadModel
+    if (mediaResult.error || interestsResult.error || companionsResult.error) {
+      diagnose('details-error', mediaResult.error || interestsResult.error || companionsResult.error)
+      return emptyCatalogReadModel
+    }
 
     const model = normalizeCatalogReadModel(
       offerRows,
@@ -371,12 +388,15 @@ export async function loadCatalogReadModel(
       (interestsResult.data ?? []) as CatalogInterestRow[],
       (companionsResult.data ?? []) as CatalogCompanionRow[],
     )
+    diagnose('presentation-pending')
     const offers = await Promise.all(model.offers.map(async offer => ({
       ...offer,
       presentationUrl: offer.presentationUrl ?? await resolveCatalogPresentationUrl(client, offer.presentationMedia),
     })))
+    diagnose('complete-ready')
     return { ...model, offers, ...purchasing }
-  } catch {
+  } catch (error) {
+    diagnose('unexpected-error', error)
     return emptyCatalogReadModel
   }
 }
