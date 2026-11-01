@@ -313,3 +313,9 @@ describe('catalog read model', () => {
     await expect(loadCatalogReadModel(fakeClient(results))).resolves.toEqual(emptyCatalogReadModel)
   })
 })
+
+it('hides the source default-option label while retaining the exact variant identity', () => {
+  const model = normalizeCatalogReadModel([{ ...offerRow, variant_id: 'source-default-variant', variant_label: 'Default Title' }], [], [], [])
+  expect(model.offers[0].variant_label).toBeNull()
+  expect(model.offers[0].variant_id).toBe('source-default-variant')
+})

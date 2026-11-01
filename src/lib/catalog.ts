@@ -243,6 +243,7 @@ export function normalizeCatalogReadModel(
       const exactPackaged = packaged && media?.source_url === packaged.sourceUrl ? packaged : null
       return {
         ...offer,
+        variant_label: offer.variant_label === 'Default Title' ? null : offer.variant_label,
         presentationMediaId,
         attributes: exactPackaged ? { ...offer.attributes, original_image_url: exactPackaged.originalUrl } : offer.attributes,
         presentationMedia: media
