@@ -8,8 +8,9 @@ for(const asset of ['app.js','style.css'])assert(html.includes(asset+'?v='+versi
 assert(source.includes('data.json?v='+versionOf('data.json')),'data content hash');
 const elements=new Map(),listeners={};
 function el(s){if(!elements.has(s))elements.set(s,{style:{},clientWidth:375,clientHeight:450,value:'',innerHTML:'',setPointerCapture(){},setAttribute(k,v){this[k]=v},getBoundingClientRect(){return {width:this.clientWidth,height:this.clientHeight}},insertAdjacentHTML(){},scrollIntoView(){this.revealed=true},remove(){},click(){}});return elements.get(s)}
+let mapWrites=0;Object.defineProperty(el('#map'),'innerHTML',{get(){return this.markup||''},set(v){mapWrites++;this.markup=v}});
 const data=JSON.parse(fs.readFileSync(previewDir+'data.json','utf8')),originalDataSnapshot=JSON.stringify(data);
-const context={URLSearchParams,document:{querySelector:el,addEventListener:(type,fn)=>{listeners[type]=fn}},fetch:async url=>({json:async()=>url.startsWith('place-content')?JSON.parse(fs.readFileSync(previewDir+'place-content.json','utf8')):data}),ResizeObserver:class{observe(){}},window:{},setTimeout:fn=>fn(),console};
+const context={URLSearchParams,document:{querySelector:el,addEventListener:(type,fn)=>{listeners[type]=fn}},fetch:async url=>({json:async()=>url.startsWith('place-content')?JSON.parse(fs.readFileSync(previewDir+'place-content.json','utf8')):data}),ResizeObserver:class{observe(){}},window:{},setTimeout:fn=>fn(),requestAnimationFrame:fn=>fn(),Date,console};
 vm.createContext(context);vm.runInContext(source,context);
 setImmediate(()=>{
  const api=context.window.mapStudy,p=api.places,by=id=>p.find(q=>q.id===id),state=()=>JSON.parse(JSON.stringify(api.getState())),stage=el('#stage');
@@ -43,6 +44,21 @@ setImmediate(()=>{
  api.go('marketplace');api.choose('dragon-shield');
  for(const id of ['dragon-shield',null]){const before=state();stage.onpointerdown({pointerId:2,clientX:200,clientY:200,target:id?target(id):{closest:()=>null}});stage.onpointermove({pointerId:2,clientX:140,clientY:150});stage.onpointerup({pointerId:2});assert(state().box[0]>before.box[0]);assert(state().box[1]>before.box[1]);assert.equal(state().selected,null);assert.equal(state().panelOpen,false)}
  const beforeResize=state().box;api.resizeCamera();assert.deepEqual(state().box,beforeResize);stage.clientHeight=430;api.resizeCamera();assert.equal(state().box[2],beforeResize[2]);assert.equal(state().box[1]+state().box[3]/2,beforeResize[1]+beforeResize[3]/2);
+ // Drawer layout changes must preserve the exact world point under the grabbed pointer.
+ const panel=el('#panel');let hidden=panel.hidden;Object.defineProperty(panel,'hidden',{configurable:true,get(){return hidden},set(v){hidden=v;stage.clientHeight=v?450:240}});
+ api.go('marketplace');api.choose('dragon-shield');api.resizeCamera();const grabbed=state().box,worldX=grabbed[0]+150*grabbed[2]/375,worldY=grabbed[1]+120*grabbed[3]/240;
+ stage.onpointerdown({pointerId:40,clientX:150,clientY:120,target:target('dragon-shield')});stage.onpointermove({pointerId:40,clientX:90,clientY:80});stage.onpointerup({pointerId:40});const dragged=state().box;
+ assert(Math.abs(dragged[0]+90*dragged[2]/375-worldX)<1e-9,'drawer reclaim preserves horizontal world anchor');assert(Math.abs(dragged[1]+80*dragged[3]/450-worldY)<1e-9,'drawer reclaim preserves vertical world anchor');assert.equal(state().selected,null);
+ delete panel.hidden;panel.hidden=hidden;stage.clientHeight=450;api.resizeCamera();
+ // Semantic cameras replace arbitrary scale increments; every dense target returns in <=2 outward actions.
+ for(const id of ['marketplace','art-of-magic','magic-experiences']){api.go('floor');api.go(id);assert.equal(state().cameraView,id);api.zoom(1.5);assert.equal(state().cameraView,'floor')}
+ api.go('art-of-magic');const artistArea=state().box;api.zoom(.65);assert.equal(state().cameraView,'artist-group');assert(el('#plus').disabled);api.zoom(1.5);assert.equal(state().cameraView,'art-of-magic');assert.deepEqual(state().box,artistArea);api.zoom(1.5);assert.equal(state().cameraView,'floor');
+ api.zoom(.65);assert.equal(state().cameraView,'marketplace');assert(el('#plus').disabled);const readable=state().box;api.zoom(.65);assert.deepEqual(state().box,readable,'no arbitrary tiny intervals');
+ api.go('magic-experiences');const activityMarkup=el('#map').innerHTML;assert(activityMarkup.includes('>Bloomburrow</text>'),'narrow activity retains complete readable name');assert(!activityMarkup.includes('Bloomb…'));
+ // One wheel gesture, regardless of event count, advances only one purpose view.
+ api.go('art-of-magic');for(let i=0;i<20;i++)el('#map').onwheel({deltaY:-100,preventDefault(){}});assert.equal(state().cameraView,'artist-group');
+ // Drag moves only viewBox/minimap, never reconstructing labels or selectable geometry.
+ api.go('marketplace');const geometry=el('#map').innerHTML,writesBefore=mapWrites;stage.onpointerdown({pointerId:41,clientX:200,clientY:200,target:{closest:()=>null}});for(let i=1;i<=12;i++)stage.onpointermove({pointerId:41,clientX:200-i*3,clientY:200-i*2});assert.equal(el('#map').innerHTML,geometry);assert.equal(mapWrites,writesBefore,'no geometry reconstruction during twelve pointer moves');stage.onpointercancel({pointerId:41});assert.equal(state().selected,null);stage.onpointerup({pointerId:41});assert.equal(state().selected,null);
  api.zoom(100);assert.equal(state().area,'floor');assert.equal(state().detailMode,null);assert(el('#minus').disabled);const overview=state().box;api.zoom(1.5);assert.deepEqual(state().box,overview);
  api.go('marketplace');for(let i=0;i<20;i++)api.pan(-1);assert.equal(state().box[0],328);for(let i=0;i<20;i++)api.pan(1);assert(state().box[0]+state().box[2]>=644.9);
  assert.equal(p.filter(q=>q.kind==='artist'&&!q.unbound).length,59);assert.equal(p.filter(q=>q.unbound).length,7);assert(p.filter(q=>q.unbound).every(q=>q.x===undefined));assert.equal(p.filter(q=>q.kind==='island').length,18);assert(by('c102-spindown').x>by('c101-showcase').x+by('c101-showcase').width);assert.equal(by('ticketed-play-upper').path,'M646 280 H800 V332 H990 V470 H646 Z');assert(by('ticketed-play-extension').y>by('ticketed-play-upper').y+by('ticketed-play-upper').height);assert.equal(by('show-store').level,5);assert.equal(by('show-store').room,'Thomas Murphy Ballroom');
