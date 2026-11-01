@@ -1,5 +1,9 @@
 # Current Frontier
 
+## Offline reliability consolidation
+
+All seventeen account lanes share complete per-lane persistence, exact readback and owner/freshness fences. Failed device copies have an actionable, failure-only Retry notice. Exact release709tests/113files, build/integrity checks and independent phone/desktop review pass; local server-stop/reopen and original-image zoom passed. See docs/OFFLINE_RELIABILITY_REPAIR_2026-11-01.md for evidence and limits. Physical-iPhone airplane-mode proof remains required before travel. Parked map work is excluded.
+
 ## Store and startup accepted public checkpoint
 
 Code c694d10 is live: exact682tests/build/integrity checks, CI41279295632, Pages41279295668 and verify:public pass. A full localStorage quota had silently rejected catalog/findings snapshots; complete owner-bound CacheStorage fallback now preserves them without deletion/truncation. Independent PM observed saved Store/60products/two existing bookmarks from CacheStorage at489ms phone and342ms desktop, before the background server read. Actual phone/desktop screens, Bookmarked and rules popup pass. The user's exact IAB legacy shell was also recovered without clearing auth/data/images. See docs/STARTUP_HYDRATION_REVIEW_2026-10-31.md for evidence and test boundaries. Public network-off and physical-iPhone proof remain untested; automated offline/failure/race coverage and exact local server-stop/image-zoom checks passed. Parked map work is excluded from the public release.

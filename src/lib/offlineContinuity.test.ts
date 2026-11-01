@@ -133,3 +133,15 @@ describe('offline continuity', () => {
     expect(config).not.toContain('juan-premium-order-original')
   })
 })
+
+// Feature modules must not reintroduce whole-owner JSON updates or silently
+// swallow failures outside the shared durable boundary.
+describe('offline persistence source guard', () => {
+  it('routes all App feature snapshots through the common boundary', async () => {
+    const { readFileSync } = await import('node:fs')
+    const source = readFileSync('src/App.tsx', 'utf8')
+    expect(source).not.toMatch(/\b(?:writeOfflineContinuityLane|readOfflineContinuity|writeTrustSliceCache|readTrustSliceCache)\s*\(/)
+    expect(source).not.toContain('best-effort device continuity')
+    for (const lane of ['walletReceipts', 'companions', 'artistCatalog', 'artistSigningInterests', 'monitorAlerts', 'selections', 'trustSlice']) expect(source).toContain(`'${lane}'`)
+  })
+})

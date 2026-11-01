@@ -7,9 +7,10 @@ import { readOfflineContinuity, writeOfflineContinuityLane } from './offlineCont
 import { writeOfflineIdentity } from './offlineIdentity'
 import { publishHydrationLane } from './startupHydration'
 import { catalogBrowserPreviewModel } from './catalogPreview'
-import { OFFLINE_LANE_CACHE, writeOfflineLane } from './offlineLaneCache'
+import { OFFLINE_LANE_CACHE, readOfflineLane, writeOfflineLane } from './offlineLaneCache'
 const startupCatalogModel: CatalogReadModel = { ...catalogBrowserPreviewModel, offers: catalogBrowserPreviewModel.offers.map(offer => ({ ...offer, event_key: 'magiccon_atlanta_2026' })) }
 import App, { InfoCatalogsPreview } from '../App'
+import { DESIGN_PREVIEW_SLICE } from './designPreview'
 
 const mocked = vi.hoisted(() => ({
   auth: null as null | ((event: string, session: Session | null) => void),
@@ -107,7 +108,7 @@ describe('startup hydration', () => {
     await act(async () => { store.resolve({ ...startupCatalogModel, offers: [{ ...startupCatalogModel.offers[0], product_name: 'Fresh canonical product', interests: [] }] }) })
     fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
     expect(screen.getByText('Fresh canonical product')).toBeInTheDocument()
-    expect(readOfflineContinuity('owner-a')?.lanes.catalog).toMatchObject({ offers: [{ product_name: 'Fresh canonical product' }] })
+    expect((await readOfflineLane('owner-a', 'catalog'))?.value).toMatchObject({ offers: [{ product_name: 'Fresh canonical product' }] })
   })
 
   it.each([false, true])('reports a failed Store lane immediately while unrelated reads remain held (saved=%s)', async cached => {
@@ -133,7 +134,7 @@ describe('startup hydration', () => {
     mocked.catalog.mockReturnValue(store.promise)
     const original = Storage.prototype.setItem
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key, value) {
-      if (key.startsWith('magiccon:offline-continuity:')) throw new DOMException('private ignored message', 'QuotaExceededError')
+      if (key.startsWith('magiccon:offline-')) throw new DOMException('private ignored message', 'QuotaExceededError')
       original.call(this, key, value)
     })
     render(<App />)
@@ -220,6 +221,21 @@ describe('startup hydration', () => {
     await act(async () => { oldRead.resolve({ topics: [topic('Late private A data')], feed: [] }) })
     expect(screen.queryByText('Late private A data')).not.toBeInTheDocument()
     expect(readOfflineContinuity('owner-b')?.lanes.info).toMatchObject({ topics: [{ title: 'Owner B saved hours' }] })
+  })
+
+  it('retains current primary trust state through same-owner token refresh instead of replaying a legacy snapshot', async () => {
+    saved('owner-a', 'Saved current hours')
+    window.history.replaceState(null, '', '/?auth=1#plan')
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const cache = deviceLaneCache(async () => undefined)
+    const current = { ...DESIGN_PREVIEW_SLICE, ownerId: 'owner-a', occurrence: { ...DESIGN_PREVIEW_SLICE.occurrence, title: 'Current acknowledged trust title' }, decision: { ...DESIGN_PREVIEW_SLICE.decision, planning_state: 'committed' as const } }
+    await writeOfflineLane('owner-a', 'trustSlice', current, undefined, cache.storage)
+    render(<App />)
+    const refreshed = () => document.querySelector('.rail-last-checked strong')?.textContent
+    await waitFor(() => expect(refreshed()).not.toBe('not yet'))
+    const beforeRefresh = refreshed()
+    act(() => mocked.auth?.('TOKEN_REFRESHED', { user: { id: 'owner-a', email: 'kavigrace@gmail.com', user_metadata: {} } } as Session))
+    expect(refreshed()).toBe(beforeRefresh)
   })
 
   it('does not treat a missing saved selections lane as completed account hydration', () => {

@@ -46,8 +46,8 @@ import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from '
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
-import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
-import { readOfflineLane, writeOfflineLane, usableOfflineLane, STARTUP_CACHE_LANES, OfflineLaneCacheWriteError, safeCacheErrorName } from './lib/offlineLaneCache'
+import { createReconnectRefresh } from './lib/offlineContinuity'
+import { readOfflineLane, readOfflineLaneSync, readOfflineLanesSync, writeOfflineLane, saveOfflineLane, offlineLaneReadGuard, usableOfflineLane, STARTUP_CACHE_LANES, OfflineLaneCacheWriteError, safeCacheErrorName } from './lib/offlineLaneCache'
 import type { ContinuityLane } from './lib/offlineContinuity'
 import { publishHydrationLane } from './lib/startupHydration'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
@@ -55,12 +55,13 @@ import { cacheDeviceAssets, catalogAssetUrls, exhibitorAssetUrls } from './lib/d
 import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
 import { ReceiptPages } from './components/ReceiptPages'
 import { ArtistAssetStatus } from './components/ArtistAssetStatus'
+import { OfflineSaveStatus } from './components/OfflineSaveStatus'
+import { rehearseOfflineSaveFailure } from './lib/offlineSaveQa'
+import { uiPreferenceStorage } from './lib/uiPreferenceStorage'
 import './components/ExploreRows.css'
 import './components/ActivityClarity.css'
 import {
   formatOccurrenceTime,
-  readTrustSliceCache,
-  writeTrustSliceCache,
   type PlanningState,
   type TrustSlice,
 } from './lib/trustSlice'
@@ -248,10 +249,10 @@ type WalletReceiptRow = {
 
 type OfflineProofPackStatus = { expected: number; cached: number; loading: boolean }
 
-function useWalletReceipts(currentOwnerId?: string) {
+export function useWalletReceipts(currentOwnerId?: string) {
   const [receipts, setReceipts] = useState<WalletReceiptRow[]>(() => {
     if (!currentOwnerId) return []
-    const cached = readOfflineContinuity(currentOwnerId)?.lanes.walletReceipts
+    const cached = readOfflineLaneSync(currentOwnerId, 'walletReceipts')?.value
     return Array.isArray(cached) ? cached as WalletReceiptRow[] : []
   })
   const [proofPack, setProofPack] = useState<OfflineProofPackStatus>({ expected: 0, cached: 0, loading: false })
@@ -263,38 +264,40 @@ function useWalletReceipts(currentOwnerId?: string) {
     }
     let active = true
     const client = supabase
-    const cached = readOfflineContinuity(currentOwnerId)?.lanes.walletReceipts
-    if (Array.isArray(cached)) {
-      const cachedReceipts = cached as WalletReceiptRow[]
+    let serverAccepted = false
+    let request = 0
+    setReceipts([])
+    setProofPack({ expected: 0, cached: 0, loading: false })
+    void readOfflineLane(currentOwnerId, 'walletReceipts').then(saved => {
+      if (!active || serverAccepted || !saved) return
+      const cachedReceipts = saved.value as WalletReceiptRow[]
       setReceipts(cachedReceipts)
-      const cachedArtifacts = cachedReceipts.flatMap(receipt => receipt.receipt_artifacts)
-      void auditReceiptArtifactCache(cachedArtifacts, currentOwnerId).then(status => {
-        if (active) setProofPack({ ...status, loading: navigator.onLine && status.cached < status.expected })
+      void auditReceiptArtifactCache(cachedReceipts.flatMap(receipt => receipt.receipt_artifacts ?? []), currentOwnerId).then(status => {
+        if (active && !serverAccepted) setProofPack({ ...status, loading: navigator.onLine && status.cached < status.expected })
       })
-    } else {
-      setReceipts([])
-      setProofPack({ expected: 0, cached: 0, loading: false })
-    }
+    })
     const refreshReceipts = () => {
       if (!navigator.onLine) return
+      const generation = ++request
       void client.from('wallet_receipts')
         .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
         .order('receipt_date', { ascending: false })
         .then(({ data, error }) => {
-        if (!active) return
+        if (!active || generation !== request) return
         if (error) { console.warn('Wallet receipts could not be loaded; using offline cache when available', error); return }
         const refreshed = ((data ?? []) as WalletReceiptRow[]).map(receipt => ({
           ...receipt,
           attendee_person_keys: receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key],
           receipt_artifacts: [...(receipt.receipt_artifacts ?? [])].sort((left, right) => left.display_order - right.display_order),
         }))
+        serverAccepted = true
         setReceipts(refreshed)
-        try { writeOfflineContinuityLane(currentOwnerId, 'walletReceipts', refreshed) } catch { /* best-effort device continuity */ }
+        saveOfflineLane(currentOwnerId, 'walletReceipts', refreshed)
         const completeProofPack = refreshed.flatMap(receipt => receipt.receipt_artifacts)
         setProofPack({ expected: completeProofPack.length, cached: 0, loading: completeProofPack.length > 0 })
         void Promise.allSettled(completeProofPack.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId))).then(async () => {
           const status = await auditReceiptArtifactCache(completeProofPack, currentOwnerId)
-          if (active) setProofPack({ ...status, loading: false })
+          if (active && generation === request) setProofPack({ ...status, loading: false })
         })
       })
     }
@@ -776,7 +779,7 @@ export default function App() {
     search: appSearch,
     development: import.meta.env.DEV,
     previewBuild: import.meta.env.VITE_DESIGN_PREVIEW === '1',
-    storage: window.localStorage,
+    storage: uiPreferenceStorage,
     standalone,
   })
   const previewOwner = resolvePreviewOwner(appSearch)
@@ -795,6 +798,7 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [online, setOnline] = useState(navigator.onLine)
   const [offlineIdentity, setOfflineIdentity] = useState(() => readOfflineIdentity())
+  const [offlineIdentityFailureOwner, setOfflineIdentityFailureOwner] = useState<string>()
   const onlineRef = useRef(navigator.onLine)
   const offlineSession = useMemo(() => offlineIdentity
     ? ({ user: { id: offlineIdentity.userId, email: offlineIdentity.email, user_metadata: { full_name: offlineIdentity.displayName } } } as unknown as Session)
@@ -837,6 +841,9 @@ export default function App() {
   const [tripFlights, setTripFlights] = useState<TripFlight[]>(designPreview || isPreviewOwnerMode ? previewTripFlights : [])
   const [continuityReady, setContinuityReady] = useState(false)
   const [continuityFailures, setContinuityFailures] = useState<string[]>([])
+  useEffect(() => {
+    if (isPreviewOwnerMode && effectiveOwnerId && qaFlags.includes('offline-storage-failure')) void rehearseOfflineSaveFailure(effectiveOwnerId)
+  }, [effectiveOwnerId, isPreviewOwnerMode, appSearch])
   const startupMarks = useRef(new Set<string>())
   const markStartup = useCallback((milestone: string) => {
     if (!qaFlags.length || startupMarks.current.has(milestone)) return
@@ -847,6 +854,7 @@ export default function App() {
   const previewHydrated = useRef<string | null>(null)
   const cacheOwnerEpoch = useRef(0)
   const acceptedServerLanes = useRef(new Set<ContinuityLane>())
+  const savedCatalogSource = useRef('cache-storage')
   const initialCacheReads = useRef<Promise<void>>(Promise.resolve())
   const hydrationGeneration = useRef(0)
   const activeOwner = useRef(effectiveOwnerId)
@@ -894,14 +902,14 @@ export default function App() {
     const completedInAccount = userSelections[selectionKey('onboarding-tour', 'completed')] === 'true'
     let seenOnDevice = false
     try {
-      seenOnDevice = window.localStorage.getItem(storageKey) === 'true'
-      if (completedInAccount) window.localStorage.setItem(storageKey, 'true')
+      seenOnDevice = uiPreferenceStorage.getItem(storageKey) === 'true'
+      if (completedInAccount) uiPreferenceStorage.setItem(storageKey, 'true')
     } catch {
       // Supabase remains the durable source if browser storage is unavailable.
     }
 
     if (!completedInAccount && !seenOnDevice) {
-      try { window.localStorage.setItem(storageKey, 'true') } catch { /* non-blocking UI convenience */ }
+      uiPreferenceStorage.setItem(storageKey, 'true')
       setTutorialOpen(true)
       setUserSelections(current => ({ ...current, [selectionKey('onboarding-tour', 'completed')]: 'true' }))
       if (canWrite && supabase) {
@@ -978,12 +986,17 @@ export default function App() {
           email: next.user.email,
           displayName: next.user.user_metadata?.full_name ?? next.user.user_metadata?.name,
         }
-        try { writeOfflineIdentity(identity) } catch { /* online auth remains authoritative */ }
+        try {
+          writeOfflineIdentity(identity)
+          setOfflineIdentityFailureOwner(undefined)
+        } catch {
+          // Online auth still works, but device access must not look retained.
+          setOfflineIdentityFailureOwner(identity.userId)
+        }
         setOfflineIdentity(identity)
       }
-      const cached = readTrustSliceCache()
-      const nextCompanion = currentCompanionFromSession(next, continuityContext.current.companionMembers)
-      setSlice(next && isKaviCompanion(nextCompanion) && cached?.ownerId === next.user.id ? cached : null)
+      // The owner layout effect owns snapshot rebinding. Same-owner token
+      // refresh must retain newer acknowledged memory/CacheStorage state.
     }
     void supabase.auth.getSession().then(({ data }) => {
       if (active && authRevision === 0) applySession(data.session)
@@ -998,6 +1011,7 @@ export default function App() {
         hydrationGeneration.current += 1
         try { clearOfflineIdentity() } catch { /* in-memory sign-out still applies */ }
         setOfflineIdentity(null)
+        setOfflineIdentityFailureOwner(undefined)
       }
       applySession(next)
     })
@@ -1017,10 +1031,13 @@ export default function App() {
         setSlice(null)
         return
       }
+      const epoch = cacheOwnerEpoch.current
+      const fresh = offlineLaneReadGuard(effectiveOwnerId, 'trustSlice')
       const next = await loadTrustSlice(effectiveOwnerId)
-      if (activeOwner.current !== effectiveOwnerId) return
-      if (next) writeTrustSliceCache(next)
+      if (activeOwner.current !== effectiveOwnerId || cacheOwnerEpoch.current !== epoch || !fresh()) return
+      acceptedServerLanes.current.add('trustSlice')
       setSlice(next)
+      persistContinuityLane(effectiveOwnerId, 'trustSlice', next)
     } catch (error) {
       if (activeOwner.current !== effectiveOwnerId) return
       setMessageTone('error')
@@ -1059,9 +1076,9 @@ export default function App() {
     setContinuityFailures([])
     setExhibitorError('')
     setObjectDetail(null)
-    const cachedTrust = readTrustSliceCache()
+    const cachedTrust = effectiveOwnerId ? readOfflineLaneSync(effectiveOwnerId, 'trustSlice')?.value as TrustSlice | null : null
     setSlice(cachedTrust?.ownerId === effectiveOwnerId ? cachedTrust : null)
-    const cached = effectiveOwnerId ? readOfflineContinuity(effectiveOwnerId) : null
+    const cached = effectiveOwnerId ? readOfflineLanesSync(effectiveOwnerId) : null
     if (qaFlags.includes('startup')) {
       document.documentElement.setAttribute('data-startup-cache-has-catalog', String(usableOfflineLane('catalog', cached?.lanes.catalog)))
       document.documentElement.removeAttribute('data-startup-catalog-cache-source')
@@ -1106,6 +1123,8 @@ export default function App() {
     setContinuityReady(Boolean(cached?.lanes.selections))
     const applySavedLane = (key: ContinuityLane, value: unknown) => {
       switch (key) {
+        case 'trustSlice': setSlice(value as TrustSlice | null); break
+        case 'monitorAlerts': setMonitorAlerts(value as MonitoringAlert[]); break
         case 'notes': setContextNotesState(value as ContextNote[]); break
         case 'mentions': setMentionInboxState(value as MentionInboxItem[]); break
         case 'activity': setUserActivityRows(value as UserActivityEventRow[]); break
@@ -1119,7 +1138,7 @@ export default function App() {
           setCatalogReadModel(value as CatalogReadModel)
           if (qaFlags.includes('startup')) {
             document.documentElement.setAttribute('data-startup-cache-has-catalog', 'true')
-            document.documentElement.setAttribute('data-startup-catalog-cache-source', 'cache-storage')
+            document.documentElement.setAttribute('data-startup-catalog-cache-source', savedCatalogSource.current)
             document.documentElement.setAttribute('data-startup-catalog-cache-ms', String(Math.round(performance.now())))
           }
           break
@@ -1148,6 +1167,7 @@ export default function App() {
         // Only a lane-specific acknowledgment can outrank its async fallback.
         const localTime = cached?.laneSavedAt?.[key]
         if (localTime && localTime >= saved.savedAt && usableOfflineLane(key, cached?.lanes[key])) return
+        if (key === 'catalog') savedCatalogSource.current = saved.source ?? 'cache-storage'
         applySavedLane(key, saved.value)
       })).then(() => {})
     } else initialCacheReads.current = Promise.resolve()
@@ -1192,8 +1212,9 @@ export default function App() {
     if (!isCurrent()) return
     const failures: string[] = []
     setContinuityFailures([])
-    const lane = <T,>(key: Parameters<typeof writeOfflineContinuityLane>[1], label: string, read: Promise<T>, publish: (value: T) => void) =>
-      publishHydrationLane(read, isCurrent, value => {
+    const lane = <T,>(key: ContinuityLane, label: string, read: Promise<T>, publish: (value: T) => void) => {
+      const fresh = offlineLaneReadGuard(effectiveOwnerId, key)
+      return publishHydrationLane(read, () => isCurrent() && fresh(), value => {
         publish(value)
         acceptedServerLanes.current.add(key)
         persistContinuityLane(effectiveOwnerId, key, value)
@@ -1201,6 +1222,7 @@ export default function App() {
         failures.push(label)
         setContinuityFailures(current => [...new Set([...current, label])])
       })
+    }
     await Promise.all([
       lane('notes', 'notes', loadContextNotes(effectiveOwnerId), setContextNotesState),
       lane('mentions', 'mentions', loadMentionInbox(effectiveOwnerId), setMentionInboxState),
@@ -1331,34 +1353,48 @@ export default function App() {
       setCompanionMembers(fallbackCompanionMembers)
       return
     }
-    const cached = readOfflineContinuity(effectiveOwnerId)?.lanes.companions
-    if (Array.isArray(cached)) setCompanionMembers(cached as CompanionMember[])
+    const epoch = cacheOwnerEpoch.current
+    const isFresh = offlineLaneReadGuard(effectiveOwnerId, 'companions')
     if (!onlineRef.current && !forceOnline) return
     await loadCompanionMembers().then(members => {
-      if (activeOwner.current !== effectiveOwnerId) return
+      if (activeOwner.current !== effectiveOwnerId || cacheOwnerEpoch.current !== epoch || !isFresh()) return
       setCompanionMembers(members)
-      try { writeOfflineContinuityLane(effectiveOwnerId, 'companions', members) } catch { /* best-effort device continuity */ }
+      saveOfflineLane(effectiveOwnerId, 'companions', members)
     }).catch(error => {
-      if (activeOwner.current !== effectiveOwnerId) return
+      if (activeOwner.current !== effectiveOwnerId || cacheOwnerEpoch.current !== epoch) return
       setMessageTone('error')
       setMessage(error instanceof Error ? `Companion roster could not be refreshed: ${error.message}` : 'Companion roster could not be refreshed.')
-      const cached = readOfflineContinuity(effectiveOwnerId)?.lanes.companions
-      setCompanionMembers(Array.isArray(cached) ? cached as CompanionMember[] : fallbackCompanionMembers)
     })
+  }, [designPreview, isPreviewOwnerMode, effectiveOwnerId])
+
+  useLayoutEffect(() => {
+    let active = true
+    setCompanionMembers(fallbackCompanionMembers)
+    if (effectiveOwnerId && !designPreview && !isPreviewOwnerMode) {
+      void readOfflineLane(effectiveOwnerId, 'companions').then(saved => {
+        if (active && saved) setCompanionMembers(saved.value as CompanionMember[])
+      })
+    }
+    return () => { active = false }
   }, [designPreview, isPreviewOwnerMode, effectiveOwnerId])
 
   useEffect(() => { void refreshCompanions() }, [refreshCompanions])
 
   useEffect(() => {
     if (!session || !effectiveOwnerId || !online || designPreview || isPreviewOwnerMode) return
+    let active = true
+    const catalogFresh = offlineLaneReadGuard(effectiveOwnerId, 'artistCatalog')
+    const signingFresh = offlineLaneReadGuard(effectiveOwnerId, 'artistSigningInterests')
     void Promise.all([loadArtistCatalogFromSupabase(effectiveOwnerId), loadArtistSigningInterestMap(effectiveOwnerId)]).then(([catalog, signingInterests]) => {
-      try { writeOfflineContinuityLane(effectiveOwnerId, 'artistCatalog', catalog) } catch { /* best-effort device continuity */ }
-      try { writeOfflineContinuityLane(effectiveOwnerId, 'artistSigningInterests', signingInterests) } catch { /* best-effort device continuity */ }
+      if (!active) return
+      if (catalogFresh()) saveOfflineLane(effectiveOwnerId, 'artistCatalog', catalog)
+      if (signingFresh()) saveOfflineLane(effectiveOwnerId, 'artistSigningInterests', signingInterests)
       void cacheDeviceAssets([
         ...catalog.artists.map(artist => artist.thumbnailUrl),
         ...catalog.cards.flatMap(card => [card.artCropUrl, card.cardImageUrl]),
       ])
     }).catch(error => console.warn('Artist device pack could not be refreshed', error))
+    return () => { active = false }
   }, [designPreview, effectiveOwnerId, isPreviewOwnerMode, online, session])
 
   useEffect(() => {
@@ -1393,8 +1429,6 @@ export default function App() {
 
   useEffect(() => {
     let active = true
-    const cachedAlerts = effectiveOwnerId ? readOfflineContinuity(effectiveOwnerId)?.lanes.monitorAlerts : null
-    if (Array.isArray(cachedAlerts)) setMonitorAlerts(cachedAlerts as MonitoringAlert[])
     if (!navigator.onLine) return () => { active = false }
     void fetch(`${import.meta.env.BASE_URL}monitoring-intake.json`, { cache: 'no-store' })
       .then(response => response.ok ? response.json() : null)
@@ -1406,7 +1440,8 @@ export default function App() {
         const merged = [...mergedById.values()]
         setMonitorAlerts(merged)
         if (effectiveOwnerId) {
-          try { writeOfflineContinuityLane(effectiveOwnerId, 'monitorAlerts', merged) } catch { /* best-effort device continuity */ }
+          acceptedServerLanes.current.add('monitorAlerts')
+          saveOfflineLane(effectiveOwnerId, 'monitorAlerts', merged)
         }
       })
       .catch(() => {
@@ -1632,15 +1667,17 @@ export default function App() {
       void refreshUserContinuity()
       return false
     }
-    // Cache only acknowledged state so an immediate offline reopen sees the check.
-    try {
-      const cached = readOfflineContinuity(ownerId)?.lanes.selections
-      const rows = Array.isArray(cached) ? cached as UserSelectionRow[] : []
-      writeOfflineContinuityLane(ownerId, 'selections', [
-        ...rows.filter(row => !(row.owner_id === ownerId && row.object_id === objectId && row.selection_key === key)),
+    // Merge only after acknowledgment; functional state preserves concurrent picks.
+    if (activeOwner.current !== ownerId) return true
+    acceptedServerLanes.current.add('selections')
+    setSharedSelectionRows(current => {
+      const next = [
+        ...current.filter(row => !(row.owner_id === ownerId && row.object_id === objectId && row.selection_key === key)),
         { owner_id: ownerId, object_id: objectId, object_kind: objectKind, selection_key: key, selection_value: value, updated_at: now },
-      ])
-    } catch { /* best-effort device continuity after server acknowledgement */ }
+      ]
+      persistContinuityLane(ownerId, 'selections', next)
+      return next
+    })
     return true
   }
 
@@ -2240,6 +2277,11 @@ export default function App() {
       </header>
 
       {((message && messageTone !== 'error') || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
+      <OfflineSaveStatus ownerId={effectiveOwnerId} identityFailed={offlineIdentityFailureOwner === effectiveOwnerId && Boolean(effectiveOwnerId)} onRetryIdentity={() => {
+        if (!offlineIdentity || offlineIdentity.userId !== effectiveOwnerId) return
+        try { writeOfflineIdentity(offlineIdentity); setOfflineIdentityFailureOwner(undefined) }
+        catch { setOfflineIdentityFailureOwner(effectiveOwnerId) }
+      }} />
       <>
         {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
@@ -3982,7 +4024,7 @@ function peopleVisibilityKey(currentOwnerId: string | undefined, currentPerson: 
 
 function readPeopleVisibility(currentOwnerId: string | undefined, currentPerson: PersonName) {
   try {
-    const stored = JSON.parse(window.localStorage.getItem(peopleVisibilityKey(currentOwnerId, currentPerson)) ?? 'null')
+    const stored = JSON.parse(uiPreferenceStorage.getItem(peopleVisibilityKey(currentOwnerId, currentPerson)) ?? 'null')
     if (!Array.isArray(stored)) return [...planPeople]
     const visible = planPeople.filter(person => stored.includes(person))
     return visible.length > 0 ? visible : [...planPeople]
@@ -3992,7 +4034,7 @@ function readPeopleVisibility(currentOwnerId: string | undefined, currentPerson:
 }
 
 function writePeopleVisibility(currentOwnerId: string | undefined, currentPerson: PersonName, people: PersonName[]) {
-  window.localStorage.setItem(peopleVisibilityKey(currentOwnerId, currentPerson), JSON.stringify(people))
+  uiPreferenceStorage.setItem(peopleVisibilityKey(currentOwnerId, currentPerson), JSON.stringify(people))
 }
 
 function planParticipants(event: ExploreEvent, currentPerson: PersonName, selectionRows: UserSelectionRow[], companions: CompanionMember[]): PlanParticipant[] {
@@ -4125,7 +4167,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
   const days: ExploreEvent['day'][] = ['Thu', 'Fri', 'Sat', 'Sun']
   const [activeDay, setActiveDay] = useState<ExploreEvent['day']>('Fri')
   const [selectedPeople, setSelectedPeople] = useState<PersonName[]>(() => readPeopleVisibility(currentOwnerId, currentPerson))
-  const [planView, setPlanView] = useState<PlanView>(() => window.localStorage.getItem('magiccon-plan-view') === 'agenda' ? 'agenda' : 'list')
+  const [planView, setPlanView] = useState<PlanView>(() => uiPreferenceStorage.getItem('magiccon-plan-view') === 'agenda' ? 'agenda' : 'list')
   const [selectedId, setSelectedId] = useState<string | null>(() => purchaseQaEventId(events))
   const [detailOpen, setDetailOpen] = useState(() => Boolean(purchaseQaEventId(events)))
   const [collapsedPlanGroups, setCollapsedPlanGroups] = useState<string[]>([])
@@ -4175,7 +4217,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
 
   const changePlanView = (view: PlanView) => {
     setPlanView(view)
-    window.localStorage.setItem('magiccon-plan-view', view)
+    uiPreferenceStorage.setItem('magiccon-plan-view', view)
     setSelectedId(null)
     setDetailOpen(false)
   }
@@ -4199,7 +4241,7 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
     const event = candidateEvents.find(candidate => candidate.id === focusRequest.eventId)
     if (!event) return
     setPlanView('list')
-    window.localStorage.setItem('magiccon-plan-view', 'list')
+    uiPreferenceStorage.setItem('magiccon-plan-view', 'list')
     setActiveDay(event.day)
     setSelectedPeople(current => current.includes(currentPerson) ? current : [currentPerson, ...current])
     setSelectedId(event.id)
@@ -5939,9 +5981,11 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
   }, [previewCard])
   const [signingInterest, setSigningInterest] = useState<Record<string, ArtistSigningInterestStatus>>(() => {
     if (!currentOwnerId) return {}
-    const cached = readOfflineContinuity(currentOwnerId)?.lanes.artistSigningInterests
+    const cached = readOfflineLaneSync(currentOwnerId, 'artistSigningInterests')?.value
     return cached && typeof cached === 'object' ? cached as Record<string, ArtistSigningInterestStatus> : {}
   })
+  const artistOwner = useRef(currentOwnerId)
+  artistOwner.current = currentOwnerId
   const [signingInterestError, setSigningInterestError] = useState<string | null>(null)
   const [signingSaving, setSigningSaving] = useState(false)
   const [catalogRefresh, setCatalogRefresh] = useState(0)
@@ -5953,7 +5997,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
     cards: ArtistCardCandidate[]
     error?: string
   }>(() => {
-    const cached = currentOwnerId ? readOfflineContinuity(currentOwnerId)?.lanes.artistCatalog : null
+    const cached = currentOwnerId ? readOfflineLaneSync(currentOwnerId, 'artistCatalog')?.value : null
     if (cached && typeof cached === 'object') {
       const catalog = cached as { artists?: ArtistSeed[]; cards?: ArtistCardCandidate[] }
       if (Array.isArray(catalog.artists) && Array.isArray(catalog.cards)) return { source: 'offline', artists: catalog.artists, cards: catalog.cards }
@@ -5976,59 +6020,53 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
       : shouldSeedSigningQa ? buildPreviewSigningInterest(catalogState.cards) : {},
     [catalogState.cards, shouldSeedSigningQa, localQaModes],
   )
+  useLayoutEffect(() => {
+    let active = true
+    const cached = currentOwnerId ? readOfflineLaneSync(currentOwnerId, 'artistCatalog') : null
+    const initial = cached?.value as { artists: ArtistSeed[]; cards: ArtistCardCandidate[] } | undefined
+    setCatalogState(initial ? { source: 'offline', ...initial } : { source: 'fallback', artists: artistSeeds, cards: currentOwnerId?.startsWith('preview-') ? artistCardCandidates : [] })
+    if (currentOwnerId) void readOfflineLane(currentOwnerId, 'artistCatalog').then(saved => {
+      if (active && saved) setCatalogState({ source: 'offline', ...(saved.value as { artists: ArtistSeed[]; cards: ArtistCardCandidate[] }) })
+    })
+    return () => { active = false }
+  }, [currentOwnerId])
   useEffect(() => {
     let cancelled = false
+    const fresh = currentOwnerId ? offlineLaneReadGuard(currentOwnerId, 'artistCatalog') : () => true
     if (!navigator.onLine) return () => { cancelled = true }
     loadArtistCatalogFromSupabase(currentOwnerId)
       .then(catalog => {
-        if (!cancelled) {
-          setCatalogState({ source: 'supabase', artists: catalog.artists, cards: catalog.cards })
-          if (currentOwnerId) {
-            try { writeOfflineContinuityLane(currentOwnerId, 'artistCatalog', catalog) } catch { /* best-effort device continuity */ }
-          }
-          void cacheDeviceAssets([
-            ...catalog.artists.map(artist => artist.thumbnailUrl),
-            ...catalog.cards.flatMap(card => [card.artCropUrl, card.cardImageUrl]),
-          ])
-        }
+        if (cancelled || !fresh()) return
+        setCatalogState({ source: 'supabase', artists: catalog.artists, cards: catalog.cards })
+        if (currentOwnerId) saveOfflineLane(currentOwnerId, 'artistCatalog', catalog)
+        void cacheDeviceAssets([
+          ...catalog.artists.map(artist => artist.thumbnailUrl),
+          ...catalog.cards.flatMap(card => [card.artCropUrl, card.cardImageUrl]),
+        ])
       })
       .catch(error => {
-        if (!cancelled) {
-          const cached = currentOwnerId ? readOfflineContinuity(currentOwnerId)?.lanes.artistCatalog : null
-          if (cached && typeof cached === 'object') {
-            const catalog = cached as { artists?: ArtistSeed[]; cards?: ArtistCardCandidate[] }
-            if (Array.isArray(catalog.artists) && Array.isArray(catalog.cards)) {
-              setCatalogState({ source: 'offline', artists: catalog.artists, cards: catalog.cards, error: error instanceof Error ? error.message : 'Refresh failed.' })
-              return
-            }
-          }
-          setCatalogState({
-            source: 'fallback',
-            artists: artistSeeds,
-            cards: currentOwnerId?.startsWith('preview-') ? artistCardCandidates : [],
-            error: error instanceof Error ? error.message : 'Artist catalog could not be refreshed.',
-          })
-        }
-    })
+        if (!cancelled) setCatalogState(current => ({ ...current, error: error instanceof Error ? error.message : 'Artist catalog could not be refreshed.' }))
+      })
     return () => { cancelled = true }
   }, [currentOwnerId, canWrite, catalogRefresh])
-  useEffect(() => {
+  useLayoutEffect(() => {
     let cancelled = false
     if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) {
       setSigningInterest(previewSigningInterest)
       setSigningInterestError(null)
       return () => { cancelled = true }
     }
-    if (!navigator.onLine) {
-      const cached = readOfflineContinuity(currentOwnerId)?.lanes.artistSigningInterests
-      if (cached && typeof cached === 'object') setSigningInterest(cached as Record<string, ArtistSigningInterestStatus>)
-      return () => { cancelled = true }
-    }
-    loadArtistSigningInterestMap(currentOwnerId)
+    const cached = readOfflineLaneSync(currentOwnerId, 'artistSigningInterests')
+    setSigningInterest(cached ? cached.value as Record<string, ArtistSigningInterestStatus> : {})
+    const fresh = offlineLaneReadGuard(currentOwnerId, 'artistSigningInterests')
+    void readOfflineLane(currentOwnerId, 'artistSigningInterests').then(saved => {
+      if (!cancelled && saved && fresh()) setSigningInterest(saved.value as Record<string, ArtistSigningInterestStatus>)
+    })
+    if (navigator.onLine) loadArtistSigningInterestMap(currentOwnerId)
       .then(next => {
-        if (cancelled) return
+        if (cancelled || !fresh()) return
         setSigningInterest(next)
-        try { writeOfflineContinuityLane(currentOwnerId, 'artistSigningInterests', next) } catch { /* best-effort device continuity */ }
+        saveOfflineLane(currentOwnerId, 'artistSigningInterests', next)
         setSigningInterestError(null)
       })
       .catch(error => {
@@ -6164,15 +6202,18 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
     const key = signingKeyForCard(card)
     const priorStatus = signingInterest[key]
     const nextStatus = priorStatus === status ? undefined : status
-    const commitChoice = () => setSigningInterest(current => {
+    const commitChoice = () => {
+      if (artistOwner.current !== currentOwnerId) return
+      setSigningInterest(current => {
       const next = { ...current }
       if (nextStatus) next[key] = nextStatus
       else delete next[key]
       if (currentOwnerId && !currentOwnerId.startsWith('preview-')) {
-        try { writeOfflineContinuityLane(currentOwnerId, 'artistSigningInterests', next) } catch { /* best-effort device continuity */ }
+        saveOfflineLane(currentOwnerId, 'artistSigningInterests', next)
       }
       return next
     })
+    }
 
     if (signingPreview) { commitChoice(); return }
     if (!supabase || !currentOwnerId) return

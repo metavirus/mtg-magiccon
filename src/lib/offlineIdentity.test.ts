@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { clearOfflineIdentity, OFFLINE_IDENTITY_KEY, readOfflineIdentity, writeOfflineIdentity } from './offlineIdentity'
 
 function memoryStorage() {
@@ -25,5 +25,23 @@ describe('offline identity', () => {
     clearOfflineIdentity(storage)
     expect(storage.has(OFFLINE_IDENTITY_KEY)).toBe(false)
     expect(readOfflineIdentity(storage)).toBeNull()
+  })
+
+  it('does not report saved offline access after quota failure or an unretained write', () => {
+    expect(() => writeOfflineIdentity({ userId: 'new-owner' }, {
+      getItem: () => null,
+      setItem: () => { throw new DOMException('full', 'QuotaExceededError') },
+    })).toThrow()
+    expect(() => writeOfflineIdentity({ userId: 'new-owner' }, {
+      getItem: () => JSON.stringify({ userId: 'old-owner' }), setItem: () => {},
+    })).toThrow('Offline identity readback failed')
+  })
+
+  it('keeps startup usable when access to the storage object itself is denied', () => {
+    const denied = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw new DOMException('denied', 'SecurityError') })
+    try {
+      expect(readOfflineIdentity()).toBeNull()
+      expect(() => writeOfflineIdentity({ userId: 'owner' })).toThrow()
+    } finally { denied.mockRestore() }
   })
 })
