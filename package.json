@@ -14,7 +14,7 @@
     "check:ui": "pnpm build",
     "check:deploy": "pnpm build && pnpm test && pnpm validate:text && pnpm validate:secrets && pnpm validate:github-run-verifier",
     "check:ship": "pnpm check:deploy",
-    "build": "powershell -ExecutionPolicy Bypass -File scripts/clean_dist.ps1 && tsc -b && vite build --configLoader runner",
+    "build": "node scripts/test_map_preview.cjs && powershell -ExecutionPolicy Bypass -File scripts/clean_dist.ps1 && tsc -b && vite build --configLoader runner",
     "prepare:pages-artifact": "powershell -ExecutionPolicy Bypass -File scripts/prepare_github_pages.ps1",
     "build:pages": "pnpm build && pnpm prepare:pages-artifact",
     "prepare:pages": "pnpm check:deploy && pnpm prepare:pages-artifact",

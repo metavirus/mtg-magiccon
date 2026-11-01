@@ -1,5 +1,10 @@
 // Run: node scripts/test_map_preview.cjs — deterministic camera/gesture guards; visual PM review remains required.
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const previewDir=require('path').join(__dirname,'../public/map-preview/');
+const versionOf=name=>require('crypto').createHash('sha256').update(fs.readFileSync(previewDir+name,'utf8').replace(/\r\n/g,'\n')).digest('hex').slice(0,12);
+const previewHtml=fs.readFileSync(previewDir+'index.html','utf8');
+for(const asset of ['app.js','style.css']) assert(previewHtml.includes(asset+'?v='+versionOf(asset)),asset+' cache version must match content');
+assert(fs.readFileSync(previewDir+'app.js','utf8').includes('data.json?v='+versionOf('data.json')),'data cache version must match content');
 const elements=new Map();function el(s){if(!elements.has(s))elements.set(s,{style:{},clientWidth:375,clientHeight:450,value:'',innerHTML:'',setPointerCapture(){},setAttribute(k,v){this[k]=v},getBoundingClientRect(){return {width:this.clientWidth,height:this.clientHeight}},insertAdjacentHTML(){},remove(){},click(){}});return elements.get(s)}
 const data=JSON.parse(fs.readFileSync(require('path').join(__dirname,'../public/map-preview/data.json'),'utf8'));
 const context={document:{querySelector:el,addEventListener(){}},fetch:async()=>({json:async()=>data}),ResizeObserver:class{observe(){}},window:{},setTimeout,console};vm.createContext(context);vm.runInContext(fs.readFileSync(require('path').join(__dirname,'../public/map-preview/app.js'),'utf8'),context);
