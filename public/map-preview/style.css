@@ -2,3 +2,5 @@
 .crumb span{min-width:0}.crumb button{flex-shrink:0}.crumb{gap:12px}
 .no-map button{color:#f0dfbd}.no-map .floor{font-size:44px}
 #pan-controls{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:none;gap:4px}#pan-controls button{background:#faf9f4;color:#414b46;border-color:#bbbeb2;min-height:40px;font-size:11px;padding:6px 10px}#pan-controls button:disabled{opacity:.45;cursor:default}
+
+#stage{touch-action:none}#panel{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.zoom button:disabled{opacity:.4;cursor:default}.rows strong{font-size:13px;line-height:1.35}.rows small{font-size:11px}#map text{font-weight:600;letter-spacing:.01em}
