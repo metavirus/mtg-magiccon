@@ -47,6 +47,8 @@ import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSo
 import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh, readOfflineContinuity, writeOfflineContinuityLane } from './lib/offlineContinuity'
+import { readOfflineLane, writeOfflineLane, usableOfflineLane, STARTUP_CACHE_LANES, OfflineLaneCacheWriteError, safeCacheErrorName } from './lib/offlineLaneCache'
+import type { ContinuityLane } from './lib/offlineContinuity'
 import { publishHydrationLane } from './lib/startupHydration'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
 import { cacheDeviceAssets, catalogAssetUrls, exhibitorAssetUrls } from './lib/deviceAssets'
@@ -843,9 +845,27 @@ export default function App() {
     document.documentElement.setAttribute(`data-startup-${milestone}-ms`, String(Math.round(performance.now())))
   }, [appSearch])
   const previewHydrated = useRef<string | null>(null)
+  const cacheOwnerEpoch = useRef(0)
+  const acceptedServerLanes = useRef(new Set<ContinuityLane>())
+  const initialCacheReads = useRef<Promise<void>>(Promise.resolve())
   const hydrationGeneration = useRef(0)
   const activeOwner = useRef(effectiveOwnerId)
   activeOwner.current = effectiveOwnerId
+  const persistContinuityLane = useCallback((ownerId: string, key: ContinuityLane, value: unknown) => {
+    void writeOfflineLane(ownerId, key, value).then(result => {
+      if (activeOwner.current !== ownerId || !qaFlags.includes('startup')) return
+      document.documentElement.setAttribute(`data-startup-cache-write-${key}`, result.source === 'cache-storage' ? 'cache-storage-ready' : 'ready')
+      if (result.localErrorName) document.documentElement.setAttribute('data-startup-cache-write-failed', `${key}:${result.localErrorName}`)
+    }).catch(error => {
+      if (activeOwner.current !== ownerId) return
+      if (qaFlags.includes('startup')) {
+        const name = error instanceof OfflineLaneCacheWriteError ? error.localErrorName : safeCacheErrorName(error)
+        document.documentElement.setAttribute('data-startup-cache-write-failed', `${key}:${name}`)
+        document.documentElement.setAttribute(`data-startup-cache-write-${key}`, name)
+      }
+      console.warn('Device snapshot could not be saved', key)
+    })
+  }, [appSearch])
   const continuityContext = useRef({ slice, effectiveSession, companionMembers: fallbackCompanionMembers })
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
@@ -1016,6 +1036,8 @@ export default function App() {
   // keeps current server-acknowledged state instead of replaying an older cache.
   useLayoutEffect(() => {
     hydrationGeneration.current += 1
+    const cacheEpoch = ++cacheOwnerEpoch.current
+    acceptedServerLanes.current = new Set()
     markStartup('shell')
     if (designPreview || isPreviewOwnerMode) return
     setContextNotesState([])
@@ -1040,7 +1062,11 @@ export default function App() {
     const cachedTrust = readTrustSliceCache()
     setSlice(cachedTrust?.ownerId === effectiveOwnerId ? cachedTrust : null)
     const cached = effectiveOwnerId ? readOfflineContinuity(effectiveOwnerId) : null
-    if (qaFlags.includes('startup')) document.documentElement.setAttribute('data-startup-cache-has-catalog', String(Boolean(cached?.lanes.catalog)))
+    if (qaFlags.includes('startup')) {
+      document.documentElement.setAttribute('data-startup-cache-has-catalog', String(usableOfflineLane('catalog', cached?.lanes.catalog)))
+      document.documentElement.removeAttribute('data-startup-catalog-cache-source')
+      document.documentElement.removeAttribute('data-startup-catalog-cache-ms')
+    }
     if (cached) {
       markStartup('cache')
       const lanes = cached.lanes
@@ -1055,7 +1081,13 @@ export default function App() {
         setInfoTopics(info.topics)
         setInfoFeed(info.feed)
       }
-      if (lanes.catalog) setCatalogReadModel(lanes.catalog as CatalogReadModel)
+      if (usableOfflineLane('catalog', lanes.catalog)) {
+        setCatalogReadModel(lanes.catalog as CatalogReadModel)
+        if (qaFlags.includes('startup')) {
+          document.documentElement.setAttribute('data-startup-catalog-cache-source', 'local-storage')
+          document.documentElement.setAttribute('data-startup-catalog-cache-ms', String(Math.round(performance.now())))
+        }
+      }
       if (lanes.exhibitors) setExhibitors((lanes.exhibitors as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) })))
       if (lanes.flights) setTripFlights(lanes.flights as TripFlight[])
       if (lanes.ticketedAvailability) setTicketedAvailability(lanes.ticketedAvailability as TicketedPlayAvailabilityProjectionRow[])
@@ -1072,6 +1104,54 @@ export default function App() {
       }
     }
     setContinuityReady(Boolean(cached?.lanes.selections))
+    const applySavedLane = (key: ContinuityLane, value: unknown) => {
+      switch (key) {
+        case 'notes': setContextNotesState(value as ContextNote[]); break
+        case 'mentions': setMentionInboxState(value as MentionInboxItem[]); break
+        case 'activity': setUserActivityRows(value as UserActivityEventRow[]); break
+        case 'findings': setMonitoringFindings(value as MonitoringFindingRow[]); break
+        case 'concepts': setMonitoringConcepts(value as MonitoringConceptRow[]); break
+        case 'info': {
+          const info = value as { topics: InfoTopic[]; feed: InfoFeedEntry[] }
+          setInfoTopics(info.topics); setInfoFeed(info.feed); break
+        }
+        case 'catalog':
+          setCatalogReadModel(value as CatalogReadModel)
+          if (qaFlags.includes('startup')) {
+            document.documentElement.setAttribute('data-startup-cache-has-catalog', 'true')
+            document.documentElement.setAttribute('data-startup-catalog-cache-source', 'cache-storage')
+            document.documentElement.setAttribute('data-startup-catalog-cache-ms', String(Math.round(performance.now())))
+          }
+          break
+        case 'exhibitors': setExhibitors((value as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) }))); break
+        case 'flights': setTripFlights(value as TripFlight[]); break
+        case 'ticketedAvailability': setTicketedAvailability(value as TicketedPlayAvailabilityProjectionRow[]); break
+        case 'selections': {
+          const rows = value as UserSelectionRow[]
+          setSharedSelectionRows(rows)
+          const selections = userSelectionMap(rows.filter(row => row.owner_id === effectiveOwnerId))
+          setUserSelections(selections)
+          setAlertReview(Object.fromEntries(Object.entries(selections)
+            .filter(([key, state]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(state))
+            .map(([key, state]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), state as AlertReviewState])))
+          const context = continuityContext.current
+          setExploreEventState(applySelectionState(exploreEvents, selections, context.slice, currentCompanionFromSession(context.effectiveSession, context.companionMembers)))
+          setContinuityReady(true)
+        }
+      }
+    }
+    if (effectiveOwnerId) {
+      initialCacheReads.current = Promise.all(STARTUP_CACHE_LANES.map(async key => {
+        const saved = await readOfflineLane(effectiveOwnerId, key)
+        if (!saved || activeOwner.current !== effectiveOwnerId || cacheOwnerEpoch.current !== cacheEpoch || acceptedServerLanes.current.has(key)) return
+        // Global legacy savedAt can advance when an unrelated lane is written.
+        // Only a lane-specific acknowledgment can outrank its async fallback.
+        const localTime = cached?.laneSavedAt?.[key]
+        if (localTime && localTime >= saved.savedAt && usableOfflineLane(key, cached?.lanes[key])) return
+        applySavedLane(key, saved.value)
+      })).then(() => {})
+    } else initialCacheReads.current = Promise.resolve()
+    return () => { cacheOwnerEpoch.current += 1 }
   }, [designPreview, isPreviewOwnerMode, effectiveOwnerId, markStartup])
 
   const refreshUserContinuity = useCallback(async (forceOnline = false) => {
@@ -1105,22 +1185,18 @@ export default function App() {
       return
     }
     if (!effectiveOwnerId || (!onlineRef.current && !forceOnline)) return
+    await new Promise<void>(resolve => {
+      const timer = setTimeout(resolve, 100)
+      void initialCacheReads.current.finally(() => { clearTimeout(timer); resolve() })
+    })
+    if (!isCurrent()) return
     const failures: string[] = []
     setContinuityFailures([])
     const lane = <T,>(key: Parameters<typeof writeOfflineContinuityLane>[1], label: string, read: Promise<T>, publish: (value: T) => void) =>
       publishHydrationLane(read, isCurrent, value => {
         publish(value)
-        try {
-          writeOfflineContinuityLane(effectiveOwnerId, key, value)
-          if (qaFlags.includes('startup')) document.documentElement.setAttribute(`data-startup-cache-write-${key}`, 'ready')
-        } catch (error) {
-          if (qaFlags.includes('startup')) {
-            const name = error instanceof Error || error instanceof DOMException ? error.name : 'Error'
-            const safeName = ['Error', 'QuotaExceededError', 'SecurityError', 'InvalidStateError', 'UnknownError', 'TypeError', 'RangeError', 'NS_ERROR_DOM_QUOTA_REACHED'].includes(name) ? name : 'Error'
-            document.documentElement.setAttribute('data-startup-cache-write-failed', `${key}:${safeName}`)
-            document.documentElement.setAttribute(`data-startup-cache-write-${key}`, safeName)
-          }
-        }
+        acceptedServerLanes.current.add(key)
+        persistContinuityLane(effectiveOwnerId, key, value)
       }, () => {
         failures.push(label)
         setContinuityFailures(current => [...new Set([...current, label])])
@@ -1171,7 +1247,7 @@ export default function App() {
       if (failures.length) console.warn('Continuity refresh partially failed', failures)
       setMessage('')
     }
-  }, [atlantaMerchReview, catalogBrowserQa, designPreview, isPreviewOwnerMode, effectiveOwnerId, markStartup])
+  }, [atlantaMerchReview, catalogBrowserQa, designPreview, isPreviewOwnerMode, effectiveOwnerId, markStartup, persistContinuityLane])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
 
@@ -1215,8 +1291,10 @@ export default function App() {
       if (refreshed.status !== 'ready' || !refreshedOffer) throw new Error('Bookmark update could not be confirmed. Try again.')
       const confirmed = refreshedOffer.interests.some(item => item.ownerId === ownerId && item.interested)
       if (confirmed !== interested) throw new Error('Bookmark update was not confirmed. Try again.')
+      if (activeOwner.current !== ownerId) return false
+      acceptedServerLanes.current.add('catalog')
       setCatalogReadModel(refreshed)
-      writeOfflineContinuityLane(ownerId, 'catalog', refreshed)
+      persistContinuityLane(ownerId, 'catalog', refreshed)
       void cacheDeviceAssets(catalogAssetUrls(refreshed.offers))
     } catch (error) {
       setMessageTone('error')
@@ -1225,7 +1303,7 @@ export default function App() {
     } finally {
       setCatalogInterestSavingOfferId(null)
     }
-  }, [canWrite, catalogInterestQa, atlantaMerchReview, isPreviewOwnerMode, effectiveOwnerId])
+  }, [canWrite, catalogInterestQa, atlantaMerchReview, isPreviewOwnerMode, effectiveOwnerId, persistContinuityLane])
 
   const promoteReviewedCatalog = useCallback(async (plan: CatalogPromotionPlan) => {
     if (!canWrite || !supabase || !effectiveOwnerId || !effectiveSession || !isKaviCompanion(currentCompanion)) {
@@ -1235,15 +1313,18 @@ export default function App() {
     try {
       const readback = await promoteCatalogPlan(supabase, plan)
       const refreshed = await loadCatalogReadModel(supabase, 'magiccon_atlanta_2026')
+      if (activeOwner.current !== effectiveOwnerId) return
+      if (refreshed.status !== 'ready') throw new Error('Promoted catalog could not be refreshed.')
+      acceptedServerLanes.current.add('catalog')
       setCatalogReadModel(refreshed)
-      writeOfflineContinuityLane(effectiveOwnerId, 'catalog', refreshed)
+      persistContinuityLane(effectiveOwnerId, 'catalog', refreshed)
       void cacheDeviceAssets(catalogAssetUrls(refreshed.offers))
       setMessageTone('info')
       setMessage(`${readback.promoted_count} catalog item${readback.promoted_count === 1 ? '' : 's'} promoted with exact readback.`)
     } finally {
       setCatalogPromotionSaving(false)
     }
-  }, [canWrite, currentCompanion, effectiveOwnerId, effectiveSession])
+  }, [canWrite, currentCompanion, effectiveOwnerId, effectiveSession, persistContinuityLane])
 
   const refreshCompanions = useCallback(async (forceOnline = false) => {
     if (designPreview || isPreviewOwnerMode || !effectiveOwnerId) {

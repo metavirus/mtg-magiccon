@@ -11,6 +11,7 @@ export type OfflineContinuitySnapshot = {
   ownerId: string
   savedAt: string
   lanes: Partial<Record<ContinuityLane, unknown>>
+  laneSavedAt?: Partial<Record<ContinuityLane, string>>
   artistCatalogVersion?: 2
 }
 
@@ -49,6 +50,7 @@ export function writeOfflineContinuityLane(
     ownerId,
     savedAt,
     lanes: { ...(current?.lanes ?? {}), [lane]: value },
+    laneSavedAt: { ...(current?.laneSavedAt ?? {}), [lane]: savedAt },
     artistCatalogVersion: lane === 'artistCatalog' ? 2 : current?.artistCatalogVersion,
   }
   storage.setItem(cacheKey(ownerId), JSON.stringify(snapshot))

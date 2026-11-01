@@ -7,6 +7,8 @@ import { readOfflineContinuity, writeOfflineContinuityLane } from './offlineCont
 import { writeOfflineIdentity } from './offlineIdentity'
 import { publishHydrationLane } from './startupHydration'
 import { catalogBrowserPreviewModel } from './catalogPreview'
+import { OFFLINE_LANE_CACHE, writeOfflineLane } from './offlineLaneCache'
+const startupCatalogModel: CatalogReadModel = { ...catalogBrowserPreviewModel, offers: catalogBrowserPreviewModel.offers.map(offer => ({ ...offer, event_key: 'magiccon_atlanta_2026' })) }
 import App, { InfoCatalogsPreview } from '../App'
 
 const mocked = vi.hoisted(() => ({
@@ -42,6 +44,23 @@ function saved(owner: string, title: string) {
   writeOfflineIdentity({ userId: owner, email: 'kavigrace@gmail.com' })
   writeOfflineContinuityLane(owner, 'info', { topics: [topic(title)], feed: [] })
   writeOfflineContinuityLane(owner, 'selections', [{ owner_id: owner, object_id: 'onboarding-tour', selection_key: 'completed', selection_value: 'true' }])
+}
+function deviceLaneCache(match: (address: string) => Promise<Response | undefined>) {
+  const values = new Map<string, Response>()
+  const cache = {
+    match: vi.fn(async (address: string) => values.get(address)?.clone() ?? await match(address)),
+    put: vi.fn(async (address: string, response: Response) => { values.set(address, response.clone()) }),
+  }
+  const other = { match: vi.fn(async () => undefined), put: vi.fn(async () => {}) }
+  const storage = { open: vi.fn(async (name: string) => name === OFFLINE_LANE_CACHE ? cache : other) } as unknown as CacheStorage
+  vi.stubGlobal('caches', storage)
+  return { storage, cache, values }
+}
+function catalog(name: string): CatalogReadModel {
+  return { ...startupCatalogModel, offers: [{ ...startupCatalogModel.offers[0], product_name: name, interests: [{ ownerId: 'owner-a', personKey: 'kavi', displayName: 'Kavi', bubbleLabel: 'Ka', bubbleColor: 'blue', interested: true, note: null, updatedAt: '' }] }] }
+}
+function catalogResponse(name: string, savedAt = '2026-10-31T01:00:00.000Z') {
+  return new Response(JSON.stringify({ version: 1, ownerId: 'owner-a', lane: 'catalog', savedAt, value: catalog(name) }))
 }
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
@@ -85,7 +104,7 @@ describe('startup hydration', () => {
     const store = deferred<CatalogReadModel>()
     mocked.catalog.mockReturnValue(store.promise)
     render(<App />)
-    await act(async () => { store.resolve({ ...catalogBrowserPreviewModel, offers: [{ ...catalogBrowserPreviewModel.offers[0], product_name: 'Fresh canonical product', interests: [] }] }) })
+    await act(async () => { store.resolve({ ...startupCatalogModel, offers: [{ ...startupCatalogModel.offers[0], product_name: 'Fresh canonical product', interests: [] }] }) })
     fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
     expect(screen.getByText('Fresh canonical product')).toBeInTheDocument()
     expect(readOfflineContinuity('owner-a')?.lanes.catalog).toMatchObject({ offers: [{ product_name: 'Fresh canonical product' }] })
@@ -93,7 +112,7 @@ describe('startup hydration', () => {
 
   it.each([false, true])('reports a failed Store lane immediately while unrelated reads remain held (saved=%s)', async cached => {
     saved('owner-a', 'Saved current hours')
-    if (cached) writeOfflineContinuityLane('owner-a', 'catalog', { ...catalogBrowserPreviewModel, offers: [{ ...catalogBrowserPreviewModel.offers[0], product_name: 'Saved canonical product', interests: [] }] })
+    if (cached) writeOfflineContinuityLane('owner-a', 'catalog', { ...startupCatalogModel, offers: [{ ...startupCatalogModel.offers[0], product_name: 'Saved canonical product', interests: [] }] })
     const store = deferred<CatalogReadModel>()
     mocked.catalog.mockReturnValue(store.promise)
     render(<App />)
@@ -118,7 +137,7 @@ describe('startup hydration', () => {
       original.call(this, key, value)
     })
     render(<App />)
-    await act(async () => { store.resolve({ ...catalogBrowserPreviewModel, offers: [{ ...catalogBrowserPreviewModel.offers[0], product_name: 'Fresh retained in memory', interests: [] }] }) })
+    await act(async () => { store.resolve({ ...startupCatalogModel, offers: [{ ...startupCatalogModel.offers[0], product_name: 'Fresh retained in memory', interests: [] }] }) })
     if (qa === 'startup') fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
     expect(screen.getByText('Fresh retained in memory')).toBeInTheDocument()
     expect(document.documentElement.getAttribute('data-startup-cache-write-failed')).toBe(qa === 'startup' ? 'catalog:QuotaExceededError' : null)
@@ -129,9 +148,63 @@ describe('startup hydration', () => {
 
   it('marks an acknowledged saved catalog when the owner snapshot binds', () => {
     saved('owner-a', 'Saved current hours')
-    writeOfflineContinuityLane('owner-a', 'catalog', catalogBrowserPreviewModel)
+    writeOfflineContinuityLane('owner-a', 'catalog', startupCatalogModel)
     render(<App />)
     expect(document.documentElement.getAttribute('data-startup-cache-has-catalog')).toBe('true')
+  })
+
+  it('reopens the full acknowledged Store and bookmarks offline after localStorage quota failure', async () => {
+    saved('owner-a', 'Saved current hours')
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const device = deviceLaneCache(async () => undefined)
+    const complete = catalog('Offline full catalog')
+    await writeOfflineLane('owner-a', 'catalog', complete, { getItem: key => localStorage.getItem(key), setItem: () => { throw new DOMException('quota', 'QuotaExceededError') } }, device.storage)
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    await waitFor(() => expect(screen.getByText('Offline full catalog')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Remove bookmark' })).toBeDisabled()
+    expect(document.documentElement.getAttribute('data-startup-catalog-cache-source')).toBe('cache-storage')
+    expect(document.documentElement.getAttribute('data-startup-cache-has-catalog')).toBe('true')
+    expect(mocked.catalog).not.toHaveBeenCalled()
+    const snapshot = JSON.parse(await [...device.values.values()][0].clone().text())
+    expect(snapshot.value).toEqual(complete)
+  })
+
+  it.each([false, true])('never lets a delayed cache replace a newer accepted server catalog (empty=%s)', async empty => {
+    saved('owner-a', 'Saved current hours')
+    const held = deferred<Response | undefined>()
+    deviceLaneCache(async address => address.endsWith('/catalog') ? held.promise : undefined)
+    mocked.catalog.mockResolvedValue(empty ? { status: 'ready', offers: [] } : catalog('Fresh server catalog'))
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    await waitFor(() => expect(screen.getByText(empty ? 'No Store items yet.' : 'Fresh server catalog')).toBeInTheDocument())
+    await act(async () => { held.resolve(catalogResponse('Delayed old catalog')) })
+    expect(screen.queryByText('Delayed old catalog')).not.toBeInTheDocument()
+    expect(screen.getByText(empty ? 'No Store items yet.' : 'Fresh server catalog')).toBeInTheDocument()
+  })
+
+  it.each(['switch', 'sign-out'])('fences a delayed private cache on %s', async action => {
+    saved('owner-a', 'Owner A hours')
+    const held = deferred<Response | undefined>()
+    deviceLaneCache(async address => address.includes('/owner-a/') && address.endsWith('/catalog') ? held.promise : undefined)
+    render(<App />)
+    act(() => mocked.auth?.(action === 'switch' ? 'SIGNED_IN' : 'SIGNED_OUT', action === 'switch' ? { user: { id: 'owner-b', email: 'other@example.com', user_metadata: {} } } as Session : null))
+    await act(async () => { held.resolve(catalogResponse('Private cached A catalog')) })
+    expect(screen.queryByText('Private cached A catalog')).not.toBeInTheDocument()
+    expect(document.documentElement.getAttribute('data-startup-catalog-cache-source')).toBeNull()
+    expect(readOfflineContinuity('owner-b')?.lanes.catalog).toBeUndefined()
+  })
+
+  it('keeps a newer per-lane local acknowledgment over an older fallback', async () => {
+    saved('owner-a', 'Saved current hours')
+    writeOfflineContinuityLane('owner-a', 'catalog', catalog('Newer local catalog'), localStorage, '2099-01-01T00:00:00.000Z')
+    deviceLaneCache(async address => address.endsWith('/catalog') ? catalogResponse('Older fallback catalog') : undefined)
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    await act(async () => {})
+    expect(screen.getByText('Newer local catalog')).toBeInTheDocument()
+    expect(screen.queryByText('Older fallback catalog')).not.toBeInTheDocument()
+    expect(document.documentElement.getAttribute('data-startup-catalog-cache-source')).toBe('local-storage')
   })
 
   it('rebinds saved state on owner switch and ignores a late old-owner response', async () => {
@@ -140,6 +213,7 @@ describe('startup hydration', () => {
     const oldRead = deferred<{ topics: InfoTopic[]; feed: [] }>()
     mocked.info.mockReturnValueOnce(oldRead.promise)
     render(<App />)
+    await waitFor(() => expect(mocked.info).toHaveBeenCalledTimes(1))
     act(() => mocked.auth?.('SIGNED_IN', { user: { id: 'owner-b', email: 'other@example.com', user_metadata: {} } } as Session))
     expect(screen.queryByText('Owner A saved hours')).not.toBeInTheDocument()
     expect(screen.getByText('Owner B saved hours', { selector: 'strong' })).toBeInTheDocument()
@@ -159,6 +233,7 @@ describe('startup hydration', () => {
     const read = deferred<{ topics: InfoTopic[]; feed: [] }>()
     mocked.info.mockReturnValue(read.promise)
     render(<App />)
+    await waitFor(() => expect(mocked.info).toHaveBeenCalledTimes(1))
     act(() => mocked.auth?.('SIGNED_OUT', null))
     await act(async () => { read.resolve({ topics: [topic('Late signed-out data')], feed: [] }) })
     expect(screen.queryByText('Owner A saved hours')).not.toBeInTheDocument()
