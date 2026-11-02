@@ -32,6 +32,8 @@ import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type
 import { shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
 import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
+import { PersonalMapStudy } from './components/PersonalMapStudy'
+import { projectMapOwnerEvents } from './lib/mapPersonalEvents'
 
 export { CalendarSurface, PlanSurface, ObjectDetailLayer, InfoCatalogsPreview }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
@@ -2148,6 +2150,8 @@ export default function App() {
     : mobileNavMenu === 'more'
       ? mobileDrawerDestinations('more')
       : primaryDestinations
+
+  if (new URLSearchParams(window.location.search).get('mapStudy') === 'personal') return <PersonalMapStudy key={effectiveOwnerId ?? 'signed-out'} catalog={catalogReadModel} events={projectMapOwnerEvents(exploreEvents, sharedSelectionRows, effectiveOwnerId, slice)} ownerReady={Boolean(effectiveOwnerId && !designPreview && !isPreviewOwnerMode && !qaFlags.length && continuityReady && !loading)} />
 
   return <div className="app-shell" style={desktopRailLocked ? { display: 'block', minHeight: '100vh' } : undefined}>
     <aside className="rail" data-tour-target="main-navigation" style={desktopRailLocked ? {

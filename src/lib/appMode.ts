@@ -43,7 +43,8 @@ export function standaloneAppSearch(search: string, standalone: boolean) {
 
 export function authRedirectUrl(location: Pick<Location, 'href'>) {
   const redirect = new URL(location.href)
-  redirect.search = '?auth=1'
+  const personalMap = redirect.searchParams.get('mapStudy') === 'personal'
+  redirect.search = personalMap ? '?auth=1&mapStudy=personal' : '?auth=1'
   redirect.hash = ''
   return redirect.toString()
 }

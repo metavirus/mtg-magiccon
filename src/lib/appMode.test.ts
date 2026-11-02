@@ -66,3 +66,11 @@ describe('application mode', () => {
     expect(appSource).not.toContain('Magic links stay parked')
   })
 })
+
+
+it('preserves only the personal map destination through the canonical sign-in callback', () => {
+  expect(authRedirectUrl({ href: 'https://metavirus.github.io/mtg-magiccon/?mapStudy=personal&sampleEvents=1&previewOwner=kavi&qa=startup#map' } as Location))
+    .toBe('https://metavirus.github.io/mtg-magiccon/?auth=1&mapStudy=personal')
+  expect(authRedirectUrl({ href: 'https://metavirus.github.io/mtg-magiccon/?mapStudy=1' } as Location))
+    .toBe('https://metavirus.github.io/mtg-magiccon/?auth=1')
+})

@@ -1,0 +1,30 @@
+import { act, render, cleanup } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { PersonalMapStudy } from './PersonalMapStudy'
+import type { MapEventInput } from '../lib/mapPersonalEvents'
+
+afterEach(cleanup)
+
+const event: MapEventInput = { id: 'ticketed-944011', title: 'Current owner event', day: 'Fri', time: '11 AM', state: 'committed', purchased: true, price: '$100' }
+describe('opt-in personal study frame', () => {
+  it('sends current projected choices in memory and clears them when owner readiness changes', () => {
+    const view = render(<PersonalMapStudy events={[event]} ownerReady />)
+    const frame = view.getByTitle('Personal map study') as HTMLIFrameElement
+    const send = vi.spyOn(frame.contentWindow!, 'postMessage')
+    act(() => window.dispatchEvent(new MessageEvent('message', { source: frame.contentWindow, origin: window.location.origin, data: { type: 'magiccon:map-study-ready', version: 1 } })))
+    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ events: [expect.objectContaining({ id: event.id, status: 'paid', locationId: null })] }), window.location.origin)
+    view.rerender(<PersonalMapStudy events={[event]} ownerReady={false} />)
+    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ events: [] }), window.location.origin)
+    view.rerender(<PersonalMapStudy events={[]} ownerReady />)
+    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ events: [] }), window.location.origin)
+  })
+  it('does not disclose events to unrelated frame messages or a different origin', () => {
+    const view = render(<PersonalMapStudy events={[event]} ownerReady />)
+    const frame = view.getByTitle('Personal map study') as HTMLIFrameElement
+    const send = vi.spyOn(frame.contentWindow!, 'postMessage')
+    for (const message of [{ source: window, origin: window.location.origin }, { source: frame.contentWindow, origin: 'https://other.test' }]) {
+      act(() => window.dispatchEvent(new MessageEvent('message', { ...message, data: { type: 'magiccon:map-study-ready', version: 1 } })))
+    }
+    expect(send).not.toHaveBeenCalled()
+  })
+})
