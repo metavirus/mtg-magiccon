@@ -17,3 +17,5 @@ aside[hidden]{display:none!important}.product-rows{display:grid}.product-row{dis
 #panel a{color:#eed1a0}
 
 .levels-map{height:100%;display:flex;align-items:center;justify-content:center;padding:12px;background:#e9e6dd;overflow:auto}.levels-map img{display:block;max-width:100%;max-height:100%;width:720px;object-fit:contain}#map [data-id="venue-levels"] text{font-weight:550}
+
+#panel .panel-heading{box-shadow:0 -14px 0 14px #22262b}
