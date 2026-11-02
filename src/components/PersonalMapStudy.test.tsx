@@ -10,11 +10,12 @@ describe('opt-in personal study frame', () => {
   it('sends current projected choices in memory and clears them when owner readiness changes', () => {
     const view = render(<PersonalMapStudy events={[event]} ownerReady />)
     const frame = view.getByTitle('Personal map study') as HTMLIFrameElement
+    expect(frame.getAttribute('src')).toBe('./map-preview/index.html?personal=1')
     const send = vi.spyOn(frame.contentWindow!, 'postMessage')
     act(() => window.dispatchEvent(new MessageEvent('message', { source: frame.contentWindow, origin: window.location.origin, data: { type: 'magiccon:map-study-ready', version: 1 } })))
     expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ events: [expect.objectContaining({ id: event.id, status: 'paid', locationId: null })] }), window.location.origin)
     view.rerender(<PersonalMapStudy events={[event]} ownerReady={false} />)
-    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ events: [] }), window.location.origin)
+    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ events: [], products: null }), window.location.origin)
     view.rerender(<PersonalMapStudy events={[]} ownerReady />)
     expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ events: [] }), window.location.origin)
   })

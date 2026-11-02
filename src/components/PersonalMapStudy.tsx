@@ -22,6 +22,6 @@ export function PersonalMapStudy({ events, ownerReady, catalog }: { events: MapE
   useLayoutEffect(send, [events, ownerReady, catalog])
   return <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
     <div style={{ padding: '6px 12px', fontSize: 12 }}>{ownerReady ? 'Your map' : 'Loading your events…'} <a href="./">Return to app</a></div>
-    <iframe ref={frame} title="Personal map study" src="./map-preview/?personal=1" onLoad={send} sandbox="allow-scripts allow-same-origin" style={{ width: '100%', flex: 1, minHeight: 0, border: 0 }} />
+    <iframe ref={frame} title="Personal map study" src="./map-preview/index.html?personal=1" onLoad={send} sandbox="allow-scripts allow-same-origin" style={{ width: '100%', flex: 1, minHeight: 0, border: 0 }} />
   </div>
 }
