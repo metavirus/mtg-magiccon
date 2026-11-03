@@ -5404,7 +5404,21 @@ function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, cur
     </div>
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openChrisBlackLotusProof={openChrisBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} />}
-    {tab === 'store' && <WalletStoreEmpty />}
+    {tab === 'store' && (receipts.some(receipt => receipt.receipt_type === 'store')
+      ? <section className="receipt-list" aria-label="Store receipts">
+        {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <article className="receipt-card store-receipt" key={receipt.id}>
+          <div className="receipt-head">
+            <span className="receipt-icon"><NavIcon name="wallet" /></span>
+            <div><span className="eyebrow">{receipt.vendor}</span><h2>{receipt.title}</h2>
+              <p>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(receipt.amount)}</p>
+            </div>
+          </div>
+          <ul>{receipt.line_items.map((line, index) => <li key={index}>
+            {line.quantity ? `${line.quantity} × ` : ''}{line.title}
+          </li>)}</ul>
+        </article>)}
+      </section>
+      : <WalletStoreEmpty />)}
     {tab === 'other' && <WalletOtherTab flights={flights} receipts={receipts} currentOwnerId={currentOwnerId} openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
   </section>
