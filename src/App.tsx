@@ -5348,7 +5348,7 @@ function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibit
   </section>
 }
 
-function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { receipts: WalletReceiptRow[]; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
+export function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { receipts: WalletReceiptRow[]; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
@@ -5406,7 +5406,7 @@ function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, cur
     {tab === 'play' && <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} />}
     {tab === 'store' && (receipts.some(receipt => receipt.receipt_type === 'store')
       ? <section className="receipt-list" aria-label="Store receipts">
-        {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <article className="receipt-card store-receipt" key={receipt.id}>
+        {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <button type="button" className="receipt-card store-receipt wallet-receipt-button" key={receipt.id} onClick={() => openModal('STORE RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))}>
           <div className="receipt-head">
             <span className="receipt-icon"><NavIcon name="wallet" /></span>
             <div><span className="eyebrow">{receipt.vendor}</span><h2>{receipt.title}</h2>
@@ -5416,7 +5416,7 @@ function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, cur
           <ul>{receipt.line_items.map((line, index) => <li key={index}>
             {line.quantity ? `${line.quantity} × ` : ''}{line.title}
           </li>)}</ul>
-        </article>)}
+        </button>)}
       </section>
       : <WalletStoreEmpty />)}
     {tab === 'other' && <WalletOtherTab flights={flights} receipts={receipts} currentOwnerId={currentOwnerId} openModal={openModal} onOpenTrip={onOpenTrip} />}
@@ -5684,10 +5684,10 @@ function receiptOrderProof(receipt: WalletReceiptRow | null) {
   return { code: line?.order_code, url: line?.order_url }
 }
 
-function TicketedReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletReceiptRow; currentOwnerId?: string }) {
+function PurchaseReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletReceiptRow; currentOwnerId?: string }) {
   const [mode, setMode] = useState<'info' | 'original'>('info')
   return <div className="proof-detail">
-    <div className="proof-mode-tabs" role="tablist" aria-label="Ticketed play receipt view">
+    <div className="proof-mode-tabs" role="tablist" aria-label={receipt.receipt_type === 'store' ? 'Store receipt view' : 'Ticketed play receipt view'}>
       <button type="button" role="tab" aria-selected={mode === 'info'} className={mode === 'info' ? 'active' : ''} onClick={() => setMode('info')}>Info</button>
       <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
     </div>
@@ -5697,9 +5697,8 @@ function TicketedReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletRec
         <div><span>Order</span><strong>{receipt.vendor} · {new Date(receipt.receipt_date).toLocaleString()}</strong></div>
         <div><span>Total</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></div>
       </div>
-      <div className="receipt-lines">{receipt.line_items.map(line => <div className="receipt-line-row" key={line.event_id}><span>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</span><b>${line.price.toFixed(2)}{line.quantity && line.quantity > 1 ? ' each' : ''}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
+      <div className="receipt-lines">{receipt.line_items.map((line, index) => <div className="receipt-line-row" key={line.event_id ?? index}><span>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</span><b>${line.price.toFixed(2)}{line.quantity && line.quantity > 1 ? ' each' : ''}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
     </> : <>
-      <p className="original-receipt-note">Full source email captured during receipt ingestion.</p>
       <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${receipt.title} original receipt`} currentOwnerId={currentOwnerId} />
     </>}
   </div>
@@ -5708,7 +5707,7 @@ function TicketedReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletRec
 function WalletPlayTab({ receipts, currentOwnerId, openModal }: { receipts: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
-      {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <TicketedReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))}>
+      {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))}>
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>{receipt.title}</h2><ul className="receipt-card-lines">{receipt.line_items.map(line => <li key={line.event_id}>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</li>)}</ul><p>{receipt.line_items.length} purchased {receipt.line_items.length === 1 ? 'event' : 'events'} · {receipt.vendor}</p></div><span className="receipt-people-total"><PersonBubbles people={receiptPeople(receipt)} /><strong>${Number(receipt.amount).toFixed(2)}</strong></span></div>
       </button>) : <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>Purchased event receipts will appear here.</p></div></div>
