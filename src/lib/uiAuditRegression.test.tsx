@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import type { ComponentProps } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { catalogArtistToSeed, CompanionCodePanel, HotelWalletReference, WalletOtherTab } from '../App'
+import { catalogArtistToSeed, CompanionCodePanel, HotelWalletReference, WalletOtherTab, WalletSurface } from '../App'
 import { downloadReceiptArtifact } from './receiptArtifacts'
 import { previewTripFlights } from './tripFlights'
 
@@ -68,6 +68,26 @@ describe('September 19 cross-surface usability regressions', () => {
     expect(screen.getByText('Original attachment retained from the hotel receipt message.')).toBeInTheDocument()
     await waitFor(() => expect(document.querySelector('img[src="blob:hotel-original"]')).toBeTruthy())
     expect(app.match(/<HotelWalletReference kind=\{kind\} receipts=\{receipts\} currentOwnerId=\{currentOwnerId\}/g)).toHaveLength(2)
+  })
+
+  it('opens a store purchase original using the current viewer and exact artifact', async () => {
+    vi.mocked(downloadReceiptArtifact).mockClear().mockResolvedValue('blob:store-original')
+    const receipt: HotelReceipt = { ...hotelReceipt, receipt_type: 'store', title: 'Merch preorder', line_items: [{ title: 'Mug', quantity: 2, price: 20 }, { title: 'Awaiting pickup at Show Store', price: 0 }] }
+    render(<WalletSurface receipts={[receipt]} flights={[]} currentOwnerId="store-viewer" notes={[]} onOpenObject={vi.fn()} onOpenTrip={vi.fn()} onAddNote={vi.fn()} onDeleteNote={vi.fn()} proofRequest={null} onPrizeTixChange={vi.fn()} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    const card = screen.getByRole('button', { name: /Kyle · Store order/ })
+    expect(card.closest('.wallet-layout')).toBeTruthy()
+    expect(card.querySelector('.receipt-head .receipt-card-lines')?.textContent).toBe('2× Mug')
+    expect(card.querySelector('.receipt-people-total')?.textContent).toContain('$100.00')
+    expect(card.querySelector('p')?.textContent).toBe('Awaiting pickup at Show Store')
+    fireEvent.click(card)
+    expect(screen.getByRole('dialog', { name: 'Merch preorder' })).toBeInTheDocument()
+    expect(screen.getAllByText('2× Mug')).toHaveLength(2)
+    expect(screen.getByText('Pickup')).toBeInTheDocument()
+    expect(screen.queryByText('$0.00')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'Original' }))
+    await waitFor(() => expect(downloadReceiptArtifact).toHaveBeenCalledWith(receipt.receipt_artifacts[0], 'store-viewer'))
+    await waitFor(() => expect(document.querySelector('img[src="blob:store-original"]')).toBeTruthy())
   })
 
   it('never selects another hotel, a title-only match, a different receipt type, or ambiguous originals', () => {

@@ -5405,19 +5405,9 @@ export function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, not
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openChrisBlackLotusProof={openChrisBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
     {tab === 'play' && <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} />}
     {tab === 'store' && (receipts.some(receipt => receipt.receipt_type === 'store')
-      ? <section className="receipt-list" aria-label="Store receipts">
-        {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <button type="button" className="receipt-card store-receipt wallet-receipt-button" key={receipt.id} onClick={() => openModal('STORE RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))}>
-          <div className="receipt-head">
-            <span className="receipt-icon"><NavIcon name="wallet" /></span>
-            <div><span className="eyebrow">{receipt.vendor}</span><h2>{receipt.title}</h2>
-              <p>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(receipt.amount)}</p>
-            </div>
-          </div>
-          <ul>{receipt.line_items.map((line, index) => <li key={index}>
-            {line.quantity ? `${line.quantity} × ` : ''}{line.title}
-          </li>)}</ul>
-        </button>)}
-      </section>
+      ? <div className="wallet-layout"><section className="receipt-list" aria-label="Store receipts">
+        {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => openModal('STORE RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))} />)}
+      </section></div>
       : <WalletStoreEmpty />)}
     {tab === 'other' && <WalletOtherTab flights={flights} receipts={receipts} currentOwnerId={currentOwnerId} openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
@@ -5684,7 +5674,21 @@ function receiptOrderProof(receipt: WalletReceiptRow | null) {
   return { code: line?.order_code, url: line?.order_url }
 }
 
+function receiptPurchaseLines(receipt: WalletReceiptRow) {
+  const isPickup = (line: WalletReceiptLine) => receipt.receipt_type === 'store' && /^Awaiting pickup\b/i.test(line.title) && line.price === 0 && !line.quantity
+  return { items: receipt.line_items.filter(line => !isPickup(line)), pickup: receipt.line_items.filter(isPickup).map(line => line.title).join(' · ') }
+}
+
+function PurchaseReceiptCard({ receipt, onOpen }: { receipt: WalletReceiptRow; onOpen: () => void }) {
+  const store = receipt.receipt_type === 'store'
+  const { items, pickup } = receiptPurchaseLines(receipt)
+  return <button className="receipt-card wallet-receipt-button" type="button" onClick={onOpen}>
+    <div className="receipt-head"><span className="receipt-icon">{store ? <NavIcon name="wallet" /> : <EventKindIcon name="ticketed" />}</span><div><span className="eyebrow">{store ? 'STORE' : 'TICKETED PLAY'}</span><h2>{store ? `${receiptPeople(receipt).join(' + ')} · Store order` : receipt.title}</h2><ul className="receipt-card-lines">{items.map((line, index) => <li key={line.event_id ?? index}>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</li>)}</ul><p>{store ? pickup || receipt.vendor : `${items.length} purchased ${items.length === 1 ? 'event' : 'events'} · ${receipt.vendor}`}</p></div><span className="receipt-people-total"><PersonBubbles people={receiptPeople(receipt)} /><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></span></div>
+  </button>
+}
+
 function PurchaseReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletReceiptRow; currentOwnerId?: string }) {
+  const { items, pickup } = receiptPurchaseLines(receipt)
   const [mode, setMode] = useState<'info' | 'original'>('info')
   return <div className="proof-detail">
     <div className="proof-mode-tabs" role="tablist" aria-label={receipt.receipt_type === 'store' ? 'Store receipt view' : 'Ticketed play receipt view'}>
@@ -5693,11 +5697,12 @@ function PurchaseReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletRec
     </div>
     {mode === 'info' ? <>
       <div className="proof-info-list">
-        <div><span>Attendees</span><strong>{receiptPeople(receipt).join(' + ')}</strong></div>
+        <div><span>{receipt.receipt_type === 'store' ? 'Buyer' : 'Attendees'}</span><strong>{receiptPeople(receipt).join(' + ')}</strong></div>
+        {pickup && <div><span>Pickup</span><strong>{pickup}</strong></div>}
         <div><span>Order</span><strong>{receipt.vendor} · {new Date(receipt.receipt_date).toLocaleString()}</strong></div>
         <div><span>Total</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></div>
       </div>
-      <div className="receipt-lines">{receipt.line_items.map((line, index) => <div className="receipt-line-row" key={line.event_id ?? index}><span>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</span><b>${line.price.toFixed(2)}{line.quantity && line.quantity > 1 ? ' each' : ''}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
+      <div className="receipt-lines">{items.map((line, index) => <div className="receipt-line-row" key={line.event_id ?? index}><span>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</span><b>${line.price.toFixed(2)}{line.quantity && line.quantity > 1 ? ' each' : ''}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
     </> : <>
       <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${receipt.title} original receipt`} currentOwnerId={currentOwnerId} />
     </>}
@@ -5707,9 +5712,7 @@ function PurchaseReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletRec
 function WalletPlayTab({ receipts, currentOwnerId, openModal }: { receipts: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
-      {receipts.length ? receipts.map(receipt => <button key={receipt.id} className="receipt-card wallet-receipt-button" type="button" onClick={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))}>
-        <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>{receipt.title}</h2><ul className="receipt-card-lines">{receipt.line_items.map(line => <li key={line.event_id}>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</li>)}</ul><p>{receipt.line_items.length} purchased {receipt.line_items.length === 1 ? 'event' : 'events'} · {receipt.vendor}</p></div><span className="receipt-people-total"><PersonBubbles people={receiptPeople(receipt)} /><strong>${Number(receipt.amount).toFixed(2)}</strong></span></div>
-      </button>) : <article className="receipt-card future-store">
+      {receipts.length ? receipts.map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))} />) : <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>Purchased event receipts will appear here.</p></div></div>
       </article>}
     </section>
