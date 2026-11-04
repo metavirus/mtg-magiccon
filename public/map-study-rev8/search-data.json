@@ -1,0 +1,2947 @@
+{
+  "marketplace": {
+    "coordinateSystem": [
+      1290,
+      780
+    ],
+    "viewBox": [
+      25,
+      75,
+      1245,
+      705
+    ],
+    "objects": [
+      {
+        "id": "star-trek",
+        "names": [
+          "Star Trek"
+        ],
+        "x": 59,
+        "y": 122,
+        "width": 163,
+        "height": 139,
+        "kind": "activity",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            55.4,
+            407.1,
+            172.5,
+            147.1
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "jaces-tower",
+        "names": [
+          "Jace’s Tower"
+        ],
+        "x": 228,
+        "y": 159,
+        "width": 108,
+        "height": 102,
+        "kind": "activity",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            234.3,
+            446.3,
+            114.3,
+            107.9
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "family-magic",
+        "names": [
+          "Family Magic"
+        ],
+        "x": 59,
+        "y": 304,
+        "width": 217,
+        "height": 160,
+        "kind": "activity",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            55.4,
+            599.7,
+            229.6,
+            169.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "bloomburrow",
+        "names": [
+          "Bloomburrow"
+        ],
+        "x": 282,
+        "y": 304,
+        "width": 49,
+        "height": 160,
+        "kind": "activity",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            291.4,
+            599.7,
+            51.9,
+            169.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "mini-golf",
+        "names": [
+          "Tap Tap Mini Golf"
+        ],
+        "x": 59,
+        "y": 505,
+        "width": 211,
+        "height": 99,
+        "kind": "activity",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            55.4,
+            812.4,
+            223.3,
+            104.8
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "arcade",
+        "names": [
+          "Arcade"
+        ],
+        "x": 277,
+        "y": 505,
+        "width": 50,
+        "height": 99,
+        "kind": "activity",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            286.1,
+            812.4,
+            52.9,
+            104.8
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "gathering-grounds",
+        "names": [
+          "Gathering Grounds"
+        ],
+        "x": 347,
+        "y": 504,
+        "width": 179,
+        "height": 100,
+        "kind": "activity",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            360.2,
+            811.3,
+            189.4,
+            105.8
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "unresolvedSubdivisions": 7
+      },
+      {
+        "id": "grounds-cell-0",
+        "names": [],
+        "x": 348,
+        "y": 580,
+        "width": 25.2,
+        "height": 23,
+        "kind": "unknown",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            361.3,
+            891.8,
+            26.7,
+            24.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "parentId": "gathering-grounds"
+      },
+      {
+        "id": "grounds-cell-1",
+        "names": [],
+        "x": 373.2,
+        "y": 580,
+        "width": 25.2,
+        "height": 23,
+        "kind": "unknown",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            387.9,
+            891.8,
+            26.7,
+            24.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "parentId": "gathering-grounds"
+      },
+      {
+        "id": "grounds-cell-2",
+        "names": [],
+        "x": 398.4,
+        "y": 580,
+        "width": 25.2,
+        "height": 23,
+        "kind": "unknown",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            414.6,
+            891.8,
+            26.7,
+            24.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "parentId": "gathering-grounds"
+      },
+      {
+        "id": "grounds-cell-3",
+        "names": [],
+        "x": 423.6,
+        "y": 580,
+        "width": 25.2,
+        "height": 23,
+        "kind": "unknown",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            441.3,
+            891.8,
+            26.7,
+            24.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "parentId": "gathering-grounds"
+      },
+      {
+        "id": "grounds-cell-4",
+        "names": [],
+        "x": 448.8,
+        "y": 580,
+        "width": 25.2,
+        "height": 23,
+        "kind": "unknown",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            467.9,
+            891.8,
+            26.7,
+            24.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "parentId": "gathering-grounds"
+      },
+      {
+        "id": "grounds-cell-5",
+        "names": [],
+        "x": 474,
+        "y": 580,
+        "width": 25.2,
+        "height": 23,
+        "kind": "unknown",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            494.6,
+            891.8,
+            26.7,
+            24.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "parentId": "gathering-grounds"
+      },
+      {
+        "id": "grounds-cell-6",
+        "names": [],
+        "x": 499.2,
+        "y": 580,
+        "width": 25.2,
+        "height": 23,
+        "kind": "unknown",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            521.3,
+            891.8,
+            26.7,
+            24.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "parentId": "gathering-grounds"
+      },
+      {
+        "id": "dragon-shield",
+        "names": [
+          "Dragon Shield"
+        ],
+        "x": 382,
+        "y": 153,
+        "width": 80,
+        "height": 50,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            397.2,
+            439.9,
+            84.7,
+            52.9
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "gamesgenic",
+        "names": [
+          "Gamegenic"
+        ],
+        "x": 363,
+        "y": 223,
+        "width": 100,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            377.1,
+            514,
+            105.8,
+            42.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "raft",
+        "names": [],
+        "x": 487,
+        "y": 102,
+        "width": 39,
+        "height": 41,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            508.4,
+            386,
+            41.3,
+            43.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "beadle-grimms",
+        "names": [
+          "Beadle & Grimm’s"
+        ],
+        "x": 487,
+        "y": 162,
+        "width": 39,
+        "height": 41,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            508.4,
+            449.4,
+            41.3,
+            43.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "shared": true,
+        "unresolvedSubdivisions": 2
+      },
+      {
+        "id": "heroes-villains",
+        "names": [
+          "Heroes and Villains"
+        ],
+        "x": 487,
+        "y": 223,
+        "width": 39,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            508.4,
+            514,
+            41.3,
+            42.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "ultimate-guard",
+        "names": [
+          "Ultimate Guard"
+        ],
+        "x": 389,
+        "y": 304,
+        "width": 61,
+        "height": 60,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            404.7,
+            599.7,
+            64.6,
+            63.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "trading-cart",
+        "names": [
+          "Radagast’s Trading Cart"
+        ],
+        "x": 389,
+        "y": 386,
+        "width": 61,
+        "height": 19,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            404.7,
+            686.5,
+            64.6,
+            20.1
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "young-nails-dungeon",
+        "names": [
+          "Young Nails"
+        ],
+        "x": 492,
+        "y": 304,
+        "width": 39,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            513.7,
+            599.7,
+            41.3,
+            42.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "shared": true,
+        "unresolvedLabels": true
+      },
+      {
+        "id": "western-shared",
+        "names": [],
+        "x": 492,
+        "y": 363,
+        "width": 39,
+        "height": 42,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            513.7,
+            662.1,
+            41.3,
+            44.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "shared": true,
+        "unresolvedSubdivisions": 3
+      },
+      {
+        "id": "galactus-roma",
+        "names": [
+          "Galactus Roma"
+        ],
+        "x": 382,
+        "y": 424,
+        "width": 81,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            397.2,
+            726.7,
+            85.7,
+            42.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "good-games",
+        "names": [
+          "Good Games"
+        ],
+        "x": 492,
+        "y": 424,
+        "width": 39,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\1-Photo-1.jpg",
+          "originalRect": [
+            513.7,
+            726.7,
+            41.3,
+            42.3
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "misty-mountain",
+        "names": [
+          "Misty Mountain Gaming"
+        ],
+        "x": 562,
+        "y": 102,
+        "width": 60,
+        "height": 41,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            51.8,
+            374.4,
+            63.7,
+            43.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "daria",
+        "names": [
+          "Daria Aksenova / World of Trash"
+        ],
+        "x": 562,
+        "y": 162,
+        "width": 60,
+        "height": 41,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            51.8,
+            438.1,
+            63.7,
+            43.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "gatherers-tavern",
+        "names": [
+          "Gatherers’ Tavern"
+        ],
+        "x": 562,
+        "y": 223,
+        "width": 60,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            51.8,
+            502.8,
+            63.7,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "kess-shared",
+        "names": [],
+        "x": 674,
+        "y": 102,
+        "width": 41,
+        "height": 41,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            170.7,
+            374.4,
+            43.5,
+            43.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "shared": true,
+        "unresolvedSubdivisions": 4
+      },
+      {
+        "id": "tcgplayer",
+        "names": [
+          "TCGplayer"
+        ],
+        "x": 674,
+        "y": 162,
+        "width": 41,
+        "height": 41,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            170.7,
+            438.1,
+            43.5,
+            43.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "magnolia",
+        "names": [
+          "Magnolia Gaming"
+        ],
+        "x": 674,
+        "y": 223,
+        "width": 41,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            170.7,
+            502.8,
+            43.5,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "card-kingdom",
+        "names": [
+          "Card Kingdom"
+        ],
+        "x": 769,
+        "y": 170,
+        "width": 35,
+        "height": 77,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            271.5,
+            446.6,
+            37.2,
+            81.7
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "stomping-grounds",
+        "names": [
+          "Stomping Grounds"
+        ],
+        "x": 827,
+        "y": 170,
+        "width": 35,
+        "height": 77,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            333.1,
+            446.6,
+            37.2,
+            81.7
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "cm-games",
+        "names": [
+          "CM Games"
+        ],
+        "x": 884,
+        "y": 170,
+        "width": 35,
+        "height": 77,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            393.6,
+            446.6,
+            37.2,
+            81.7
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "pastimes",
+        "names": [
+          "Pastimes Incorporated"
+        ],
+        "x": 964,
+        "y": 109,
+        "width": 79,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            193.5,
+            348.3,
+            83.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "cool-stuff",
+        "names": [
+          "Cool Stuff Inc"
+        ],
+        "x": 964,
+        "y": 162,
+        "width": 79,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            193.5,
+            404.6,
+            83.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "face-to-face",
+        "names": [
+          "Face to Face"
+        ],
+        "x": 964,
+        "y": 223,
+        "width": 79,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            193.5,
+            469.3,
+            83.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "tier-1",
+        "names": [
+          "Tier 1 Games"
+        ],
+        "x": 1094,
+        "y": 109,
+        "width": 79,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            331.5,
+            348.3,
+            83.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "strike-zone",
+        "names": [
+          "Strike Zone"
+        ],
+        "x": 1094,
+        "y": 162,
+        "width": 79,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            331.5,
+            404.6,
+            83.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "genesis",
+        "names": [
+          "Genesis Hobbies"
+        ],
+        "x": 562,
+        "y": 303,
+        "width": 60,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            51.8,
+            587.8,
+            63.7,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "card-cache",
+        "names": [
+          "Card Cache"
+        ],
+        "x": 674,
+        "y": 303,
+        "width": 41,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            170.7,
+            587.8,
+            43.5,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "three-for-one",
+        "names": [
+          "Three for One Trading"
+        ],
+        "x": 738,
+        "y": 303,
+        "width": 81,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            238.6,
+            587.8,
+            86,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "frost-giant",
+        "names": [
+          "Frost Giant Games"
+        ],
+        "x": 843,
+        "y": 303,
+        "width": 80,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            350.1,
+            587.8,
+            84.9,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "journeys-end",
+        "names": [
+          "Journey’s End Games"
+        ],
+        "x": 964,
+        "y": 303,
+        "width": 79,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            193.5,
+            554.3,
+            83.9,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "mana-vault",
+        "names": [
+          "The Mana Vault"
+        ],
+        "x": 562,
+        "y": 363,
+        "width": 60,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            51.8,
+            651.5,
+            63.7,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "hot-sauce",
+        "names": [
+          "Hotsauce Games"
+        ],
+        "x": 654,
+        "y": 363,
+        "width": 61,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            149.5,
+            651.5,
+            64.8,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "mages-sanctum",
+        "names": [
+          "Mages Sanctum"
+        ],
+        "x": 738,
+        "y": 363,
+        "width": 81,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            238.6,
+            651.5,
+            86,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "propaganda",
+        "names": [
+          "Propaganda"
+        ],
+        "x": 843,
+        "y": 363,
+        "width": 80,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            350.1,
+            651.5,
+            84.9,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "toamagic",
+        "names": [
+          "Toamagic.com"
+        ],
+        "x": 964,
+        "y": 363,
+        "width": 79,
+        "height": 39,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            193.5,
+            618,
+            83.9,
+            41.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "collector-legion",
+        "names": [
+          "Collector Legion"
+        ],
+        "x": 562,
+        "y": 424,
+        "width": 60,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            51.8,
+            716.2,
+            63.7,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "laughing-dragon",
+        "names": [
+          "Laughing Dragon MTG"
+        ],
+        "x": 654,
+        "y": 424,
+        "width": 61,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            149.5,
+            716.2,
+            64.8,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "central-shared",
+        "names": [],
+        "x": 738,
+        "y": 424,
+        "width": 81,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            238.6,
+            716.2,
+            86,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "shared": true,
+        "unresolvedSubdivisions": 7
+      },
+      {
+        "id": "pro-play",
+        "names": [
+          "Pro-Play Games"
+        ],
+        "x": 843,
+        "y": 424,
+        "width": 80,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            350.1,
+            716.2,
+            84.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "jk",
+        "names": [
+          "J.K. Entertainment"
+        ],
+        "x": 964,
+        "y": 424,
+        "width": 79,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            193.5,
+            682.7,
+            83.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "heavy-play",
+        "names": [
+          "Heavy Play"
+        ],
+        "x": 562,
+        "y": 502,
+        "width": 60,
+        "height": 42,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            51.8,
+            799,
+            63.7,
+            44.6
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "shared": true,
+        "unresolvedSubdivisions": 3
+      },
+      {
+        "id": "foam-brain",
+        "names": [
+          "Foam Brain Games"
+        ],
+        "x": 674,
+        "y": 502,
+        "width": 41,
+        "height": 42,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            170.7,
+            799,
+            43.5,
+            44.6
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "manamart",
+        "names": [
+          "The Manamart"
+        ],
+        "x": 738,
+        "y": 502,
+        "width": 81,
+        "height": 42,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            238.6,
+            799,
+            86,
+            44.6
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "mythic-goblin",
+        "names": [
+          "Mythic Goblin"
+        ],
+        "x": 862,
+        "y": 502,
+        "width": 41,
+        "height": 42,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            370.3,
+            799,
+            43.5,
+            44.6
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "yakata",
+        "names": [
+          "Yakata Games"
+        ],
+        "x": 964,
+        "y": 502,
+        "width": 79,
+        "height": 42,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            193.5,
+            765.5,
+            83.9,
+            44.6
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "nerd-gear-pink-bunny",
+        "names": [
+          "Nerd Gear Gaming",
+          "Pink Bunny Games"
+        ],
+        "x": 562,
+        "y": 563,
+        "width": 60,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            51.8,
+            863.8,
+            63.7,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "shared": true
+      },
+      {
+        "id": "game-universe",
+        "names": [
+          "Game Universe"
+        ],
+        "x": 654,
+        "y": 563,
+        "width": 61,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            149.5,
+            863.8,
+            64.8,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "top-deck",
+        "names": [
+          "Top Deck Keep"
+        ],
+        "x": 738,
+        "y": 563,
+        "width": 81,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            238.6,
+            863.8,
+            86,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "star-city",
+        "names": [
+          "Star City Games"
+        ],
+        "x": 843,
+        "y": 563,
+        "width": 80,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-02",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\2-Photo-2.jpg",
+          "originalRect": [
+            350.1,
+            863.8,
+            84.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "manatrust",
+        "names": [
+          "Manatrust"
+        ],
+        "x": 964,
+        "y": 563,
+        "width": 79,
+        "height": 40,
+        "kind": "vendor",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            193.5,
+            830.3,
+            83.9,
+            42.5
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "meet-greets-context",
+        "names": [
+          "Magic Meet & Greets"
+        ],
+        "x": 1089,
+        "y": 223,
+        "width": 157,
+        "height": 160,
+        "kind": "context",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            326.2,
+            469.3,
+            166.7,
+            169.9
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        }
+      },
+      {
+        "id": "ticketed-play-context",
+        "names": [
+          "Ticketed Play"
+        ],
+        "x": 1089,
+        "y": 403,
+        "width": 157,
+        "height": 201,
+        "kind": "context",
+        "booth": null,
+        "source": {
+          "id": "marketplace-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\5340EE6C-FC47-41FD-9712-78921516B1C1\\3-Photo-3.jpg",
+          "originalRect": [
+            326.2,
+            660.4,
+            166.7,
+            213.4
+          ],
+          "registration": "map-input-audit/full-reference-registration.json"
+        },
+        "labelEvidence": {
+          "id": "overview-03",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\FAAA7ECB-8637-4E26-8492-66CF3845A62C\\3-Photo-3.jpg",
+          "review": "Accepted C/G broad-view upper Ticketed Play; closeup rectangle has no printed label."
+        }
+      },
+      {
+        "id": "creator-central-context",
+        "names": [
+          "Creator Central"
+        ],
+        "kind": "context",
+        "x": 59,
+        "y": 650,
+        "width": 272,
+        "height": 105,
+        "booth": null,
+        "source": {
+          "id": "overview-01",
+          "path": "C:\\Users\\kavig\\.codex\\codex-remote-attachments\\01a025ca-e261-7313-ad67-8a5ca0dde8df\\FAAA7ECB-8637-4E26-8492-66CF3845A62C\\1-Photo-1.jpg",
+          "relationship": "below activities, separate footprint; approximate context extension beyond marketplace closeup"
+        }
+      }
+    ],
+    "registration": "map-input-audit/full-reference-registration.json",
+    "geometry": "Approximate source-pixel rectangles on accepted anchored canvas; Creator Central is separate overview-derived context. No measured distances or routing."
+  },
+  "revision": "show-floor-schematic-candidate-2026-10-31-r4",
+  "status": "local schematic candidate; no production activation",
+  "coordinateSystem": {
+    "overview": [
+      1100,
+      900
+    ],
+    "artists": [
+      1780,
+      640
+    ],
+    "orientation": "image-relative, not cardinal or routing"
+  },
+  "sources": [
+    "docs/MAP_INPUT_AUDIT_2026-10-31.md Review C",
+    "docs/MAP_SLICE_REVIEW_2026-10-31.md correction G",
+    "map-input-audit/full-floor-overview-candidate.png",
+    "map-input-audit/artists-source-panels.jpg",
+    "map-input-audit/artist-label-coverage.json"
+  ],
+  "zones": [
+    {
+      "id": "c101-showcase",
+      "name": "C101 Showcase",
+      "x": 22,
+      "y": 82,
+      "width": 92,
+      "height": 31,
+      "detail": "C101 Showcase · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "c102-spindown",
+      "name": "C102 Spindown",
+      "x": 22,
+      "y": 123,
+      "width": 92,
+      "height": 31,
+      "detail": "C102 Spindown · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "c103",
+      "name": "C103",
+      "x": 22,
+      "y": 214,
+      "width": 92,
+      "height": 31,
+      "detail": "C103 · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "c104-quiet",
+      "name": "C104 Quiet",
+      "x": 22,
+      "y": 250,
+      "width": 92,
+      "height": 31,
+      "detail": "C104 Quiet · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "c105-c106-family-spark",
+      "name": "C105–C106 Family Spark",
+      "x": 22,
+      "y": 286,
+      "width": 92,
+      "height": 31,
+      "detail": "C105–C106 Family Spark · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "c107",
+      "name": "C107",
+      "x": 22,
+      "y": 322,
+      "width": 92,
+      "height": 31,
+      "detail": "C107 · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "c108",
+      "name": "C108",
+      "x": 22,
+      "y": 358,
+      "width": 92,
+      "height": 31,
+      "detail": "C108 · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "c109",
+      "name": "C109",
+      "x": 22,
+      "y": 394,
+      "width": 92,
+      "height": 31,
+      "detail": "C109 · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "c110",
+      "name": "C110",
+      "x": 22,
+      "y": 430,
+      "width": 92,
+      "height": 31,
+      "detail": "C110 · western room bank",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "morning-queue",
+      "name": "Morning Queue",
+      "x": 136,
+      "y": 157,
+      "width": 94,
+      "height": 252,
+      "detail": "Morning queue · west side of show floor",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle"
+    },
+    {
+      "id": "magic-experiences",
+      "name": "Magic Experiences",
+      "x": 240,
+      "y": 157,
+      "width": 112,
+      "height": 198,
+      "detail": "Star Trek and Jace’s Tower above Family Magic; Tap Tap Mini Golf and Arcade below; Gathering Grounds to their right. Detail authoring pending.",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone-strong",
+      "shape": "rectangle"
+    },
+    {
+      "id": "creator-central",
+      "name": "Creator Central",
+      "x": 240,
+      "y": 365,
+      "width": 112,
+      "height": 105,
+      "detail": "Creator Central · below activities and left of Art of Magic",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone-strong",
+      "shape": "rectangle"
+    },
+    {
+      "id": "free-play-west",
+      "name": "Free Play",
+      "x": 136,
+      "y": 420,
+      "width": 94,
+      "height": 50,
+      "detail": "West Free Play · below Morning Queue",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle"
+    },
+    {
+      "id": "marketplace",
+      "name": "Marketplace",
+      "x": 365,
+      "y": 157,
+      "width": 270,
+      "height": 182,
+      "detail": "Reviewed 2026 footprint; detailed booth canvas remains a clearly marked historical fixture.",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "market",
+      "shape": "rectangle"
+    },
+    {
+      "id": "art-of-magic",
+      "name": "Art of Magic",
+      "x": 365,
+      "y": 350,
+      "width": 270,
+      "height": 120,
+      "detail": "59 readable artists · nine paired island columns; column 7 unresolved",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "play",
+      "shape": "rectangle"
+    },
+    {
+      "id": "meet-greets",
+      "name": "Meet & Greets",
+      "x": 646,
+      "y": 190,
+      "width": 88,
+      "height": 86,
+      "detail": "Magic Meet & Greets · right of Marketplace",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone-strong",
+      "shape": "rectangle"
+    },
+    {
+      "id": "free-play-east",
+      "name": "Free Play",
+      "x": 744,
+      "y": 157,
+      "width": 56,
+      "height": 110,
+      "detail": "Northeast Free Play · between Meet & Greets and Worlds",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle"
+    },
+    {
+      "id": "world-championship",
+      "name": "World Championship",
+      "x": 810,
+      "y": 157,
+      "width": 180,
+      "height": 164,
+      "detail": "World Championship · broad upper-right footprint, above the lower arm of Ticketed Play",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "play",
+      "shape": "rectangle"
+    },
+    {
+      "id": "ticketed-play-upper",
+      "name": "Ticketed Play",
+      "x": 646,
+      "y": 280,
+      "width": 344,
+      "height": 190,
+      "detail": "Upper Ticketed Play · one connected L around Worlds; League Pickup and Prize Wall inside",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "play",
+      "shape": "polygon",
+      "points": [
+        [
+          646,
+          280
+        ],
+        [
+          800,
+          280
+        ],
+        [
+          800,
+          332
+        ],
+        [
+          990,
+          332
+        ],
+        [
+          990,
+          470
+        ],
+        [
+          646,
+          470
+        ]
+      ],
+      "path": "M646 280 H800 V332 H990 V470 H646 Z"
+    },
+    {
+      "id": "league-pickup",
+      "name": "League Pickup",
+      "x": 656,
+      "y": 393,
+      "width": 70,
+      "height": 67,
+      "detail": "League Pickup · inside upper Ticketed Play, left of Prize Wall",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone-strong",
+      "shape": "rectangle",
+      "parentId": "ticketed-play-upper",
+      "minZoom": 1.8
+    },
+    {
+      "id": "prize-wall",
+      "name": "Prize Wall",
+      "x": 736,
+      "y": 393,
+      "width": 74,
+      "height": 67,
+      "detail": "Prize Wall · inside upper Ticketed Play, right of League Pickup",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone-strong",
+      "shape": "rectangle",
+      "parentId": "ticketed-play-upper",
+      "minZoom": 1.8
+    },
+    {
+      "id": "ticketed-play-extension",
+      "name": "Ticketed Play",
+      "x": 548,
+      "y": 500,
+      "width": 442,
+      "height": 128,
+      "detail": "Southern Ticketed Play extension · across a real cross-aisle from upper play",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "play",
+      "shape": "rectangle"
+    },
+    {
+      "id": "ticketed-play-hub",
+      "name": "Ticketed Play Hub",
+      "x": 698,
+      "y": 585,
+      "width": 120,
+      "height": 43,
+      "detail": "Ticketed Play Hub · inside lower edge of the separate southern extension",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone-strong",
+      "shape": "rectangle",
+      "parentId": "ticketed-play-extension",
+      "minZoom": 1.8
+    },
+    {
+      "id": "ticketed-play-on-demand",
+      "name": "Ticketed Play / On Demand",
+      "x": 548,
+      "y": 642,
+      "width": 220,
+      "height": 220,
+      "detail": "On Demand play · below the southern Ticketed Play area",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "play",
+      "shape": "rectangle"
+    },
+    {
+      "id": "ticketed-play-lower-left",
+      "name": "Ticketed Play",
+      "x": 478,
+      "y": 742,
+      "width": 58,
+      "height": 120,
+      "detail": "Narrow lower-left Ticketed Play footprint · separate from On Demand across an aisle",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "play",
+      "shape": "rectangle",
+      "labelMinZoom": 1.8
+    },
+    {
+      "id": "command-zone",
+      "name": "Command Zone",
+      "x": 780,
+      "y": 642,
+      "width": 210,
+      "height": 220,
+      "detail": "Command Zone · southern extension, right of On Demand; neighboring Free Play is separate",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "play",
+      "shape": "rectangle"
+    },
+    {
+      "id": "free-play-south",
+      "name": "Free Play",
+      "x": 1002,
+      "y": 662,
+      "width": 62,
+      "height": 200,
+      "detail": "Southern Free Play · separate footprint right of Command Zone",
+      "source": "overview-01–04; Review C and correction G",
+      "fill": "zone",
+      "shape": "rectangle"
+    }
+  ],
+  "crossAisles": [
+    {
+      "id": "upper-to-extension",
+      "x": 548,
+      "y": 470,
+      "width": 442,
+      "height": 30
+    }
+  ],
+  "progressiveVisibility": {
+    "floorMinorMinZoom": 1.8,
+    "artistMinRenderedFontPx": 10,
+    "artistInitialPhoneZoom": 5,
+    "fitZoom": 1
+  },
+  "artistIslands": [
+    {
+      "column": 1,
+      "row": "upper",
+      "x": 30,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 1,
+      "row": "lower",
+      "x": 30,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 2,
+      "row": "upper",
+      "x": 220,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 2,
+      "row": "lower",
+      "x": 220,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 3,
+      "row": "upper",
+      "x": 410,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 3,
+      "row": "lower",
+      "x": 410,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 4,
+      "row": "upper",
+      "x": 600,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 4,
+      "row": "lower",
+      "x": 600,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 5,
+      "row": "upper",
+      "x": 790,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 5,
+      "row": "lower",
+      "x": 790,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 6,
+      "row": "upper",
+      "x": 980,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 6,
+      "row": "lower",
+      "x": 980,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 7,
+      "row": "upper",
+      "x": 1170,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "unresolved"
+    },
+    {
+      "column": 7,
+      "row": "lower",
+      "x": 1170,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "unresolved"
+    },
+    {
+      "column": 8,
+      "row": "upper",
+      "x": 1360,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 8,
+      "row": "lower",
+      "x": 1360,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 9,
+      "row": "upper",
+      "x": 1550,
+      "y": 45,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    },
+    {
+      "column": 9,
+      "row": "lower",
+      "x": 1550,
+      "y": 265,
+      "width": 154,
+      "height": 150,
+      "status": "reviewed"
+    }
+  ],
+  "artists": [
+    {
+      "id": "artist-1-0-0",
+      "name": "Alix Branwyn",
+      "column": 1,
+      "row": "upper",
+      "cell": 0,
+      "x": 30,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-1-0-1",
+      "name": "Richard Kane Ferguson",
+      "column": 1,
+      "row": "upper",
+      "cell": 1,
+      "x": 107,
+      "y": 45,
+      "width": 77,
+      "height": 150,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-1-0-2",
+      "name": "Chris Rahn",
+      "column": 1,
+      "row": "upper",
+      "cell": 2,
+      "x": 30,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-1-1-0",
+      "name": "Cynthia Sheppard",
+      "column": 1,
+      "row": "lower",
+      "cell": 0,
+      "x": 30,
+      "y": 265,
+      "width": 77,
+      "height": 150,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-1-1-1",
+      "name": "Kieran Yanner",
+      "column": 1,
+      "row": "lower",
+      "cell": 1,
+      "x": 107,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-1-1-3",
+      "name": "Leon Tukker",
+      "column": 1,
+      "row": "lower",
+      "cell": 3,
+      "x": 107,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-2-0-0",
+      "name": "Mark Poole",
+      "column": 2,
+      "row": "upper",
+      "cell": 0,
+      "x": 220,
+      "y": 45,
+      "width": 77,
+      "height": 150,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-2-0-1",
+      "name": "Ben Hill",
+      "column": 2,
+      "row": "upper",
+      "cell": 1,
+      "x": 297,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-2-0-3",
+      "name": "Winona Nelson",
+      "column": 2,
+      "row": "upper",
+      "cell": 3,
+      "x": 297,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-2-1-0",
+      "name": "Martina Fačková",
+      "column": 2,
+      "row": "lower",
+      "cell": 0,
+      "x": 220,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-2-1-1",
+      "name": "Eli Minaya",
+      "column": 2,
+      "row": "lower",
+      "cell": 1,
+      "x": 297,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-2-1-2",
+      "name": "Mathias Kollros",
+      "column": 2,
+      "row": "lower",
+      "cell": 2,
+      "x": 220,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-2-1-3",
+      "name": "Josiah \"Jo\" Cameron",
+      "column": 2,
+      "row": "lower",
+      "cell": 3,
+      "x": 297,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-01",
+      "booth": null
+    },
+    {
+      "id": "artist-3-0-0",
+      "name": "Daren Bader",
+      "column": 3,
+      "row": "upper",
+      "cell": 0,
+      "x": 410,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-3-0-1",
+      "name": "Steven Belledin",
+      "column": 3,
+      "row": "upper",
+      "cell": 1,
+      "x": 487,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-3-0-2",
+      "name": "Randy Gallegos",
+      "column": 3,
+      "row": "upper",
+      "cell": 2,
+      "x": 410,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-3-0-3",
+      "name": "David Palumbo",
+      "column": 3,
+      "row": "upper",
+      "cell": 3,
+      "x": 487,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-3-1-0",
+      "name": "Serena Malyon",
+      "column": 3,
+      "row": "lower",
+      "cell": 0,
+      "x": 410,
+      "y": 265,
+      "width": 77,
+      "height": 150,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-3-1-1",
+      "name": "Danny Schwartz",
+      "column": 3,
+      "row": "lower",
+      "cell": 1,
+      "x": 487,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-3-1-3",
+      "name": "Justine Jones",
+      "column": 3,
+      "row": "lower",
+      "cell": 3,
+      "x": 487,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-4-0-0",
+      "name": "Ryan Pancoast",
+      "column": 4,
+      "row": "upper",
+      "cell": 0,
+      "x": 600,
+      "y": 45,
+      "width": 77,
+      "height": 150,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-4-0-1",
+      "name": "Thomas Baxa",
+      "column": 4,
+      "row": "upper",
+      "cell": 1,
+      "x": 677,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-4-0-3",
+      "name": "Tran Nguyen",
+      "column": 4,
+      "row": "upper",
+      "cell": 3,
+      "x": 677,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-4-1-0",
+      "name": "Mike Bierek",
+      "column": 4,
+      "row": "lower",
+      "cell": 0,
+      "x": 600,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-4-1-1",
+      "name": "Nino Vecia",
+      "column": 4,
+      "row": "lower",
+      "cell": 1,
+      "x": 677,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-4-1-2",
+      "name": "Nicholas Gregory",
+      "column": 4,
+      "row": "lower",
+      "cell": 2,
+      "x": 600,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-4-1-3",
+      "name": "Olena \"Lena\" Richards",
+      "column": 4,
+      "row": "lower",
+      "cell": 3,
+      "x": 677,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-5-0-0",
+      "name": "Alessandra Pisano",
+      "column": 5,
+      "row": "upper",
+      "cell": 0,
+      "x": 790,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-5-0-1",
+      "name": "Bruce Brenneise",
+      "column": 5,
+      "row": "upper",
+      "cell": 1,
+      "x": 867,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-5-0-2",
+      "name": "Andrea Radeck",
+      "column": 5,
+      "row": "upper",
+      "cell": 2,
+      "x": 790,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-5-0-3",
+      "name": "Chase Stone",
+      "column": 5,
+      "row": "upper",
+      "cell": 3,
+      "x": 867,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-5-1-0",
+      "name": "Victor Adame Minguez",
+      "column": 5,
+      "row": "lower",
+      "cell": 0,
+      "x": 790,
+      "y": 265,
+      "width": 77,
+      "height": 150,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-5-1-1",
+      "name": "Paul Scott Canavan",
+      "column": 5,
+      "row": "lower",
+      "cell": 1,
+      "x": 867,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-5-1-3",
+      "name": "phil stone",
+      "column": 5,
+      "row": "lower",
+      "cell": 3,
+      "x": 867,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-6-0-0",
+      "name": "Aaron Miller",
+      "column": 6,
+      "row": "upper",
+      "cell": 0,
+      "x": 980,
+      "y": 45,
+      "width": 77,
+      "height": 150,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-6-0-1",
+      "name": "Chris Rallis",
+      "column": 6,
+      "row": "upper",
+      "cell": 1,
+      "x": 1057,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-6-0-3",
+      "name": "Douglas Shuler",
+      "column": 6,
+      "row": "upper",
+      "cell": 3,
+      "x": 1057,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-6-1-0",
+      "name": "Lucas Graciano",
+      "column": 6,
+      "row": "lower",
+      "cell": 0,
+      "x": 980,
+      "y": 265,
+      "width": 77,
+      "height": 150,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-6-1-1",
+      "name": "Kaja Foglio",
+      "column": 6,
+      "row": "lower",
+      "cell": 1,
+      "x": 1057,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-6-1-3",
+      "name": "Phil Foglio",
+      "column": 6,
+      "row": "lower",
+      "cell": 3,
+      "x": 1057,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-8-0-0",
+      "name": "Eric Deschamps",
+      "column": 8,
+      "row": "upper",
+      "cell": 0,
+      "x": 1360,
+      "y": 45,
+      "width": 77,
+      "height": 150,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-8-0-1",
+      "name": "Jason Engle",
+      "column": 8,
+      "row": "upper",
+      "cell": 1,
+      "x": 1437,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-8-0-3",
+      "name": "Joe Slucher",
+      "column": 8,
+      "row": "upper",
+      "cell": 3,
+      "x": 1437,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-8-1-0",
+      "name": "Steve Prescott",
+      "column": 8,
+      "row": "lower",
+      "cell": 0,
+      "x": 1360,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-8-1-1",
+      "name": "SchmandrewART",
+      "column": 8,
+      "row": "lower",
+      "cell": 1,
+      "x": 1437,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-8-1-2",
+      "name": "Svetlin Velinov",
+      "column": 8,
+      "row": "lower",
+      "cell": 2,
+      "x": 1360,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-8-1-3",
+      "name": "Tomas Wanerstrand",
+      "column": 8,
+      "row": "lower",
+      "cell": 3,
+      "x": 1437,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-9-0-0",
+      "name": "John stanko",
+      "column": 9,
+      "row": "upper",
+      "cell": 0,
+      "x": 1550,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-9-0-1",
+      "name": "Kai Carpenter",
+      "column": 9,
+      "row": "upper",
+      "cell": 1,
+      "x": 1627,
+      "y": 45,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-9-0-2",
+      "name": "Josu Solano",
+      "column": 9,
+      "row": "upper",
+      "cell": 2,
+      "x": 1550,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-9-0-3",
+      "name": "kelogsloops",
+      "column": 9,
+      "row": "upper",
+      "cell": 3,
+      "x": 1627,
+      "y": 120,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-9-1-0",
+      "name": "Jeff Miracola",
+      "column": 9,
+      "row": "lower",
+      "cell": 0,
+      "x": 1550,
+      "y": 265,
+      "width": 77,
+      "height": 150,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-9-1-1",
+      "name": "Tyler Jacobson",
+      "column": 9,
+      "row": "lower",
+      "cell": 1,
+      "x": 1627,
+      "y": 265,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-9-1-3",
+      "name": "Vincent Proce",
+      "column": 9,
+      "row": "lower",
+      "cell": 3,
+      "x": 1627,
+      "y": 340,
+      "width": 77,
+      "height": 75,
+      "source": "artists-04",
+      "booth": null
+    },
+    {
+      "id": "artist-perimeter-0",
+      "name": "Wizard of Barge",
+      "row": "perimeter",
+      "column": null,
+      "x": 260,
+      "y": 540,
+      "width": 150,
+      "height": 66,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-perimeter-1",
+      "name": "Tyler Walpole",
+      "row": "perimeter",
+      "column": null,
+      "x": 525,
+      "y": 540,
+      "width": 150,
+      "height": 66,
+      "source": "artists-02",
+      "booth": null
+    },
+    {
+      "id": "artist-perimeter-2",
+      "name": "Mark Tedin",
+      "row": "perimeter",
+      "column": null,
+      "x": 790,
+      "y": 540,
+      "width": 150,
+      "height": 66,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-perimeter-3",
+      "name": "rk post",
+      "row": "perimeter",
+      "column": null,
+      "x": 1055,
+      "y": 540,
+      "width": 150,
+      "height": 66,
+      "source": "artists-03",
+      "booth": null
+    },
+    {
+      "id": "artist-perimeter-4",
+      "name": "Alayna Danner",
+      "row": "perimeter",
+      "column": null,
+      "x": 1320,
+      "y": 540,
+      "width": 150,
+      "height": 66,
+      "source": "artists-04",
+      "booth": null
+    }
+  ],
+  "unboundDirectoryArtists": [
+    {
+      "name": "PINDURSKI",
+      "sourceId": "668816",
+      "directoryBooth": "9201",
+      "status": "not readable in supplied artist close views; not absence/cancellation"
+    },
+    {
+      "name": "Chris Seaman",
+      "sourceId": "668820",
+      "directoryBooth": "9199",
+      "status": "not readable in supplied artist close views; not absence/cancellation"
+    },
+    {
+      "name": "Evyn Fong",
+      "sourceId": "668828",
+      "directoryBooth": "9099",
+      "status": "not readable in supplied artist close views; not absence/cancellation"
+    },
+    {
+      "name": "Gabor Szikszai",
+      "sourceId": "668829",
+      "directoryBooth": "9198",
+      "status": "not readable in supplied artist close views; not absence/cancellation"
+    },
+    {
+      "name": "Izzy",
+      "sourceId": "668830",
+      "directoryBooth": "9101",
+      "status": "not readable in supplied artist close views; not absence/cancellation"
+    },
+    {
+      "name": "Jarel Threat",
+      "sourceId": "668831",
+      "directoryBooth": "9200",
+      "status": "not readable in supplied artist close views; not absence/cancellation"
+    },
+    {
+      "name": "Sam Burley",
+      "sourceId": "668855",
+      "directoryBooth": "9300",
+      "status": "not readable in supplied artist close views; not absence/cancellation"
+    }
+  ],
+  "unknowns": [
+    "Column 7 upper and lower labels remain unbound; no roster-order or booth-number assignment.",
+    "All numeric artist booth values are null in this candidate; no directory booth identity join was performed. Tran Nguyen numeric booth unknown.",
+    "Purple lower perimeter service label unreadable.",
+    "Upper-level connector paths and distances unknown.",
+    "Marketplace uses registered source-derived booth islands with unresolved labels retained. Ticketed Play uses reviewed minimal footprints/services.",
+    "Simplified coordinates are authored, not surveyed or pixel-precise.",
+    "Original full-resolution source and native-app inventory still absent; production source gate remains open."
+  ],
+  "normalizationNotes": [
+    "Cynthia screenshot spelling is Sheppard; directory source label is Shepard. Keep reviewed canonical mapping.",
+    "Name visibility establishes label coverage, not exact spatial placement, signing hours or attendance."
+  ]
+}
