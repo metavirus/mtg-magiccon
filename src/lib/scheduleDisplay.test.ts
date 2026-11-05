@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { scheduleStart, shareIncludedParticipant, sortScheduledEvents } from './scheduleDisplay'
+import { atlantaConventionStart, nextCalendarEntry, scheduleStart, shareIncludedParticipant, sortScheduledEvents } from './scheduleDisplay'
 
 describe('chronological Calendar display', () => {
   it('sorts Thursday source order without mutating it or hiding flexible pickups', () => {
@@ -13,6 +13,16 @@ describe('chronological Calendar display', () => {
   it('does not invent a time for an ambiguous listing', () => {
     expect(scheduleStart('11:30-3')).toBe(Infinity)
   })
+})
+
+it('advances the next Calendar entry as Atlanta start times pass and ignores untimed entries', () => {
+  const event = { title: 'Paid draft', at: atlantaConventionStart('Fri', '11:30 AM–3:59 PM') }
+  const arrival = { title: 'Arrive ATL', at: Date.parse('2026-11-11T21:16:00-05:00') }
+  const entries = [event, { title: 'Flexible pickup', at: atlantaConventionStart('Thu', 'TBD') }, arrival]
+  expect(new Date(event.at).toISOString()).toBe('2026-11-13T16:30:00.000Z')
+  expect(nextCalendarEntry(entries, Date.parse('2026-11-11T20:00:00-05:00'))).toBe(arrival)
+  expect(nextCalendarEntry(entries, arrival.at + 1)).toBe(event)
+  expect(nextCalendarEntry(entries, event.at + 1)).toBeUndefined()
 })
 
 describe('personal conflict scope', () => {

@@ -29,7 +29,7 @@ import { catalogImportPreviewBatch } from './lib/catalogImportPreview'
 import type { CatalogPromotionPlan } from './lib/catalogImport'
 import { promoteCatalogPlan } from './lib/catalogPromotion'
 import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
-import { shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
+import { atlantaConventionStart, nextCalendarEntry, shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
 import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
 import { PersonalMapStudy } from './components/PersonalMapStudy'
@@ -864,6 +864,7 @@ export default function App() {
   const [catalogInterestSavingOfferId, setCatalogInterestSavingOfferId] = useState<string | null>(null)
   const [catalogPromotionSaving, setCatalogPromotionSaving] = useState(false)
   const [tripFlights, setTripFlights] = useState<TripFlight[]>(designPreview || isPreviewOwnerMode ? previewTripFlights : [])
+  const [flightsKnown, setFlightsKnown] = useState(designPreview || isPreviewOwnerMode)
   const [continuityReady, setContinuityReady] = useState(false)
   const [continuityFailures, setContinuityFailures] = useState<string[]>([])
   useEffect(() => {
@@ -1108,6 +1109,7 @@ export default function App() {
     setInfoFeed([])
     setCatalogReadModel(emptyCatalogReadModel)
     setTripFlights([])
+    setFlightsKnown(false)
     setExploreEventState(purchaseQaEvents(exploreEvents))
     setMonitorAlerts([])
     setContinuityFailures([])
@@ -1143,7 +1145,7 @@ export default function App() {
         }
       }
       if (lanes.exhibitors) setExhibitors((lanes.exhibitors as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) })))
-      if (lanes.flights) setTripFlights(lanes.flights as TripFlight[])
+      if (lanes.flights) { setTripFlights(lanes.flights as TripFlight[]); setFlightsKnown(true) }
       if (lanes.ticketedAvailability) setTicketedAvailability(lanes.ticketedAvailability as TicketedPlayAvailabilityProjectionRow[])
       if (lanes.selections) {
         const rows = lanes.selections as UserSelectionRow[]
@@ -1180,7 +1182,7 @@ export default function App() {
           }
           break
         case 'exhibitors': setExhibitors((value as DirectoryExhibitor[]).map(record => ({ ...record, highlight: exhibitorHighlight(record) }))); break
-        case 'flights': setTripFlights(value as TripFlight[]); break
+        case 'flights': setTripFlights(value as TripFlight[]); setFlightsKnown(true); break
         case 'ticketedAvailability': setTicketedAvailability(value as TicketedPlayAvailabilityProjectionRow[]); break
         case 'selections': {
           const rows = value as UserSelectionRow[]
@@ -1232,6 +1234,7 @@ export default function App() {
         { event_id: 'ticketed-944083', source_event_key: '944083', availability: 'sold_out', observed_at: '2026-08-25T20:00:00Z', companion_code: null },
       ] : [])
       setTripFlights(previewTripFlights)
+      setFlightsKnown(true)
       const model = atlantaMerchReview ? (await import('./lib/atlantaMerchReview')).buildAtlantaMerchReview({ individualVariants: true }) : catalogBrowserQa ? catalogBrowserPreviewModel : emptyCatalogReadModel
       if (!isCurrent()) return
       previewHydrated.current = previewKey
@@ -1267,7 +1270,7 @@ export default function App() {
       lane('findings', 'monitoring findings', isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]), setMonitoringFindings),
       lane('concepts', 'monitoring concepts', isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]), setMonitoringConcepts),
       lane('info', 'Info knowledge', loadInfoKnowledge(), info => { setInfoTopics(info.topics); setInfoFeed(info.feed) }),
-      lane('flights', 'Trip flights', supabase ? loadTripFlights(supabase) : Promise.resolve([]), setTripFlights),
+      lane('flights', 'Trip flights', supabase ? loadTripFlights(supabase) : Promise.resolve([]), flights => { setTripFlights(flights); setFlightsKnown(true) }),
       lane('ticketedAvailability', 'Ticketed Play availability', loadTicketedPlayAvailability(), setTicketedAvailability),
       lane('catalog', 'catalogs', supabase ? loadCatalogReadModel(supabase, 'magiccon_atlanta_2026') : Promise.resolve(emptyCatalogReadModel), model => {
         // An unavailable read is a refresh failure, never a replacement for the
@@ -2331,7 +2334,10 @@ export default function App() {
         catch { setOfflineIdentityFailureOwner(effectiveOwnerId) }
       }} />
       <>
-        {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
+        {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'}
+          calendarEntries={(continuityReady && flightsKnown && currentCompanion) || designPreview || isPreviewOwnerMode
+            ? homeCalendarEntries(displayedExploreEvents, tripFlights, currentCompanion?.name ?? 'Kavi') : null}
+          onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
@@ -6989,9 +6995,28 @@ function formatTicketedDay(day: string, includeDate: boolean) {
     : { weekday: 'long' })
 }
 
-function HomeSurface({ activityItems, catalog, currentPerson, onOpenItem, onOpenActivity }: { activityItems: ActivityItem[]; catalog: CatalogReadModel; currentPerson: PersonName; onOpenItem: (item: ActivityItem) => void; onOpenActivity: () => void }) {
+function homeCalendarEntries(events: ExploreEvent[], flights: TripFlight[], person: PersonName) {
+  const entries = events.filter(event => event.id !== 'bl-first-look-thursday' && (event.state === 'committed' || event.purchased))
+    .map(event => ({ title: displayEventTitle(event), at: atlantaConventionStart(event.day, event.time) }))
+  const trip = tripFlightCalendarProjection(flights)
+  if (trip?.flight.traveler_person_keys.includes(person.toLowerCase())) {
+    entries.push(
+      { title: 'Arrive ATL · Courtyard night', at: Date.parse(trip.outbound.arrival_at) },
+      { title: 'Fly home from ATL', at: Date.parse(trip.returnLeg.departure_at) },
+    )
+  }
+  if (person === 'Kavi' || person === 'Juan') entries.push({ title: 'Omni check-in begins', at: atlantaConventionStart('Thu', '4:00 PM') })
+  return entries
+}
+
+const homeCalendarTime = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+})
+
+function HomeSurface({ activityItems, catalog, currentPerson, calendarEntries, onOpenCalendar, onOpenItem, onOpenActivity }: { activityItems: ActivityItem[]; catalog: CatalogReadModel; currentPerson: PersonName; calendarEntries: ReturnType<typeof homeCalendarEntries> | null; onOpenCalendar: () => void; onOpenItem: (item: ActivityItem) => void; onOpenActivity: () => void }) {
   const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
   const now = useMilestoneClock()
+  const next = calendarEntries && nextCalendarEntry(calendarEntries, now)
   const { fulfilled, upcoming } = catalogMilestones(catalog, now)
   const homeSignals = groupHomeSoldOutSignals(homeWorthKnowingItems(activityItems, now, currentPerson))
   const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
@@ -7002,10 +7027,14 @@ function HomeSurface({ activityItems, catalog, currentPerson, onOpenItem, onOpen
   const hotCount = ordinarySignals.filter(item => item.severity === 'hot' && homeSignalIsHotNow(item.checkedAtIso, now)).length + (featuredSale?.severity === 'hot' && !featuredAlreadyCounted ? 1 : 0)
   const saleUrl = featuredSale?.officialResources?.find(resource => /ticketed.play|schedule/i.test(`${resource.label} ${resource.url}`))?.url
   return <div className="home-surface">
+    {next && <button type="button" className="next-milestone" onClick={onOpenCalendar}>
+      <div className="milestone-symbol" aria-hidden="true"><NavIcon name="calendar" /></div>
+      <div><span className="eyebrow">WHAT’S NEXT</span><h2>{next.title}</h2><p><time dateTime={new Date(next.at).toISOString()}>{homeCalendarTime.format(next.at)}</time></p></div>
+    </button>}
     <div className="home-main-row">
       <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading" data-tour-target="home-signals">
         <div className="home-lane-head">
-          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">{visibleSignalCount ? 'Your convention briefing' : 'All quiet'}</h2></div>
+          <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">Your convention briefing</h2></div>
           <button type="button" onClick={onOpenActivity}>Full Activity</button>
         </div>
         <div className="timely-home" aria-label="Worth Knowing signals">
