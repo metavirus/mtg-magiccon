@@ -81,6 +81,33 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('startup hydration', () => {
+  it('offers a retry if a fresh session check stalls and recovers on a late valid session', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<App />)
+      expect(screen.getByText('Opening your field guide…')).toBeInTheDocument()
+      await act(async () => { await vi.advanceTimersByTimeAsync(6000) })
+      expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+      await act(async () => { mocked.auth?.('SIGNED_IN', { user: { id: 'owner-a', email: 'user@example.com', user_metadata: {} } } as Session) })
+      expect(screen.queryByText('Couldn’t check your sign-in.')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not claim the Wallet or Plan is empty while account data is still loading', async () => {
+    writeOfflineIdentity({ userId: 'owner-a', email: 'user@example.com' })
+    window.history.replaceState(null, '', '/?auth=1#wallet')
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    expect(screen.getByText('Loading receipts…')).toBeInTheDocument()
+    expect(screen.queryByText('No Atlanta store receipts yet')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Offline proof ready/)).not.toBeInTheDocument()
+    await act(async () => { window.location.hash = '#plan'; window.dispatchEvent(new HashChangeEvent('hashchange')) })
+    expect(screen.getByText('Loading Plan…')).toBeInTheDocument()
+    expect(screen.queryByText('No active contenders yet.')).not.toBeInTheDocument()
+  })
+
   it.each([true, false])('paints owner saved Info before any network read settles (online=%s)', online => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(online)
     saved('owner-a', 'Saved current hours')

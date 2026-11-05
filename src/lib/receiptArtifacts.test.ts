@@ -11,6 +11,7 @@ vi.mock('./supabase', () => ({
 
 describe('private receipt artifacts', () => {
   beforeEach(() => {
+    vi.unstubAllGlobals()
     vi.clearAllMocks()
     vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:private-proof') })
   })
@@ -67,6 +68,40 @@ describe('private receipt artifacts', () => {
     ]
     await expect(auditReceiptArtifactCache(artifacts, 'owner-1')).resolves.toEqual({ expected: 3, cached: 2 })
     expect(match).toHaveBeenCalledTimes(3)
+  })
+
+  it('opens saved proof immediately despite a stalled online download and warms without downloading again', async () => {
+    vi.stubGlobal('URL', Object.assign(NativeURL, { createObjectURL: vi.fn(() => 'blob:saved-proof') }))
+    vi.stubGlobal('navigator', { onLine: true })
+    download.mockImplementation(() => new Promise(() => {}))
+    const { downloadReceiptArtifact, primeReceiptArtifactCache, receiptArtifactCacheKey, RECEIPT_ARTIFACT_BUCKET } = await import('./receiptArtifacts')
+    const artifact = { id: 'saved', artifact_role: 'original' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'original.png', mime_type: 'image/png', display_label: 'Original', display_order: 1 }
+    const match = vi.fn(async (key: string) => key === receiptArtifactCacheKey('owner-1', artifact.id) ? new Response('saved original') : undefined)
+    vi.stubGlobal('caches', { open: vi.fn().mockResolvedValue({ match }) })
+    await expect(downloadReceiptArtifact(artifact, 'owner-1')).resolves.toBe('blob:saved-proof')
+    await primeReceiptArtifactCache(artifact, 'owner-1')
+    await primeReceiptArtifactCache(artifact, 'owner-1')
+    expect(download).not.toHaveBeenCalled()
+    download.mockResolvedValue({ data: new Blob(['other owner proof']), error: null })
+    await downloadReceiptArtifact(artifact, 'owner-2')
+    expect(download).toHaveBeenCalledOnce()
+  })
+
+  it('displays a successful download after quota failure while the warmer and audit report incomplete storage', async () => {
+    vi.stubGlobal('URL', Object.assign(NativeURL, { createObjectURL: vi.fn(() => 'blob:online-proof') }))
+    vi.stubGlobal('navigator', { onLine: true })
+    download.mockResolvedValue({ data: new Blob(['online proof']), error: null })
+    const put = vi.fn().mockRejectedValue(new DOMException('Full', 'QuotaExceededError'))
+    vi.stubGlobal('caches', { open: vi.fn().mockResolvedValue({ match: vi.fn().mockResolvedValue(undefined), put }) })
+    const { downloadReceiptArtifact, primeReceiptArtifactCache, auditReceiptArtifactCache, RECEIPT_ARTIFACT_BUCKET } = await import('./receiptArtifacts')
+    const artifact = { id: 'uncached', artifact_role: 'original' as const, bucket_id: RECEIPT_ARTIFACT_BUCKET, object_path: 'original.png', mime_type: 'image/png', display_label: 'Original', display_order: 1 }
+    await expect(downloadReceiptArtifact(artifact, 'owner-1')).resolves.toBe('blob:online-proof')
+    expect(put).toHaveBeenCalledOnce()
+    await expect(primeReceiptArtifactCache(artifact, 'owner-1')).rejects.toThrow('could not be saved')
+    await expect(auditReceiptArtifactCache([artifact], 'owner-1')).resolves.toEqual({ expected: 1, cached: 0 })
+    vi.stubGlobal('caches', { open: vi.fn().mockRejectedValue(new DOMException('Denied', 'SecurityError')) })
+    await expect(downloadReceiptArtifact(artifact, 'owner-1')).resolves.toBe('blob:online-proof')
+    await expect(auditReceiptArtifactCache([artifact], 'owner-1')).resolves.toEqual({ expected: 1, cached: 0 })
   })
 
   it('blocks remote resources when rendering preserved source HTML', async () => {
@@ -157,15 +192,15 @@ describe('private receipt artifacts', () => {
 
   it('hydrates the complete proof pack after authentication without opening Wallet', () => {
     const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8')
-    expect(app).toContain('const completeProofPack = refreshed.flatMap(receipt => receipt.receipt_artifacts)')
+    expect(app.includes('refreshed.flatMap(receipt => receipt.receipt_artifacts)')).toBe(true)
     expect(app).toContain('completeProofPack.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId))')
     expect(app).not.toMatch(/completeProofPack\s*=.*\.filter\(artifact\s*=>\s*artifact\.artifact_role/s)
-    expect(app).toContain('const { receipts: walletReceipts, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId)')
+    expect(app).toMatch(/const \{ receipts: walletReceipts,[^\n]*proofPack: offlineProofPack \} = useWalletReceipts\(effectiveOwnerId\)/)
   })
 
   it('renders Chris transfer as a full Gmail proof instead of shrinking it into the QR card', () => {
     const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8')
-    expect(app).toContain('roles={[\'transfer\']} title="Showable Chris Black Lotus transfer proof"')
+    expect(app).toContain('roles={[\'transfer\']} title="Chris’s Black Lotus transfer confirmation"')
     expect(app).not.toContain("roles={['qr', 'transfer']}")
   })
 })

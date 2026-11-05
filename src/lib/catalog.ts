@@ -179,6 +179,23 @@ export type CatalogReadModel = {
   purchaseRulesStatus?: 'ready' | 'absent' | 'unavailable'
 }
 
+export function blackLotusPurchaseLimits(model: CatalogReadModel) {
+  if (model.purchaseRules) return model.purchaseRules.items.map(rule => ({
+    key: rule.canonicalKey,
+    productId: model.offers.find(offer => offer.canonical_key === rule.canonicalKey)?.product_id ?? rule.canonicalKey,
+    name: rule.name,
+    limit: rule.purchaseLimit,
+    eventWide: rule.limitScope === 'per_vip_per_event_across_preorder_and_onsite',
+  }))
+  return model.offers.filter(offer => offer.family === 'black_lotus').map(offer => ({
+    key: offer.offer_id,
+    productId: offer.product_id,
+    name: offer.product_name,
+    limit: offer.purchase_limit,
+    eventWide: offer.product_name.startsWith('Festival in a Box'),
+  }))
+}
+
 export function formatCatalogOfferValue(offer: Pick<CatalogOffer, 'family' | 'prize_ticket_cost' | 'price_amount' | 'currency'>) {
   if (offer.prize_ticket_cost !== null) return `${offer.prize_ticket_cost.toLocaleString()} Prize Tix`
   if (offer.family === 'prize_wall') return 'Prize Tix pending'

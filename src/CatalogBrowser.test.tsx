@@ -1,5 +1,7 @@
+import { useState, type ComponentProps } from 'react'
 import { cleanup, fireEvent, render, screen, within, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { InfoCatalogsPreview, ObjectDetailLayer } from './App'
 import { CatalogBrowser } from './CatalogBrowser'
 import { buildAtlantaMerchReview } from './lib/atlantaMerchReview'
 beforeEach(() => {
@@ -40,6 +42,44 @@ it('groups real source variants once and opens an exact option without modifying
   expect(model.offers.find(offer => offer.offer_id === exact.offer_id)).toBe(exact)
   expect(exact.variant_id).toBeTruthy()
   expect(exact.variant_label).toBe('S')
+})
+
+it('retains the Black Lotus limit from the card through the drawer and its product options', () => {
+  const model = buildAtlantaMerchReview({ individualVariants: true })
+  const box = model.offers.find(offer => offer.family === 'show_store' && offer.product_name.startsWith('Festival in a Box'))!
+  const crocs = model.offers.find(offer => offer.family === 'show_store' && /Crocs/.test(offer.product_name))!
+  model.purchaseRules = {
+    schemaVersion: 1, kind: 'black_lotus_purchase_rules', sourceKind: 'official_email_reviewed_synopsis',
+    sourcePublicationDate: '2026-10-26', opensAt: '2026-11-02T18:00:00Z', closesAt: '2026-11-08T18:00:00Z',
+    checkoutLimit: 1, pickup: 'Black Lotus lounge', rules: [],
+    items: [
+      { canonicalKey: box.canonical_key, name: box.product_name, purchaseLimit: 2, limitScope: 'per_vip_per_event_across_preorder_and_onsite' },
+      { canonicalKey: crocs.canonical_key, name: crocs.product_name, purchaseLimit: 1, limitScope: 'preorder' },
+    ],
+  }
+  function Store() {
+    const [detail, setDetail] = useState<ComponentProps<typeof ObjectDetailLayer>['detail']>(null)
+    return <>
+      <InfoCatalogsPreview catalogReadModel={model} catalogBrowserQa={false} reviewOnly canEditCatalogInterest={false} catalogInterestSavingOfferId={null} onToggleCatalogInterest={() => {}} onOpenObject={setDetail} />
+      <ObjectDetailLayer detail={detail} canWriteNotes={false} notes={[]} catalogReadModel={model} canEditCatalogInterest={false} catalogInterestSavingOfferId={null} onToggleCatalogInterest={() => {}} onAddNote={() => {}} onDeleteNote={() => {}} onClose={() => setDetail(null)} onNavigate={() => {}} onOpenObject={setDetail} />
+    </>
+  }
+  render(<Store />)
+  const boxCard = screen.getByRole('button', { name: `Open details for ${box.product_name}` })
+  expect(boxCard).toHaveTextContent('Limit 2')
+  fireEvent.click(boxCard)
+  const boxDrawer = screen.getByRole('dialog', { name: box.product_name })
+  expect(within(boxDrawer).getByText('Black Lotus limit').nextElementSibling).toHaveTextContent('2 per VIP across preorder and onsite purchases')
+  fireEvent.click(within(boxDrawer).getByRole('button', { name: 'Close detail' }))
+  const crocsCard = screen.getByRole('button', { name: `Open details for ${crocs.product_name}` })
+  expect(crocsCard).toHaveTextContent('Limit 1')
+  fireEvent.click(crocsCard)
+  const crocsDrawer = screen.getByRole('dialog', { name: crocs.product_name })
+  const options = within(crocsDrawer).getByRole<HTMLSelectElement>('combobox', { name: 'Product option' })
+  const nextOption = [...options.options].find(option => option.value !== options.value)!
+  fireEvent.change(options, { target: { value: nextOption.value } })
+  expect(options).toHaveValue(nextOption.value)
+  expect(within(crocsDrawer).getByText('Black Lotus preorder limit').nextElementSibling).toHaveTextContent('1')
 })
 
 const hoodieName = 'Open details for Jace Reversible Hoodie'

@@ -36,6 +36,15 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('feature complete offline reopen', () => {
+  it('does not report offline proof ready before receipt inventory is known', async () => {
+    device()
+    const hook = renderHook(() => useWalletReceipts('wallet-no-snapshot'))
+    expect(hook.result.current.receiptStatus).toBe('loading')
+    expect(hook.result.current.proofPack).toBeNull()
+    await waitFor(() => expect(hook.result.current.receiptStatus).toBe('unavailable'))
+    expect(hook.result.current.proofPack).toBeNull()
+  })
+
   it('reopens Wallet with complete lines/private artifact references and clears it on owner switch', async () => {
     const cache = device()
     await writeOfflineLane('wallet-owner-a', 'walletReceipts', [receipt])

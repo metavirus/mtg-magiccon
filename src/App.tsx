@@ -22,7 +22,7 @@ import { coalesceMonitoringConcepts, findingApprovalLabel, findingCanAuthorize, 
 import { loadInfoKnowledge, previewInfoFeed, previewInfoTopics, relatedInfoFeed, type InfoFeedEntry, type InfoSource, type InfoTopic } from './lib/infoKnowledge'
 import { infoTopicUsesReader, publishedInfoFeed, publishedInfoTopics } from './lib/infoReader'
 import { priorEventCatalogs, type InfoCatalog, type InfoCatalogItem } from './lib/infoCatalog'
-import { emptyCatalogReadModel, formatCatalogOfferValue, loadCatalogReadModel, setCatalogInterest, type CatalogOffer, type CatalogReadModel } from './lib/catalog'
+import { blackLotusPurchaseLimits, emptyCatalogReadModel, formatCatalogOfferValue, loadCatalogReadModel, setCatalogInterest, type CatalogOffer, type CatalogReadModel } from './lib/catalog'
 import { catalogBrowserPreviewModel, catalogBrowserPreviewOwnerId } from './lib/catalogPreview'
 import { canLoadAtlantaMerchReview } from './lib/catalogReviewMode'
 import { catalogImportPreviewBatch } from './lib/catalogImportPreview'
@@ -250,58 +250,75 @@ type WalletReceiptRow = {
 }
 
 type OfflineProofPackStatus = { expected: number; cached: number; loading: boolean }
+type ReceiptLoadStatus = 'loading' | 'ready' | 'unavailable'
 
 export function useWalletReceipts(currentOwnerId?: string) {
-  const [receipts, setReceipts] = useState<WalletReceiptRow[]>(() => {
-    if (!currentOwnerId) return []
-    const cached = readOfflineLaneSync(currentOwnerId, 'walletReceipts')?.value
-    return Array.isArray(cached) ? cached as WalletReceiptRow[] : []
-  })
-  const [proofPack, setProofPack] = useState<OfflineProofPackStatus>({ expected: 0, cached: 0, loading: false })
+  const [snapshot, setSnapshot] = useState<{ ownerId: string; rows: WalletReceiptRow[] } | null>(null)
+  const [load, setLoad] = useState<{ ownerId: string; status: ReceiptLoadStatus } | null>(null)
+  const [proof, setProof] = useState<{ ownerId: string; status: OfflineProofPackStatus } | null>(null)
   useLayoutEffect(() => {
-    if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) {
-      setReceipts([])
-      setProofPack({ expected: 0, cached: 0, loading: false })
-      return
-    }
+    setSnapshot(null)
+    setLoad(null)
+    setProof(null)
+    if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) return
     let active = true
     const client = supabase
     let serverAccepted = false
     let request = 0
-    setReceipts([])
-    setProofPack({ expected: 0, cached: 0, loading: false })
+    let deadline: ReturnType<typeof setTimeout> | undefined
+    const publish = (rows: WalletReceiptRow[]) => {
+      setSnapshot({ ownerId: currentOwnerId, rows })
+      setLoad({ ownerId: currentOwnerId, status: 'ready' })
+    }
+    const unavailable = () => setLoad({ ownerId: currentOwnerId, status: 'unavailable' })
+    const audit = async (rows: WalletReceiptRow[], current: () => boolean) => {
+      const artifacts = rows.flatMap(receipt => receipt.receipt_artifacts ?? [])
+      const result = await auditReceiptArtifactCache(artifacts, currentOwnerId).catch(() => ({
+        expected: new Set(artifacts.map(artifact => artifact.id)).size, cached: 0,
+      }))
+      if (current()) setProof({ ownerId: currentOwnerId, status: { ...result, loading: false } })
+    }
+    const savedSync = readOfflineLaneSync(currentOwnerId, 'walletReceipts')?.value
+    if (Array.isArray(savedSync)) publish(savedSync as WalletReceiptRow[])
     void readOfflineLane(currentOwnerId, 'walletReceipts').then(saved => {
-      if (!active || serverAccepted || !saved) return
+      if (!active || serverAccepted) return
+      if (!saved || !Array.isArray(saved.value)) {
+        if (Array.isArray(savedSync)) void audit(savedSync as WalletReceiptRow[], () => active && !serverAccepted)
+        else if (!navigator.onLine) unavailable()
+        return
+      }
       const cachedReceipts = saved.value as WalletReceiptRow[]
-      setReceipts(cachedReceipts)
-      void auditReceiptArtifactCache(cachedReceipts.flatMap(receipt => receipt.receipt_artifacts ?? []), currentOwnerId).then(status => {
-        if (active && !serverAccepted) setProofPack({ ...status, loading: navigator.onLine && status.cached < status.expected })
-      })
+      publish(cachedReceipts)
+      void audit(cachedReceipts, () => active && !serverAccepted)
     })
     const refreshReceipts = () => {
       if (!navigator.onLine) return
       const generation = ++request
+      clearTimeout(deadline)
+      const current = () => active && generation === request
+      deadline = setTimeout(() => { if (current()) unavailable() }, 10_000)
       void client.from('wallet_receipts')
         .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
         .order('receipt_date', { ascending: false })
         .then(({ data, error }) => {
-        if (!active || generation !== request) return
-        if (error) { console.warn('Wallet receipts could not be loaded; using offline cache when available', error); return }
+        if (!current()) return
+        clearTimeout(deadline)
+        if (error) { unavailable(); return }
         const refreshed = ((data ?? []) as WalletReceiptRow[]).map(receipt => ({
           ...receipt,
           attendee_person_keys: receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key],
           receipt_artifacts: [...(receipt.receipt_artifacts ?? [])].sort((left, right) => left.display_order - right.display_order),
         }))
         serverAccepted = true
-        setReceipts(refreshed)
+        publish(refreshed)
         saveOfflineLane(currentOwnerId, 'walletReceipts', refreshed)
-        const completeProofPack = refreshed.flatMap(receipt => receipt.receipt_artifacts)
-        setProofPack({ expected: completeProofPack.length, cached: 0, loading: completeProofPack.length > 0 })
-        void Promise.allSettled(completeProofPack.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId))).then(async () => {
-          const status = await auditReceiptArtifactCache(completeProofPack, currentOwnerId)
-          if (active && generation === request) setProofPack({ ...status, loading: false })
+        const completeProofPack = [...new Map(refreshed.flatMap(receipt => receipt.receipt_artifacts).map(artifact => [artifact.id, artifact])).values()]
+        setProof(null)
+        const initialAudit = audit(refreshed, current)
+        void Promise.all([initialAudit, Promise.allSettled(completeProofPack.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId)))]).then(() => {
+          if (current()) void audit(refreshed, current)
         })
-      })
+      }, () => { if (current()) { clearTimeout(deadline); unavailable() } })
     }
     const refreshVisibleReceipts = () => {
       if (document.visibilityState === 'visible') refreshReceipts()
@@ -311,11 +328,16 @@ export function useWalletReceipts(currentOwnerId?: string) {
     document.addEventListener('visibilitychange', refreshVisibleReceipts)
     return () => {
       active = false
+      clearTimeout(deadline)
       window.removeEventListener('online', refreshReceipts)
       document.removeEventListener('visibilitychange', refreshVisibleReceipts)
     }
   }, [currentOwnerId])
-  return { receipts, proofPack }
+  return {
+    receipts: snapshot && snapshot.ownerId === currentOwnerId ? snapshot.rows : [],
+    receiptStatus: snapshot && snapshot.ownerId === currentOwnerId ? 'ready' as const : load && load.ownerId === currentOwnerId ? load.status : 'loading' as const,
+    proofPack: proof && proof.ownerId === currentOwnerId ? proof.status : null,
+  }
 }
 
 type CompanionMemberRow = {
@@ -810,6 +832,7 @@ export default function App() {
   const effectiveOwnerId = (previewOwner ? `preview-${previewOwner.key}` : effectiveSession?.user.id ?? undefined) as string | undefined
   const [slice, setSlice] = useState<TrustSlice | null>(designPreview || isPreviewOwnerMode ? DESIGN_PREVIEW_SLICE : null)
   const [loading, setLoading] = useState(true)
+  const [sessionCheckFailed, setSessionCheckFailed] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [messageTone, setMessageTone] = useState<'info' | 'error'>('info')
@@ -879,7 +902,7 @@ export default function App() {
   const continuityContext = useRef({ slice, effectiveSession, companionMembers: fallbackCompanionMembers })
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
-  const { receipts: walletReceipts, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId)
+  const { receipts: walletReceipts, receiptStatus, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId)
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
   continuityContext.current = { slice, effectiveSession, companionMembers }
@@ -1000,11 +1023,22 @@ export default function App() {
       // The owner layout effect owns snapshot rebinding. Same-owner token
       // refresh must retain newer acknowledged memory/CacheStorage state.
     }
-    void supabase.auth.getSession().then(({ data }) => {
-      if (active && authRevision === 0) applySession(data.session)
-      if (active) setLoading(false)
-    }).catch(() => { if (active) setLoading(false) })
+    const finishSessionCheck = (failed: boolean) => {
+      if (!active) return
+      clearTimeout(sessionDeadline)
+      setSessionCheckFailed(failed)
+      setLoading(false)
+    }
+    const sessionDeadline = setTimeout(() => finishSessionCheck(true), 6_000)
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (!active || authRevision !== 0) return
+      if (!error) applySession(data.session)
+      finishSessionCheck(Boolean(error))
+    }).catch(() => { if (authRevision === 0) finishSessionCheck(true) })
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      // A null INITIAL_SESSION can accompany a failed token refresh. Let the
+      // explicit session check classify it; do not revoke the saved identity.
+      if (event === 'INITIAL_SESSION' && !next) return
       authRevision += 1
       if (event === 'SIGNED_OUT') {
         // Explicit sign-out revokes this device's offline identity. A failed
@@ -1016,8 +1050,9 @@ export default function App() {
         setOfflineIdentityFailureOwner(undefined)
       }
       applySession(next)
+      if (next || event === 'SIGNED_OUT') finishSessionCheck(false)
     })
-    return () => { active = false; data.subscription.unsubscribe() }
+    return () => { active = false; clearTimeout(sessionDeadline); data.subscription.unsubscribe() }
   }, [designPreview, isPreviewOwnerMode])
 
   const refresh = useCallback(async (forceOnline = false) => {
@@ -1535,6 +1570,7 @@ export default function App() {
 
   if (!supabase) return <SetupCard />
   if (loading && !effectiveSession && !slice) return <div className="boot">Opening your field guide…</div>
+  if (sessionCheckFailed && !effectiveSession && !designPreview) return <div className="center-card empty" role="alert"><p>Couldn’t check your sign-in.</p><button type="button" onClick={() => window.location.reload()}>Retry</button></div>
   if (!effectiveSession && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} messageTone={messageTone} />
 
   const daysToAtlanta = Math.max(0, Math.ceil((new Date('2026-11-13T00:00:00-08:00').getTime() - Date.now()) / 86_400_000))
@@ -2265,10 +2301,18 @@ export default function App() {
               proofPack={offlineProofPack}
               onOpenTutorial={() => setTutorialOpen(true)}
               onSignOut={() => {
-                if (effectiveOwnerId) void clearReceiptArtifactCache(effectiveOwnerId)
-                clearOfflineIdentity()
-                setOfflineIdentity(null)
-                void supabase?.auth.signOut({ scope: 'local' })
+                void (async () => {
+                  try {
+                    const result = await supabase?.auth.signOut({ scope: 'local' })
+                    if (result?.error) throw result.error
+                    try { clearOfflineIdentity() } catch { /* storage may be unavailable */ }
+                    setOfflineIdentity(null)
+                    if (effectiveOwnerId) void clearReceiptArtifactCache(effectiveOwnerId).catch(() => {})
+                  } catch {
+                    setMessageTone('info')
+                    setMessage('Couldn’t sign out. Try again.')
+                  }
+                })()
               }}
             />
             <span className="countdown-chip"><strong>{daysToAtlanta}</strong><span>days to Atlanta</span></span>
@@ -2287,13 +2331,13 @@ export default function App() {
         catch { setOfflineIdentityFailureOwner(effectiveOwnerId) }
       }} />
       <>
-        {surface === 'home' && <HomeSurface slice={displaySlice} activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenItem={openActivityItem} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
+        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogRefreshFailed={continuityFailures.includes('catalogs')} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
-        {surface === 'wallet' && <WalletSurface flights={tripFlights} receipts={walletReceipts} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
+        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
             const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
             if (canWrite && supabase && kaviOwnerId) {
@@ -2317,7 +2361,7 @@ export default function App() {
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
         {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} selections={userSelections} onBringChange={async (id, key, value) => { if (await upsertUserSelection(id, 'artist', key, value) === false) throw new Error('Checklist save failed') }} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} refreshFailed={continuityFailures.includes('notes')} onRetry={() => void refreshUserContinuity()} />}
-        {surface === 'plan' && <PlanSurface events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'plan' && (!continuityReady && !designPreview && !isPreviewOwnerMode ? <p role="status">{!online || continuityFailures.includes('selections') ? 'Plan unavailable.' : 'Loading Plan…'}</p> : <PlanSurface events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />)}
 
         {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onFindingDecision={decideMonitoringFinding} onFindingChoice={chooseMonitoringFinding} onFindingDefer={deferMonitoringFinding} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </>
@@ -2331,7 +2375,7 @@ export default function App() {
   </div>
 }
 
-type ForecastId = 'ticketed-play' | 'artists' | 'black-lotus-store' | 'show-catalog'
+type ForecastId = 'black-lotus-store' | 'show-catalog'
 type CalendarDetail = ForecastId | 'arrival' | 'preview' | 'friday' | 'event' | 'airport' | 'sunday' | 'bl-thursday' | 'bl-friday' | 'bl-sunday'
 type WalletProofTarget = 'black-lotus' | 'juan-premium' | 'hotel-courtyard' | 'hotel-omni' | 'hotel-hilton'
 
@@ -2520,15 +2564,11 @@ function receiptSourceDetail(note: ContextNote): ObjectDetail | null {
     kind: 'receipt',
     eyebrow: 'Wallet · Black Lotus order',
     title: 'Kavi + Chris badge proof',
-    summary: 'Showable Black Lotus order proof captured from the Leap email, including the QR and original receipt.',
+    summary: 'Black Lotus badge order',
     facts: [
       { label: 'Badge holders', value: 'Kavi + Chris' },
       { label: 'Badges', value: '2 × Black Lotus VIP Early Bird' },
-      { label: 'Showable QR', value: 'Captured' },
-      { label: 'Original', value: 'Full email receipt captured' },
     ],
-    source: { label: 'Source', value: 'MagicCon: Atlanta 2026 Order Confirmation from Leap Conventions' },
-    rationale: 'This is the source receipt/proof item. Notes opened from mentions should land here, not in a separate note wrapper.',
     actions: [{ label: 'Open Wallet', destination: 'wallet' }],
     backlinks: [{ label: 'Wallet', destination: 'wallet' }],
   }, note)
@@ -2538,15 +2578,11 @@ function receiptSourceDetail(note: ContextNote): ObjectDetail | null {
     kind: 'receipt',
     eyebrow: 'Wallet · Juan Premium order',
     title: 'Juan badge proof',
-    summary: 'Showable Juan Premium Weekend badge proof captured from the Leap email, including the QR and original receipt.',
+    summary: 'Premium Weekend badge order',
     facts: [
       { label: 'Badge holder', value: 'Juan' },
       { label: 'Badge', value: 'Premium Weekend Early Bird' },
-      { label: 'Showable QR', value: 'Captured' },
-      { label: 'Original', value: 'Full email receipt captured' },
     ],
-    source: { label: 'Source', value: 'MagicCon: Atlanta 2026 Order Confirmation from Leap Conventions' },
-    rationale: 'This is the source receipt/proof item. Notes opened from mentions should land here, not in a separate note wrapper.',
     actions: [{ label: 'Open Wallet', destination: 'wallet' }],
     backlinks: [{ label: 'Wallet', destination: 'wallet' }],
   }, note)
@@ -3134,7 +3170,18 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
   const catalogOffer = detail.catalogOfferId ? catalogReadModel.offers.find(offer => offer.offer_id === detail.catalogOfferId) : undefined
   const catalogProductOptions = catalogOffer ? catalogReadModel.offers.filter(offer => offer.product_id === catalogOffer.product_id && offer.family === catalogOffer.family) : []
   const catalogSavedOffers = catalogOffer ? catalogBookmarkOptions(catalogReadModel, catalogOffer).filter(offer => offer.interests.some(interest => interest.ownerId === catalogOwnerId && interest.interested)) : []
-  const detailFacts = catalogOffer ? [...(detail.facts ?? []).filter(fact => fact.label !== 'Your list' && fact.label !== 'Bookmarked'), ...(catalogSavedOffers.length ? [{ label: 'Bookmarked', value: catalogSavedOffers.map(offer => offer.variant_label ?? offer.display_label ?? 'Saved').join(', ') }] : [])] : detail.facts
+  const lotus = catalogOffer?.family !== 'prize_wall' && catalogOffer
+    ? blackLotusPurchaseLimits(catalogReadModel).find(rule => rule.productId === catalogOffer.product_id)
+    : undefined
+  const detailFacts = catalogOffer ? [
+    ...(detail.facts ?? []).filter(fact => fact.label !== 'Your list' && fact.label !== 'Bookmarked'
+      && !(catalogOffer.family === 'black_lotus' && lotus?.limit != null && fact.label === 'Purchase limit')),
+    ...(lotus?.limit != null ? [{
+      label: lotus.eventWide ? 'Black Lotus limit' : 'Black Lotus preorder limit',
+      value: lotus.eventWide ? `${lotus.limit} per VIP across preorder and onsite purchases` : String(lotus.limit),
+    }] : []),
+    ...(catalogSavedOffers.length ? [{ label: 'Bookmarked', value: catalogSavedOffers.map(offer => offer.variant_label ?? offer.display_label ?? 'Saved').join(', ') }] : []),
+  ] : detail.facts
   const soldOutListSpansDays = new Set(detail.soldOutEvents?.map(event => event.day)).size > 1
   return <><div className={`object-detail-backdrop ${detail.reader ? 'info-reader-backdrop' : ''}`} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <aside className={`object-detail object-detail-${detail.kind} ${detail.reader ? 'object-detail-reader' : ''}`} role="dialog" aria-modal="true" aria-labelledby="object-detail-title">
@@ -3958,20 +4005,40 @@ const contextNotes: ContextNote[] = ([
   },
 ] satisfies ContextNote[]).filter(() => false)
 
-const milestoneForecasts: Array<{ id: ForecastId; icon: MilestoneIconName; title: string; window: string; calendarDate: string; month: 'AUG' | 'OCT'; confidence: string; rationale: string }> = [
+const milestoneForecasts: Array<{ id: ForecastId; title: string; window: string; expiresAt: string; confidence: string; rationale: string }> = [
   {
-    id: 'ticketed-play', icon: 'ticketed-play', title: 'Ticketed play purchasing', window: 'Aug 25 · 10 AM PT', calendarDate: '25', month: 'AUG', confidence: 'official next',
-    rationale: 'The Ticketed Play schedule page has been published. The next logical milestone is purchasing opening Aug 25 at 10:00 AM PT, followed by hydrating real event inventory once listings are available.',
-  },
-  {
-    id: 'black-lotus-store', icon: 'black-lotus-store', title: 'Black Lotus store', window: 'Oct 30–Nov 3', calendarDate: '30–3', month: 'OCT', confidence: 'two-event clue',
-    rationale: 'The 2026 Black Lotus online store opened 10 days before Las Vegas and 14 days before Amsterdam. The same 10–14 day offset points to Oct 30–Nov 3 for Atlanta.',
-  },
-  {
-    id: 'show-catalog', icon: 'show-catalog', title: 'Show catalog', window: 'Oct 29–Nov 6', calendarDate: '29–6', month: 'OCT', confidence: 'wide estimate',
+    id: 'show-catalog', title: 'Show catalog', window: 'Oct 29–Nov 6', expiresAt: '2026-11-07T00:00:00-05:00', confidence: 'Estimate',
     rationale: 'Vegas published its merch preview 15 days before opening, while Amsterdam’s full catalog was available by the final week. Atlanta is therefore more honestly shown as a late-October to early-November window.',
   },
+  {
+    id: 'black-lotus-store', title: 'Black Lotus store', window: 'Oct 30–Nov 3', expiresAt: '2026-11-04T00:00:00-05:00', confidence: 'Estimate',
+    rationale: 'The 2026 Black Lotus online store opened 10 days before Las Vegas and 14 days before Amsterdam. The same 10–14 day offset points to Oct 30–Nov 3 for Atlanta.',
+  },
 ]
+
+function catalogMilestones(catalog: CatalogReadModel, now: number) {
+  const fulfilled: Record<ForecastId, boolean> = {
+    'show-catalog': catalog.offers.some(offer => offer.family === 'show_store'),
+    'black-lotus-store': Boolean(catalog.purchaseRules) || catalog.offers.some(offer => offer.family === 'black_lotus'),
+  }
+  // An unknown catalog cannot establish that a milestone is still pending.
+  const upcoming = catalog.status === 'ready'
+    ? milestoneForecasts.filter(forecast => !fulfilled[forecast.id] && now < Date.parse(forecast.expiresAt))
+    : []
+  return { fulfilled, upcoming }
+}
+
+function useMilestoneClock() {
+  const [, refreshClock] = useState(0)
+  useEffect(() => {
+    const refresh = () => refreshClock(value => value + 1)
+    const timer = window.setInterval(refresh, 30_000)
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh) }
+  }, [])
+  return Date.now()
+}
 
 const exploreEventCandidates: ExploreEvent[] = [
   ...conventionProgramEvents,
@@ -5348,7 +5415,7 @@ function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibit
   </section>
 }
 
-export function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { receipts: WalletReceiptRow[]; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
+export function WalletSurface({ receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
@@ -5403,12 +5470,12 @@ export function WalletSurface({ receipts, flights, onOpenObject, onOpenTrip, not
       </div>
     </div>
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openChrisBlackLotusProof={openChrisBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
-    {tab === 'play' && <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} />}
+    {tab === 'play' && (playReceipts.length || receiptStatus === 'ready' ? <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} /> : <ReceiptLoadNotice status={receiptStatus} />)}
     {tab === 'store' && (receipts.some(receipt => receipt.receipt_type === 'store')
       ? <div className="wallet-layout"><section className="receipt-list" aria-label="Store receipts">
         {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => openModal('STORE RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))} />)}
       </section></div>
-      : <WalletStoreEmpty />)}
+      : receiptStatus === 'ready' ? <WalletStoreEmpty /> : <ReceiptLoadNotice status={receiptStatus} />)}
     {tab === 'other' && <WalletOtherTab flights={flights} receipts={receipts} currentOwnerId={currentOwnerId} openModal={openModal} onOpenTrip={onOpenTrip} />}
     {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
   </section>
@@ -5496,8 +5563,7 @@ function PrivateReceiptArtifacts({ receipt, roles, title, currentOwnerId }: { re
     }
   }, [artifacts.map(artifact => artifact.id).join('|'), currentOwnerId])
 
-  if (!receipt) return <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
-  if (!artifacts.length) return <p className="original-receipt-note">This private proof has not been migrated yet.</p>
+  if (!receipt || !artifacts.length) return <p className="original-receipt-note">{title} unavailable.</p>
   if (status === 'loading') return <p className="original-receipt-note">Loading private proof…</p>
   if (status === 'error') return <p className="original-receipt-note">Private proof could not be loaded. Check your session and try again.</p>
   return <ReceiptPages title={title} pages={downloads.map(({ artifact, url }) => ({ url, label: artifact.display_label, mimeType: artifact.mime_type }))} />
@@ -5509,7 +5575,6 @@ function WalletHomeTab({ openBlackLotusProof, openChrisBlackLotusProof, openJuan
       <div className="wallet-hero-copy">
         <div className="wallet-hero-topline"><span className="eyebrow">BADGES</span></div>
         <h2>Atlanta passes</h2>
-        <p>Black Lotus order proof is captured from the Leap email, including the showable order QR.</p>
       </div>
       <div className="wallet-badge-fan" aria-label="Primary badge cards">
         <button className="mini-pass lotus-pass" type="button" onClick={openBlackLotusProof}>
@@ -5560,19 +5625,15 @@ function ChrisBlackLotusTransferDetail({ originalReceipt, transferReceipt, notes
       </div>
       <div className="proof-info-list">
         <div><span>Attendee</span><strong>Chris Tom</strong></div>
-        <div><span>Order proof</span><strong>Original Black Lotus purchase receipt captured</strong></div>
-        <div><span>Transfer proof</span><strong>Available under Transfer</strong></div>
         <div><span>Will Call</span><strong>Bring this confirmation email and photo ID</strong></div>
-        <div><span>Original</span><strong>{originalReceipt ? 'Private original is available' : 'Private original has not been migrated'}</strong></div>
       </div>
       <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-chris-black-lotus-transfer" objectKind="receipt" objectTitle="Chris Black Lotus transfer confirmation" context="Wallet · Chris Black Lotus transfer" backlink="wallet" compact />
-    </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p> : mode === 'original' ? <>
-      <p className="original-receipt-note">Original Black Lotus purchase email for the two-badge order.</p>
+    </> : <p className="original-receipt-note">Badge transfer unavailable.</p> : mode === 'original' ?
       <PrivateReceiptArtifacts receipt={originalReceipt} roles={['original']} title="Original Black Lotus purchase email" currentOwnerId={currentOwnerId} />
-    </> : transferReceipt ? <>
-      <PrivateReceiptArtifacts receipt={transferReceipt} roles={['transfer']} title="Showable Chris Black Lotus transfer proof" currentOwnerId={currentOwnerId} />
+    : transferReceipt ? <>
+      <PrivateReceiptArtifacts receipt={transferReceipt} roles={['transfer']} title="Chris’s Black Lotus transfer confirmation" currentOwnerId={currentOwnerId} />
       {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
-    </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>}
+    </> : <p className="original-receipt-note">Badge transfer unavailable.</p>}
     {transferReceipt && orderProof.url && <div className="proof-links"><a href={orderProof.url} target="_blank" rel="noreferrer">Open Chris's Leap order</a></div>}
   </div>
 }
@@ -5593,7 +5654,6 @@ function BlackLotusProofDetail({ receipt, notes, currentOwnerId, onAddNote, onDe
           <span><b>$2,025.26</b><small>order total</small></span>
         </div>
         <div className="proof-info-list">
-          <div><span>Order proof</span><strong>QR code captured from Leap email</strong></div>
           <div><span>Chris badge</span><strong>Transferred to Chris Tom · Aug 25, 2026</strong></div>
           <div><span>Will Call</span><strong>Thu 12-6 · Fri/Sat 8:30-7 · Sun 8:30-6</strong></div>
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
@@ -5602,13 +5662,9 @@ function BlackLotusProofDetail({ receipt, notes, currentOwnerId, onAddNote, onDe
           <PrivateReceiptArtifacts receipt={receipt} roles={['qr']} title="Black Lotus order QR" currentOwnerId={currentOwnerId} />
           {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
         </div>
-        <p>Info is the fast-use view: extracted logistics plus the QR. Use Original when someone needs the whole receipt.</p>
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-black-lotus-order" objectKind="receipt" objectTitle="Kavi + Chris badge proof" context="Wallet · Black Lotus order" backlink="wallet" compact />
-      </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
-      : <>
-        <p className="original-receipt-note">Full Gmail receipt render. This is intentionally the whole email, not a cropped proof slice.</p>
-        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Original Black Lotus order receipt" currentOwnerId={currentOwnerId} />
-      </>}
+      </> : <p className="original-receipt-note">Badge receipt unavailable.</p>
+      : <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Original Black Lotus order receipt" currentOwnerId={currentOwnerId} />}
     {receipt && orderProof.url && <div className="proof-links">
       <a href={orderProof.url} target="_blank" rel="noreferrer">Open Leap order</a>
     </div>}
@@ -5631,7 +5687,6 @@ function JuanPremiumProofDetail({ receipt, notes, currentOwnerId, onAddNote, onD
           <span><b>$191.42</b><small>order total</small></span>
         </div>
         <div className="proof-info-list">
-          <div><span>Order proof</span><strong>Confirmation email code + rendered Leap QR</strong></div>
           <div><span>Product</span><strong>Premium Weekend badge + included promo/booster bundle</strong></div>
           <div><span>Will Call</span><strong>Thu 12-6 · Fri/Sat 8:30-7 · Sun 8:30-6</strong></div>
           <div><span>Show floor</span><strong>Fri/Sat 10-7 · Sun 10-6</strong></div>
@@ -5641,11 +5696,8 @@ function JuanPremiumProofDetail({ receipt, notes, currentOwnerId, onAddNote, onD
           {orderProof.code && <div className="proof-code-line"><span>Order code</span><code>{orderProof.code}</code></div>}
         </div>
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId="wallet-juan-premium-order" objectKind="receipt" objectTitle="Juan badge proof" context="Wallet · Juan Premium order" backlink="wallet" compact />
-      </> : <p className="original-receipt-note">Private proof is unavailable in preview mode. Sign in to retrieve it.</p>
-      : <div className="original-html-frame">
-        <p className="original-receipt-note">Full Gmail print view with account, sender, recipient, timestamp, subject, and complete receipt body.</p>
-        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Juan Premium original receipt" currentOwnerId={currentOwnerId} />
-      </div>}
+      </> : <p className="original-receipt-note">Badge receipt unavailable.</p>
+      : <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Juan Premium original receipt" currentOwnerId={currentOwnerId} />}
     {receipt && orderProof.url && <div className="proof-links">
       <a href={orderProof.url} target="_blank" rel="noreferrer">Open Leap order</a>
     </div>}
@@ -5719,11 +5771,15 @@ function WalletPlayTab({ receipts, currentOwnerId, openModal }: { receipts: Wall
   </div>
 }
 
+function ReceiptLoadNotice({ status }: { status: ReceiptLoadStatus }) {
+  return <p role="status">{status === 'loading' ? 'Loading receipts…' : 'Receipts unavailable.'}</p>
+}
+
 function WalletStoreEmpty() {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Store receipts">
       <article className="receipt-card future-store">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">STORE</span><h2>No Atlanta store receipts yet</h2><p>Purchases and extracted line items will appear here.</p></div></div>
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="wallet" /></span><div><span className="eyebrow">STORE</span><h2>No Atlanta store receipts yet</h2></div></div>
       </article>
     </section>
   </div>
@@ -5741,15 +5797,14 @@ export function HotelWalletReference({ kind, receipts = [], currentOwnerId }: { 
       <button type="button" role="tab" aria-selected={mode === 'original'} className={mode === 'original' ? 'active' : ''} onClick={() => setMode('original')}>Original</button>
     </div>}
     {mode === 'original' && hasOriginal ? <>
-      <p className="original-receipt-note">Original attachment retained from the hotel receipt message.</p>
       <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${detail.title} original receipt`} currentOwnerId={currentOwnerId} />
     </> : <>
       <p>{detail.summary}</p>
       <div className="proof-info-list">
         {detail.facts?.map(fact => <div key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}
-        {receipt && <><div><span>Receipt for</span><strong>{receiptPeople(receipt).join(' + ')}</strong></div><div><span>Reservation total</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></div></>}
+        {receipt && <><div><span>Receipt for</span><strong>{receiptPeople(receipt).join(' + ')}</strong></div><div><span>Receipt total</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></div></>}
       </div>
-      {hasOriginal ? <p>Original attachment available under Original.</p> : <p>No original receipt is linked to this hotel yet. These are saved itinerary details, not registration or payment proof.</p>}
+      {!hasOriginal && <p>No original receipt is linked to this hotel yet.</p>}
     </>}
   </div>
 }
@@ -6572,7 +6627,9 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, events, flights, selectionRows, companions, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ slice, events, flights, selectionRows, companions, notes, catalog, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; catalog: CatalogReadModel; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+  const now = useMilestoneClock()
+  const { upcoming } = catalogMilestones(catalog, now)
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
   const [filter, setFilter] = useState<CalendarFilter>('all')
   const [detail, setCalendarDetail] = useState<CalendarDetail | null>(null)
@@ -6703,15 +6760,15 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
       </a>
     </div> : <>
 
-    {showConvention && <><div className="calendar-month"><span>OCT</span><strong>Likely information drops</strong></div>
-    {milestoneForecasts.slice(1).sort((a, b) => Number.parseInt(a.calendarDate) - Number.parseInt(b.calendarDate)).map(forecast => <button key={forecast.id} className={`agenda-row agenda-action milestone-row forecast-${forecast.id}`} type="button" onClick={() => setDetail(forecast.id)}>
+    {showConvention && upcoming.length > 0 && <><div className="calendar-month"><span>OCT–NOV</span><strong>Expected releases</strong></div>
+    {upcoming.map(forecast => <button key={forecast.id} className={`agenda-row agenda-action milestone-row forecast-${forecast.id}`} type="button" onClick={() => setDetail(forecast.id)}>
       <div className="agenda-date milestone-date-tile forecast-date-tile"><strong>{forecast.window.toUpperCase().split(/–(?=[A-Z])/).map((part, index) => <span key={part}>{index > 0 ? '– ' : ''}{part}</span>)}</strong><em>FORECAST</em></div>
-      <div className="agenda-icon forecast-symbol" aria-hidden="true"><MilestoneIcon name={forecast.icon} /></div>
+      <div className="agenda-icon forecast-symbol" aria-hidden="true"><MilestoneIcon name={forecast.id} /></div>
       <div className="agenda-copy"><div><span className="agenda-kind">Milestone forecast</span><span className="soft-chip">{forecast.confidence}</span></div><h2>{forecast.title}</h2><p>{forecast.window} · based on recent MagicCon timing.</p></div>
       <span className="agenda-destination"><NavIcon name="notes" />Details</span>
     </button>)}</>}
 
-    {showTravel && showConvention && <div className="calendar-gap"><span>then travel</span></div>}
+    {showTravel && showConvention && upcoming.length > 0 && <div className="calendar-gap"><span>then travel</span></div>}
     <div className="calendar-month"><span>NOV</span><strong>Atlanta trip</strong></div>
 
     {showTravel && flightProjection && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
@@ -6767,7 +6824,7 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
     </button>}
     </>}
 
-    {detail && <CalendarDetailSheet detail={detail} slice={slice} flights={flights} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+    {detail && ((detail !== 'show-catalog' && detail !== 'black-lotus-store') || upcoming.some(forecast => forecast.id === detail)) && <CalendarDetailSheet detail={detail} slice={slice} flights={flights} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
     {selectedEvent && <CalendarEventDetail event={selectedEvent} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
 }
@@ -6932,20 +6989,13 @@ function formatTicketedDay(day: string, includeDate: boolean) {
     : { weekday: 'long' })
 }
 
-function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenItem, onOpenObject, onOpenActivity }: { slice: TrustSlice; activityItems: ActivityItem[]; currentPerson: PersonName; onOpenPlan: () => void; onOpenItem: (item: ActivityItem) => void; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void }) {
+function HomeSurface({ activityItems, catalog, currentPerson, onOpenItem, onOpenActivity }: { activityItems: ActivityItem[]; catalog: CatalogReadModel; currentPerson: PersonName; onOpenItem: (item: ActivityItem) => void; onOpenActivity: () => void }) {
   const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
-  const [, refreshClock] = useState(0)
-  const now = Date.now()
-  useEffect(() => {
-    const refresh = () => refreshClock(value => value + 1)
-    const timer = window.setInterval(refresh, 30_000)
-    window.addEventListener('focus', refresh)
-    document.addEventListener('visibilitychange', refresh)
-    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh) }
-  }, [])
+  const now = useMilestoneClock()
+  const { fulfilled, upcoming } = catalogMilestones(catalog, now)
   const homeSignals = groupHomeSoldOutSignals(homeWorthKnowingItems(activityItems, now, currentPerson))
   const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
-  const ticketedPlaySaleIsOpen = activityItems.some(isTicketedPlaySaleOpen)
+  const ticketedPlaySaleIsOpen = ticketedPlaySaleHasOpened(now) || activityItems.some(isTicketedPlaySaleOpen)
   const ordinarySignals = homeSignals.filter(item => item.id !== featuredSale?.id)
   const featuredAlreadyCounted = Boolean(featuredSale && homeSignals.some(item => item.id === featuredSale.id))
   const visibleSignalCount = homeSignals.length + (featuredSale && !featuredAlreadyCounted ? 1 : 0)
@@ -6975,32 +7025,28 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
             renderPeople={item => (item.actors?.length || item.actor) ? <PersonBubbles people={item.actors ?? [item.actor!]} /> : null} />
           {!visibleSignalCount && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
             <span><MilestoneIcon name="badges" /></span>
-            <div><strong>No open items</strong><small>Monitoring is quiet and recent collaboration is caught up.</small></div>
+            <div><strong>Activity</strong><small>View updates</small></div>
           </button>}
         </div>
       </section>
 
       <div className="home-right-rail">
-        {ticketedPlaySaleIsOpen
-          ? <div className="next-milestone home-top-forecast">
-              <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="show-catalog" /></div>
-              <div><span className="eyebrow">NEXT EXPECTED</span><h2>The show catalog and store are next.</h2><p>The artist directory is available. The show catalog and Black Lotus store are still expected in late October or early November.</p></div>
-              <span className="milestone-date"><small>Estimate</small><strong>Oct–Nov</strong></span>
-            </div>
-          : <button className="next-milestone home-top-forecast" type="button" onClick={() => setShowTicketedPlayMilestone(true)}>
+        {!ticketedPlaySaleIsOpen && <button className="next-milestone home-top-forecast" type="button" onClick={() => setShowTicketedPlayMilestone(true)}>
               <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
               <div><span className="eyebrow">NEXT EXPECTED</span><h2>Ticketed play purchasing is next.</h2><p>The schedule page is published. Now the next milestone is buying ticketed play on August 25 at 10 AM PT.</p></div>
               <span className="milestone-date"><small>Official</small><strong>Aug 25</strong></span>
             </button>}
 
         <section className="runway planning-runway home-runway-only" aria-labelledby="planning-runway-heading">
-          <div className="runway-heading"><div><span className="eyebrow">MILESTONE RUNWAY</span><h3 id="planning-runway-heading">What we are waiting for</h3></div><span>{ticketedPlaySaleIsOpen ? '3 known · 2 waiting' : '2 known · 3 waiting'}</span></div>
+          <div className="runway-heading"><h3 id="planning-runway-heading">Convention milestones</h3></div>
           <ol>
             <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
-            {ticketedPlaySaleIsOpen && <li className="complete"><span className="runway-icon"><MilestoneIcon name="ticketed-play" /></span><div><strong>Ticketed play purchasing</strong><small>Sales open</small></div></li>}
+            {ticketedPlaySaleIsOpen && <li className="complete"><span className="runway-icon"><MilestoneIcon name="ticketed-play" /></span><div><strong>Ticketed Play purchasing</strong><small>Opened Aug 25</small></div></li>}
             <li className="complete"><span className="runway-icon"><MilestoneIcon name="artists" /></span><div><strong>Artist directory</strong><small>Published · 65 artists</small></div></li>
-            {(ticketedPlaySaleIsOpen ? milestoneForecasts.slice(1) : milestoneForecasts).map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
-              <span className="runway-icon"><MilestoneIcon name={forecast.icon} /></span>
+            {fulfilled['show-catalog'] && <li className="complete"><span className="runway-icon"><MilestoneIcon name="show-catalog" /></span><div><strong>Show catalog</strong><small>Published</small></div></li>}
+            {fulfilled['black-lotus-store'] && <li className="complete"><span className="runway-icon"><MilestoneIcon name="black-lotus-store" /></span><div><strong>Black Lotus preorder</strong><small>Details published</small></div></li>}
+            {upcoming.map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
+              <span className="runway-icon"><MilestoneIcon name={forecast.id} /></span>
               <details className="runway-forecast">
                 <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · {forecast.confidence}</small></summary>
                 <p>{forecast.rationale}</p>
@@ -7009,7 +7055,7 @@ function HomeSurface({ slice, activityItems, currentPerson, onOpenPlan, onOpenIt
           </ol>
         </section>
       </div>
-      {showTicketedPlayMilestone && <div className="milestone-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setShowTicketedPlayMilestone(false) }}>
+      {showTicketedPlayMilestone && !ticketedPlaySaleIsOpen && <div className="milestone-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setShowTicketedPlayMilestone(false) }}>
         <aside className="calendar-detail-sheet milestone-detail-sheet" role="dialog" aria-modal="true" aria-label="Ticketed play purchasing milestone">
           <div className="calendar-detail-head"><span className="eyebrow">NEXT EXPECTED · AUG 25</span><button className="detail-close" type="button" onClick={() => setShowTicketedPlayMilestone(false)} aria-label="Close milestone details">×</button></div>
           <h2>Ticketed play purchasing opens next.</h2>
@@ -7202,7 +7248,7 @@ function AlertKindIcon({ kind }: { kind: AlertKind }) {
   return <svg className="alert-kind-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]}</svg>
 }
 
-function AccountMenu({ email, online, preview, proofPack, onOpenTutorial, onSignOut }: { email: string; online: boolean; preview: boolean; proofPack: OfflineProofPackStatus; onOpenTutorial: () => void; onSignOut: () => void }) {
+function AccountMenu({ email, online, preview, proofPack, onOpenTutorial, onSignOut }: { email: string; online: boolean; preview: boolean; proofPack: OfflineProofPackStatus | null; onOpenTutorial: () => void; onSignOut: () => void }) {
   const initial = email.trim().charAt(0).toUpperCase() || 'K'
 
   return <details className="account-menu" data-tour-target="account-chip">
@@ -7212,7 +7258,7 @@ function AccountMenu({ email, online, preview, proofPack, onOpenTutorial, onSign
     </summary>
     <div className="account-popover">
       <span>{email}</span>
-      {!preview && <span className={`offline-pack-status ${proofPack.loading || proofPack.cached < proofPack.expected ? 'pending' : 'ready'}`}>
+      {!preview && proofPack && proofPack.expected > 0 && <span className={`offline-pack-status ${proofPack.loading || proofPack.cached < proofPack.expected ? 'pending' : 'ready'}`}>
         {proofPack.loading
           ? `Saving offline proof · ${proofPack.cached}/${proofPack.expected}`
           : proofPack.cached < proofPack.expected

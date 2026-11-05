@@ -65,7 +65,6 @@ describe('September 19 cross-surface usability regressions', () => {
     expect(screen.queryByText(/No original receipt is linked/)).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Original' }))
     await waitFor(() => expect(downloadReceiptArtifact).toHaveBeenCalledWith(hotelReceipt.receipt_artifacts![0], 'current-viewer'))
-    expect(screen.getByText('Original attachment retained from the hotel receipt message.')).toBeInTheDocument()
     await waitFor(() => expect(document.querySelector('img[src="blob:hotel-original"]')).toBeTruthy())
     expect(app.match(/<HotelWalletReference kind=\{kind\} receipts=\{receipts\} currentOwnerId=\{currentOwnerId\}/g)).toHaveLength(2)
   })

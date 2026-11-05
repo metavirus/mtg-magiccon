@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { catalogBookmarkOptions, useCatalogBookmark } from './CatalogBookmark'
-import { formatCatalogOfferValue, type CatalogFamily, type CatalogOffer, type CatalogReadModel } from './lib/catalog'
+import { blackLotusPurchaseLimits, formatCatalogOfferValue, type CatalogFamily, type CatalogOffer, type CatalogReadModel } from './lib/catalog'
 
 type CatalogViewFilter = 'all' | 'available' | 'interested' | 'sold_out'
 type CatalogDensity = 'compact' | 'comfortable'
@@ -78,11 +78,11 @@ export function CatalogBrowser({
   const exactOffers = (offer: CatalogOffer) => catalogBookmarkOptions(model, offer)
   const savedOffers = (offer: CatalogOffer) => exactOffers(offer).filter(item => item.interests.some(interest => interest.ownerId === currentOwnerId && interest.interested))
   const unifiedStore = families.includes('show_store') && !families.includes('prize_wall')
-  const [lotusInfo, setLotusInfo] = useState<{ product_name: string; purchase_limit: number | null } | 'all' | null>(null)
+  const [showLotusRules, setShowLotusRules] = useState(false)
   const lotusDialog = useRef<HTMLDialogElement>(null)
   const lotusLauncher = useRef<HTMLButtonElement | null>(null)
-  useEffect(() => { if (lotusInfo) lotusDialog.current?.showModal(); else lotusDialog.current?.close() }, [lotusInfo])
-  const lotusOffers = model.purchaseRules?.items.map(item => ({ offer_id: item.canonicalKey, product_id: model.offers.find(offer => offer.canonical_key === item.canonicalKey)?.product_id ?? item.canonicalKey, product_name: item.name, purchase_limit: item.purchaseLimit })) ?? model.offers.filter(offer => offer.family === 'black_lotus')
+  useEffect(() => { if (showLotusRules) lotusDialog.current?.showModal(); else lotusDialog.current?.close() }, [showLotusRules])
+  const lotusLimits = blackLotusPurchaseLimits(model)
   const familyOffers = unifiedStore
     ? [...new Set(model.offers.filter(offer => offer.family !== 'prize_wall').map(offer => offer.product_id))].map(productId => {
         const productOffers = model.offers.filter(offer => offer.product_id === productId)
@@ -118,7 +118,7 @@ export function CatalogBrowser({
 
     <header className="catalog-browser-heading">
       <div><h2>{unifiedStore ? 'Store' : familyOffers[0]?.catalog_title ?? familyLabels[family]}</h2></div>
-      {unifiedStore && lotusOffers.length > 0 && <button type="button" className="store-lotus-button" onClick={event => { lotusLauncher.current = event.currentTarget; setLotusInfo('all') }}><LotusIcon />Black Lotus rules</button>}
+      {unifiedStore && lotusLimits.length > 0 && <button type="button" className="store-lotus-button" onClick={event => { lotusLauncher.current = event.currentTarget; setShowLotusRules(true) }}><LotusIcon />Black Lotus rules</button>}
       <span><strong>{visibleOffers.length}</strong> of {familyOffers.length} items</span>
     </header>
 
@@ -134,7 +134,7 @@ export function CatalogBrowser({
       {grouped.map(({ group, offers }) => <details className="catalog-group" open key={group}>
         <summary><span>{group}</span><small>{offers.length} item{offers.length === 1 ? '' : 's'}</small></summary>
         <div className="catalog-product-grid">{offers.map(offer => {
-          const lotus = lotusOffers.find(item => item.product_id === offer.product_id)
+          const lotus = lotusLimits.find(item => item.productId === offer.product_id)
           const saved = savedOffers(offer)
           const bubbleOffer = { ...offer, interests: [...new Map(exactOffers(offer).flatMap(item => item.interests).filter(item => item.interested).map(item => [item.ownerId, item])).values()] }
           return <article
@@ -151,7 +151,7 @@ export function CatalogBrowser({
             }}
           >
             <CatalogProductImage offer={offer} />
-            <div className="catalog-product-copy">{offer.variant_label && <span>{offer.variant_label}</span>}<h3>{offer.product_name}</h3><div className="catalog-product-value"><strong>{formatCatalogOfferValue(offer)}</strong>{unifiedStore && lotus && <span className="store-lotus-limit" title={offer.product_name.startsWith('Festival in a Box') ? `Black Lotus: Limit ${lotus.purchase_limit} per VIP for the event across preorder and onsite` : `Black Lotus preorder limit: ${lotus.purchase_limit ?? 'not listed'}`}><LotusIcon />Limit {lotus.purchase_limit ?? '—'}</span>}</div>{saved.some(item => item.variant_label) && <span className="catalog-saved-option">Saved: {saved.map(item => item.variant_label).filter(Boolean).join(', ')}</span>}{offer.availability !== 'unknown' && <span className={`catalog-compact-availability catalog-availability ${offer.availability}`}>{availabilityLabel(offer)}</span>}</div>
+            <div className="catalog-product-copy">{offer.variant_label && <span>{offer.variant_label}</span>}<h3>{offer.product_name}</h3><div className="catalog-product-value"><strong>{formatCatalogOfferValue(offer)}</strong>{unifiedStore && lotus?.limit != null && <span className="store-lotus-limit" title={lotus.eventWide ? `Black Lotus: Limit ${lotus.limit} per VIP for the event across preorder and onsite` : `Black Lotus preorder limit: ${lotus.limit}`}><LotusIcon />Limit {lotus.limit}</span>}</div>{saved.some(item => item.variant_label) && <span className="catalog-saved-option">Saved: {saved.map(item => item.variant_label).filter(Boolean).join(', ')}</span>}{offer.availability !== 'unknown' && <span className={`catalog-compact-availability catalog-availability ${offer.availability}`}>{availabilityLabel(offer)}</span>}</div>
             <div className="catalog-product-state">
               {offer.availability !== 'unknown' && <span className={`catalog-availability catalog-state-availability ${offer.availability}`}>{availabilityLabel(offer)}</span>}
               <CatalogInterestBubbles offer={bubbleOffer} />
@@ -162,14 +162,10 @@ export function CatalogBrowser({
       </details>)}
     </div> : <div className="catalog-filter-empty"><strong>No items match.</strong><button type="button" onClick={() => { setQuery(''); setCategory('all'); setView('all') }}>Clear filters</button></div>}
     {bookmarks.dialog}
-    <dialog ref={lotusDialog} className="store-lotus-dialog" aria-label="Black Lotus purchasing rules" onCancel={() => setLotusInfo(null)} onClose={() => { setLotusInfo(null); lotusLauncher.current?.focus() }} onKeyDown={event => { if (event.key === 'Tab') { event.preventDefault(); lotusDialog.current?.querySelector<HTMLButtonElement>('button')?.focus() } }}>
-      <header><h2><LotusIcon />Black Lotus purchase limits</h2><button type="button" aria-label="Close Black Lotus rules" onClick={() => setLotusInfo(null)}>×</button></header>
-      {lotusInfo && lotusInfo !== 'all' ? <><h3>{lotusInfo.product_name}</h3><p>{lotusInfo.product_name.startsWith('Festival in a Box') ? 'Limit: 2 per VIP for the event, including preorder and onsite purchases.' : `Preorder limit: ${lotusInfo.purchase_limit ?? 'Not listed'}.`}</p></> : <>
-        <p>One preorder checkout per VIP.</p>
-        
-        <ul>{lotusOffers.map(item => <li key={item.offer_id}><strong>{item.product_name}</strong>: {item.purchase_limit ?? 'limit pending'}{item.product_name.startsWith('Festival in a Box') ? ' per VIP for the entire event, across preorder and onsite' : ' on preorder'}</li>)}</ul>
-        
-      </>}
+    <dialog ref={lotusDialog} className="store-lotus-dialog" aria-label="Black Lotus purchasing rules" onCancel={() => setShowLotusRules(false)} onClose={() => { setShowLotusRules(false); lotusLauncher.current?.focus() }} onKeyDown={event => { if (event.key === 'Tab') { event.preventDefault(); lotusDialog.current?.querySelector<HTMLButtonElement>('button')?.focus() } }}>
+      <header><h2><LotusIcon />Black Lotus purchase limits</h2><button type="button" aria-label="Close Black Lotus rules" onClick={() => setShowLotusRules(false)}>×</button></header>
+      <p>One preorder checkout per VIP.</p>
+      <ul>{lotusLimits.map(item => <li key={item.key}><strong>{item.name}</strong>: {item.limit == null ? 'Limit pending' : item.limit + (item.eventWide ? ' per VIP for the entire event, across preorder and onsite' : ' on preorder')}</li>)}</ul>
     </dialog>
   </section>
 }

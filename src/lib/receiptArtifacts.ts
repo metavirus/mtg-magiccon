@@ -41,10 +41,12 @@ export function receiptArtifactCacheKey(ownerId: string, artifactId: string) {
 }
 
 async function cachedReceiptArtifact(ownerId: string, artifact: ReceiptArtifact) {
-  if (!('caches' in globalThis)) return null
-  const cache = await caches.open(RECEIPT_ARTIFACT_CACHE)
-  const response = await cache.match(receiptArtifactCacheKey(ownerId, artifact.id))
-  return response?.blob() ?? null
+  try {
+    if (!('caches' in globalThis)) return null
+    const cache = await caches.open(RECEIPT_ARTIFACT_CACHE)
+    const response = await cache.match(receiptArtifactCacheKey(ownerId, artifact.id))
+    return response ? await response.blob() : null
+  } catch { return null }
 }
 
 async function cacheReceiptArtifact(ownerId: string, artifact: ReceiptArtifact, data: Blob) {
@@ -58,7 +60,9 @@ async function cacheReceiptArtifact(ownerId: string, artifact: ReceiptArtifact, 
 async function receiptArtifactBlob(artifact: ReceiptArtifact, ownerId?: string) {
   if (!supabase) throw new Error('Private proof requires an authenticated Supabase session.')
   if (artifact.bucket_id !== RECEIPT_ARTIFACT_BUCKET) throw new Error('Receipt artifact bucket is not approved.')
-  if (ownerId && typeof navigator !== 'undefined' && !navigator.onLine) {
+  // Artifact IDs identify immutable originals. A retained owner-bound original
+  // is usable immediately, including when connectivity only appears healthy.
+  if (ownerId) {
     const cached = await cachedReceiptArtifact(ownerId, artifact)
     if (cached) return cached
   }
@@ -68,19 +72,22 @@ async function receiptArtifactBlob(artifact: ReceiptArtifact, ownerId?: string) 
     if (cached) return cached
     throw error
   }
-  if (ownerId) await cacheReceiptArtifact(ownerId, artifact, data)
+  if (ownerId) {
+    try { await cacheReceiptArtifact(ownerId, artifact, data) }
+    catch { /* Online display remains usable; the pack audit reports missing storage. */ }
+  }
   return data
 }
 
 export async function primeReceiptArtifactCache(artifact: ReceiptArtifact, ownerId: string) {
   await receiptArtifactBlob(artifact, ownerId)
+  const status = await auditReceiptArtifactCache([artifact], ownerId)
+  if (status.cached !== status.expected) throw new Error('Private proof could not be saved on this device.')
 }
 
 export async function auditReceiptArtifactCache(artifacts: ReceiptArtifact[], ownerId: string) {
   const unique = [...new Map(artifacts.map(artifact => [artifact.id, artifact])).values()]
-  if (!('caches' in globalThis)) return { expected: unique.length, cached: 0 }
-  const cache = await caches.open(RECEIPT_ARTIFACT_CACHE)
-  const matches = await Promise.all(unique.map(artifact => cache.match(receiptArtifactCacheKey(ownerId, artifact.id))))
+  const matches = await Promise.all(unique.map(artifact => cachedReceiptArtifact(ownerId, artifact)))
   return { expected: unique.length, cached: matches.filter(Boolean).length }
 }
 

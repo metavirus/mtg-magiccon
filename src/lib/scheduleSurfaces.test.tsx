@@ -5,17 +5,22 @@ import { readFileSync } from 'node:fs'
 import { CalendarSurface, PlanSurface, WalletOtherTab } from '../App'
 import { DESIGN_PREVIEW_SLICE } from './designPreview'
 import { previewTripFlights } from './tripFlights'
+import { buildAtlantaMerchReview } from './atlantaMerchReview'
 import { ticketedPlayExploreEvents } from '../data/ticketedPlayExploreEvents'
 
 vi.mock('./supabase', () => ({ supabase: null }))
-afterEach(cleanup)
-beforeEach(() => { window.localStorage.clear(); window.history.replaceState(null, '', '/') })
+afterEach(() => { cleanup(); vi.restoreAllMocks() })
+beforeEach(() => {
+  window.localStorage.clear()
+  window.history.replaceState(null, '', '/')
+  vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-28T12:00:00-04:00'))
+})
 
 type CalendarProps = ComponentProps<typeof CalendarSurface>
 const event = (id: string, time: string): CalendarProps['events'][number] => ({ ...ticketedPlayExploreEvents[0], id, title: id, day: 'Thu', time, state: 'committed' } as CalendarProps['events'][number])
 const calendarProps = (): CalendarProps => ({
   slice: DESIGN_PREVIEW_SLICE, events: [event('Late event', '5:30-6:15 PM'), event('Earlier event', '4:15-5:15 PM')], flights: previewTripFlights,
-  selectionRows: [], companions: [], notes: [], currentPerson: 'Kavi',
+  selectionRows: [], companions: [], notes: [], catalog: { status: 'ready', offers: [] }, currentPerson: 'Kavi',
   onAddNote: vi.fn(), onDeleteNote: vi.fn(), onUpdateEvent: vi.fn(), onPurchase: vi.fn(), onOpenExplore: vi.fn(), onOpenPlan: vi.fn(), onOpenPlanEvent: vi.fn(), onOpenTrip: vi.fn(), onChangeState: vi.fn(), online: true, saving: false, canCommitBlackLotus: true,
 })
 
@@ -32,6 +37,32 @@ describe('Calendar display and inspector regression', () => {
     expect([...container.querySelectorAll('.convention-event-row h2')].map(n => n.textContent)).toEqual(['Earlier event', 'Late event'])
     expect([...container.querySelectorAll('.milestone-row h2')].map(n => n.textContent)).toEqual(['Show catalog', 'Black Lotus store'])
   })
+  it('retires expired forecasts when Calendar regains focus and preserves completed ticketing', () => {
+    const { container } = render(<CalendarSurface {...calendarProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: /FORECAST.*Black Lotus store/ }))
+    vi.mocked(Date.now).mockReturnValue(Date.parse('2026-11-04T00:00:00-05:00'))
+    fireEvent.focus(window)
+    expect([...container.querySelectorAll('.milestone-row h2')].map(node => node.textContent)).toEqual(['Show catalog'])
+    expect(container.querySelector('.calendar-detail-sheet')).toBeNull()
+    vi.mocked(Date.now).mockReturnValue(Date.parse('2026-11-07T00:00:00-05:00'))
+    fireEvent.focus(window)
+    expect(screen.queryByText('Expected releases')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Past' }))
+    expect(screen.getByText('Ticketed Play events posted')).toBeInTheDocument()
+    expect(screen.getByText('Ticketed Play purchasing opened')).toBeInTheDocument()
+  })
+  it('shows no pending releases while loading and retires fulfilled forecasts before their date ends', () => {
+    const props = calendarProps()
+    const { rerender } = render(<CalendarSurface {...props} catalog={{ status: 'unavailable', offers: [] }} />)
+    expect(screen.queryByText('Expected releases')).not.toBeInTheDocument()
+    rerender(<CalendarSurface {...props} />)
+    expect(screen.getByText('Expected releases')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /FORECAST.*Show catalog/ }))
+    expect(screen.getByRole('complementary', { name: 'Show catalog details' })).toBeInTheDocument()
+    rerender(<CalendarSurface {...props} catalog={buildAtlantaMerchReview()} />)
+    expect(screen.queryByText('Expected releases')).not.toBeInTheDocument()
+    expect(screen.queryByRole('complementary', { name: 'Show catalog details' })).not.toBeInTheDocument()
+  })
   it('closes a future event when switching to Past', () => {
     render(<CalendarSurface {...calendarProps()} />)
     fireEvent.click(screen.getByRole('button', { name: /Earlier event/ }))
@@ -47,7 +78,7 @@ describe('Calendar display and inspector regression', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Travel' }))
     expect(container.querySelector('.milestone-row')).toBeNull()
     expect(container.querySelector('.calendar-detail-sheet')).toBeNull()
-    expect(screen.queryByText('Likely information drops')).not.toBeInTheDocument()
+    expect(screen.queryByText('Expected releases')).not.toBeInTheDocument()
   })
   it('dismisses an event with Escape', () => {
     render(<CalendarSurface {...calendarProps()} />)
@@ -74,7 +105,7 @@ describe('Wallet current itinerary', () => {
   })
   it('keeps Wallet wired to the same live flight prop and conflicts wired to participant scope', () => {
     const source = readFileSync('src/App.tsx', 'utf8')
-    expect(source).toContain('<WalletSurface flights={tripFlights}')
+    expect(source).toMatch(/<WalletSurface\b[^>]*\bflights=\{tripFlights\}/)
     expect(source).toContain('<WalletOtherTab flights={flights}')
     expect(source).toContain('planEventsOverlap(first.event, second.event) && shareIncludedParticipant(')
     expect(source).not.toContain("openModal('FLIGHT DETAIL', 'DL 1521'")
