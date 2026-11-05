@@ -6,19 +6,20 @@ import { conventionProgramEvents, councilsCallEvents } from './conventionProgram
 
 describe('reviewed official convention programs', () => {
   it('includes every retained session once with exact event-bound identity', () => {
-    expect(conventionProgramEvents).toHaveLength(88)
-    expect(new Set(conventionProgramEvents.map(event => event.id)).size).toBe(88)
-    expect(snapshot.sources.map(source => source.count)).toEqual([48, 19, 21])
+    expect(conventionProgramEvents).toHaveLength(91)
+    expect(new Set(conventionProgramEvents.map(event => event.id)).size).toBe(91)
+    expect(snapshot.sources.map(source => source.count)).toEqual([49, 19, 23, 19])
     expect(snapshot.sources.every(source => source.eventId === '21389' && source.eventSlug === 'htwhdatl26shdl10')).toBe(true)
     expect(conventionProgramEvents.filter(event => event.kind === 'Family Magic')).toHaveLength(19)
     for (const session of snapshot.sessions) expect(session.detailUrl).toContain(`gtID=${session.id}`)
     expect(snapshot.sources.map(source => [source.sourceId, source.scheduleHash])).toEqual([
-      ['atlanta-experience-panels-and-events', '93d67d75764234692e15a943c3e9f10e29fc553c71c9c52300a682c5eafb0b7d'],
+      ['atlanta-experience-panels-and-events', 'bef306310718efdbec2fbce58a23969f3e889d1d93ba586647bb4e64e4e030b0'],
       ['atlanta-experience-meet-and-greets', '0abf1fe70bb6f92cc788601e7c3b07ad4d978fc4dcf12f89c2ab1c7de7f72392'],
-      ['atlanta-gathering-grounds-schedule', '0f69d52bbe11bbeecb7baddfb9a0128109b2de8416056a500a5ac0c3acde5a42'],
+      ['atlanta-gathering-grounds-schedule', '45b8e3eb2d1871c86a8f9579e92937fed6899b8cfb64f78380b5bbd7daeb3db9'],
+      ['atlanta-family-magic-schedule', '5569f3d719dacf3e35c46be6150a0be46d2a692db3dd9bd1d45ce241af953faa'],
     ])
     for (const source of snapshot.sources) {
-      expect(snapshot.sessions.filter(session => session.sourceId === source.sourceId)).toHaveLength(source.count)
+      expect(snapshot.sessions.filter(session => session.sourceId === source.sourceId || source.duplicateSessionIds?.includes(session.id))).toHaveLength(source.count)
       expect(source.contentHash).toMatch(/^[a-f0-9]{64}$/)
       expect(source.contentLinkHash).toMatch(/^[a-f0-9]{64}$/)
     }
@@ -47,6 +48,11 @@ describe('reviewed official convention programs', () => {
     expect(conventionProgramEvents.find(event => event.id === 'program-954681')?.detail).toContain('Simon Nielsen')
     expect(conventionProgramEvents.find(event => event.id === 'program-954675')?.detail).toContain('Hilary S. Thompson')
     expect(conventionProgramEvents.find(event => event.id === 'program-954673')?.detail).not.toContain('Natalie Kreider')
+  })
+  it('projects newly published sessions with the official location and Atlanta times', () => {
+    expect(conventionProgramEvents.find(event => event.id === 'program-959862')).toMatchObject({ day: 'Fri', time: '9 AM–7 PM', detail: expect.stringContaining('behind the barriers') })
+    expect(conventionProgramEvents.find(event => event.id === 'program-959866')).toMatchObject({ day: 'Sun', time: '1 PM–4 PM', detail: expect.stringContaining('Disability Accessibility Alliance booth') })
+    expect(conventionProgramEvents.find(event => event.id === 'program-959867')).toMatchObject({ day: 'Fri', time: '1:30 PM–2:30 PM', kind: 'Gathering Grounds' })
   })
   it('does not seed attendance or purchase and distinguishes separate paid dinners', () => {
     expect([...conventionProgramEvents, ...councilsCallEvents].every(event => event.state === 'none')).toBe(true)

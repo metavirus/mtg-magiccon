@@ -275,5 +275,51 @@
     "title": "Big Facts and Tabletop Jocks join the Atlanta schedule",
     "summary": "Saturday adds Ify Nwadiwe’s Big Facts with Brian David Gilbert at 3:30–4:30 PM on the Mana Stage. Sunday adds Tabletop Jocks: Archenemy Commander D&D at noon–1:30 PM in the Showcase Room. Several existing panels update their participants, including Simon Nielsen joining Sunday’s Worlds watch party. Times are Atlanta local.",
     "reason": "Compared all 48 sessions against accepted checkpoint 40231624036. New source IDs 954667 and 954679 replace removed placeholder IDs 954666 and 954680; no saved choice is transferred. Eight surviving sessions update participant evidence (954662,954673,954674,954675,954678,954681,954682,954687). Reconcile selectable details and preserve all other identities and Family Spark access rules. Exact current run 41234203109 reviewed: complete structured feed and main-content/link hashes match run 41131321317; only shared page chrome changed. Raw evidence retains its new fingerprint."
+  },
+  "95d7f8c7555d69714de7a36873637bb93b775e544833f05e961d7f875d9bfccf": {
+    "disposition": "home",
+    "title": "Mystery Booster 1v1 draft added to On Demand play",
+    "summary": "The On Demand menu lists an eight-player Mystery Booster Commander Edition Swiss 1v1 draft for nine vouchers ($45), alongside the Commander draft. Get vouchers at the Ticketed Play Hub.",
+    "reason": "The retained Atlanta menu adds the Swiss 1v1 draft with three Swiss rounds and separate prizes. The previous menu already offered Commander draft. The source has a conflicting Sunday voucher time zone, which is not repeated here."
+  },
+  "6ae0a2914358fce5401a6c25ae69d7a3f887034baa611c530aa121bdc788b447": {
+    "disposition": "home",
+    "title": "Quiet Room is on Level 1 in C104",
+    "summary": "The Quiet Room is open to Atlanta badge holders Friday and Saturday 10 a.m.–10 p.m. and Sunday 10 a.m.–6 p.m. Find it in C104 on Level 1.",
+    "reason": "The retained page now names Atlanta, room C104 and Atlanta hours, replacing Amsterdam room G-111. Its remaining Amsterdam reference is in generic sensory examples and does not override the explicit Atlanta location and hours."
+  },
+  "c6d267e379a4bac32a5638f53af7c8d808beef956bbedb6581ce359ab72154cf": {
+    "disposition": "noise",
+    "reason": "The retained before and after copy already describes the Atlanta app and maps. The observed link delta replaces the cache-busting suffix on the same Scavenger Hunt rules filename. No new app feature or launch is evidenced by this fingerprint."
+  },
+  "0a140d1d03b1694538b54517a316158cd43e9c000900273227b4e38be7b26ed8": {
+    "disposition": "home",
+    "title": "Two Extra Life drops removed from Black Lotus preorder list",
+    "summary": "The revised Black Lotus shopping guide removes both editions of Extra Life 2026: Rise of the Polygons from the advance preorder list.",
+    "reason": "Compared both linked shopping PDFs. The revised list removes the regular and traditional foil variants; the pickup schedule is unchanged. This does not establish their availability through other sales channels."
+  },
+  "66beb36ea9e716431d55c7da2d2875d0e1d5c8792cc333243a300e68a8e6a774": {
+    "disposition": "noise",
+    "reason": "All 19 identities in the dedicated Family Magic feed are also present in the reviewed Panels feed. Reconcile the selectable sessions through both source bindings without repeating them in Home."
+  },
+  "0791660850bfbb2bcc61c6313d9a307b712f20af853441540c40c96fd283cc30": {
+    "disposition": "home",
+    "title": "Women+ in Magic Commander meet-up added",
+    "summary": "The official Gathering Grounds schedule lists a Women+ in Magic Commander Meet-up. Find it in the Gathering Grounds schedule.",
+    "reason": "The retained Gathering Grounds feed adds selectable session 959866 and scheduled floor time 959867. The latter is a logistical block rather than a second announcement."
+  },
+  "8143573ce67fcb300419b6fe9e7c7dc36bf07868d60ba356ce3809c08a8648b6": {
+    "disposition": "noise",
+    "reason": "Compared all 66 entries against accepted run 41234885426. Andrea Radeck, John Stanko, Martina Fačková and Tran Nguyen gain profiles or media. Artist identities and booths are unchanged; the new fields do not announce a scheduled signing or appearance."
+  },
+  "373e3b55a8061d3848e01d2ed2883daf6960776ed8208cf8dc2b41afc539050f": {
+    "disposition": "home",
+    "title": "New signings at Card Kingdom and Gamegenic",
+    "summary": "Card Kingdom (booth 3098) lists artist and creator appearances. Gamegenic (booth 3059) lists signing sessions and an Atlanta-exclusive Reality Fracture playmat.",
+    "reason": "Compared all 66 exhibitors against accepted run 41234885426. Card Kingdom replaces generic offer 64323 with named appearance offers 64587 and 64588. Gamegenic adds playmat 64524 and signings 64525. Other deltas concern store profiles, a featured flag and ordinary promotions."
+  },
+  "7ec89251d63dbd2f42e07817fccb7069987fabd075155b4ab9f34a0cca4f8932": {
+    "disposition": "noise",
+    "reason": "Panels feed now includes World Championship session 959862 in Hall C. Preserve the selectable listing; the championship itself was already announced through the official World Championship page."
   }
 }

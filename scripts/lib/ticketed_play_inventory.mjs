@@ -135,6 +135,12 @@ export function ticketedPlayAvailabilityCoverage(observed = []) {
 // separator and product-code suffix required so this cannot relax identity.
 const CHECKOUT_TITLE = /^(Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s+(\d{1,2}):(\d{2})(AM|PM)\s+-\s*(.+?)\s+-\s+[A-Z0-9]{7}$/i
 const DAY_BY_LABEL = { fri: '2026-11-13', sat: '2026-11-14', sun: '2026-11-15' }
+// Nov 1 hold: checkout retained the old titles while the public schedule
+// added Commander to these two events. Bind only the reviewed IDs and slots.
+const REVIEWED_CHECKOUT_RENAMES = new Map([
+  ['481748', { checkoutTitle: 'Fri 2:00PM - Mega-Draft - Mystery Booster: Commander Edition - J2MEPGZ', scheduleTitle: 'Commander Mega-Draft - Mystery Booster Commander Edition', sourceEventKey: '944027' }],
+  ['481802', { checkoutTitle: 'Sat 2:00PM - Draft - Mystery Booster: Commander Edition - NMN6WXZ', scheduleTitle: 'Commander - Draft - Mystery Booster Commander Edition', sourceEventKey: '944081' }],
+])
 const CHECKOUT_ALIASES = new Map([
   ['savvy pin traders - sealed league - reality fracture with veggie wagon featuring a special pin!', 'savvy pin traders - deluxe sealed league - reality fracture with veggie wagon featuring a special pin!'],
   ['friday night magic - pick-two draft - magic: the gathering | star trek draft night', 'friday night magic - pick-two draft - magic: the gathering | star trek'],
@@ -170,12 +176,14 @@ export function normalizeLeapCheckoutProducts(products = []) {
     if (!match) throw new Error(`Ticketed Play checkout title not parseable: ${product.title}`)
     const [, label, hour, minute, meridiem, rawTitle] = match
     const startsAt = `${String(Number(hour) % 12 + (meridiem.toUpperCase() === 'PM' ? 12 : 0)).padStart(2, '0')}:${minute}`
-    const title = CHECKOUT_ALIASES.get(rawTitle.toLowerCase()) ?? rawTitle
+    const rename = REVIEWED_CHECKOUT_RENAMES.get(product.productId)
+    const reviewed = rename?.checkoutTitle === compact(product.title) ? rename : undefined
+    const title = reviewed?.scheduleTitle ?? CHECKOUT_ALIASES.get(rawTitle.toLowerCase()) ?? rawTitle
     const control = compact(product.control)
     const availability = /sold\s*out/i.test(control) ? 'sold_out'
       : /unavailable|registration\s+closed/i.test(control) ? 'unavailable'
       : product.purchasable ? 'available' : 'unknown'
-    return { ...product, title, day: DAY_BY_LABEL[label.toLowerCase().slice(0, 3)], startsAt, availability, control }
+    return { ...product, title, day: DAY_BY_LABEL[label.toLowerCase().slice(0, 3)], startsAt, availability, control, reviewedSourceEventKey: reviewed?.sourceEventKey }
   })
 }
 
@@ -190,7 +198,8 @@ export function mergeLeapCheckoutAvailability(schedule = [], products = [], chec
   }
   const used = new Set()
   const merged = schedule.map(event => {
-    const matches = byIdentity.get(checkoutIdentity(event)) ?? []
+    const matches = (byIdentity.get(checkoutIdentity(event)) ?? [])
+      .filter(product => !product.reviewedSourceEventKey || product.reviewedSourceEventKey === event.sourceEventKey)
     if (matches.length > 1) throw new Error(`Ambiguous checkout products for ${event.day} ${event.startsAt} ${event.title}`)
     const product = matches[0]
     if (product) {

@@ -1,17 +1,17 @@
 {
-  "reviewedFrom": "Daily MagicCon surveyor run 41131321317; complete 48-session comparison against accepted checkpoint 40231624036; two placeholders retired, two new exact source identities and eight participant changes; prior access rules preserved",
+  "reviewedFrom": "Daily MagicCon surveyor run 42123387423 retained report and direct November 5 official schedule feed readback. Panels and Events: 49 sessions; Gathering Grounds: 23; Family Magic: 19 exact overlaps with Panels and Events, one selectable identity per session.",
   "timezone": "America/New_York",
   "sources": [
     {
       "sourceId": "atlanta-experience-panels-and-events",
       "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events.html",
-      "contentHash": "0cd86197ff0db9cf35fd2e9965d5a63980f604f16e2c30285220efbc3a2b59ad",
+      "contentHash": "244f117147ca2c43008286fda28f0a3cc4cb5f8e8566d6b5f045d75298ca8f07",
       "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
-      "scheduleHash": "93d67d75764234692e15a943c3e9f10e29fc553c71c9c52300a682c5eafb0b7d",
+      "scheduleHash": "bef306310718efdbec2fbce58a23969f3e889d1d93ba586647bb4e64e4e030b0",
       "eventId": "21389",
       "eventSlug": "htwhdatl26shdl10",
       "categoryId": "20607",
-      "count": 48
+      "count": 49
     },
     {
       "sourceId": "atlanta-experience-meet-and-greets",
@@ -27,13 +27,45 @@
     {
       "sourceId": "atlanta-gathering-grounds-schedule",
       "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule.html",
-      "contentHash": "b8bbfaa446571e8a4402aa007a9f18362241fd50e583e9a8ec9cae6677bccac2",
+      "contentHash": "753bdf9c57c11e9a3a99ce24895b24978a2bce845d8c6fa0d4a955b2166cf873",
       "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "scheduleHash": "0f69d52bbe11bbeecb7baddfb9a0128109b2de8416056a500a5ac0c3acde5a42",
+      "scheduleHash": "45b8e3eb2d1871c86a8f9579e92937fed6899b8cfb64f78380b5bbd7daeb3db9",
       "eventId": "21389",
       "eventSlug": "htwhdatl26shdl10",
       "categoryId": "20600",
-      "count": 21
+      "count": 23
+    },
+    {
+      "sourceId": "atlanta-family-magic-schedule",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/family-magic/family-magic-schedule.html",
+      "contentHash": "d3314e4816c4a1cc988dc32ff3394e6d3937bba9bbd720a0d0360a864ca7b55d",
+      "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scheduleHash": "5569f3d719dacf3e35c46be6150a0be46d2a692db3dd9bd1d45ce241af953faa",
+      "eventId": "21389",
+      "eventSlug": "htwhdatl26shdl10",
+      "categoryId": "20596",
+      "count": 19,
+      "duplicateSessionIds": [
+        "954693",
+        "954694",
+        "954695",
+        "954696",
+        "954697",
+        "954698",
+        "954699",
+        "954700",
+        "954701",
+        "954702",
+        "954703",
+        "954704",
+        "954705",
+        "954706",
+        "954707",
+        "954708",
+        "954709",
+        "954710",
+        "955621"
+      ]
     }
   ],
   "sessions": [
@@ -74,7 +106,7 @@
       "startTime": "2026-11-14 13:00:00",
       "endTime": "2026-11-14 15:00:00",
       "location": "Mana Stage",
-      "description": "Commander at Home returns to the Mana Stage at MagicCon! Brian Kibler and Olivia Gobert-Hicks bring all the energy and laughs of their popular YouTube show back to MagicCon in Atlanta, with a live performance and incredible guests you won't want to miss!",
+      "description": "Commander at Home returns to the Mana Stage at MagicCon! Brian Kibler and Olivia Gobert-Hicks bring all the energy and laughs of their popular YouTube show back to MagicCon in Atlanta, with a live performance and incredible guests you won't want to miss!\n\nParticipants: Brian Kibler, Olivia Gobert-Hicks, Zachery Renauldo.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954665"
     },
     {
@@ -114,7 +146,7 @@
       "startTime": "2026-11-15 12:00:00",
       "endTime": "2026-11-15 14:30:00",
       "location": "Mana Stage",
-      "description": "Join Ben Bateman, the world's leading expert in chaos drafting, for a live episode of Pack It Up, the craziest Magic show on YouTube. Witness a live pick-2 draft where four players will randomly select 12 total packs from throughout Magic’s entire history. Any booster pack ever created could be drafted, with one spicy detail: WINNER OF THE DRAFT KEEPS EVERY CARD IN THE DRAFT! Your own Chaos Draft experience is available at Star City Games' booth.\n\nParticipants: Ben Bateman, TheAsianAvenger, Andrea Mengucci.",
+      "description": "Join Ben Bateman, the world's leading expert in chaos drafting, for a live episode of Pack It Up, the craziest Magic show on YouTube. Witness a live pick-2 draft where four players will randomly select 12 total packs from throughout Magic’s entire history. Any booster pack ever created could be drafted, with one spicy detail: WINNER OF THE DRAFT KEEPS EVERY CARD IN THE DRAFT! Your own Chaos Draft experience is available at Star City Games' booth.\n\nParticipants: Ben Bateman, TheAsianAvenger, Andrea Mengucci, Zachery Renauldo.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954670"
     },
     {
@@ -124,7 +156,7 @@
       "startTime": "2026-11-15 15:00:00",
       "endTime": "2026-11-15 16:30:00",
       "location": "Mana Stage",
-      "description": "Five students are put through a rigorous final exam in this quest-based comedy game show! Administered by Proctor Reuben Bresler and judged by Headmaster Ryan Omega, contestants compete in multiple subjects to survive with the highest life total and graduate as Valedictorian of Hexhaven!\n\nParticipants: Ryan Omega, Reuben Bresler, DeQuan Watson, Rachel Weeks, Becca Scott.",
+      "description": "Five students are put through a rigorous final exam in this quest-based comedy game show! Administered by Proctor Reuben Bresler and judged by Headmaster Ryan Omega, contestants compete in multiple subjects to survive with the highest life total and graduate as Valedictorian of Hexhaven!\n\nParticipants: Ryan Omega, Reuben Bresler, DeQuan Watson, Rachel Weeks, Becca Scott, Alexander Ward.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954671"
     },
     {
@@ -134,7 +166,7 @@
       "startTime": "2026-11-13 13:00:00",
       "endTime": "2026-11-13 15:00:00",
       "location": "Showcase Room",
-      "description": "Join your favorite wizards of the east coast in a battle of epic CEDH featuring chaos, mini games and a trip to the Echoverse!",
+      "description": "Join your favorite wizards of the east coast in a battle of epic CEDH featuring chaos, mini games and a trip to the Echoverse!\n\nParticipants: Lua Stardust, Dylan, Cam, ComedIanMTG, Tori of the Vast.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954672"
     },
     {
@@ -154,7 +186,7 @@
       "startTime": "2026-11-13 17:00:00",
       "endTime": "2026-11-13 18:00:00",
       "location": "Showcase Room",
-      "description": "Spell Slayers are bringing “Cast Or Pass” to MagicCon for a live panel, with help from MTG World-Builders, Card Artists, and Creators! On YouTube, “Cast or Pass” features Spell Slayers (Bosco & Irene the Alien) humorously discussing the character design, mechanics, and \"fashions\" of Magic’s most iconic Creatures, Planeswalkers, and other card types (Think Fashion Police meets MTG Podcast). In the live panel edition, Bosco, Irene, and Spell Slayers' pod member Lucy Lips will discuss iconic Magic cards, their character designs, and the art we love... with those who know them best!\n\nParticipants: Bosco, Irene the Alien, Lucy Lips, Evyn Fong, Lauren Bond.",
+      "description": "Spell Slayers are bringing “Cast Or Pass” to MagicCon for a live panel, with help from MTG World-Builders, Card Artists, and Creators! On YouTube, “Cast or Pass” features Spell Slayers (Bosco & Irene the Alien) humorously discussing the character design, mechanics, and \"fashions\" of Magic’s most iconic Creatures, Planeswalkers, and other card types (Think Fashion Police meets MTG Podcast). In the live panel edition, Bosco, Irene, and Spell Slayers' pod member Lucy Lips will discuss iconic Magic cards, their character designs, and the art we love... with those who know them best!\n\nParticipants: Irene the Alien, Bosco, Lucy Lips, Lauren Bond, Evyn Fong, Maldhound.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954674"
     },
     {
@@ -164,7 +196,7 @@
       "startTime": "2026-11-14 11:30:00",
       "endTime": "2026-11-14 12:30:00",
       "location": "Showcase Room",
-      "description": "A mix of strange legends from across the Multiverse, playtest cards, Future Sight frames, and iconic Commander reprints are an eclectic bunch that all come together to make up Mystery Booster Commander Edition! How were these cards created and chosen? What are the behind-the-scenes stories from their designs? Come and find out what went into making this wild release from start to finish—and uncover some Easter eggs you probably didn't notice!\n\nParticipants: Deborah Garcia, Gavin Verhey, Hilary S. Thompson.",
+      "description": "A mix of strange legends from across the Multiverse, playtest cards, Future Sight frames, and iconic Commander reprints are an eclectic bunch that all come together to make up Mystery Booster Commander Edition! How were these cards created and chosen? What are the behind-the-scenes stories from their designs? Come and find out what went into making this wild release from start to finish—and uncover some Easter eggs you probably didn't notice!\n\nParticipants: Gavin Verhey, Deborah Garcia, Hilary S. Thompson, Eric Engelhard.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954675"
     },
     {
@@ -184,7 +216,7 @@
       "startTime": "2026-11-14 15:00:00",
       "endTime": "2026-11-14 17:00:00",
       "location": "Showcase Room",
-      "description": "The MTGGoldfish Crew plays a game of Commander Clash where you have the chance of affecting the game via the Chaos Dice!",
+      "description": "The MTGGoldfish Crew plays a game of Commander Clash where you have the chance of affecting the game via the Chaos Dice!\n\nParticipants: TheAsianAvenger, BudgetCommander, Phil aka. Brewer's Kitchen, SaffronOlive.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954677"
     },
     {
@@ -194,7 +226,7 @@
       "startTime": "2026-11-14 17:30:00",
       "endTime": "2026-11-14 18:30:00",
       "location": "Showcase Room",
-      "description": "Join Pro Tour Historian Brian David-Marshall and some of the biggest names from the Magic: The Gathering Pro Tour Hall of Fame as they look back on what the Hall means to them, their career achievements, and much more on the eve of the 2026 Pro Tour Hall of Fame Induction Ceremony.\n\nParticipants: Brian David-Marshall, Mike Turian, Reid Duke.",
+      "description": "Join Pro Tour Historian Brian David-Marshall and some of the biggest names from the Magic: The Gathering Pro Tour Hall of Fame as they look back on what the Hall means to them, their career achievements, and much more on the eve of the 2026 Pro Tour Hall of Fame Induction Ceremony.\n\nParticipants: Brian David-Marshall, Mike Turian, Reid Duke, Gabriel Nassif.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954678"
     },
     {
@@ -214,7 +246,7 @@
       "startTime": "2026-11-15 14:00:00",
       "endTime": "2026-11-15 18:00:00",
       "location": "Showcase Room",
-      "description": "The weekend wraps up with the conclusion of World Championship 32 and the 2026 Pro Tour Hall of Fame Induction Ceremony livestreamed from the Worlds stage. Join current Pro Tour players as they share their insights about high-level Magic -- plus lots of booster packs for the audience -- as we crown a World Champion and honor Javier Dominguez, Ken Yukuhiro, and Jean-Emmanuel Depraz as the newest members of the Hall of Fame.\n\nParticipants: Andrea Mengucci, Simon Nielsen.",
+      "description": "The weekend wraps up with the conclusion of World Championship 32 and the 2026 Pro Tour Hall of Fame Induction Ceremony livestreamed from the Worlds stage. Join current Pro Tour players as they share their insights about high-level Magic -- plus lots of booster packs for the audience -- as we crown a World Champion and honor Javier Dominguez, Ken Yukuhiro, and Jean-Emmanuel Depraz as the newest members of the Hall of Fame.\n\nParticipants: Maria Bartholdi, Eilidh \"AliasV\" Lonie, Marshall Sutcliffe, Riley Knight, Paul Cheon, Andrea Mengucci, Simon Nielsen, Corey Baumeister, Mani Davoudi.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954681"
     },
     {
@@ -274,7 +306,7 @@
       "startTime": "2026-11-14 14:00:00",
       "endTime": "2026-11-14 15:00:00",
       "location": "Spindown Room",
-      "description": "Get an exciting peek at the new Magic Judge Program! Learn what the future holds for our biggest group of Magic community-builders. Join Program Manager Samantha Harr and members of the Rules and Game Experience teams as they discuss the upcoming launch of the program and ways you can get involved to build a better tomorrow for Magic play at all levels.\n\nParticipants: Brian David Gilbert, Toby Elliott.",
+      "description": "Get an exciting peek at the new Magic Judge Program! Learn what the future holds for our biggest group of Magic community-builders. Join Program Manager Samantha Harr and members of the Rules and Game Experience teams as they discuss the upcoming launch of the program and ways you can get involved to build a better tomorrow for Magic play at all levels.\n\nParticipants: Toby Elliott, Brian David Gilbert, Samantha Harr.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954687"
     },
     {
@@ -284,7 +316,7 @@
       "startTime": "2026-11-14 15:30:00",
       "endTime": "2026-11-14 17:00:00",
       "location": "Spindown Room",
-      "description": "We challenged the Magic community to craft thought-provoking, carefully written, and hilariously clip-arted short presentations about something they love, obsess over, or just can't get off their mind about Magic: The Gathering. After a long and careful process we've selected nine to present live here at MagicCon: Atlanta. Our chosen nine finalists have less than 5 minutes to present their slides make their arguments, and try their hardest to impress both the live audience AND our panel of luminary judges in hopes of taking home the title in the first inaugural round of the Power 9 Presentation Hour!",
+      "description": "We challenged the Magic community to craft thought-provoking, carefully written, and hilariously clip-arted short presentations about something they love, obsess over, or just can't get off their mind about Magic: The Gathering. After a long and careful process we've selected nine to present live here at MagicCon: Atlanta. Our chosen nine finalists have less than 5 minutes to present their slides make their arguments, and try their hardest to impress both the live audience AND our panel of luminary judges in hopes of taking home the title in the first inaugural round of the Power 9 Presentation Hour!\n\nParticipants: TappyToeClaws, Alex \"KessWylie\" Kessler, Kurohitsuki, Shivam!!, DeQuan Watson.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954688"
     },
     {
@@ -294,7 +326,7 @@
       "startTime": "2026-11-14 17:30:00",
       "endTime": "2026-11-14 18:30:00",
       "location": "Spindown Room",
-      "description": "Join Sam, Mike, and Tony as they delve into those salty salty mines of the Magic: The Gathering community with a live performance of their comedy/advice podcast! The hosts will be reading audience-submitted salty stories about Commander games gone wrong as they discuss playgroup dynamics, deck building strategies, and most of all... SALT! Keep all hands and arms within the mine cart at all times!",
+      "description": "Join Sam, Mike, and Tony as they delve into those salty salty mines of the Magic: The Gathering community with a live performance of their comedy/advice podcast! The hosts will be reading audience-submitted salty stories about Commander games gone wrong as they discuss playgroup dynamics, deck building strategies, and most of all... SALT! Keep all hands and arms within the mine cart at all times!\n\nParticipants: Howling Salt Mike, Howling Salt Sam, Howling Salt Tony.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954689"
     },
     {
@@ -454,7 +486,7 @@
       "startTime": "2026-11-13 11:00:00",
       "endTime": "2026-11-13 13:00:00",
       "location": "Family Magic",
-      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!\n\nParticipants: Anna Thorton.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954705"
     },
     {
@@ -464,7 +496,7 @@
       "startTime": "2026-11-14 11:00:00",
       "endTime": "2026-11-14 13:00:00",
       "location": "Family Magic",
-      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!\n\nParticipants: Anna Thorton.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954706"
     },
     {
@@ -474,7 +506,7 @@
       "startTime": "2026-11-15 11:00:00",
       "endTime": "2026-11-15 13:00:00",
       "location": "Family Magic",
-      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!",
+      "description": "Join us in a bracelet-making activity! Meet other fans while creating friendship bracelets of your own that you can trade with new friends or take home as a special MagicCon souvenir!\n\nParticipants: Anna Thorton.",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954707"
     },
     {
@@ -916,6 +948,36 @@
       "location": "The Gathering Grounds",
       "description": "Spots: 8 players Newer to Magic, needing some tips, or hoping to play the least sweaty game possible? Women of Wizards is offering Learn to Play this year for any and all of the above! Already know how to play and aching to try out that Oops, All Bears Commander deck? Come on by to find other friendly faces and join a pod with your new best friends waiting to happen (or enemies, we don't make the rules).",
       "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=955600"
+    },
+    {
+      "id": "959862",
+      "sourceId": "atlanta-experience-panels-and-events",
+      "title": "Magic World Championship 32",
+      "startTime": "2026-11-13 09:00:00",
+      "endTime": "2026-11-13 19:00:00",
+      "location": "World Championship Area, Hall C",
+      "description": "The Magic World Championship is the pinnacle of competitive Magic. Join us to watch top players from around the globe compete in Draft and Standard Constructed for their share of a $1 million prize pool, with the winner taking home $100,000!\n\nParticipants: Marshall Sutcliffe, Paul Cheon, Mani Davoudi, Riley Knight, Eilidh \"AliasV\" Lonie, Corey Baumeister.\n\nGuests can watch from behind the barriers during Friday show hours. For seated broadcast viewing, use the Social Tables near the West Entrance.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=959862"
+    },
+    {
+      "id": "959866",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "Women+ in Magic Commander Meet-up",
+      "startTime": "2026-11-15 13:00:00",
+      "endTime": "2026-11-15 16:00:00",
+      "location": "The Gathering Grounds",
+      "description": "Come hang out with the rest of the Women+ in Magic community and get some Commander games in together at the Gathering Grounds! Women+ in Magic (WIM+) is an international community dedicated to creating welcoming, inclusive spaces for women and gender-diverse people to connect, yap about, and enjoy the best game in the world together. Come say hi, shuffle up, and join us for some games. We’d love to have you. You can find us right in front of the Wizards Disability Accessibility Alliance booth.",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=959866"
+    },
+    {
+      "id": "959867",
+      "sourceId": "atlanta-gathering-grounds-schedule",
+      "title": "Scheduled floor time",
+      "startTime": "2026-11-13 13:30:00",
+      "endTime": "2026-11-13 14:30:00",
+      "location": "The Gathering Grounds",
+      "description": "Start your MagicCon off on the right foot…by not standing at all! Meet other con-goers who also appreciate taking a slow-and-steady approach to the event, and experience the energy of the convention while still reserving and recharging some of your own. Scheduled Floor Time: the ultimate grounding experience!",
+      "detailUrl": "https://mcatlanta.mtgfestivals.com/en-us/experience/the-gathering-grounds/the-gathering-grounds-schedule/schedule-event-information.html?gtID=959867"
     }
   ]
 }

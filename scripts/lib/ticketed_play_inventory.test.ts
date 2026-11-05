@@ -4,6 +4,19 @@ import { bindLeapInventorySourceIds } from './ticketed_play_inventory.mjs'
 import { assertOfficialTicketedPlayIdentityCoverage, assertTicketedPlayIdentityStable, assertTicketedPlayInventoryComplete, diffTicketedPlayInventory, mergeLeapCheckoutAvailability, normalizeLeapInventoryCards, reconcileTicketedPlayIdentity, routeTicketedPlaySoldOutTransitions, stabilizeTicketedPlayInventory, ticketedPlayAvailabilityCoverage } from './ticketed_play_inventory.mjs'
 
 const sourceUrl = 'https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10'
+
+it.each([
+  ['944027', '481748', '2026-11-13', 'Fri 2:00PM - Mega-Draft - Mystery Booster: Commander Edition - J2MEPGZ', 'Commander Mega-Draft - Mystery Booster Commander Edition'],
+  ['944081', '481802', '2026-11-14', 'Sat 2:00PM - Draft - Mystery Booster: Commander Edition - NMN6WXZ', 'Commander - Draft - Mystery Booster Commander Edition'],
+])('binds checkout to the reviewed renamed Commander event %s only', (sourceEventKey, productId, day, title, scheduleTitle) => {
+  const event = { sourceEventKey, day, startsAt: '14:00', title: scheduleTitle }
+  const product = { productId, title, control: 'SOLDOUT', purchasable: false }
+  expect(mergeLeapCheckoutAvailability([event], [product])[0]).toMatchObject({ ...event, availability: 'sold_out', availabilityEvidence: { productId } })
+  expect(() => mergeLeapCheckoutAvailability([{ ...event, sourceEventKey: '999999' }], [product])).toThrow(/checkout mismatch/)
+  expect(() => mergeLeapCheckoutAvailability([{ ...event, startsAt: '15:00' }], [product])).toThrow(/checkout mismatch/)
+  expect(() => mergeLeapCheckoutAvailability([event], [{ ...product, productId: '999999' }])).toThrow(/checkout mismatch/)
+})
+
 const sponsoredCheckoutSlots = [
   ['944013', '481734', '2026-11-13', '11:00', 'Fri 11:00AM', 'Grand Melee - Deluxe Sealed - with Ify Nwadiwe and Brian David Gilbert', " - sponsored by Gatherer's Tavern"],
   ['944018', '481739', '2026-11-13', '12:00', 'Fri 12:00PM', 'Last Commander Standing Qualifier', ' - sponsored by Trophy Smack'],

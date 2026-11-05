@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-31",
+  "updatedAt": "2026-11-05",
   "stateFile": ".monitoring-state/watch-state.local.json",
   "ticketedPlayInventory": {
     "url": "https://conventions.leapevent.tech/ed/schedule/htwhdatl26shdl10",
@@ -757,44 +757,99 @@
         "summary": "Watch the broadcast at the Social Tables near the West Entrance all weekend. Friday and Saturday viewing beside the Worlds area is standing only. Sunday’s Showcase Room watch party starts at 2 PM; Hall of Fame seating at the Worlds stage opens after the semifinals.",
         "reason": "Direct complete first-party page review on October 31, 2026 resolves the exact missing linked-source coverage from retained run 41131321317. No private activation code or attendance choice is collected."
       }
+    },
+    {
+      "id": "atlanta-cosplay-experience",
+      "label": "Atlanta Cosplay Experience",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/cosplay-experience.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official attendee locations, entry procedures, activities or publication status change",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-11-05T22:51:58.053Z",
+        "contentHash": "f73c6160113d1ddd1203f2ad5db24322aef67b2e1eec72c99e62f6c5a22bb1d3",
+        "contentLinkHash": "812ab2f048e94ad17a190da73b97f49f129c4b4b9325695ca8fb0ac2cdd175e4",
+        "disposition": "home",
+        "title": "Art of Cosplay and Saturday cosplay championship",
+        "summary": "Art of Cosplay displays costumes and props within Art of Magic. The Cosplay Contest starts Saturday, November 14 at 5 PM and ends with the Grand Championship.",
+        "reason": "Direct complete official page review November 5: Atlanta wording and date agree with retained Panels feed event 954668. Prior-year award labels describe display provenance, not current results. Return link incorrectly points to Las Vegas; no Vegas schedule or policy is imported."
+      }
+    },
+    {
+      "id": "atlanta-mox-treasure-hunt",
+      "label": "Atlanta Mox Treasure Hunt",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/mox-treasure-hunt.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official attendee locations, entry procedures, activities or publication status change",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-11-05T22:51:58.216Z",
+        "contentHash": "e421aa403f242a6f9fe9d55cf5b6b6a1b0103cdafb635b58d1e07ba10b3613eb",
+        "contentLinkHash": "4bb5c5ec8858b7d9cde00748b1f163d83e0d433f2fe5ec70c4fe93f476e1462e",
+        "disposition": "noise",
+        "reason": "Direct HTTP 200 November 5: no substantive main content; fingerprint falls back to body navigation/footer. Watch this linked placeholder for publication. Do not infer game rules, prizes, locations or availability from its title or navigation."
+      }
+    },
+    {
+      "id": "atlanta-show-maps",
+      "label": "Atlanta maps and daily entry queues",
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/info/show-maps.html",
+      "kind": "site",
+      "priority": "canonical",
+      "destination": "Home",
+      "homeWorthyWhen": "official attendee locations, entry procedures, activities or publication status change",
+      "trackLinks": true,
+      "initialReview": {
+        "reviewedAt": "2026-11-05T22:51:58.787Z",
+        "contentHash": "9829e4d20d4cc62320819d3c668c4282e10156e5cfded4eb8d8cee300788f270",
+        "contentLinkHash": "091435cbfd9cf01f32525447b565b40f95379dcf9486c2ebdbedad5441cf5606",
+        "disposition": "home",
+        "title": "Atlanta maps and separate morning queues are published",
+        "summary": "Show-floor entry queues at Hall C1, Building C, Level 1. The Show Store morning queue is in Building B’s International Lobby, Level 4; the store is upstairs in the Thomas Murphy Ballroom. Queuing opens at 8:30 AM; general entry starts at 10 AM. Bring your physical badge. Black Lotus has a separate entry schedule.",
+        "reason": "Direct complete Atlanta page review November 5: three map-image links, queues, badge pickup, wristbands and Sunday parking guidance. The synopsis preserves the Black Lotus exception. Publication date unspecified; map geometry and app map hydration require separate review."
+      }
     }
   ],
   "detailCoverageExclusions": [
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/info-overview.html",
-      "reason": "Direct October 25 HTTP 200 review: main content and link hashes exactly match watched /en-us/info.html (52be0ea3cb8d0313b80ef69d5e5e059c7c5bc320e29d53ef41d05590f0050e67 / f1ff1148ad3dfe6eb7e74e477d896bb75b00e6b0aa6e318b0fb43bd68c53feb8). Duplicate overview, not a separate resource.",
-      "reviewedAt": "2026-10-25T20:34:50.018Z",
-      "reviewAfter": "2026-11-01T00:00:00Z"
+      "reason": "Fresh November 5 HTTP 200: content/link hashes 0914234bcf715a1ef9c6d749e1e7c335d1811b7f4a07068a89ace6504163472e / 230a188f1920fd9c29e35838fe415630dca0b29467fd1baabcbc81d09d6e2d7e exactly match watched /en-us/info.html. Duplicate overview; the newly linked maps page is separately watched.",
+      "reviewedAt": "2026-11-05T22:51:58.180Z",
+      "reviewAfter": "2026-11-12T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/magiccon-news.html",
-      "reason": "Direct October 25 HTTP 200 review: same nine articles and exact main content hash 59f3c846c8e87946e9e981b0e807358c373b320c1253b6f83956a1ab438ce515 as watched global news index. Article paths match; mirror links use Atlanta host rather than canonical www.mtgfestivals.com. Canonical index and allowed articles are already checked.",
-      "reviewedAt": "2026-10-25T20:34:50.493Z",
-      "reviewAfter": "2026-11-01T00:00:00Z"
+      "reason": "Fresh November 5 HTTP 200: content hash 59f3c846c8e87946e9e981b0e807358c373b320c1253b6f83956a1ab438ce515 and nine article paths match the watched global news index. Atlanta-host mirror, not additional articles.",
+      "reviewedAt": "2026-11-05T22:51:58.561Z",
+      "reviewAfter": "2026-11-12T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/newsletter-signup.html",
-      "reason": "Direct October 25 HTTP 200 review: newsletter enrollment landing page with Wizards and ReedPop signup links, no announcement inventory. Content hash 6e92e82b1d69a6753582630bd18154be35d17f39ad4a5aa9f097141df68c0572. Canonical news and separate Gmail coverage cover announcements.",
-      "reviewedAt": "2026-10-25T20:34:49.427Z",
-      "reviewAfter": "2026-11-01T00:00:00Z"
+      "reason": "Fresh November 5 HTTP 200: newsletter enrollment with Wizards/ReedPop signup links, no announcement inventory. Content hash 6e92e82b1d69a6753582630bd18154be35d17f39ad4a5aa9f097141df68c0572. Canonical news and independent Gmail coverage remain separate.",
+      "reviewedAt": "2026-11-05T22:51:58.846Z",
+      "reviewAfter": "2026-11-12T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/info/ada-assistance.html",
-      "reason": "Direct October 25 review still returns HTTP 404 / Page not found (content hash 937b698c0ed1704c80db1867640f257f87759442c19ce8355a93e65fea56bb3a). Watched accessibility-assistance.html returns 200 with unchanged current 2026 services, October 9 request deadline and November 13–15 sensory-room hours. Exact broken legacy FAQ destination only; not current policy.",
-      "reviewedAt": "2026-10-25T20:34:51.234Z",
-      "reviewAfter": "2026-11-01T00:00:00Z"
+      "reason": "Fresh November 5 HTTP 404 at this legacy ADA URL; content hash 937b698c0ed1704c80db1867640f257f87759442c19ce8355a93e65fea56bb3a. Current watched accessibility-assistance.html returns 200. Exact broken destination only.",
+      "reviewedAt": "2026-11-05T22:51:58.148Z",
+      "reviewAfter": "2026-11-12T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/badges/how-to-buy/content/sitebuilder/rna/mtg-festivals/mcatlanta/en-us/t3stz0n3/2026/badges/how-to-buy.html",
-      "reason": "Direct October 25 review returns HTTP 404 / Page not found at the exact malformed nested CMS path (content hash 937b698c0ed1704c80db1867640f257f87759442c19ce8355a93e65fea56bb3a). Watched /en-us/badges/how-to-buy.html returns 200 with badge/transfer/Ticketed Play instructions. Not a separate attendee resource.",
-      "reviewedAt": "2026-10-25T20:34:51.298Z",
-      "reviewAfter": "2026-11-01T00:00:00Z"
+      "reason": "Fresh November 5 HTTP 404 at this malformed CMS URL; content hash 937b698c0ed1704c80db1867640f257f87759442c19ce8355a93e65fea56bb3a. Canonical watched how-to-buy.html returns 200. Not a separate resource.",
+      "reviewedAt": "2026-11-05T22:51:58.164Z",
+      "reviewAfter": "2026-11-12T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/ticketed-play-schedule/ticketed-play-information.html?gtID=944082",
-      "reason": "Direct October 25 HTTP 200 review remains a heading-only Event Information shell (content hash e1dfa0cc286760f16407b7cfc8b3e6d7c2543d7b474dacdd333552b7e2089678). Unknown for Extra Life with Gavin Verhey, source event 944082, remains represented in the current authoritative Ticketed Play/LEAP report with checkout availability. Exact gtID=944082 only; no blanket event-detail exclusion.",
-      "reviewedAt": "2026-10-25T20:34:51.268Z",
-      "reviewAfter": "2026-11-01T00:00:00Z"
+      "reason": "Fresh November 5 HTTP 200: heading-only Event Information shell, content hash e1dfa0cc286760f16407b7cfc8b3e6d7c2543d7b474dacdd333552b7e2089678. Exact event 944082 exists in canonical Ticketed Play inventory; current availability remains subject to the independent Ticketed Play coverage gate, not certified here. No other event ID is excluded.",
+      "reviewedAt": "2026-11-05T22:51:58.118Z",
+      "reviewAfter": "2026-11-12T00:00:00Z"
     },
     {
       "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html",
@@ -807,6 +862,12 @@
       "reason": "Direct October 31 HTTP 200 review: heading-only Panel Information shell, content hash 15a1e33e6829f7ab4876c768fbde2a07b42c7848697f7c8917d40793093c0aab. Exact World Championship Sunday Watch Party 954681 is fully present in watched event-bound Panels feed and reviewed app schedule. Queryless shell was also retained due to encoded href parsing; no other event identity is excluded.",
       "reviewedAt": "2026-10-31T19:32:15.592Z",
       "reviewAfter": "2026-11-07T00:00:00Z"
+    },
+    {
+      "url": "https://mcatlanta.mtgfestivals.com/en-us/experience/panels-and-events/panel-information.html?gtID=954668",
+      "reason": "Direct November 5 HTTP 200: heading-only Panel Information shell, content hash 15a1e33e6829f7ab4876c768fbde2a07b42c7848697f7c8917d40793093c0aab. Exact Cosplay Contest and Grand Championship 954668 appears in retained Panels event-bound feed November 14, 17:00-18:00 at Mana Stage. No extra facts in this shell; only this event ID is excluded.",
+      "reviewedAt": "2026-11-05T22:52:33.181Z",
+      "reviewAfter": "2026-11-12T00:00:00Z"
     }
   ]
 }

@@ -1,41 +1,41 @@
 {
   "atlanta-family-magic-schedule": {
     "projectionPath": "src/data/conventionPrograms.json",
-    "contentHash": "f1de38f75b94b5be5ff3691f60b2ce77ac87902ee9591f6f55f0837c6114eb27",
+    "contentHash": "d3314e4816c4a1cc988dc32ff3394e6d3937bba9bbd720a0d0360a864ca7b55d",
     "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "projectionHash": "157363c83b287667512fc5daf7563612b81d1faa9122b392ba4d285f0c3885f6",
-    "reviewedAt": "2026-10-13T23:48:00Z",
-    "reason": "Dedicated Family Magic feed has zero published sessions in the accepted Atlanta checkpoint. Nineteen current Family Magic sessions are preserved from Panels & Events without duplication. Publication into this currently empty feed requires fresh complete hydration review, not silent baseline acceptance."
+    "projectionHash": "eee65cb265848fb535466f546c1b854b014ac3ae541f72b8f44810cbea9540b1",
+    "reviewedAt": "2026-11-05T22:40:56.293Z",
+    "reason": "Dedicated Family Magic feed publishes 19 exact source identities already in Panels and Events; each title, time, location and description matches the complete panel source. Preserve one selectable identity and existing Family Spark priority seating."
   },
   "atlanta-black-lotus-vip": {
     "projectionPath": "src/data/blackLotusSchedule-reviewed.json",
     "contentHash": "b7717f729db612ce8309c334008357e6cbe4588a561dc06383894cd53ced3db1",
-    "reason": "Complete source comparison with accepted checkpoint 40231624036: every schedule and operational detail remains unchanged. The sole content insertion is the advanced online Show Store preorder/lounge-pickup paragraph with its More Info PDF link. Existing Black Lotus schedule artifact remains exact; no session rewrite or identity change required.",
+    "reason": "Direct page readback matches the retained schedule page content hash. Compared both linked Black Lotus shopping PDF revisions: the two Extra Life 2026 Rise of the Polygons variants were removed from the advanced preorder list. Shopping pickup timing and the complete Black Lotus schedule are unchanged. This review binds schedule only.",
     "projectionHash": "be5841cc8c5c575b4393c8a029dcf1fc4bdb5bc3f4b98edfb8ca8fb5417fbd78",
-    "contentLinkHash": "642c74823351606ba328924ea98ef8cd58a203d030601c0d854e35e5b9461355",
-    "reviewedAt": "2026-10-31T19:22:22.036Z"
+    "contentLinkHash": "e27f186557f7940cc061a0d2f7f5d261570c7c6d1871803d0d76a762c2ade496",
+    "reviewedAt": "2026-11-05T22:40:56.293Z"
   },
   "atlanta-experience-panels-and-events": {
     "projectionPath": "src/data/conventionPrograms.json",
-    "contentHash": "0cd86197ff0db9cf35fd2e9965d5a63980f604f16e2c30285220efbc3a2b59ad",
-    "reason": "Compared all 48 sessions against accepted checkpoint 40231624036. New source IDs 954667 and 954679 replace removed placeholder IDs 954666 and 954680; no saved choice is transferred. Eight surviving sessions update participant evidence (954662,954673,954674,954675,954678,954681,954682,954687). Reconcile selectable details and preserve all other identities and Family Spark access rules.",
-    "projectionHash": "157363c83b287667512fc5daf7563612b81d1faa9122b392ba4d285f0c3885f6",
+    "contentHash": "244f117147ca2c43008286fda28f0a3cc4cb5f8e8566d6b5f045d75298ca8f07",
+    "reason": "Reviewed all 49 exact sessions against the app catalog, including participant fields. Adds World Championship 32 (959862) with Friday spectator access from the dedicated official Worlds page; updates seven participant lineups and projects previously unlisted published participants. Preserves existing Family Spark priority seating and stable identities.",
+    "projectionHash": "eee65cb265848fb535466f546c1b854b014ac3ae541f72b8f44810cbea9540b1",
     "contentLinkHash": "1f9ac8df7e40611aa5ff847325a9352f98aee5f8e963fdff0d8d9fb3df3e2cf7",
-    "reviewedAt": "2026-10-31T19:22:22.035Z"
+    "reviewedAt": "2026-11-05T22:40:56.293Z"
   },
   "atlanta-gathering-grounds-schedule": {
     "projectionPath": "src/data/conventionPrograms.json",
-    "contentHash": "b8bbfaa446571e8a4402aa007a9f18362241fd50e583e9a8ec9cae6677bccac2",
-    "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
-    "projectionHash": "157363c83b287667512fc5daf7563612b81d1faa9122b392ba4d285f0c3885f6",
+    "contentHash": "753bdf9c57c11e9a3a99ce24895b24978a2bce845d8c6fa0d4a955b2166cf873",
+    "reason": "Reviewed all 23 exact sessions against the app catalog; adds Women+ in Magic Commander Meet-up (959866) and Scheduled floor time (959867) with official descriptions, local times and locations. All 21 existing identities preserved.",
+    "projectionHash": "eee65cb265848fb535466f546c1b854b014ac3ae541f72b8f44810cbea9540b1",
     "contentLinkHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "reviewedAt": "2026-10-13T23:48:00Z"
+    "reviewedAt": "2026-11-05T22:40:56.293Z"
   },
   "atlanta-experience-meet-and-greets": {
     "projectionPath": "src/data/conventionPrograms.json",
     "contentHash": "0ba3fb49ed3d0b26a3d72db3c553dbdf6aa82cd493944fc7d8019948d92059ae",
     "reason": "Complete official Atlanta source reconciled into the app event catalog, preserving stable selection IDs and access requirements; retained cloud run 38478614293 and current official source reviewed.",
-    "projectionHash": "157363c83b287667512fc5daf7563612b81d1faa9122b392ba4d285f0c3885f6",
+    "projectionHash": "eee65cb265848fb535466f546c1b854b014ac3ae541f72b8f44810cbea9540b1",
     "contentLinkHash": "b9ee2e1c6f42ebf1264a1bcf42c3c838b5502fa5109f4acd7f3f425ea032f5ad",
     "reviewedAt": "2026-10-13T23:48:00Z"
   },
