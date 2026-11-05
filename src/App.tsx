@@ -2271,8 +2271,8 @@ export default function App() {
       <header className={`hero ${['explore', 'plan', 'calendar'].includes(surface) ? 'hero-has-funnel' : ''} ${['map', 'trip', 'artists'].includes(surface) ? 'hero-has-view-switch' : ''}`}>
         <div>
           <div className="hero-context">
-            <button className="back-caret desktop-back-caret" type="button" onClick={goBack} disabled={!canGoBack} aria-label="Back to previous view"><span aria-hidden="true">‹</span></button>
             <button className="back-caret mobile-menu-caret" data-tour-target="mobile-menu" type="button" onClick={() => setMobileNavMenu('main')} aria-label="Open main navigation" aria-expanded={mobileNavMenu === 'main'}><span aria-hidden="true">☰</span></button>
+            <button className="back-caret page-back-caret" type="button" onClick={goBack} disabled={!canGoBack} aria-label="Back to previous view"><span aria-hidden="true">‹</span></button>
             <span className="kicker">{headerLabel}</span>
           </div>
           <h1>{headerTitle}</h1>
