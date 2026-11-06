@@ -31,6 +31,7 @@ import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
 import { OfficialMapViewer } from './components/OfficialMapViewer'
 import './components/MapTabs.css'
+import { KaviMapBeta, useKaviMapAccess } from './components/KaviMapBeta'
 import { PersonalMapStudy } from './components/PersonalMapStudy'
 import { projectMapOwnerEvents } from './lib/mapPersonalEvents'
 
@@ -2391,7 +2392,7 @@ export default function App() {
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
-        {surface === 'map' && <MapSurface onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'map' && <MapSurface key={session?.user.id ?? "guest"} accountId={session?.user.id} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogRefreshFailed={continuityFailures.includes('catalogs')} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
@@ -5171,9 +5172,11 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person === 'Kyle' ? 'Ky' : person[0]}</span>)}</span>
 }
 
-function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
-  const [activeMode, setMode] = useState('floor')
-  const tabs = [{ id: 'floor', label: 'Show Floor' }, { id: 'levels', label: 'Other Floors' }, { id: 'outside', label: 'Outside' }]
+function MapSurface({ onOpenTrip, accountId }: { onOpenTrip: () => void; accountId?: string }) {
+  const canOpenBeta = useKaviMapAccess(accountId)
+  const [mode, setMode] = useState('floor')
+  const activeMode = mode === 'beta' && !canOpenBeta ? 'floor' : mode
+  const tabs = [{ id: 'floor', label: 'Show Floor' }, { id: 'levels', label: 'Other Floors' }, ...(canOpenBeta ? [{ id: 'beta', label: 'KaviMap™ Beta' }] : []), { id: 'outside', label: 'Outside' }]
   return <section className="map-shell" aria-label="Map">
     <div className="trip-tabs map-view-tabs" role="tablist" aria-label="Map view">{tabs.map(tab => <button key={tab.id} id={`map-tab-${tab.id}`} type="button" role="tab" aria-selected={activeMode === tab.id} aria-controls="map-view-panel" tabIndex={activeMode === tab.id ? 0 : -1} className={activeMode === tab.id ? 'active' : ''} onClick={() => setMode(tab.id)} onKeyDown={event => {
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
@@ -5185,6 +5188,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
     }}>{tab.label}</button>)}</div>
     <div id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
     {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} />}
+    {canOpenBeta && activeMode === 'beta' && <KaviMapBeta />}
     {activeMode === 'outside' && <div className="map-surface map-surface-orientation">
       <article className="map-card trip-area-card">
         <span className="eyebrow">ORIENTATION NOW</span>
