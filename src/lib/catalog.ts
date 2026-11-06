@@ -1,6 +1,5 @@
 import { catalogStartupDiagnostics } from './catalogStartupDiagnostics'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { atlantaMerchMedia } from './atlantaMerchMedia'
 
 export type CatalogFamily = 'show_store' | 'black_lotus' | 'prize_wall'
 
@@ -235,63 +234,6 @@ export const emptyCatalogReadModel: CatalogReadModel = {
   offers: [],
 }
 
-export function normalizeCatalogReadModel(
-  offerRows: CatalogCurrentOfferRow[],
-  mediaRows: CatalogPresentationMediaRow[],
-  interestRows: CatalogInterestRow[],
-  companionRows: CatalogCompanionRow[],
-): CatalogReadModel {
-  const mediaById = new Map(mediaRows.map(media => [media.id, media]))
-  const companionByUserId = new Map(
-    companionRows.flatMap(companion => companion.user_id ? [[companion.user_id, companion] as const] : []),
-  )
-  const interestsByOfferId = interestRows.reduce((grouped, interest) => {
-    const offerInterests = grouped.get(interest.offer_id) ?? []
-    offerInterests.push(interest)
-    grouped.set(interest.offer_id, offerInterests)
-    return grouped
-  }, new Map<string, CatalogInterestRow[]>())
-
-  return {
-    status: 'ready',
-    offers: offerRows.map(row => {
-      const { presentation_media_id: presentationMediaId, ...offer } = row
-      const media = presentationMediaId ? mediaById.get(presentationMediaId) : undefined
-      const packaged = atlantaMerchMedia(row.canonical_key)
-      const exactPackaged = packaged && media?.source_url === packaged.sourceUrl ? packaged : null
-      return {
-        ...offer,
-        variant_label: offer.variant_label === 'Default Title' ? null : offer.variant_label,
-        presentationMediaId,
-        attributes: exactPackaged ? { ...offer.attributes, original_image_url: exactPackaged.originalUrl } : offer.attributes,
-        presentationMedia: media
-          ? {
-              ...media,
-              isSquare: media.width_px !== null
-                && media.height_px !== null
-                && media.width_px === media.height_px,
-            }
-          : null,
-        presentationUrl: exactPackaged?.thumbnailUrl ?? null,
-        interests: (interestsByOfferId.get(row.offer_id) ?? []).map(interest => {
-          const companion = companionByUserId.get(interest.owner_id)
-          return {
-            ownerId: interest.owner_id,
-            personKey: companion?.person_key ?? null,
-            displayName: companion?.display_name ?? null,
-            bubbleLabel: companion?.bubble_label ?? null,
-            bubbleColor: companion?.bubble_color ?? null,
-            interested: interest.interested,
-            note: interest.note,
-            updatedAt: interest.updated_at,
-          }
-        }),
-        soldOut: row.availability === 'sold_out',
-      }
-    }),
-  }
-}
-
 export async function resolveCatalogPresentationUrl(
   client: SupabaseClient,
   media: CatalogPresentationMedia | null,
@@ -386,12 +328,13 @@ export async function loadCatalogReadModel(
         return result
       } catch (error) { diagnose(`${stage}-error`, error); throw error }
     }
-    const [mediaResult, interestsResult, companionsResult] = await Promise.all([
+    const [mediaResult, interestsResult, companionsResult, { normalizeCatalogReadModel }] = await Promise.all([
       readDetail('media', mediaIds.length > 0
         ? client.from('catalog_media').select(presentationMediaColumns).in('id', mediaIds)
         : Promise.resolve({ data: [], error: null })),
       readDetail('interests', client.from('catalog_interests').select(interestColumns).in('offer_id', offerIds)),
       readDetail('companions', client.from('companion_members').select(companionColumns).eq('active', true)),
+      import('./catalogNormalization'),
     ])
 
     if (mediaResult.error || interestsResult.error || companionsResult.error) {

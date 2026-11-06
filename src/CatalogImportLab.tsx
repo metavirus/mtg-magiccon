@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { catalogImportPreviewBatch } from './lib/catalogImportPreview'
 import {
   buildCatalogPromotionPlan,
   catalogPresentationRoute,
@@ -195,7 +196,7 @@ function firstPendingKey(batch: CatalogImportBatch) {
   return index >= 0 ? sourceKey(items[index], index) : null
 }
 
-export function CatalogImportLab({ initialBatch, canPromote, promoting, onPromote }: { initialBatch: CatalogImportBatch; canPromote: boolean; promoting: boolean; onPromote: (plan: CatalogPromotionPlan) => Promise<void> }) {
+export function CatalogImportLab({ initialBatch = catalogImportPreviewBatch, canPromote, promoting, onPromote }: { initialBatch?: CatalogImportBatch; canPromote: boolean; promoting: boolean; onPromote: (plan: CatalogPromotionPlan) => Promise<void> }) {
   const [batch, setBatch] = useState(initialBatch)
   const [drafts, setDrafts] = useState(() => draftsFor(initialBatch))
   const [loadedLabel, setLoadedLabel] = useState(initialBatch.manifest.catalog?.fixture_only ? `Historical QA sample · ${initialBatch.manifest.items?.length ?? 0} items` : 'Review manifest')

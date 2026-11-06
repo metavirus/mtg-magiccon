@@ -1,3 +1,4 @@
+import { normalizeCatalogReadModel } from './catalogNormalization'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { atlantaMerchMedia } from './atlantaMerchMedia'
@@ -5,7 +6,6 @@ import {
   emptyCatalogReadModel,
   formatCatalogOfferValue,
   loadCatalogReadModel,
-  normalizeCatalogReadModel,
   resolveCatalogPresentationUrl,
   setCatalogInterest,
   type CatalogCurrentOfferRow,

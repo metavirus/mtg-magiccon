@@ -1,6 +1,5 @@
 import { CatalogProductImageDetail } from './components/CatalogProductImageDetail'
-import { atlantaMerchAssetUrls, atlantaMerchAssetIntegrity, atlantaMerchMissingImageCount } from './lib/atlantaMerchMedia'
-import { ReactNode, type MouseEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { lazy, ReactNode, Suspense, type MouseEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
@@ -8,7 +7,6 @@ import { retryOnceAfterUnauthorized } from './lib/sessionRefreshRetry'
 import { NavIcon, type NavIconName } from './NavIcon'
 import { CatalogBrowser } from './CatalogBrowser'
 import { catalogBookmarkOptions, preferredCatalogBookmarkOffer, useCatalogBookmark } from './CatalogBookmark'
-import { CatalogImportLab } from './CatalogImportLab'
 import { activityDestination, mobileDrawerDestinations, navigationDestination, primaryDestinations, surfaces, type Surface } from './lib/navigation'
 import { DESIGN_PREVIEW_SLICE } from './lib/designPreview'
 import { ticketedPlayExploreEvents } from './data/ticketedPlayExploreEvents'
@@ -25,7 +23,6 @@ import { priorEventCatalogs, type InfoCatalog, type InfoCatalogItem } from './li
 import { blackLotusPurchaseLimits, emptyCatalogReadModel, formatCatalogOfferValue, loadCatalogReadModel, setCatalogInterest, type CatalogOffer, type CatalogReadModel } from './lib/catalog'
 import { catalogBrowserPreviewModel, catalogBrowserPreviewOwnerId } from './lib/catalogPreview'
 import { canLoadAtlantaMerchReview } from './lib/catalogReviewMode'
-import { catalogImportPreviewBatch } from './lib/catalogImportPreview'
 import type { CatalogPromotionPlan } from './lib/catalogImport'
 import { promoteCatalogPlan } from './lib/catalogPromotion'
 import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
@@ -5336,13 +5333,29 @@ function CatalogMatchReview() {
   </article>
 }
 
+function StoreAssetStatus({ offers, reviewOnly }: { offers: CatalogOffer[]; reviewOnly: boolean }) {
+  const [media, setMedia] = useState<typeof import('./lib/atlantaMerchMedia') | null>(null)
+  useEffect(() => {
+    let active = true
+    void import('./lib/atlantaMerchMedia').then(result => {
+      if (active) setMedia(result)
+    }).catch(error => console.warn('Store image pack could not be loaded', error))
+    return () => { active = false }
+  }, [])
+  if (!media) return null
+  const missingImages = reviewOnly ? media.atlantaMerchMissingImageCount : new Set(offers.filter(offer => !offer.presentationUrl).map(offer => offer.product_id)).size
+  return <ArtistAssetStatus urls={media.atlantaMerchAssetUrls} integrity={media.atlantaMerchAssetIntegrity} missingImages={missingImages} online={navigator.onLine} revision={0} label="Product images" quiet />
+}
+
+const CatalogImportLab = lazy(async () => ({ default: (await import('./CatalogImportLab')).CatalogImportLab }))
+
 function InfoCatalogsPreview({ refreshFailed = false, onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; refreshFailed?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
   const [catalogId, setCatalogId] = useState<InfoCatalog['id']>('show-store')
   const catalog = priorEventCatalogs.find(item => item.id === catalogId) ?? priorEventCatalogs[0]
   const hasCurrentCatalog = catalogReadModel.status === 'ready' && catalogReadModel.offers.length > 0
   return <section className="info-catalog-preview" role="tabpanel" aria-label="Store preview">
     {refreshFailed && <p role="status">{hasCurrentCatalog ? 'Store could not be refreshed. Showing saved items.' : 'Store could not be loaded. Try refreshing.'}</p>}
-    {hasCurrentCatalog && <ArtistAssetStatus urls={atlantaMerchAssetUrls} integrity={atlantaMerchAssetIntegrity} missingImages={reviewOnly ? atlantaMerchMissingImageCount : new Set(catalogReadModel.offers.filter(offer => !offer.presentationUrl).map(offer => offer.product_id)).size} online={navigator.onLine} revision={0} label="Product images" quiet />}
+    {hasCurrentCatalog && <StoreAssetStatus offers={catalogReadModel.offers} reviewOnly={reviewOnly} />}
     {!reviewOnly && catalogBrowserQa && <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event products—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>}
     {showMatchReview && <CatalogMatchReview />}
     {hasCurrentCatalog
@@ -5417,7 +5430,9 @@ function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibit
       <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />
     </>}
     {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview refreshFailed={catalogRefreshFailed} onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
-    {mode === 'import' && canUseCatalogImport && <CatalogImportLab initialBatch={catalogImportPreviewBatch} canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />}
+    {mode === 'import' && canUseCatalogImport && <Suspense fallback={<p role="status">Loading import…</p>}>
+      <CatalogImportLab canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />
+    </Suspense>}
   </section>
 }
 
