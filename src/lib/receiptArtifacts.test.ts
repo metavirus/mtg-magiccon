@@ -195,7 +195,7 @@ describe('private receipt artifacts', () => {
     expect(app.includes('refreshed.flatMap(receipt => receipt.receipt_artifacts)')).toBe(true)
     expect(app).toContain('completeProofPack.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId))')
     expect(app).not.toMatch(/completeProofPack\s*=.*\.filter\(artifact\s*=>\s*artifact\.artifact_role/s)
-    expect(app).toMatch(/const \{ receipts: walletReceipts,[^\n]*proofPack: offlineProofPack \} = useWalletReceipts\(effectiveOwnerId\)/)
+    expect(app).toMatch(/const \{ receipts: walletReceipts,[^\n]*proofPack: offlineProofPack \} = useWalletReceipts\(effectiveOwnerId, surface\)/)
   })
 
   it('renders Chris transfer as a full Gmail proof instead of shrinking it into the QR card', () => {

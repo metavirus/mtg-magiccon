@@ -4,6 +4,16 @@ import { ReceiptPages } from './ReceiptPages'
 
 afterEach(cleanup)
 describe('receipt originals reader', () => {
+  it('keeps the enlarged page open when a preceding page arrives', () => {
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+    const first = { url: 'blob:original-1', label: 'Page 1', mimeType: 'image/png' }
+    const second = { url: 'blob:original-2', label: 'Page 2', mimeType: 'image/png' }
+    const view = render(<ReceiptPages title="Proof" pages={[second]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Show proof' }))
+    view.rerender(<ReceiptPages title="Proof" pages={[first, second]} />)
+    expect(within(screen.getByRole('dialog')).getByRole('img')).toHaveAttribute('src', second.url)
+  })
+
   it('enlarges unchanged originals, zooms, changes pages and restores the opener', () => {
     HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) { this.setAttribute('open', '') })
     render(<ReceiptPages title="Badge proof" pages={[

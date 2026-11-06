@@ -11,17 +11,20 @@ import { OFFLINE_LANE_CACHE, readOfflineLane, writeOfflineLane } from './offline
 const startupCatalogModel: CatalogReadModel = { ...catalogBrowserPreviewModel, offers: catalogBrowserPreviewModel.offers.map(offer => ({ ...offer, event_key: 'magiccon_atlanta_2026' })) }
 import App, { InfoCatalogsPreview } from '../App'
 import { DESIGN_PREVIEW_SLICE } from './designPreview'
+import { previewTripFlights } from './tripFlights'
 
 const mocked = vi.hoisted(() => ({
   auth: null as null | ((event: string, session: Session | null) => void),
   info: vi.fn(), catalog: vi.fn(),
+  requests: [] as string[],
 }))
 vi.mock('./supabase', () => ({ supabase: {
   auth: {
     getSession: () => new Promise(() => {}),
     onAuthStateChange: (callback: typeof mocked.auth) => { mocked.auth = callback; return { data: { subscription: { unsubscribe: () => {} } } } },
   },
-  from: () => {
+  from: (table: string) => {
+    mocked.requests.push(table)
     const pending = new Promise(() => {})
     const query: Record<string, unknown> = {}
     for (const key of ['select', 'eq', 'order', 'in', 'range', 'limit', 'single', 'maybeSingle', 'upsert']) query[key] = () => query
@@ -69,6 +72,7 @@ beforeEach(() => {
   for (const attr of [...document.documentElement.attributes]) if (attr.name.startsWith('data-startup-cache-write-')) document.documentElement.removeAttribute(attr.name)
   document.documentElement.removeAttribute('data-startup-cache-has-catalog')
   localStorage.clear()
+  mocked.requests.length = 0
   mocked.info.mockReset().mockImplementation(() => new Promise(() => {}))
   mocked.catalog.mockReset().mockImplementation(() => new Promise(() => {}))
   window.history.replaceState(null, '', '/?auth=1&qa=startup#info')
@@ -81,6 +85,31 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('startup hydration', () => {
+  it.each([true, false])('opens saved Calendar and Wallet essentials with all server reads stalled (online=%s)', async online => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(online)
+    saved('owner-a', 'Saved guide')
+    deviceLaneCache(async () => undefined)
+    await writeOfflineLane('owner-a', 'flights', previewTripFlights)
+    await writeOfflineLane('owner-a', 'walletReceipts', [{
+      id: 'saved-receipt', title: 'Saved convention order', receipt_type: 'store', amount: 5, currency: 'USD',
+      attendee_person_key: 'kavi', attendee_person_keys: ['kavi'], line_items: [{ title: 'Saved convention item', price: 5 }], receipt_artifacts: [],
+    }])
+    window.history.replaceState(null, '', '/?auth=1#calendar')
+    const calendar = render(<App />)
+    expect(await screen.findByRole('heading', { name: 'Arrive ATL · Courtyard night' })).toBeInTheDocument()
+    if (online) await waitFor(() => expect(mocked.requests).toContain('trip_flights'))
+    expect(mocked.catalog).not.toHaveBeenCalled()
+    expect(mocked.requests).not.toContain('wallet_receipts')
+    calendar.unmount()
+    mocked.requests.length = 0
+    window.history.replaceState(null, '', '/?auth=1#wallet')
+    render(<App />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    expect(await screen.findByText('Saved convention item')).toBeInTheDocument()
+    expect(mocked.requests.includes('wallet_receipts')).toBe(online)
+    expect(mocked.requests).not.toContain('trip_flights')
+  })
+
   it('offers a retry if a fresh session check stalls and recovers on a late valid session', async () => {
     vi.useFakeTimers()
     try {

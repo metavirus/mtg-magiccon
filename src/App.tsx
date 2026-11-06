@@ -51,8 +51,8 @@ import type { ContinuityLane } from './lib/offlineContinuity'
 import { publishHydrationLane } from './lib/startupHydration'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
 import { cacheDeviceAssets, catalogAssetUrls, exhibitorAssetUrls } from './lib/deviceAssets'
-import { auditReceiptArtifactCache, clearReceiptArtifactCache, downloadReceiptArtifact, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
-import { ReceiptPages } from './components/ReceiptPages'
+import { auditReceiptArtifactCache, clearReceiptArtifactCache, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
+import { ReceiptArtifactViewer } from './components/ReceiptArtifactViewer'
 import { ArtistAssetStatus } from './components/ArtistAssetStatus'
 import { OfflineSaveStatus } from './components/OfflineSaveStatus'
 import { rehearseOfflineSaveFailure } from './lib/offlineSaveQa'
@@ -249,7 +249,12 @@ type WalletReceiptRow = {
 type OfflineProofPackStatus = { expected: number; cached: number; loading: boolean }
 type ReceiptLoadStatus = 'loading' | 'ready' | 'unavailable'
 
-export function useWalletReceipts(currentOwnerId?: string) {
+const foregroundRefreshMs = 1_500
+
+export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
+  const calendarOpen = useRef(surface === 'calendar')
+  calendarOpen.current = surface === 'calendar'
+  const promoteRefresh = useRef<(() => void) | null>(null)
   const [snapshot, setSnapshot] = useState<{ ownerId: string; rows: WalletReceiptRow[] } | null>(null)
   const [load, setLoad] = useState<{ ownerId: string; status: ReceiptLoadStatus } | null>(null)
   const [proof, setProof] = useState<{ ownerId: string; status: OfflineProofPackStatus } | null>(null)
@@ -262,6 +267,8 @@ export function useWalletReceipts(currentOwnerId?: string) {
     const client = supabase
     let serverAccepted = false
     let request = 0
+    let inFlight = false
+    let deferredRefresh: ReturnType<typeof setTimeout> | undefined
     let deadline: ReturnType<typeof setTimeout> | undefined
     const publish = (rows: WalletReceiptRow[]) => {
       setSnapshot({ ownerId: currentOwnerId, rows })
@@ -289,16 +296,24 @@ export function useWalletReceipts(currentOwnerId?: string) {
       void audit(cachedReceipts, () => active && !serverAccepted)
     })
     const refreshReceipts = () => {
-      if (!navigator.onLine) return
+      clearTimeout(deferredRefresh)
+      deferredRefresh = undefined
+      if (!navigator.onLine || inFlight) return
+      inFlight = true
       const generation = ++request
       clearTimeout(deadline)
       const current = () => active && generation === request
-      deadline = setTimeout(() => { if (current()) unavailable() }, 10_000)
+      deadline = setTimeout(() => {
+        if (!current()) return
+        inFlight = false
+        unavailable()
+      }, 10_000)
       void client.from('wallet_receipts')
         .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
         .order('receipt_date', { ascending: false })
         .then(({ data, error }) => {
         if (!current()) return
+        inFlight = false
         clearTimeout(deadline)
         if (error) { unavailable(); return }
         const refreshed = ((data ?? []) as WalletReceiptRow[]).map(receipt => ({
@@ -315,21 +330,32 @@ export function useWalletReceipts(currentOwnerId?: string) {
         void Promise.all([initialAudit, Promise.allSettled(completeProofPack.map(artifact => primeReceiptArtifactCache(artifact, currentOwnerId)))]).then(() => {
           if (current()) void audit(refreshed, current)
         })
-      }, () => { if (current()) { clearTimeout(deadline); unavailable() } })
+      }, () => { if (current()) { inFlight = false; clearTimeout(deadline); unavailable() } })
+    }
+    const scheduleRefresh = () => {
+      clearTimeout(deferredRefresh)
+      if (calendarOpen.current) deferredRefresh = setTimeout(refreshReceipts, foregroundRefreshMs)
+      else refreshReceipts()
     }
     const refreshVisibleReceipts = () => {
-      if (document.visibilityState === 'visible') refreshReceipts()
+      if (document.visibilityState === 'visible') scheduleRefresh()
     }
-    refreshReceipts()
-    window.addEventListener('online', refreshReceipts)
+    promoteRefresh.current = () => { if (deferredRefresh !== undefined) refreshReceipts() }
+    scheduleRefresh()
+    window.addEventListener('online', scheduleRefresh)
     document.addEventListener('visibilitychange', refreshVisibleReceipts)
     return () => {
       active = false
+      promoteRefresh.current = null
+      clearTimeout(deferredRefresh)
       clearTimeout(deadline)
-      window.removeEventListener('online', refreshReceipts)
+      window.removeEventListener('online', scheduleRefresh)
       document.removeEventListener('visibilitychange', refreshVisibleReceipts)
     }
   }, [currentOwnerId])
+  useEffect(() => {
+    if (surface === 'wallet') promoteRefresh.current?.()
+  }, [surface])
   return {
     receipts: snapshot && snapshot.ownerId === currentOwnerId ? snapshot.rows : [],
     receiptStatus: snapshot && snapshot.ownerId === currentOwnerId ? 'ready' as const : load && load.ownerId === currentOwnerId ? load.status : 'loading' as const,
@@ -834,6 +860,10 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [messageTone, setMessageTone] = useState<'info' | 'error'>('info')
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
+  const currentSurface = useRef(surface)
+  currentSurface.current = surface
+  const releaseBackgroundRefresh = useRef<(() => void) | null>(null)
+  useEffect(() => { releaseBackgroundRefresh.current?.() }, [surface])
   const [exploreRouteState, setExploreRouteState] = useState<ExploreRouteState>(() => parseExploreRouteState(window.location.hash))
   const [exploreFocusRequest, setExploreFocusRequest] = useState<{ eventId: string; noteId?: string; nonce: number } | null>(null)
   const [planFocusRequest, setPlanFocusRequest] = useState<{ eventId: string; nonce: number } | null>(null)
@@ -900,7 +930,7 @@ export default function App() {
   const continuityContext = useRef({ slice, effectiveSession, companionMembers: fallbackCompanionMembers })
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
-  const { receipts: walletReceipts, receiptStatus, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId)
+  const { receipts: walletReceipts, receiptStatus, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId, surface)
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
   continuityContext.current = { slice, effectiveSession, companionMembers }
@@ -1207,7 +1237,11 @@ export default function App() {
         applySavedLane(key, saved.value)
       })).then(() => {})
     } else initialCacheReads.current = Promise.resolve()
-    return () => { cacheOwnerEpoch.current += 1 }
+    return () => {
+      cacheOwnerEpoch.current += 1
+      hydrationGeneration.current += 1
+      releaseBackgroundRefresh.current?.()
+    }
   }, [designPreview, isPreviewOwnerMode, effectiveOwnerId, markStartup])
 
   const refreshUserContinuity = useCallback(async (forceOnline = false) => {
@@ -1260,14 +1294,43 @@ export default function App() {
         setContinuityFailures(current => [...new Set([...current, label])])
       })
     }
+    const calendarRequests = () => [
+      lane('flights', 'Trip flights', supabase ? loadTripFlights(supabase) : Promise.resolve([]), flights => { setTripFlights(flights); setFlightsKnown(true) }),
+      lane('selections', 'selections', loadUserSelections(effectiveOwnerId), rows => {
+        setSharedSelectionRows(rows)
+        const selections = userSelectionMap(rows.filter(row => row.owner_id === effectiveOwnerId))
+        setUserSelections(selections)
+        setAlertReview(Object.fromEntries(Object.entries(selections)
+          .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
+          .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
+        const context = continuityContext.current
+        setExploreEventState(applySelectionState(exploreEvents, selections, context.slice, currentCompanionFromSession(context.effectiveSession, context.companionMembers)))
+        setContinuityReady(true)
+      }),
+    ]
+    const waitForForeground = (foreground?: Promise<unknown>) => new Promise<void>(resolve => {
+      const release = () => {
+        clearTimeout(timer)
+        if (releaseBackgroundRefresh.current === release) releaseBackgroundRefresh.current = null
+        resolve()
+      }
+      const timer = setTimeout(release, foregroundRefreshMs)
+      releaseBackgroundRefresh.current = release
+      void foreground?.then(release, release)
+    })
+    if (currentSurface.current === 'wallet') await waitForForeground()
+    if (!isCurrent()) return
+    const calendar = Promise.all(calendarRequests())
+    if (currentSurface.current === 'calendar') await waitForForeground(calendar)
+    if (!isCurrent()) return
     await Promise.all([
+      calendar,
       lane('notes', 'notes', loadContextNotes(effectiveOwnerId), setContextNotesState),
       lane('mentions', 'mentions', loadMentionInbox(effectiveOwnerId), setMentionInboxState),
       lane('activity', 'activity', loadUserActivityEvents(effectiveOwnerId), setUserActivityRows),
       lane('findings', 'monitoring findings', isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]), setMonitoringFindings),
       lane('concepts', 'monitoring concepts', isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]), setMonitoringConcepts),
       lane('info', 'Info knowledge', loadInfoKnowledge(), info => { setInfoTopics(info.topics); setInfoFeed(info.feed) }),
-      lane('flights', 'Trip flights', supabase ? loadTripFlights(supabase) : Promise.resolve([]), flights => { setTripFlights(flights); setFlightsKnown(true) }),
       lane('ticketedAvailability', 'Ticketed Play availability', loadTicketedPlayAvailability(), setTicketedAvailability),
       lane('catalog', 'catalogs', supabase ? loadCatalogReadModel(supabase, 'magiccon_atlanta_2026') : Promise.resolve(emptyCatalogReadModel), model => {
         // An unavailable read is a refresh failure, never a replacement for the
@@ -1281,17 +1344,6 @@ export default function App() {
         setExhibitors(records)
         setExhibitorError('')
         void cacheDeviceAssets(exhibitorAssetUrls(records), true)
-      }),
-      lane('selections', 'selections', loadUserSelections(effectiveOwnerId), rows => {
-        setSharedSelectionRows(rows)
-        const selections = userSelectionMap(rows.filter(row => row.owner_id === effectiveOwnerId))
-        setUserSelections(selections)
-        setAlertReview(Object.fromEntries(Object.entries(selections)
-          .filter(([key, value]) => key.endsWith('::review_state') && ['needs-review', 'reviewed', 'archived'].includes(value))
-          .map(([key, value]) => [key.replace(/^alert-/, '').replace(/::review_state$/, ''), value as AlertReviewState])))
-        const context = continuityContext.current
-        setExploreEventState(applySelectionState(exploreEvents, selections, context.slice, currentCompanionFromSession(context.effectiveSession, context.companionMembers)))
-        setContinuityReady(true)
       }),
     ])
     if (!isCurrent()) return
@@ -5558,36 +5610,9 @@ function PrivateReceiptArtifacts({ receipt, roles, title, currentOwnerId }: { re
     () => selectReceiptArtifactsForDisplay(receipt?.receipt_artifacts ?? [], roles),
     [receipt, roles.join('|')],
   )
-  const [downloads, setDownloads] = useState<Array<{ artifact: ReceiptArtifact; url: string }>>([])
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
-
-  useEffect(() => {
-    let active = true
-    let objectUrls: string[] = []
-    setDownloads([])
-    if (!artifacts.length) { setStatus('idle'); return }
-    setStatus('loading')
-    void Promise.all(artifacts.map(async artifact => ({ artifact, url: await downloadReceiptArtifact(artifact, currentOwnerId) })))
-      .then(items => {
-        objectUrls = items.map(item => item.url)
-        if (!active) { objectUrls.forEach(url => URL.revokeObjectURL(url)); return }
-        setDownloads(items)
-        setStatus('idle')
-      })
-      .catch(error => {
-        console.warn('Private receipt artifact could not be loaded', error)
-        if (active) setStatus('error')
-      })
-    return () => {
-      active = false
-      objectUrls.forEach(url => URL.revokeObjectURL(url))
-    }
-  }, [artifacts.map(artifact => artifact.id).join('|'), currentOwnerId])
-
   if (!receipt || !artifacts.length) return <p className="original-receipt-note">{title} unavailable.</p>
-  if (status === 'loading') return <p className="original-receipt-note">Loading private proof…</p>
-  if (status === 'error') return <p className="original-receipt-note">Private proof could not be loaded. Check your session and try again.</p>
-  return <ReceiptPages title={title} pages={downloads.map(({ artifact, url }) => ({ url, label: artifact.display_label, mimeType: artifact.mime_type }))} />
+  const key = JSON.stringify([currentOwnerId, artifacts.map(artifact => artifact.id)])
+  return <ReceiptArtifactViewer key={key} artifacts={artifacts} ownerId={currentOwnerId} title={title} />
 }
 
 function WalletHomeTab({ openBlackLotusProof, openChrisBlackLotusProof, openJuanProof, onOpenObject }: { openBlackLotusProof: () => void; openChrisBlackLotusProof: () => void; openJuanProof: () => void; onOpenObject: (detail: ObjectDetail) => void }) {

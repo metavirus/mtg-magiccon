@@ -71,9 +71,9 @@ describe('paid-event detail layout contract', () => {
   })
 
   it('refreshes newly ingested receipt evidence when an installed app returns online or foreground', () => {
-    expect(appSource).toContain("window.addEventListener('online', refreshReceipts)")
+    expect(appSource).toContain("window.addEventListener('online', scheduleRefresh)")
     expect(appSource).toContain("document.addEventListener('visibilitychange', refreshVisibleReceipts)")
-    expect(appSource).toContain("window.removeEventListener('online', refreshReceipts)")
+    expect(appSource).toContain("window.removeEventListener('online', scheduleRefresh)")
     expect(appSource).toContain("document.removeEventListener('visibilitychange', refreshVisibleReceipts)")
   })
 })
