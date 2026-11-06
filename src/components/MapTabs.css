@@ -1,0 +1,2 @@
+.map-view-tabs{width:max-content;max-width:100%;margin-bottom:10px;overflow-x:auto;white-space:nowrap}.map-view-tabs button{flex:none}.map-shell>.map-view-tabs{justify-self:start}.map-shell #map-view-panel{min-width:0}
+@media(max-width:620px){.map-view-tabs button{padding:0 10px}}

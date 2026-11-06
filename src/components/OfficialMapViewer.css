@@ -1,0 +1,14 @@
+.official-map-viewer{position:relative;min-width:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#30205d}
+.official-map-viewport{position:relative;width:100%;height:clamp(420px,68dvh,760px);overflow:hidden;touch-action:none;cursor:grab;outline-offset:-3px}
+.official-map-viewport:active{cursor:grabbing}
+.official-map-viewport:focus-visible{outline:2px solid var(--blue)}
+.official-map-viewport img{position:absolute;left:50%;top:50%;max-width:none;user-select:none;pointer-events:none;transform-origin:center}
+.official-map-actions{position:absolute;z-index:1;right:10px;bottom:10px;display:flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--panel);box-shadow:0 2px 12px #0003}
+.official-map-actions button{display:grid;place-items:center;min-width:40px;height:40px;padding:0 8px;border:0;border-radius:7px;background:transparent;color:#edf3fb;font-size:20px;cursor:pointer}
+.official-map-actions button:hover{background:#20334b}
+.official-map-actions button:disabled{color:var(--muted);opacity:.45;cursor:default}
+.official-map-actions button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.official-map-actions .official-map-reset{font-size:11px;font-weight:650}
+@media(max-width:600px){.official-map-viewport{height:clamp(240px,calc(100dvh - 320px),620px)}}
+.official-legend-toggle{position:absolute;z-index:1;bottom:10px;left:10px;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text,#edf3fb);font:inherit;font-size:12px;cursor:pointer}.official-legend-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.official-legend-drawer{position:fixed;inset:auto 0 0;width:min(760px,100%);max-width:100%;max-height:76dvh;margin:0 auto;padding:0;border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;background:var(--panel,#101d2e);color:var(--text,#edf3fb);box-sizing:border-box;overflow:hidden}.official-legend-drawer[open]{display:flex;flex-direction:column}.official-legend-drawer::backdrop{background:#02081299}.official-legend-drawer>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px 8px 18px;border-bottom:1px solid var(--line);flex:none}.official-legend-drawer h2{margin:0;font-size:17px}.official-legend-drawer>header button{width:44px;height:44px;border:0;border-radius:8px;background:transparent;color:inherit;font-size:26px;cursor:pointer}.official-legend-scroll{overflow:auto;overscroll-behavior:contain;padding:16px 18px max(20px,env(safe-area-inset-bottom));min-height:0}

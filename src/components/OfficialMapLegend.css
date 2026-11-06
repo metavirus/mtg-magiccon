@@ -1,0 +1,14 @@
+.official-map-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;color:#edf3fb;font-size:12px;line-height:1.45}
+.official-legend-section{min-width:0}
+.official-legend-section h3{display:flex;align-items:center;gap:6px;margin:0 0 8px;font-size:12px;font-weight:700;color:#edf3fb}
+.official-legend-section img{flex:0 0 28px;width:28px;height:30px;object-fit:contain}
+.official-legend-symbol-section{grid-column:1/-1}
+.official-legend-symbols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px;margin:0;padding:0;list-style:none}
+.official-legend-symbols li{display:flex;align-items:center;gap:6px;min-height:32px}
+.official-legend-locations{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.official-legend-locations span{color:var(--muted)}
+.official-legend-booths{display:grid;gap:5px;margin:0}
+.official-legend-booths>div{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.official-legend-booths dt{min-width:0}
+.official-legend-booths dd{margin:0;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+@media(max-width:600px){.official-map-legend{grid-template-columns:minmax(0,1fr);gap:20px}.official-legend-symbols{gap:4px 10px}.official-legend-booths dd{flex-shrink:0}.official-legend-section h3{font-size:12px}}

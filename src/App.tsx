@@ -29,6 +29,8 @@ import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type
 import { atlantaConventionStart, nextCalendarEntry, shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
 import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
+import { OfficialMapViewer } from './components/OfficialMapViewer'
+import './components/MapTabs.css'
 import { PersonalMapStudy } from './components/PersonalMapStudy'
 import { projectMapOwnerEvents } from './lib/mapPersonalEvents'
 
@@ -2229,7 +2231,7 @@ export default function App() {
   }).sort((a, b) => Date.parse(b.checkedAtIso) - Date.parse(a.checkedAtIso))
   const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
   const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
-  const headerSubtitle = surface === 'map' && (designPreview || isPreviewOwnerMode) ? 'Browse the show floor, artists and Marketplace.' : surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
+  const headerSubtitle = surface === 'map' ? 'MagicCon Atlanta' : surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
   const homeDestination = navigationDestination('home')
   const mapDestination = navigationDestination('map')
   const infoDestination = navigationDestination('info')
@@ -5170,8 +5172,20 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
 }
 
 function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
+  const [activeMode, setMode] = useState('floor')
+  const tabs = [{ id: 'floor', label: 'Show Floor' }, { id: 'levels', label: 'Other Floors' }, { id: 'outside', label: 'Outside' }]
   return <section className="map-shell" aria-label="Map">
-    <div className="map-surface map-surface-orientation">
+    <div className="trip-tabs map-view-tabs" role="tablist" aria-label="Map view">{tabs.map(tab => <button key={tab.id} id={`map-tab-${tab.id}`} type="button" role="tab" aria-selected={activeMode === tab.id} aria-controls="map-view-panel" tabIndex={activeMode === tab.id ? 0 : -1} className={activeMode === tab.id ? 'active' : ''} onClick={() => setMode(tab.id)} onKeyDown={event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+      event.preventDefault()
+      const index = tabs.findIndex(item => item.id === tab.id)
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length
+      setMode(tabs[next].id)
+      document.getElementById(`map-tab-${tabs[next].id}`)?.focus()
+    }}>{tab.label}</button>)}</div>
+    <div id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
+    {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} />}
+    {activeMode === 'outside' && <div className="map-surface map-surface-orientation">
       <article className="map-card trip-area-card">
         <span className="eyebrow">ORIENTATION NOW</span>
         <h2>Omni to Building C, visually.</h2>
@@ -5201,6 +5215,7 @@ function MapSurface({ onOpenTrip }: { onOpenTrip: () => void }) {
           <span><strong>Useful cue</strong>Building C sits farther west, toward Mercedes-Benz Stadium / Northside Dr.</span>
         </div>
       </article>
+    </div>}
     </div>
   </section>
 }
