@@ -1,23 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { readMapMessage, type MapPlaceRequest, type MapUpperPlace } from '../lib/kaviMapBridge'
 import type { MapRoomEvent } from '../lib/mapPersonalEvents'
-import { supabase } from '../lib/supabase'
-
-export function useKaviMapAccess(accountId: string | undefined) {
-  const [authorizedAccount, setAuthorizedAccount] = useState<string>()
-
-  useEffect(() => {
-    if (!accountId || !supabase) return
-    const request = new AbortController()
-    void supabase.from('kavimap_beta_release').select('id').eq('id', 'current')
-      .abortSignal(request.signal).maybeSingle().then(({ data }) => {
-        if (!request.signal.aborted) setAuthorizedAccount(data ? accountId : undefined)
-      })
-    return () => request.abort()
-  }, [accountId])
-
-  return Boolean(accountId && authorizedAccount === accountId)
-}
 
 type FrameSchedule = {
   roomEvents: Record<string, MapRoomEvent[]>
@@ -28,7 +11,8 @@ type FrameSchedule = {
   canOpenPrizeCatalog: boolean
 }
 
-export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn }: {
+export function KaviMapBeta({ html, schedule, canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn }: {
+  html: string
   schedule: FrameSchedule
   canOpenPlace: (place: MapPlaceRequest) => boolean
   onOpenPlace: (place: MapPlaceRequest) => void
@@ -69,26 +53,5 @@ export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors
     sendSchedule()
     return () => window.removeEventListener('message', receive)
   }, [schedule])
-  const [html, setHtml] = useState<string>()
-  const [failed, setFailed] = useState(false)
-  const [attempt, setAttempt] = useState(0)
-
-  useEffect(() => {
-    if (!supabase) return
-    const request = new AbortController()
-    void supabase.from('kavimap_beta_release').select('html').eq('id', 'current')
-      .abortSignal(request.signal).maybeSingle().then(({ data }) => {
-        if (request.signal.aborted) return
-        if (data?.html) setHtml(data.html)
-        else setFailed(true)
-      })
-    return () => request.abort()
-  }, [attempt])
-
-  if (failed) return <div role="status">KaviMap™ Beta is unavailable. <button type="button" onClick={() => {
-    setFailed(false)
-    setAttempt(value => value + 1)
-  }}>Try again</button></div>
-  if (!html) return <p role="status">Loading KaviMap™ Beta…</p>
   return <iframe onLoad={()=>frame.current?.contentWindow?.postMessage({type:'kavimap:capabilities',version:1,levels:true}, '*')} ref={frame} className="kavimap-beta-frame" srcDoc={html} sandbox="allow-scripts" title="KaviMap™ Beta" />
 }

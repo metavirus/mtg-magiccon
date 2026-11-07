@@ -32,7 +32,8 @@ import { HomeBriefing } from './components/HomeBriefing'
 import { OfficialMapViewer } from './components/OfficialMapViewer'
 import './components/MapTabs.css'
 import { matchMapRecord, mapBoothFacts, type MapPlaceRequest, type MapUpperPlace } from './lib/kaviMapBridge'
-import { KaviMapBeta, useKaviMapAccess } from './components/KaviMapBeta'
+import { KaviMapBeta } from './components/KaviMapBeta'
+import { useKaviMapRelease } from './lib/useKaviMapRelease'
 import { PersonalMapStudy } from './components/PersonalMapStudy'
 import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, isEventMapDestination, projectMapOwnerEvents, reviewedEventLocation, selectMapProducts } from './lib/mapPersonalEvents'
 
@@ -50,7 +51,7 @@ import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSo
 import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh } from './lib/offlineContinuity'
-import { readOfflineLane, readOfflineLaneSync, readOfflineLanesSync, writeOfflineLane, saveOfflineLane, offlineLaneReadGuard, usableOfflineLane, STARTUP_CACHE_LANES, OfflineLaneCacheWriteError, safeCacheErrorName } from './lib/offlineLaneCache'
+import { clearOfflineLane, readOfflineLane, readOfflineLaneSync, readOfflineLanesSync, writeOfflineLane, saveOfflineLane, offlineLaneReadGuard, usableOfflineLane, STARTUP_CACHE_LANES, OfflineLaneCacheWriteError, safeCacheErrorName } from './lib/offlineLaneCache'
 import type { ContinuityLane } from './lib/offlineContinuity'
 import { publishHydrationLane } from './lib/startupHydration'
 import { screenFreshness, screenReads, withReadDeadline, type InfoView, type ScreenRead } from './lib/screenFreshness'
@@ -888,7 +889,8 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [messageTone, setMessageTone] = useState<'info' | 'error'>('info')
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
-  const privateMap = useKaviMapAccess(session?.user.id)
+  const mapRelease = useKaviMapRelease(effectiveOwnerId, session?.user.id, online, surface === 'map')
+  const privateMap = Boolean(mapRelease)
   const [mapTrip, setMapTrip] = useState<string | null>(null)
   const [mapEventId, setMapEventId] = useState<string | null>(null)
   const mapEventReturnFocus = useRef<HTMLElement | null>(null)
@@ -1143,6 +1145,8 @@ export default function App() {
       if (event === 'SIGNED_OUT') {
         // Explicit sign-out revokes this device's offline identity. A failed
         // network session check alone must not destroy a usable offline pack.
+        const signedOutOwner = activeOwner.current
+        if (signedOutOwner) void clearOfflineLane(signedOutOwner, 'kaviMap').catch(() => {})
         activeOwner.current = undefined
         hydrationGeneration.current += 1
         try { clearOfflineIdentity() } catch { /* in-memory sign-out still applies */ }
@@ -2546,7 +2550,7 @@ export default function App() {
         try { writeOfflineIdentity(offlineIdentity); setOfflineIdentityFailureOwner(undefined) }
         catch { setOfflineIdentityFailureOwner(effectiveOwnerId) }
       }} />
-      {activeMapTrip && privateMap && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(session?.user.id ?? "guest") + activeMapTrip} canOpenBeta={privateMap} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+      {activeMapTrip && privateMap && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(session?.user.id ?? "guest") + activeMapTrip} mapRelease={mapRelease} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
       <div hidden={Boolean(activeMapTrip) || (!showScreen && surface !== 'info')}>
         {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'}
           calendarEntries={(continuityReady && flightsKnown && currentCompanion) || designPreview || isPreviewOwnerMode
@@ -2554,7 +2558,7 @@ export default function App() {
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface onShowOnMap={privateMap ? showEventOnMap : undefined} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={privateMap ? showEventOnMap : undefined} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
-        {surface === 'map' && <MapSurface key={session?.user.id ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} canOpenBeta={privateMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'map' && <MapSurface key={session?.user.id ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} mapRelease={mapRelease} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
@@ -5372,14 +5376,14 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person === 'Kyle' ? 'Ky' : person[0]}</span>)}</span>
 }
 
-function MapSurface({ events, currentOwnerId, currentPerson, selections, companions, onOpenTrip, canOpenBeta, exhibitors, onOpenObject, catalog, onOpenCatalog, onOpenEvent, initialPlaceId, onReturn }: {
+function MapSurface({ events, currentOwnerId, currentPerson, selections, companions, onOpenTrip, mapRelease, exhibitors, onOpenObject, catalog, onOpenCatalog, onOpenEvent, initialPlaceId, onReturn }: {
   events: ExploreEvent[]
   currentOwnerId?: string
   currentPerson: PersonName
   selections: UserSelectionRow[]
   companions: CompanionMember[]
   onOpenTrip: () => void
-  canOpenBeta: boolean
+  mapRelease: ReturnType<typeof useKaviMapRelease>
   exhibitors: DirectoryExhibitor[]
   onOpenObject: (detail: ObjectDetail) => void
   catalog: CatalogReadModel
@@ -5388,6 +5392,7 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
   initialPlaceId?: string
   onReturn?: () => void
 }) {
+  const canOpenBeta = Boolean(mapRelease)
   const initialUpperPlace = initialPlaceId === 'mana-stage' || initialPlaceId === 'black-lotus' ? initialPlaceId : undefined
   const [focusedLevel, setFocusedLevel] = useState<MapUpperPlace | undefined>(initialUpperPlace)
   const [mode, setMode] = useState(initialUpperPlace ? 'levels' : initialPlaceId ? 'beta' : 'floor')
@@ -5459,7 +5464,7 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
     .filter(([, people]) => people.length)), [scheduled])
   const canOpenPrizeCatalog = mapCatalogs.has('prize-wall')
   const activeMode = mode === 'beta' && !canOpenBeta ? 'floor' : mode
-  const showNextStops = Boolean(canOpenBeta && currentOwnerId && (activeMode === 'beta' || activeMode === 'levels'))
+  const showNextStops = Boolean(canOpenBeta && currentOwnerId && companions.length > 0 && (activeMode === 'beta' || activeMode === 'levels'))
   const nextStopsRef = useRef<HTMLDivElement>(null)
   const mapPanelRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
@@ -5509,8 +5514,9 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
       {canOpenBeta && room.id === 'black-lotus' && mapCatalogs.has('black-lotus') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('black_lotus')}>Black Lotus catalog <span aria-hidden="true">›</span></button>}
       <ul>{roomEvents[room.id].map(event => <li key={event.id}>{canOpenBeta ? <button type="button" className="map-schedule-event" onClick={() => onOpenEvent(event.id)}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></button> : <><strong>{event.title}</strong><small>{event.day} · {event.time}</small></>}</li>)}</ul>
     </details> : null)}
-    {canOpenBeta && (betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
-      <KaviMapBeta schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog }}
+    {mapRelease && (betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
+      {activeMode === 'beta' && mapRelease.saved && <p className="screen-data-status" role="status">{mapRelease.fromDevice ? 'Saved map' : 'Map saved for offline'}</p>}
+      <KaviMapBeta html={mapRelease.html} schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog }}
         canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOpenEvent={onOpenEvent} onReturn={onReturn}
         onOpenPrizeCatalog={canOpenPrizeCatalog ? () => onOpenCatalog('prize_wall') : undefined}
         onOtherFloors={placeId => {

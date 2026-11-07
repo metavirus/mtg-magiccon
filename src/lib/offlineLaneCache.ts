@@ -4,8 +4,8 @@ import { OFFLINE_CONTINUITY_CACHE_PREFIX, readOfflineContinuity, type OfflineCon
 export const OFFLINE_LANE_CACHE = 'magiccon-continuity-lanes-v1'
 export const OFFLINE_LANE_LOCAL_PREFIX = 'magiccon:offline-lane:v1:'
 export const OFFLINE_LANE_STATUS_EVENT = 'magiccon-offline-lane-status'
-export const ALL_OFFLINE_LANES: ContinuityLane[] = ['notes', 'mentions', 'selections', 'activity', 'findings', 'concepts', 'info', 'flights', 'ticketedAvailability', 'catalog', 'exhibitors', 'walletReceipts', 'companions', 'artistCatalog', 'artistSigningInterests', 'monitorAlerts', 'trustSlice']
-export const STARTUP_CACHE_LANES: ContinuityLane[] = ALL_OFFLINE_LANES.filter(lane => !['walletReceipts', 'companions', 'artistCatalog', 'artistSigningInterests'].includes(lane))
+export const ALL_OFFLINE_LANES: ContinuityLane[] = ['notes', 'mentions', 'selections', 'activity', 'findings', 'concepts', 'info', 'flights', 'ticketedAvailability', 'catalog', 'exhibitors', 'walletReceipts', 'companions', 'artistCatalog', 'artistSigningInterests', 'monitorAlerts', 'trustSlice', 'kaviMap']
+export const STARTUP_CACHE_LANES: ContinuityLane[] = ALL_OFFLINE_LANES.filter(lane => !['walletReceipts', 'companions', 'artistCatalog', 'artistSigningInterests', 'kaviMap'].includes(lane))
 export type OfflineLaneSnapshot = { version: 1; ownerId: string; lane: ContinuityLane; savedAt: string; value: unknown; artistCatalogVersion?: 2; source?: 'local-storage' | 'cache-storage' }
 export type OfflineLaneStatus = { ownerId: string; lane: ContinuityLane; status: 'saving' | 'verified' | 'failed'; errorName?: string }
 // Access inside operations so a browser-denied localStorage getter cannot
@@ -41,6 +41,7 @@ function availableCacheStorage() {
   try { return globalThis.caches } catch { return undefined }
 }
 const saves = new Map<string, Promise<unknown>>()
+const removals = new Map<string, Promise<void>>()
 const revisions = new Map<string, number>()
 const statuses = new Map<string, OfflineLaneStatus>()
 const failed = new Map<string, () => Promise<unknown>>()
@@ -62,6 +63,7 @@ export class OfflineLaneCacheWriteError extends Error {
   }
 }
 export function usableOfflineLane(lane: ContinuityLane, value: unknown): boolean {
+  if (lane === 'kaviMap') return typeof value === 'string' && /^<!doctype html>/i.test(value) && /<\/html>\s*$/i.test(value)
   if (lane === 'trustSlice') {
     if (value === null) return true
     const slice = value as { ownerId?: string; occurrence?: { id?: string }; observation?: { id?: string }; savedAt?: string } | null
@@ -109,6 +111,7 @@ export function readOfflineLanesSync(ownerId: string): OfflineContinuitySnapshot
   const legacy = readLegacy(ownerId, deviceStorage)
   const lanes: OfflineContinuitySnapshot['lanes'] = {}, laneSavedAt: NonNullable<OfflineContinuitySnapshot['laneSavedAt']> = {}
   for (const lane of ALL_OFFLINE_LANES) {
+    if (lane === 'kaviMap') continue // Protected renderer is loaded only by the map access boundary.
     const saved = readOfflineLaneSync(ownerId, lane, deviceStorage, legacy)
     if (saved) { lanes[lane] = saved.value; laneSavedAt[lane] = saved.savedAt }
   }
@@ -205,11 +208,38 @@ export function writeOfflineLane(
 export function saveOfflineLane(ownerId: string, lane: ContinuityLane, value: unknown) {
   void writeOfflineLane(ownerId, lane, value).catch(() => { console.warn('Device snapshot could not be saved', lane) })
 }
+
+/** Queue removal after any in-flight save so sign-out cannot leave a late copy. */
+export async function clearOfflineLane(ownerId: string, lane: ContinuityLane) {
+  const id = laneId(ownerId, lane)
+  revisions.set(id, (revisions.get(id) ?? 0) + 1)
+  failed.delete(id)
+  failedWrites.delete(id)
+  statuses.delete(id)
+  const previous = saves.get(id)
+  const remove = async () => {
+    try {
+      localStorage.removeItem(localKey(ownerId, lane))
+      localStorage.removeItem(`${localKey(ownerId, lane)}:receipt`)
+    } catch { /* The account gate also removes access immediately. */ }
+    const storage = availableCacheStorage()
+    if (storage) await (await storage.open(OFFLINE_LANE_CACHE)).delete(key(ownerId, lane))
+  }
+  const pending = previous ? previous.catch(() => {}).then(remove) : remove()
+  saves.set(id, pending)
+  removals.set(id, pending)
+  try { await pending }
+  finally {
+    if (saves.get(id) === pending) saves.delete(id)
+    if (removals.get(id) === pending) removals.delete(id)
+  }
+}
 export async function readOfflineLane(
   ownerId: string, lane: ContinuityLane,
   cacheStorage: CacheStorage | undefined = availableCacheStorage(),
   storage: Pick<Storage, 'getItem'> = deviceStorage,
 ): Promise<OfflineLaneSnapshot | null> {
+  if (removals.has(laneId(ownerId, lane))) return null
   const isCurrent = offlineLaneReadGuard(ownerId, lane)
   let saved = readOfflineLaneSync(ownerId, lane, storage)
   let expected = false

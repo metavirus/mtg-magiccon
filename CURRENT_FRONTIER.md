@@ -2,6 +2,8 @@
 
 ## November 7 onsite reliability
 
+KaviMap now saves the renderer returned by the owner-only server check into that owner's device pack. The installed app can reopen it in airplane mode after one successful online save. Explicit sign-out and a server denial withdraw the saved renderer. The public build and service worker contain no renderer.
+
 The refresh control checks the data for the current view. Online views keep the app header visible while checking, then show confirmed data or identify the saved copy. Offline reopen uses the owner-bound saved data. The startup worker now gives an already cached replacement time to take over even if the network check fails. Release proof includes the Calendar and Wallet browser smoke and cold reopen with the origin stopped at the Pages path. The red exclamation and clipped error were reported on a physical iPhone. That installed app still needs the same airplane-mode retest with Calendar, Wallet proof and the official map before travel.
 
 ## Offline reliability consolidation

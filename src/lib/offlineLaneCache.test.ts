@@ -90,6 +90,7 @@ describe('consolidated durability contract', () => {
     values.info = { topics: [{ body: 'full article'.repeat(100000) }], feed: [] }
     values.artistCatalog = { artists: [{ id: 'artist' }], cards: [{ printingId: 'printing', original: 'full private inventory'.repeat(100000) }] }
     values.artistSigningInterests = { printing: 'want_signed' }
+    values.kaviMap = '<!doctype html><html><body>Map fixture</body></html>'
     values.walletReceipts = [{ id: 'receipt', line_items: [{ title: 'Original line' }], receipt_artifacts: [{ id: 'private-proof', bucket_id: 'private', object_path: 'capacity/proof.pdf' }] }]
     values.trustSlice = null
     expect(JSON.stringify(values).length * 2).toBeGreaterThan(5 * 1024 * 1024)
