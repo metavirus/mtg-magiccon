@@ -963,6 +963,7 @@ export default function App() {
     releaseBackgroundRefresh.current?.()
   }, [])
   const [artistRefreshRequest, setArtistRefreshRequest] = useState(0)
+  const [mapRefreshOwner, setMapRefreshOwner] = useState<string>()
   const infoViewRef = useRef(infoView)
   infoViewRef.current = infoView
   const pendingLaneReads = useRef(new Map<ContinuityLane, Promise<void>>())
@@ -2378,15 +2379,22 @@ export default function App() {
     const keys: ContinuityLane[] = presentationSurface === 'map'
       ? ['selections', 'catalog', 'exhibitors']
       : freshnessKeys
+    if (presentationSurface === 'map') setMapRefreshOwner(effectiveOwnerId)
     if (keys.length) {
       keys.forEach(key => markLaneRead(key, { state: 'checking' }))
       void refreshUserContinuity(true, keys)
     }
   }
   const mapReads = screenFreshness(['selections', 'catalog', 'exhibitors'], screenReadStates, online)
-  const refreshChecking = presentationSurface === 'map' ? mapReads.state === 'checking' : freshness.state === 'checking'
-  const screenNotice = presentationSurface === 'map' && liveAccount && online && (mapReads.state === 'saved' || mapReads.state === 'unavailable')
-    ? 'Some map details couldn’t be refreshed.'
+  const mapRefreshRequested = presentationSurface === 'map' && liveAccount && mapRefreshOwner === effectiveOwnerId && online
+  const mapRefreshFailures = ([
+    ['selections', 'calendar stops'],
+    ['catalog', 'store catalog'],
+    ['exhibitors', 'exhibitor details'],
+  ] as const).filter(([key]) => screenReadStates[key]?.state === 'failed').map(([, label]) => label)
+  const refreshChecking = presentationSurface === 'map' ? mapRefreshRequested && mapReads.state === 'checking' : freshness.state === 'checking'
+  const screenNotice = mapRefreshRequested && mapReads.state !== 'checking' && mapRefreshFailures.length
+    ? `Couldn’t refresh ${new Intl.ListFormat('en').format(mapRefreshFailures)}. Try refreshing again.`
     : screenChecking ? (online ? 'Checking for updates…' : 'Opening saved data…')
     : freshness.state === 'saved' ? (freshness.savedAt
       ? `Saved copy · ${new Date(freshness.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`
@@ -5515,7 +5523,7 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
       <ul>{roomEvents[room.id].map(event => <li key={event.id}>{canOpenBeta ? <button type="button" className="map-schedule-event" onClick={() => onOpenEvent(event.id)}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></button> : <><strong>{event.title}</strong><small>{event.day} · {event.time}</small></>}</li>)}</ul>
     </details> : null)}
     {mapRelease && (betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
-      {activeMode === 'beta' && mapRelease.saved && <p className="screen-data-status" role="status">{mapRelease.fromDevice ? 'Saved map' : 'Map saved for offline'}</p>}
+      {activeMode === 'beta' && mapRelease.fromDevice && <p className="screen-data-status" role="status">Showing saved map</p>}
       <KaviMapBeta html={mapRelease.html} schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog }}
         canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOpenEvent={onOpenEvent} onReturn={onReturn}
         onOpenPrizeCatalog={canOpenPrizeCatalog ? () => onOpenCatalog('prize_wall') : undefined}
