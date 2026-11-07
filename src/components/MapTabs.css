@@ -10,3 +10,7 @@
 @media (max-width: 600px) {
   .kavimap-beta-frame { height: max(300px, calc(100dvh - 325px)); }
 }
+
+.map-return-beta{min-height:40px;margin:0 0 8px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--blue);font:inherit;font-size:12px;cursor:pointer}
+
+@media(max-width:600px){.map-return-beta+.official-map-viewer .official-map-viewport{height:clamp(192px,calc(100dvh - 368px),572px)}}
