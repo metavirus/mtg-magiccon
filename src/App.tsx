@@ -3255,7 +3255,7 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
           </span>
         </div>
         <h2 id="object-detail-title">{detail.title}</h2>
-        <p>{detail.summary}</p>
+        {detail.summary && <p>{detail.summary}</p>}
       </header>
       {catalogOffer && catalogProductOptions.length > 1 && <label className="store-option-select">Option<select aria-label="Product option" value={catalogOffer.offer_id} onChange={event => { const selected = catalogProductOptions.find(offer => offer.offer_id === event.target.value); if (selected) onOpenObject(catalogOfferDetail(selected, catalogOwnerId)) }}>{catalogProductOptions.map(offer => <option key={offer.offer_id} value={offer.offer_id}>{offer.variant_label ?? offer.product_name}</option>)}</select></label>}
       {detail.monitoringMetadata && detail.source && /^https?:\/\//i.test(detail.source.value) && <nav className="object-resource-links" aria-label="Article source"><a href={detail.source.value} target="_blank" rel="noreferrer">Read original source ↗</a></nav>}
@@ -5188,7 +5188,7 @@ function MapSurface({ onOpenTrip, accountId, exhibitors, onOpenObject }: { onOpe
       .eq('event_key', artistConventionKey).eq('attending_status', 'confirmed').limit(250).abortSignal(abort.signal).then(async ({data: appearances, error}) => {
         if (error || !appearances?.length || abort.signal.aborted) return
         const {data: artists, error: artistError} = await supabase!.from('artists')
-          .select('id,canonical_name,display_name,profile_image_url,style_description,scryfall_search_url')
+          .select('id,canonical_name,display_name,profile_image_url,scryfall_search_url')
           .in('id', appearances.map(row => row.artist_id)).limit(250).abortSignal(abort.signal)
         if (artistError || abort.signal.aborted) return
         setMapArtists((artists ?? []).map(artist => {
@@ -5197,7 +5197,7 @@ function MapSurface({ onOpenTrip, accountId, exhibitors, onOpenObject }: { onOpe
           const seedId = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
           return { name, aliases: [artist.canonical_name], detail: {
             id: `artist-${seedId}`, kind: 'artist', eyebrow: 'ART OF MAGIC', title: name,
-            summary: artist.style_description || '',
+            summary: '',
             image: artist.profile_image_url ? {src: artist.profile_image_url, alt: name} : undefined,
             facts: appearance.appearance_days ? [{label: 'Appearing', value: appearance.appearance_days}] : [],
             links: [{label:'Official artist profile',url:safeExhibitorUrl(appearance.official_profile_url)}, {label:'Magic card artwork',url:safeExhibitorUrl(artist.scryfall_search_url) || scryfallArtistSearchUrl(name)}].filter(link=>link.url),
