@@ -18,6 +18,7 @@
 
 .map-next-stops{flex:none}
 .map-next-stops .plan-people-filter { gap: 2px; }
+.map-next-stops .person-bubbles { padding: 0; }
 .map-next-stops .plan-people-filter button {
   box-sizing: border-box;
   width: 30px;
