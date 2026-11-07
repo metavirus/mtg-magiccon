@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { readMapMessage, type MapPlaceRequest, type MapUpperPlace } from '../lib/kaviMapBridge'
 import type { MapRoomEvent } from '../lib/mapPersonalEvents'
 
@@ -11,6 +11,20 @@ type FrameSchedule = {
   canOpenPrizeCatalog: boolean
 }
 
+let rendererRequest: Promise<string> | undefined
+function loadPublicRenderer() {
+  rendererRequest ??= fetch(`${import.meta.env.BASE_URL}kavimap/index.html`)
+    .then(response => {
+      if (!response.ok) throw new Error('Map file unavailable')
+      return response.text()
+    })
+    .catch(error => {
+      rendererRequest = undefined
+      throw error
+    })
+  return rendererRequest
+}
+
 export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn }: {
   schedule: FrameSchedule
   canOpenPlace: (place: MapPlaceRequest) => boolean
@@ -20,8 +34,20 @@ export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors
   onOpenPrizeCatalog?: () => void
   onReturn?: () => void
 }) {
+  const [html, setHtml] = useState<string>()
+  const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const frame = useRef<HTMLIFrameElement>(null)
   const lastPlace = useRef<MapPlaceRequest | null>(null)
+  useEffect(() => {
+    let active = true
+    // The host can read the precache even when the opaque frame cannot navigate offline.
+    void loadPublicRenderer().then(
+      renderer => { if (active) setHtml(renderer) },
+      () => { if (active) setFailed(true) },
+    )
+    return () => { active = false }
+  }, [attempt])
   const sendSchedule = useCallback(() => frame.current?.contentWindow?.postMessage({
     type: 'kavimap:schedule', version: 1, ...schedule,
   }, '*'), [schedule])
@@ -56,6 +82,11 @@ export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors
     sendSchedule()
     return () => window.removeEventListener('message', receive)
   }, [sendSchedule, syncFrame])
+  if (failed) return <p role="status">Couldn’t load KaviMap. <button type="button" onClick={() => {
+    setFailed(false)
+    setAttempt(value => value + 1)
+  }}>Retry</button></p>
+  if (!html) return <p role="status">Loading KaviMap…</p>
   return <iframe onLoad={syncFrame} ref={frame} className="kavimap-beta-frame"
-    src={`${import.meta.env.BASE_URL}kavimap/index.html`} sandbox="allow-scripts" title="KaviMap™ Beta" />
+    srcDoc={html} sandbox="allow-scripts" title="KaviMap™ Beta" />
 }
