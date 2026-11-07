@@ -5270,7 +5270,9 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
     </div>
     <div ref={mapPanelRef} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
     {activeMode === 'levels' && returnToBeta && canOpenBeta && <button type="button" className="map-return-beta" onClick={()=>{setMode('beta');setReturnToBeta(false)}}>← Back to KaviMap</button>}
-    {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} />}
+    {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} loungeNextStops={nextRooms['black-lotus']?.map(stop =>
+      <span key={stop.person} title={stop.title}><PersonBubbles people={[stop.person]} /></span>
+    )} />}
     {activeMode === 'levels' && [
       { id: 'mana-stage', label: 'Mana Stage · Georgia Ballroom' },
       { id: 'black-lotus', label: 'Black Lotus Lounge · Triumph Ballroom, Signia' },
