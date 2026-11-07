@@ -15,8 +15,8 @@
 
 @media(max-width:600px){.map-return-beta+.official-map-viewer .official-map-viewport{height:clamp(192px,calc(100dvh - 368px - var(--map-next-stops-height, 0px)),572px)}}
 
-.map-next-stops{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:0 0 8px;font-size:11px;color:var(--muted)}
-.map-next-stops .trip-tabs{margin:0}
+.map-next-stops{flex:none}
+.map-shell .map-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-width:0}.map-shell .map-view-tabs{margin:0}
 .map-room-schedule summary{cursor:pointer;font-weight:650}.map-room-schedule ul{list-style:none;margin:8px 0 0;padding:0}.map-room-schedule li{display:grid;gap:2px;padding:7px 0;border-top:1px solid var(--line);font-size:12px}.map-room-schedule li small{color:var(--muted);font-size:11px}
 
 @media(max-width:600px){.map-shell #map-view-panel>.official-map-viewer:first-child .official-map-viewport{height:clamp(192px,calc(100dvh - 320px - var(--map-next-stops-height, 0px)),620px)}}

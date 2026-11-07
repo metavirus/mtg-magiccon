@@ -5241,14 +5241,21 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
     const controls = nextStopsRef.current
     const panel = mapPanelRef.current
     if (!controls || !panel) return
-    const reserveSpace = () => panel.style.setProperty('--map-next-stops-height', controls.getBoundingClientRect().height + 8 + 'px')
+    const toolbar = controls.parentElement
+    const tabs = toolbar?.querySelector('.map-view-tabs')
+    if (!toolbar || !tabs) return
+    const reserveSpace = () => {
+      const extraHeight = toolbar.getBoundingClientRect().height - tabs.getBoundingClientRect().height
+      panel.style.setProperty('--map-next-stops-height', Math.max(0, extraHeight) + 'px')
+    }
     reserveSpace()
     const observer = new ResizeObserver(reserveSpace)
-    observer.observe(controls)
+    observer.observe(toolbar)
     return () => { observer.disconnect(); panel.style.removeProperty('--map-next-stops-height') }
   }, [showNextStops])
   const tabs = [{ id: 'floor', label: 'Show Floor' }, { id: 'levels', label: 'Other Floors' }, ...(canOpenBeta ? [{ id: 'beta', label: 'KaviMap™ Beta' }] : []), { id: 'outside', label: 'Outside' }]
   return <section className="map-shell" aria-label="Map">
+    <div className="map-toolbar">
     <div className="trip-tabs map-view-tabs" role="tablist" aria-label="Map view">{tabs.map(tab => <button key={tab.id} id={`map-tab-${tab.id}`} type="button" role="tab" aria-selected={activeMode === tab.id} aria-controls="map-view-panel" tabIndex={activeMode === tab.id ? 0 : -1} className={activeMode === tab.id ? 'active' : ''} onClick={() => setMode(tab.id)} onKeyDown={event => {
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
       event.preventDefault()
@@ -5257,9 +5264,10 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
       setMode(tabs[next].id)
       document.getElementById(`map-tab-${tabs[next].id}`)?.focus()
     }}>{tab.label}</button>)}</div>
-    {showNextStops && <div ref={nextStopsRef} className="map-next-stops"><span>Next calendar stops</span><div className="plan-people-filter" role="group" aria-label="Next calendar stops">
+    {showNextStops && <div ref={nextStopsRef} className="map-next-stops"><div className="plan-people-filter" role="group" aria-label="Next calendar stops">
       {companions.map(({ name }) => <button key={name} type="button" aria-label={name} title={name} aria-pressed={visiblePeople.includes(name)} className={visiblePeople.includes(name) ? 'active' : ''} onClick={() => setVisiblePeople(people => people.includes(name) ? people.filter(person => person !== name) : [...people, name])}><PersonBubbles people={[name]} /></button>)}
     </div></div>}
+    </div>
     <div ref={mapPanelRef} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
     {activeMode === 'levels' && returnToBeta && canOpenBeta && <button type="button" className="map-return-beta" onClick={()=>{setMode('beta');setReturnToBeta(false)}}>← Back to KaviMap</button>}
     {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} />}
