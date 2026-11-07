@@ -7,7 +7,7 @@ const densitySource = readFileSync(resolve(process.cwd(), 'src/density.css'), 'u
 
 describe('scrolling detail close controls', () => {
   it('keeps every independently scrolling modal close control persistent and right-anchored', () => {
-    expect(appSource.match(/persistent-detail-close/g)).toHaveLength(5)
+    expect(appSource.match(/persistent-detail-close/g)).toHaveLength(6)
     // The card grid owns its responsive close placement; generic sticky styling
     // would consume a desktop grid cell and displace the art/details.
     expect(appSource).toContain('className="detail-close artist-card-popover-close"')

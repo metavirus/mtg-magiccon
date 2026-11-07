@@ -33,7 +33,6 @@ import { OfficialMapViewer } from './components/OfficialMapViewer'
 import './components/MapTabs.css'
 import { matchMapRecord, mapBoothFacts, type MapPlaceRequest, type MapUpperPlace } from './lib/kaviMapBridge'
 import { KaviMapBeta } from './components/KaviMapBeta'
-import { useKaviMapRelease } from './lib/useKaviMapRelease'
 import { PersonalMapStudy } from './components/PersonalMapStudy'
 import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, isEventMapDestination, projectMapOwnerEvents, reviewedEventLocation, selectMapProducts } from './lib/mapPersonalEvents'
 
@@ -889,8 +888,6 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [messageTone, setMessageTone] = useState<'info' | 'error'>('info')
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
-  const mapRelease = useKaviMapRelease(effectiveOwnerId, session?.user.id, online, surface === 'map')
-  const privateMap = Boolean(mapRelease)
   const [mapTrip, setMapTrip] = useState<string | null>(null)
   const [mapEventId, setMapEventId] = useState<string | null>(null)
   const mapEventReturnFocus = useRef<HTMLElement | null>(null)
@@ -913,7 +910,7 @@ export default function App() {
   const mapReturnScroll = useRef(0)
   const mapReturnFocus = useRef<HTMLElement | null>(null)
   const previousMapTrip = useRef<string | null>(null)
-  const activeMapTrip = privateMap ? mapTrip : null
+  const activeMapTrip = mapTrip
   useLayoutEffect(() => {
     if (previousMapTrip.current && !activeMapTrip) {
       window.scrollTo({ top: mapReturnScroll.current, behavior: 'instant' })
@@ -1629,10 +1626,10 @@ export default function App() {
   const mapTripFromHash = useCallback((hash: string) => {
     const nextSurface = surfaceFromHash(hash)
     const placeId = new URLSearchParams(hash.split('?')[1] ?? '').get('map')
-    if (!privateMap || !placeId) return null
+    if (!placeId) return null
     if (nextSurface === 'artists' && /^artist-name:[^\r\n]{1,160}$/.test(placeId)) return placeId
     return ['calendar', 'explore', 'plan'].includes(nextSurface) && isEventMapDestination(placeId) ? placeId : null
-  }, [privateMap])
+  }, [])
   useEffect(() => {
     setMapTrip(mapTripFromHash(window.location.hash))
   }, [mapTripFromHash])
@@ -1661,7 +1658,7 @@ export default function App() {
   }
 
   function showEventOnMap(eventId: string, targetId = eventMapDestination(eventId)?.targetId) {
-    if (!privateMap || !targetId || !isEventMapDestination(targetId)) return
+    if (!targetId || !isEventMapDestination(targetId)) return
     mapReturnScroll.current = window.scrollY
     mapReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
@@ -1740,6 +1737,7 @@ export default function App() {
     }
   }
 
+  if (surface === 'map' && !effectiveSession && !designPreview && (!loading || !online || !supabase)) return <PublicKaviMap />
   if (!supabase) return <SetupCard />
   if (!online && !effectiveSession && !designPreview) return <div className="center-card empty" role="status"><p>Connect to open your field guide.</p></div>
   if (loading && !effectiveSession && !slice) return <div className="boot">Opening your field guide…</div>
@@ -2558,15 +2556,15 @@ export default function App() {
         try { writeOfflineIdentity(offlineIdentity); setOfflineIdentityFailureOwner(undefined) }
         catch { setOfflineIdentityFailureOwner(effectiveOwnerId) }
       }} />
-      {activeMapTrip && privateMap && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(session?.user.id ?? "guest") + activeMapTrip} mapRelease={mapRelease} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+      {activeMapTrip && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(effectiveOwnerId ?? "guest") + activeMapTrip} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
       <div hidden={Boolean(activeMapTrip) || (!showScreen && surface !== 'info')}>
         {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'}
           calendarEntries={(continuityReady && flightsKnown && currentCompanion) || designPreview || isPreviewOwnerMode
             ? homeCalendarEntries(displayedExploreEvents, tripFlights, currentCompanion?.name ?? 'Kavi') : null}
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface onShowOnMap={privateMap ? showEventOnMap : undefined} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface onShowOnMap={privateMap ? showEventOnMap : undefined} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
-        {surface === 'map' && <MapSurface key={session?.user.id ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} mapRelease={mapRelease} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'explore' && <ExploreSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
+        {surface === 'map' && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
@@ -2591,14 +2589,14 @@ export default function App() {
           })
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
-        {surface === 'artists' && <ArtistsSurface refreshRequest={artistRefreshRequest} onRead={markLaneRead} mapOpen={Boolean(activeMapTrip)} mapAllowed={privateMap} onShowOnMap={placeId => {
+        {surface === 'artists' && <ArtistsSurface refreshRequest={artistRefreshRequest} onRead={markLaneRead} mapOpen={Boolean(activeMapTrip)} mapAllowed onShowOnMap={placeId => {
           mapReturnScroll.current = window.scrollY
           mapReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
           navigate('#artists?map=' + encodeURIComponent('artist-name:' + placeId))
           window.scrollTo(0, 0)
         }} currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} selections={userSelections} onBringChange={async (id, key, value) => { if (await upsertUserSelection(id, 'artist', key, value) === false) throw new Error('Checklist save failed') }} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
-        {surface === 'plan' && <PlanSurface onShowOnMap={privateMap ? showEventOnMap : undefined} events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'plan' && <PlanSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onFindingDecision={decideMonitoringFinding} onFindingChoice={chooseMonitoringFinding} onFindingDefer={deferMonitoringFinding} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </div>
@@ -5384,32 +5382,31 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person === 'Kyle' ? 'Ky' : person[0]}</span>)}</span>
 }
 
-function MapSurface({ events, currentOwnerId, currentPerson, selections, companions, onOpenTrip, mapRelease, exhibitors, onOpenObject, catalog, onOpenCatalog, onOpenEvent, initialPlaceId, onReturn }: {
+function MapSurface({ events, currentOwnerId, currentPerson, selections, companions, onOpenTrip, publicView = false, exhibitors, onOpenObject, catalog, onOpenCatalog, onOpenEvent, initialPlaceId, onReturn }: {
   events: ExploreEvent[]
   currentOwnerId?: string
   currentPerson: PersonName
   selections: UserSelectionRow[]
   companions: CompanionMember[]
-  onOpenTrip: () => void
-  mapRelease: ReturnType<typeof useKaviMapRelease>
+  onOpenTrip?: () => void
+  publicView?: boolean
   exhibitors: DirectoryExhibitor[]
-  onOpenObject: (detail: ObjectDetail) => void
+  onOpenObject?: (detail: ObjectDetail) => void
   catalog: CatalogReadModel
-  onOpenCatalog: (family: 'show_store' | 'prize_wall' | 'black_lotus') => void
+  onOpenCatalog?: (family: 'show_store' | 'prize_wall' | 'black_lotus') => void
   onOpenEvent: (eventId: string) => void
   initialPlaceId?: string
   onReturn?: () => void
 }) {
-  const canOpenBeta = Boolean(mapRelease)
   const initialUpperPlace = initialPlaceId === 'mana-stage' || initialPlaceId === 'black-lotus' ? initialPlaceId : undefined
   const [focusedLevel, setFocusedLevel] = useState<MapUpperPlace | undefined>(initialUpperPlace)
-  const [mode, setMode] = useState(initialUpperPlace ? 'levels' : initialPlaceId ? 'beta' : 'floor')
+  const [mode, setMode] = useState(initialUpperPlace ? 'levels' : initialPlaceId || publicView ? 'beta' : 'floor')
   const [betaVisited, setBetaVisited] = useState(false)
   const [returnToBeta, setReturnToBeta] = useState(false)
   const [mapArtists, setMapArtists] = useState<Array<{name: string; aliases: string[]; detail: ObjectDetail}>>([])
-  useEffect(() => { if (mode === 'beta' && canOpenBeta) setBetaVisited(true) }, [mode, canOpenBeta])
+  useEffect(() => { if (mode === 'beta') setBetaVisited(true) }, [mode])
   useEffect(() => {
-    if (!betaVisited || !supabase) return
+    if (!betaVisited || !supabase || publicView) return
     const abort = new AbortController()
     // Map details need the event roster and bios, never cards, holdings, or assessments.
     void supabase.from('artist_appearances').select('artist_id,appearance_days,official_profile_url,attending_status')
@@ -5433,15 +5430,15 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
         }))
       })
     return () => abort.abort()
-  }, [betaVisited])
+  }, [betaVisited, publicView])
   const canOpenPlace = (place: MapPlaceRequest) => Boolean(place.kind === 'vendor' ? matchMapRecord(place, exhibitors) : matchMapRecord(place, mapArtists))
   const openPlace = (place: MapPlaceRequest) => {
     if (place.kind === 'vendor') {
       const exhibitor = matchMapRecord(place, exhibitors)
-      if (exhibitor) { const detail = exhibitorToObjectDetail(exhibitor); onOpenObject({...detail, facts: mapBoothFacts(detail.facts, place.booth), source: undefined, backlinks: undefined}) }
+      if (exhibitor) { const detail = exhibitorToObjectDetail(exhibitor); onOpenObject?.({...detail, facts: mapBoothFacts(detail.facts, place.booth), source: undefined, backlinks: undefined}) }
     } else {
       const artist = matchMapRecord(place, mapArtists)
-      if (artist) onOpenObject(artist.detail)
+      if (artist) onOpenObject?.(artist.detail)
     }
   }
   const mapCatalogs = useMemo(() => new Set((selectMapProducts(catalog) ?? []).map(item => item.locationId)), [catalog])
@@ -5455,11 +5452,11 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
   const [visiblePeople, setVisiblePeople] = useState<PersonName[]>([currentPerson])
   useEffect(() => setVisiblePeople([currentPerson]), [currentOwnerId, currentPerson])
   const nextRooms: Record<string, Array<{ person: PersonName; title: string; eventId: string }>> = {}
-  const scheduled = useMemo(() => canOpenBeta && currentOwnerId ? events.filter(event => event.id !== 'bl-first-look-thursday').map(event => ({
+  const scheduled = useMemo(() => currentOwnerId ? events.filter(event => event.id !== 'bl-first-look-thursday').map(event => ({
       event,
       at: atlantaConventionStart(event.day, event.time),
       participants: planParticipants(event, currentPerson, selections, companions),
-    })) : [], [canOpenBeta, currentOwnerId, events, currentPerson, selections, companions])
+    })) : [], [currentOwnerId, events, currentPerson, selections, companions])
   if (scheduled.length) {
     for (const person of visiblePeople) {
       const next = nextCalendarEntry(scheduled.filter(entry => entry.participants.some(participant => participant.person === person && participant.state === 'committed')), now)
@@ -5471,8 +5468,8 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
     .map(({ event, participants }) => [event.id, participants.filter(person => person.state === 'committed').map(person => person.person)] as const)
     .filter(([, people]) => people.length)), [scheduled])
   const canOpenPrizeCatalog = mapCatalogs.has('prize-wall')
-  const activeMode = mode === 'beta' && !canOpenBeta ? 'floor' : mode
-  const showNextStops = Boolean(canOpenBeta && currentOwnerId && companions.length > 0 && (activeMode === 'beta' || activeMode === 'levels'))
+  const activeMode = mode
+  const showNextStops = Boolean(currentOwnerId && companions.length > 0 && (activeMode === 'beta' || activeMode === 'levels'))
   const nextStopsRef = useRef<HTMLDivElement>(null)
   const mapPanelRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
@@ -5491,7 +5488,7 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
     observer.observe(toolbar)
     return () => { observer.disconnect(); panel.style.removeProperty('--map-next-stops-height') }
   }, [showNextStops])
-  const tabs = [{ id: 'floor', label: 'Show Floor' }, { id: 'levels', label: 'Other Floors' }, ...(canOpenBeta ? [{ id: 'beta', label: 'KaviMap™ Beta' }] : []), { id: 'outside', label: 'Outside' }]
+  const tabs = [{ id: 'floor', label: 'Show Floor' }, { id: 'levels', label: 'Other Floors' }, { id: 'beta', label: 'KaviMap™ Beta' }, { id: 'outside', label: 'Outside' }]
   return <section className="map-shell" aria-label="Map">
     <div className="map-toolbar">
     <div className="trip-tabs map-view-tabs" role="tablist" aria-label="Map view">{tabs.map(tab => <button key={tab.id} id={`map-tab-${tab.id}`} type="button" role="tab" aria-selected={activeMode === tab.id} aria-controls="map-view-panel" tabIndex={activeMode === tab.id ? 0 : -1} className={activeMode === tab.id ? 'active' : ''} onClick={() => setMode(tab.id)} onKeyDown={event => {
@@ -5508,24 +5505,24 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
     </div>
     <div ref={mapPanelRef} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
     {activeMode !== 'beta' && onReturn && !returnToBeta && <button type="button" className="map-return-beta" onClick={onReturn}>← Back</button>}
-    {activeMode === 'levels' && returnToBeta && canOpenBeta && <button type="button" className="map-return-beta" onClick={() => { setMode('beta'); setReturnToBeta(false) }}>← Back to KaviMap</button>}
+    {activeMode === 'levels' && returnToBeta && <button type="button" className="map-return-beta" onClick={() => { setMode('beta'); setReturnToBeta(false) }}>← Back to KaviMap</button>}
     {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} loungeNextStops={nextRooms['black-lotus']?.map(stop =>
       <button className="map-person-stop" key={stop.person} type="button" aria-label={`${stop.person} · ${stop.title}`} onClick={() => onOpenEvent(stop.eventId)}><PersonBubbles people={[stop.person]} /></button>
     )} />}
-    {canOpenBeta && activeMode === 'levels' && mapCatalogs.has('show-store') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('show_store')}>Show Store catalog <span aria-hidden="true">›</span></button>}
+    {activeMode === 'levels' && onOpenCatalog && mapCatalogs.has('show-store') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('show_store')}>Show Store catalog <span aria-hidden="true">›</span></button>}
     {activeMode === 'levels' && [
       { id: 'mana-stage', label: 'Mana Stage · Georgia Ballroom' },
       { id: 'black-lotus', label: 'Black Lotus Lounge · Triumph Ballroom, Signia' },
     ].map(room => roomEvents[room.id]?.length ? <details className="map-card map-room-schedule" id={'map-level-' + room.id} key={room.id} open={focusedLevel === room.id || undefined}>
       <summary>{room.label} {nextRooms[room.id]?.map(stop => <span key={stop.person} title={stop.title}><PersonBubbles people={[stop.person]} /></span>)}</summary>
       {nextRooms[room.id]?.map(stop => <button key={stop.person} className="map-schedule-event map-room-next" type="button" onClick={() => onOpenEvent(stop.eventId)}><PersonBubbles people={[stop.person]} /><strong>{stop.title}</strong></button>)}
-      {canOpenBeta && room.id === 'black-lotus' && mapCatalogs.has('black-lotus') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('black_lotus')}>Black Lotus catalog <span aria-hidden="true">›</span></button>}
-      <ul>{roomEvents[room.id].map(event => <li key={event.id}>{canOpenBeta ? <button type="button" className="map-schedule-event" onClick={() => onOpenEvent(event.id)}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></button> : <><strong>{event.title}</strong><small>{event.day} · {event.time}</small></>}</li>)}</ul>
+      {room.id === 'black-lotus' && onOpenCatalog && mapCatalogs.has('black-lotus') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('black_lotus')}>Black Lotus catalog <span aria-hidden="true">›</span></button>}
+      <ul>{roomEvents[room.id].map(event => <li key={event.id}><button type="button" className="map-schedule-event" onClick={() => onOpenEvent(event.id)}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></button></li>)}</ul>
     </details> : null)}
-    {mapRelease && (betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
-      <KaviMapBeta html={mapRelease.html} schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog }}
+    {(betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
+      <KaviMapBeta schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog }}
         canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOpenEvent={onOpenEvent} onReturn={onReturn}
-        onOpenPrizeCatalog={canOpenPrizeCatalog ? () => onOpenCatalog('prize_wall') : undefined}
+        onOpenPrizeCatalog={canOpenPrizeCatalog && onOpenCatalog ? () => onOpenCatalog('prize_wall') : undefined}
         onOtherFloors={placeId => {
           setReturnToBeta(true)
           setFocusedLevel(placeId)
@@ -5543,10 +5540,8 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
         <p>The Omni sits east of the campus, and Building C is the west-side target.</p>
         <div className="campus-photo-map" aria-label="Aerial-style Omni to GWCC Building C orientation map">
           <img src="./gwcc-campus-reference.png" alt="Aerial view showing the Omni hotel on the east side of Georgia World Congress Center and Building C on the west side." />
-          <button type="button" className="campus-label omni-label" onClick={onOpenTrip}>
-            <strong>Omni</strong>
-            <small>hotel base</small>
-          </button>
+          {onOpenTrip ? <button type="button" className="campus-label omni-label" onClick={onOpenTrip}><strong>Omni</strong><small>hotel</small></button>
+            : <span className="campus-label omni-label"><strong>Omni</strong><small>hotel</small></span>}
           <span className="campus-label building-c-label">
             <strong>GWCC Building C</strong>
             <small>MagicCon target</small>
@@ -8035,6 +8030,28 @@ export function MentionInbox({
   </details>
 }
 
+const publicMapEvents: ExploreEvent[] = [...conventionProgramEvents, ...blackLotusExploreEvents]
+
+function PublicKaviMap() {
+  const [eventId, setEventId] = useState<string>()
+  const event = publicMapEvents.find(item => item.id === eventId)
+  return <main className="public-kavimap">
+    <header className="public-kavimap-heading">
+      <h1>KaviMap™ Beta</h1>
+      <a href="#home">Sign in</a>
+    </header>
+    <MapSurface publicView events={publicMapEvents} currentPerson="Kavi" selections={[]} companions={[]}
+      exhibitors={[]} catalog={emptyCatalogReadModel} onOpenEvent={setEventId} />
+    {event && <aside className="calendar-detail-sheet event-detail-panel" aria-label={event.title}>
+      <button className="detail-close persistent-detail-close" type="button" onClick={() => setEventId(undefined)} aria-label="Close event detail">×</button>
+      <h2>{event.title}</h2>
+      <p>{event.day} · {event.time}</p>
+      <EventMapLink eventId={event.id} />
+      <p>{renderLinkedText(event.detail)}</p>
+    </aside>}
+  </main>
+}
+
 function SetupCard() {
   return <div className="center-card"><span className="kicker">LOCAL SETUP</span><h1>Project connection needed.</h1><p>Add the canonical Supabase URL and publishable key to <code>.env.local</code>.</p></div>
 }
@@ -8044,6 +8061,7 @@ function Login({ onGoogleSignIn, message, messageTone }: { onGoogleSignIn: () =>
     <img src={assetUrl('magiccon-atlanta-peach.png')} alt="MagicCon Atlanta" />
     <span className="kicker">PRIVATE FIELD GUIDE</span><h1>Welcome back.</h1>
     <p className="login-intro">Sign in to open your private MagicCon field guide.</p>
+    <a className="map-return-beta public-map-link" href="#map">Open KaviMap</a>
     <button type="button" className="oauth-button" onClick={onGoogleSignIn}><span aria-hidden="true">G</span>Continue with Google</button>
     {message && <p role="status" className={`login-message ${messageTone}`}>{message}</p>}
   </section></div>

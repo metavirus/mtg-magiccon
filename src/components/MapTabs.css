@@ -41,3 +41,9 @@
 .map-schedule-event:hover,.map-schedule-event:focus-visible{background:#253e59}
 .map-person-stop{display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;pointer-events:auto}
 .map-room-next{display:flex;align-items:center;gap:8px;margin:6px 0}
+.public-kavimap{max-width:1200px;margin:0 auto;padding:12px}
+.public-kavimap-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px}
+.public-kavimap-heading h1{font-size:22px;margin:0}
+.public-kavimap-heading a,.public-map-link{color:var(--blue)}
+.public-map-link{display:inline-grid;place-items:center}
+@media(max-width:600px){.public-kavimap .kavimap-beta-frame{height:calc(100dvh - 100px)}}

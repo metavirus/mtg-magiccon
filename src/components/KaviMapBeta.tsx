@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { readMapMessage, type MapPlaceRequest, type MapUpperPlace } from '../lib/kaviMapBridge'
 import type { MapRoomEvent } from '../lib/mapPersonalEvents'
 
@@ -11,8 +11,7 @@ type FrameSchedule = {
   canOpenPrizeCatalog: boolean
 }
 
-export function KaviMapBeta({ html, schedule, canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn }: {
-  html: string
+export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn }: {
   schedule: FrameSchedule
   canOpenPlace: (place: MapPlaceRequest) => boolean
   onOpenPlace: (place: MapPlaceRequest) => void
@@ -23,6 +22,13 @@ export function KaviMapBeta({ html, schedule, canOpenPlace, onOpenPlace, onOther
 }) {
   const frame = useRef<HTMLIFrameElement>(null)
   const lastPlace = useRef<MapPlaceRequest | null>(null)
+  const sendSchedule = useCallback(() => frame.current?.contentWindow?.postMessage({
+    type: 'kavimap:schedule', version: 1, ...schedule,
+  }, '*'), [schedule])
+  const syncFrame = useCallback(() => {
+    frame.current?.contentWindow?.postMessage({ type: 'kavimap:capabilities', version: 1, levels: true }, '*')
+    sendSchedule()
+  }, [sendSchedule])
   useEffect(() => {
     const reply = (place: MapPlaceRequest) => frame.current?.contentWindow?.postMessage({ type: 'kavimap:available', version: 1, place, available: canOpenPlace(place) }, '*')
     if (lastPlace.current) reply(lastPlace.current)
@@ -42,16 +48,14 @@ export function KaviMapBeta({ html, schedule, canOpenPlace, onOpenPlace, onOther
     return () => window.removeEventListener('message', receive)
   }, [canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn, schedule.eventHits])
   useEffect(() => {
-    const sendSchedule = () => frame.current?.contentWindow?.postMessage({
-      type: 'kavimap:schedule', version: 1, ...schedule,
-    }, '*')
     const receive = (event: MessageEvent) => {
       if (event.source === frame.current?.contentWindow && event.origin === 'null' &&
-          event.data?.type === 'kavimap:ready' && event.data.version === 1) sendSchedule()
+          event.data?.type === 'kavimap:ready' && event.data.version === 1) syncFrame()
     }
     window.addEventListener('message', receive)
     sendSchedule()
     return () => window.removeEventListener('message', receive)
-  }, [schedule])
-  return <iframe onLoad={()=>frame.current?.contentWindow?.postMessage({type:'kavimap:capabilities',version:1,levels:true}, '*')} ref={frame} className="kavimap-beta-frame" srcDoc={html} sandbox="allow-scripts" title="KaviMap™ Beta" />
+  }, [sendSchedule, syncFrame])
+  return <iframe onLoad={syncFrame} ref={frame} className="kavimap-beta-frame"
+    src={`${import.meta.env.BASE_URL}kavimap/index.html`} sandbox="allow-scripts" title="KaviMap™ Beta" />
 }
