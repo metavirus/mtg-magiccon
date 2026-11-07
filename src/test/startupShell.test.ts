@@ -84,6 +84,7 @@ describe('startup shell coherence', () => {
     s.launch()
     await vi.advanceTimersByTimeAsync(0)
     expect(worker.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' })
+    expect(s.registration.update).not.toHaveBeenCalled()
     expect(s.mount).not.toHaveBeenCalled()
     s.container.controller = worker
     s.container.dispatchEvent(new Event('controllerchange'))
@@ -171,17 +172,22 @@ describe('startup shell coherence', () => {
     expect(s.mount).not.toHaveBeenCalled()
   })
 
-  it('never mounts old React if update() rejects after activation was requested', async () => {
+  it('lets a precached worker claim the page after an in-flight network check fails', async () => {
     const s = setup()
-    const worker = new Worker()
-    worker.state = 'installed'
-    s.registration.waiting = worker
-    s.registration.update.mockRejectedValue(new Error('update failed'))
+    let rejectUpdate!: (error: Error) => void
+    s.registration.update.mockImplementation(() => new Promise((_, reject) => { rejectUpdate = reject }))
     s.launch()
     await vi.advanceTimersByTimeAsync(0)
+    const worker = s.install()
+    worker.change('installed')
+    rejectUpdate(new Error('offline origin'))
+    await vi.advanceTimersByTimeAsync(0)
     expect(worker.postMessage).toHaveBeenCalledOnce()
-    expect(s.stalled).toHaveBeenCalledOnce()
+    expect(s.stalled).not.toHaveBeenCalled()
     expect(s.mount).not.toHaveBeenCalled()
+    s.container.controller = worker
+    s.container.dispatchEvent(new Event('controllerchange'))
+    expect(s.reload).toHaveBeenCalledOnce()
   })
 
   it('never mounts old React if a requested worker becomes redundant', async () => {

@@ -1,5 +1,9 @@
 # Current Frontier
 
+## November 7 onsite reliability
+
+The refresh control checks the data for the current view. Online views keep the app header visible while checking, then show confirmed data or identify the saved copy. Offline reopen uses the owner-bound saved data. The startup worker now gives an already cached replacement time to take over even if the network check fails. Release proof includes the Calendar and Wallet browser smoke and cold reopen with the origin stopped at the Pages path. The red exclamation and clipped error were reported on a physical iPhone. That installed app still needs the same airplane-mode retest with Calendar, Wallet proof and the official map before travel.
+
 ## Offline reliability consolidation
 
 All seventeen account lanes share complete per-lane persistence, exact readback and owner/freshness fences. Failed device copies have an actionable, failure-only Retry notice. Code ac6f27b is live: exact709tests/113files, CI41325885692, Pages41325885700 and public artifact verification pass. Independent PM phone/desktop review and local server-stop/reopen/original-image zoom passed. Authenticated public Store retained60products/two bookmarks; warm CacheStorage paint353ms. See docs/OFFLINE_RELIABILITY_REPAIR_2026-11-01.md for evidence and limits. Physical-iPhone airplane-mode proof remains required before travel. Parked map work is excluded.

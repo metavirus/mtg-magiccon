@@ -82,10 +82,10 @@ beforeEach(() => {
   vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
   window.scrollTo = vi.fn()
 })
-afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('startup hydration', () => {
-  it.each([true, false])('opens saved Calendar and Wallet essentials with all server reads stalled (online=%s)', async online => {
+  it.each([true, false])('opens saved Calendar and Wallet after a bounded check, or immediately offline (online=%s)', async online => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(online)
     saved('owner-a', 'Saved guide')
     deviceLaneCache(async () => undefined)
@@ -95,19 +95,38 @@ describe('startup hydration', () => {
       attendee_person_key: 'kavi', attendee_person_keys: ['kavi'], line_items: [{ title: 'Saved convention item', price: 5 }], receipt_artifacts: [],
     }])
     window.history.replaceState(null, '', '/?auth=1#calendar')
+    if (online) vi.useFakeTimers()
     const calendar = render(<App />)
-    expect(await screen.findByRole('heading', { name: 'Arrive ATL · Courtyard night' })).toBeInTheDocument()
-    if (online) await waitFor(() => expect(mocked.requests).toContain('trip_flights'))
+    if (online) {
+      expect(screen.getByRole('heading', { name: 'The road to Atlanta.', level: 1 })).toBeVisible()
+      expect(screen.getByText('Checking for updates…')).toBeVisible()
+      expect(screen.queryByRole('heading', { name: 'Arrive ATL · Courtyard night' })).toBeNull()
+      await act(async () => { await vi.advanceTimersByTimeAsync(150) })
+      expect(mocked.requests).toContain('trip_flights')
+    }
     expect(mocked.catalog).not.toHaveBeenCalled()
     expect(mocked.requests).not.toContain('wallet_receipts')
+    if (online) await act(async () => { await vi.advanceTimersByTimeAsync(4000) })
+    expect(online ? screen.getByRole('heading', { name: 'Arrive ATL · Courtyard night' }) : await screen.findByRole('heading', { name: 'Arrive ATL · Courtyard night' })).toBeVisible()
+    expect(screen.getByText(/^Saved copy/)).toBeVisible()
     calendar.unmount()
     mocked.requests.length = 0
     window.history.replaceState(null, '', '/?auth=1#wallet')
     render(<App />)
-    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
-    expect(await screen.findByText('Saved convention item')).toBeInTheDocument()
+    if (online) {
+      expect(screen.getByText('Checking for updates…')).toBeVisible()
+      expect(screen.queryByRole('tab', { name: 'Store' })).toBeNull()
+    }
     expect(mocked.requests.includes('wallet_receipts')).toBe(online)
     expect(mocked.requests).not.toContain('trip_flights')
+    if (online) {
+      await act(async () => { await vi.advanceTimersByTimeAsync(4000) })
+      vi.useRealTimers()
+    }
+    await screen.findByRole('tab', { name: 'Store' })
+    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
+    expect(await screen.findByText('Saved convention item')).toBeInTheDocument()
+    expect(screen.getByText(/^Saved copy/)).toBeVisible()
   })
 
   it('offers a retry if a fresh session check stalls and recovers on a late valid session', async () => {
@@ -128,20 +147,21 @@ describe('startup hydration', () => {
     writeOfflineIdentity({ userId: 'owner-a', email: 'user@example.com' })
     window.history.replaceState(null, '', '/?auth=1#wallet')
     render(<App />)
-    fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
-    expect(screen.getByText('Loading receipts…')).toBeInTheDocument()
+    expect(screen.getByText('Checking for updates…')).toBeVisible()
     expect(screen.queryByText('No Atlanta store receipts yet')).not.toBeInTheDocument()
     expect(screen.queryByText(/Offline proof ready/)).not.toBeInTheDocument()
     await act(async () => { window.location.hash = '#plan'; window.dispatchEvent(new HashChangeEvent('hashchange')) })
-    expect(screen.getByText('Loading Plan…')).toBeInTheDocument()
+    expect(screen.getByText('Checking for updates…')).toBeVisible()
     expect(screen.queryByText('No active contenders yet.')).not.toBeInTheDocument()
   })
 
-  it.each([true, false])('paints owner saved Info before any network read settles (online=%s)', online => {
+  it.each([true, false])('shows saved Info immediately only when offline (online=%s)', online => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(online)
     saved('owner-a', 'Saved current hours')
     render(<App />)
-    expect(screen.getByText('Saved current hours', { selector: 'strong' })).toBeInTheDocument()
+    const hours = screen.getByText('Saved current hours', { selector: 'strong' })
+    if (online) expect(hours).not.toBeVisible()
+    else expect(hours).toBeVisible()
     expect(screen.queryByText('Opening your field guide…')).not.toBeInTheDocument()
   })
 
@@ -151,9 +171,28 @@ describe('startup hydration', () => {
     mocked.info.mockReturnValue(read.promise)
     render(<App />)
     await act(async () => { read.reject(new Error('offline')) })
-    expect(screen.getByText('Saved current hours', { selector: 'strong' })).toBeInTheDocument()
+    expect(screen.getByText('Saved current hours', { selector: 'strong' })).toBeVisible()
+    expect(screen.getByText(/^Saved copy/)).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'Getting in' })).not.toBeInTheDocument()
     expect(readOfflineContinuity('owner-a')?.lanes.info).toMatchObject({ topics: [{ title: 'Saved current hours' }] })
+  })
+
+  it('checks the visible view on demand and waits for confirmed data before showing it', async () => {
+    saved('owner-a', 'Old cached hours')
+    mocked.info.mockResolvedValueOnce({ topics: [topic('Confirmed hours')], feed: [] })
+    const check = deferred<{ topics: InfoTopic[]; feed: [] }>()
+    mocked.info.mockReturnValueOnce(check.promise)
+    render(<App />)
+    expect(await screen.findByText('Confirmed hours', { selector: 'strong' })).toBeVisible()
+    const refresh = screen.getByRole('button', { name: 'Refresh this view' })
+    fireEvent.click(refresh)
+    expect(refresh).toBeDisabled()
+    expect(screen.getByText('Checking for updates…')).toBeVisible()
+    expect(screen.getByText('Confirmed hours', { selector: 'strong' })).not.toBeVisible()
+    await act(async () => { check.resolve({ topics: [topic('Updated hours')], feed: [] }) })
+    expect(screen.getByText('Updated hours', { selector: 'strong' })).toBeVisible()
+    expect(refresh).toBeEnabled()
+    expect(mocked.info).toHaveBeenCalledTimes(2)
   })
 
   it('publishes Store while monitoring, notes and other reads remain held', async () => {
@@ -163,7 +202,7 @@ describe('startup hydration', () => {
     render(<App />)
     await act(async () => { store.resolve({ ...startupCatalogModel, offers: [{ ...startupCatalogModel.offers[0], product_name: 'Fresh canonical product', interests: [] }] }) })
     fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
-    expect(screen.getByText('Fresh canonical product')).toBeInTheDocument()
+    expect(await screen.findByText('Fresh canonical product')).toBeVisible()
     expect((await readOfflineLane('owner-a', 'catalog'))?.value).toMatchObject({ offers: [{ product_name: 'Fresh canonical product' }] })
   })
 
@@ -175,8 +214,9 @@ describe('startup hydration', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
     await act(async () => { store.resolve({ status: 'unavailable', offers: [] }) })
-    expect(screen.queryByText('Loading Store…')).not.toBeInTheDocument()
-    expect(screen.getByText(cached ? 'Store could not be refreshed. Showing saved items.' : 'Store could not be loaded. Try refreshing.')).toHaveAttribute('role', 'status')
+    expect(await screen.findByText(cached ? /^Saved copy/ : 'Couldn’t load this view. Try refreshing.')).toHaveAttribute('role', 'status')
+    const nestedLoading = screen.queryByText('Loading Store…')
+    if (nestedLoading) expect(nestedLoading).not.toBeVisible()
     if (cached) {
       expect(screen.getByText('Saved canonical product')).toBeInTheDocument()
       expect(readOfflineContinuity('owner-a')?.lanes.catalog).toMatchObject({ offers: [{ product_name: 'Saved canonical product' }] })
@@ -196,7 +236,7 @@ describe('startup hydration', () => {
     render(<App />)
     await act(async () => { store.resolve({ ...startupCatalogModel, offers: [{ ...startupCatalogModel.offers[0], product_name: 'Fresh retained in memory', interests: [] }] }) })
     if (qa === 'startup') fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
-    expect(screen.getByText('Fresh retained in memory')).toBeInTheDocument()
+    expect(await screen.findByText('Fresh retained in memory')).toBeVisible()
     expect(document.documentElement.getAttribute('data-startup-cache-write-failed')).toBe(qa === 'startup' ? 'catalog:QuotaExceededError' : null)
     expect(document.documentElement.getAttribute('data-startup-cache-write-catalog')).toBe(qa === 'startup' ? 'QuotaExceededError' : null)
     expect(document.documentElement.getAttribute('data-startup-cache-has-catalog')).toBe(qa === 'startup' ? 'false' : null)

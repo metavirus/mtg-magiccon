@@ -53,6 +53,7 @@ import { createReconnectRefresh } from './lib/offlineContinuity'
 import { readOfflineLane, readOfflineLaneSync, readOfflineLanesSync, writeOfflineLane, saveOfflineLane, offlineLaneReadGuard, usableOfflineLane, STARTUP_CACHE_LANES, OfflineLaneCacheWriteError, safeCacheErrorName } from './lib/offlineLaneCache'
 import type { ContinuityLane } from './lib/offlineContinuity'
 import { publishHydrationLane } from './lib/startupHydration'
+import { screenFreshness, screenReads, withReadDeadline, type InfoView, type ScreenRead } from './lib/screenFreshness'
 import { clearOfflineIdentity, readOfflineIdentity, writeOfflineIdentity } from './lib/offlineIdentity'
 import { cacheDeviceAssets, catalogAssetUrls, exhibitorAssetUrls } from './lib/deviceAssets'
 import { auditReceiptArtifactCache, clearReceiptArtifactCache, primeReceiptArtifactCache, selectReceiptArtifactsForDisplay, type ReceiptArtifact, type ReceiptArtifactRole } from './lib/receiptArtifacts'
@@ -259,6 +260,8 @@ export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
   const calendarOpen = useRef(surface === 'calendar')
   calendarOpen.current = surface === 'calendar'
   const promoteRefresh = useRef<(() => void) | null>(null)
+  const refreshNow = useRef<(() => void) | null>(null)
+  const [receiptRead, setReceiptRead] = useState<{ ownerId: string; read: ScreenRead } | null>(null)
   const [snapshot, setSnapshot] = useState<{ ownerId: string; rows: WalletReceiptRow[] } | null>(null)
   const [load, setLoad] = useState<{ ownerId: string; status: ReceiptLoadStatus } | null>(null)
   const [proof, setProof] = useState<{ ownerId: string; status: OfflineProofPackStatus } | null>(null)
@@ -266,6 +269,7 @@ export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
     setSnapshot(null)
     setLoad(null)
     setProof(null)
+    setReceiptRead(null)
     if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) return
     let active = true
     const client = supabase
@@ -274,11 +278,18 @@ export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
     let inFlight = false
     let deferredRefresh: ReturnType<typeof setTimeout> | undefined
     let deadline: ReturnType<typeof setTimeout> | undefined
+    const markRead = (read: Partial<ScreenRead>) => setReceiptRead(previous => ({
+      ownerId: currentOwnerId,
+      read: { state: 'checking', ...(previous?.ownerId === currentOwnerId ? previous.read : {}), ...read },
+    }))
     const publish = (rows: WalletReceiptRow[]) => {
       setSnapshot({ ownerId: currentOwnerId, rows })
       setLoad({ ownerId: currentOwnerId, status: 'ready' })
     }
-    const unavailable = () => setLoad({ ownerId: currentOwnerId, status: 'unavailable' })
+    const unavailable = () => {
+      setLoad({ ownerId: currentOwnerId, status: 'unavailable' })
+      markRead({ state: 'failed' })
+    }
     const audit = async (rows: WalletReceiptRow[], current: () => boolean) => {
       const artifacts = rows.flatMap(receipt => receipt.receipt_artifacts ?? [])
       const result = await auditReceiptArtifactCache(artifacts, currentOwnerId).catch(() => ({
@@ -286,9 +297,13 @@ export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
       }))
       if (current()) setProof({ ownerId: currentOwnerId, status: { ...result, loading: false } })
     }
-    const savedSync = readOfflineLaneSync(currentOwnerId, 'walletReceipts')?.value
-    if (Array.isArray(savedSync)) publish(savedSync as WalletReceiptRow[])
-    void readOfflineLane(currentOwnerId, 'walletReceipts').then(saved => {
+    const local = readOfflineLaneSync(currentOwnerId, 'walletReceipts')
+    const savedSync = local?.value
+    if (Array.isArray(savedSync)) {
+      publish(savedSync as WalletReceiptRow[])
+      markRead({ savedAt: local?.savedAt })
+    }
+    void withReadDeadline(readOfflineLane(currentOwnerId, 'walletReceipts'), 1500).catch(() => null).then(saved => {
       if (!active || serverAccepted) return
       if (!saved || !Array.isArray(saved.value)) {
         if (Array.isArray(savedSync)) void audit(savedSync as WalletReceiptRow[], () => active && !serverAccepted)
@@ -297,21 +312,25 @@ export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
       }
       const cachedReceipts = saved.value as WalletReceiptRow[]
       publish(cachedReceipts)
+      markRead({ savedAt: saved.savedAt })
       void audit(cachedReceipts, () => active && !serverAccepted)
     })
-    const refreshReceipts = () => {
+    const refreshReceipts = (manual = false) => {
       clearTimeout(deferredRefresh)
       deferredRefresh = undefined
+      if (manual && navigator.onLine && inFlight) markRead({ state: 'checking' })
       if (!navigator.onLine || inFlight) return
+      markRead({ state: 'checking' })
       inFlight = true
       const generation = ++request
       clearTimeout(deadline)
       const current = () => active && generation === request
       deadline = setTimeout(() => {
         if (!current()) return
+        request++
         inFlight = false
         unavailable()
-      }, 10_000)
+      }, 4_000)
       void client.from('wallet_receipts')
         .select('id,receipt_type,title,vendor,receipt_date,amount,currency,attendee_person_key,attendee_person_keys,line_items,receipt_artifacts(id,artifact_role,bucket_id,object_path,mime_type,display_label,display_order)')
         .order('receipt_date', { ascending: false })
@@ -327,6 +346,7 @@ export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
         }))
         serverAccepted = true
         publish(refreshed)
+        markRead({ state: 'current', checkedAt: new Date().toISOString() })
         saveOfflineLane(currentOwnerId, 'walletReceipts', refreshed)
         const completeProofPack = [...new Map(refreshed.flatMap(receipt => receipt.receipt_artifacts).map(artifact => [artifact.id, artifact])).values()]
         setProof(null)
@@ -345,12 +365,14 @@ export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
       if (document.visibilityState === 'visible') scheduleRefresh()
     }
     promoteRefresh.current = () => { if (deferredRefresh !== undefined) refreshReceipts() }
+    refreshNow.current = () => refreshReceipts(true)
     scheduleRefresh()
     window.addEventListener('online', scheduleRefresh)
     document.addEventListener('visibilitychange', refreshVisibleReceipts)
     return () => {
       active = false
       promoteRefresh.current = null
+      refreshNow.current = null
       clearTimeout(deferredRefresh)
       clearTimeout(deadline)
       window.removeEventListener('online', scheduleRefresh)
@@ -364,6 +386,8 @@ export function useWalletReceipts(currentOwnerId?: string, surface?: Surface) {
     receipts: snapshot && snapshot.ownerId === currentOwnerId ? snapshot.rows : [],
     receiptStatus: snapshot && snapshot.ownerId === currentOwnerId ? 'ready' as const : load && load.ownerId === currentOwnerId ? load.status : 'loading' as const,
     proofPack: proof && proof.ownerId === currentOwnerId ? proof.status : null,
+    freshness: receiptRead?.ownerId === currentOwnerId ? receiptRead?.read : undefined,
+    refreshReceipts: refreshNow,
   }
 }
 
@@ -928,7 +952,21 @@ export default function App() {
   const [tripFlights, setTripFlights] = useState<TripFlight[]>(designPreview || isPreviewOwnerMode ? previewTripFlights : [])
   const [flightsKnown, setFlightsKnown] = useState(designPreview || isPreviewOwnerMode)
   const [continuityReady, setContinuityReady] = useState(false)
-  const [continuityFailures, setContinuityFailures] = useState<string[]>([])
+  const [readOwner, setReadOwner] = useState<string>()
+  const [laneReads, setLaneReads] = useState<Partial<Record<ContinuityLane, ScreenRead>>>({})
+  const [savedReadsChecked, setSavedReadsChecked] = useState(false)
+  const [infoView, setInfoView] = useState<InfoView>('guide')
+  const changeInfoView = useCallback((view: InfoView) => {
+    setInfoView(view)
+    releaseBackgroundRefresh.current?.()
+  }, [])
+  const [artistRefreshRequest, setArtistRefreshRequest] = useState(0)
+  const infoViewRef = useRef(infoView)
+  infoViewRef.current = infoView
+  const pendingLaneReads = useRef(new Map<ContinuityLane, Promise<void>>())
+  const markLaneRead = useCallback((key: ContinuityLane, next: Partial<ScreenRead>) => {
+    setLaneReads(previous => ({ ...previous, [key]: { state: 'checking', ...previous[key], ...next } }))
+  }, [])
   useEffect(() => {
     if (isPreviewOwnerMode && effectiveOwnerId && qaFlags.includes('offline-storage-failure')) void rehearseOfflineSaveFailure(effectiveOwnerId)
   }, [effectiveOwnerId, isPreviewOwnerMode, appSearch])
@@ -965,7 +1003,7 @@ export default function App() {
   const continuityContext = useRef({ slice, effectiveSession, companionMembers: fallbackCompanionMembers })
   const [alertReview, setAlertReview] = useState<Record<string, AlertReviewState>>({})
   const [companionMembers, setCompanionMembers] = useState<CompanionMember[]>(fallbackCompanionMembers)
-  const { receipts: walletReceipts, receiptStatus, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId, surface)
+  const { receipts: walletReceipts, receiptStatus, freshness: walletFreshness, refreshReceipts, proofPack: offlineProofPack } = useWalletReceipts(effectiveOwnerId, surface)
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
   continuityContext.current = { slice, effectiveSession, companionMembers }
@@ -1051,7 +1089,6 @@ export default function App() {
 
   useEffect(() => {
     if (designPreview || isPreviewOwnerMode) {
-      setContinuityFailures([])
       setLoading(false)
       return
     }
@@ -1140,8 +1177,7 @@ export default function App() {
       persistContinuityLane(effectiveOwnerId, 'trustSlice', next)
     } catch (error) {
       if (activeOwner.current !== effectiveOwnerId) return
-      setMessageTone('error')
-      setMessage(error instanceof Error ? error.message : 'The current view could not be refreshed.')
+      console.warn('Legacy trust slice could not be refreshed', error)
     } finally {
       if (activeOwner.current === effectiveOwnerId) setLoading(false)
     }
@@ -1155,6 +1191,10 @@ export default function App() {
     hydrationGeneration.current += 1
     const cacheEpoch = ++cacheOwnerEpoch.current
     acceptedServerLanes.current = new Set()
+    pendingLaneReads.current = new Map()
+    setReadOwner(effectiveOwnerId)
+    setLaneReads({})
+    setSavedReadsChecked(false)
     markStartup('shell')
     if (designPreview || isPreviewOwnerMode) return
     setContextNotesState([])
@@ -1174,7 +1214,6 @@ export default function App() {
     setFlightsKnown(false)
     setExploreEventState(purchaseQaEvents(exploreEvents))
     setMonitorAlerts([])
-    setContinuityFailures([])
     setExhibitorError('')
     setObjectDetail(null)
     const cachedTrust = effectiveOwnerId ? readOfflineLaneSync(effectiveOwnerId, 'trustSlice')?.value as TrustSlice | null : null
@@ -1186,6 +1225,9 @@ export default function App() {
       document.documentElement.removeAttribute('data-startup-catalog-cache-ms')
     }
     if (cached) {
+      for (const key of STARTUP_CACHE_LANES) {
+        if (usableOfflineLane(key, cached.lanes[key])) markLaneRead(key, { savedAt: cached.laneSavedAt?.[key] ?? cached.savedAt })
+      }
       markStartup('cache')
       const lanes = cached.lanes
       if (lanes.notes) setContextNotesState(lanes.notes as ContextNote[])
@@ -1270,17 +1312,21 @@ export default function App() {
         if (localTime && localTime >= saved.savedAt && usableOfflineLane(key, cached?.lanes[key])) return
         if (key === 'catalog') savedCatalogSource.current = saved.source ?? 'cache-storage'
         applySavedLane(key, saved.value)
+        markLaneRead(key, { savedAt: saved.savedAt })
       })).then(() => {})
+      void withReadDeadline(initialCacheReads.current, 1500).catch(() => {}).then(() => {
+        if (cacheOwnerEpoch.current === cacheEpoch) setSavedReadsChecked(true)
+      })
     } else initialCacheReads.current = Promise.resolve()
     return () => {
       cacheOwnerEpoch.current += 1
       hydrationGeneration.current += 1
       releaseBackgroundRefresh.current?.()
     }
-  }, [designPreview, isPreviewOwnerMode, effectiveOwnerId, markStartup])
+  }, [designPreview, isPreviewOwnerMode, effectiveOwnerId, markLaneRead, markStartup])
 
-  const refreshUserContinuity = useCallback(async (forceOnline = false) => {
-    const generation = ++hydrationGeneration.current
+  const refreshUserContinuity = useCallback(async (forceOnline = false, only?: ContinuityLane[]) => {
+    const generation = hydrationGeneration.current
     const isCurrent = () => activeOwner.current === effectiveOwnerId && hydrationGeneration.current === generation
     if (designPreview || isPreviewOwnerMode) {
       const previewKey = `${effectiveOwnerId}:${atlantaMerchReview}:${catalogBrowserQa}`
@@ -1316,22 +1362,33 @@ export default function App() {
       void initialCacheReads.current.finally(() => { clearTimeout(timer); resolve() })
     })
     if (!isCurrent()) return
-    const failures: string[] = []
-    setContinuityFailures([])
-    const lane = <T,>(key: ContinuityLane, label: string, read: Promise<T>, publish: (value: T) => void) => {
+    const lane = <T,>(key: ContinuityLane, read: () => Promise<T>, publish: (value: T) => void) => {
+      const pending = pendingLaneReads.current
+      const existing = pending.get(key)
+      if (existing) return existing
+      markLaneRead(key, { state: 'checking' })
       const fresh = offlineLaneReadGuard(effectiveOwnerId, key)
-      return publishHydrationLane(read, () => isCurrent() && fresh(), value => {
+      const work = publishHydrationLane(withReadDeadline(read()), isCurrent, value => {
+        if (!fresh()) {
+          // The newer write stays visible, but this read cannot confirm the whole lane.
+          markLaneRead(key, { state: 'failed' })
+          return
+        }
         publish(value)
         acceptedServerLanes.current.add(key)
         persistContinuityLane(effectiveOwnerId, key, value)
+        markLaneRead(key, { state: 'current', checkedAt: new Date().toISOString() })
       }, () => {
-        failures.push(label)
-        setContinuityFailures(current => [...new Set([...current, label])])
+        markLaneRead(key, { state: 'failed' })
+      }).finally(() => {
+        if (pending.get(key) === work) pending.delete(key)
       })
+      pending.set(key, work)
+      return work
     }
-    const calendarRequests = () => [
-      lane('flights', 'Trip flights', supabase ? loadTripFlights(supabase) : Promise.resolve([]), flights => { setTripFlights(flights); setFlightsKnown(true) }),
-      lane('selections', 'selections', loadUserSelections(effectiveOwnerId), rows => {
+    const requests: Partial<Record<ContinuityLane, () => Promise<void>>> = {
+      flights: () => lane('flights', () => supabase ? loadTripFlights(supabase) : Promise.resolve([]), flights => { setTripFlights(flights); setFlightsKnown(true) }),
+      selections: () => lane('selections', () => loadUserSelections(effectiveOwnerId), rows => {
         setSharedSelectionRows(rows)
         const selections = userSelectionMap(rows.filter(row => row.owner_id === effectiveOwnerId))
         setUserSelections(selections)
@@ -1342,7 +1399,32 @@ export default function App() {
         setExploreEventState(applySelectionState(exploreEvents, selections, context.slice, currentCompanionFromSession(context.effectiveSession, context.companionMembers)))
         setContinuityReady(true)
       }),
-    ]
+      notes: () => lane('notes', () => loadContextNotes(effectiveOwnerId), setContextNotesState),
+      mentions: () => lane('mentions', () => loadMentionInbox(effectiveOwnerId), setMentionInboxState),
+      activity: () => lane('activity', () => loadUserActivityEvents(effectiveOwnerId), setUserActivityRows),
+      monitorAlerts: () => lane('monitorAlerts', async () => {
+        const response = await fetch(`${import.meta.env.BASE_URL}monitoring-intake.json`, { cache: 'no-store' })
+        if (!response.ok) throw new Error('Updates unavailable')
+        const payload = await response.json()
+        if (!Array.isArray(payload?.alerts)) throw new Error('Updates unavailable')
+        return payload.alerts.filter(isMonitoringAlert) as MonitoringAlert[]
+      }, setMonitorAlerts),
+      findings: () => lane('findings', () => isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]), setMonitoringFindings),
+      concepts: () => lane('concepts', () => isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]), setMonitoringConcepts),
+      info: () => lane('info', loadInfoKnowledge, info => { setInfoTopics(info.topics); setInfoFeed(info.feed) }),
+      ticketedAvailability: () => lane('ticketedAvailability', loadTicketedPlayAvailability, setTicketedAvailability),
+      catalog: () => lane('catalog', () => supabase ? loadCatalogReadModel(supabase, 'magiccon_atlanta_2026') : Promise.resolve(emptyCatalogReadModel), model => {
+        if (model.status !== 'ready') throw new Error('Catalog unavailable')
+        markStartup('catalog')
+        setCatalogReadModel(model)
+        void cacheDeviceAssets(catalogAssetUrls(model.offers))
+      }),
+      exhibitors: () => lane('exhibitors', loadExhibitors, records => {
+        setExhibitors(records)
+        setExhibitorError('')
+        void cacheDeviceAssets(exhibitorAssetUrls(records), true)
+      }),
+    }
     const waitForForeground = (foreground?: Promise<unknown>) => new Promise<void>(resolve => {
       const release = () => {
         clearTimeout(timer)
@@ -1353,47 +1435,16 @@ export default function App() {
       releaseBackgroundRefresh.current = release
       void foreground?.then(release, release)
     })
-    if (currentSurface.current === 'wallet') await waitForForeground()
-    if (!isCurrent()) return
-    const calendar = Promise.all(calendarRequests())
-    if (currentSurface.current === 'calendar') await waitForForeground(calendar)
-    if (!isCurrent()) return
-    await Promise.all([
-      calendar,
-      lane('notes', 'notes', loadContextNotes(effectiveOwnerId), setContextNotesState),
-      lane('mentions', 'mentions', loadMentionInbox(effectiveOwnerId), setMentionInboxState),
-      lane('activity', 'activity', loadUserActivityEvents(effectiveOwnerId), setUserActivityRows),
-      lane('findings', 'monitoring findings', isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]), setMonitoringFindings),
-      lane('concepts', 'monitoring concepts', isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]), setMonitoringConcepts),
-      lane('info', 'Info knowledge', loadInfoKnowledge(), info => { setInfoTopics(info.topics); setInfoFeed(info.feed) }),
-      lane('ticketedAvailability', 'Ticketed Play availability', loadTicketedPlayAvailability(), setTicketedAvailability),
-      lane('catalog', 'catalogs', supabase ? loadCatalogReadModel(supabase, 'magiccon_atlanta_2026') : Promise.resolve(emptyCatalogReadModel), model => {
-        // An unavailable read is a refresh failure, never a replacement for the
-        // last complete saved catalog (an authoritative empty ready model is valid).
-        if (model.status !== 'ready') throw new Error('Catalog unavailable')
-        markStartup('catalog')
-        setCatalogReadModel(model)
-        void cacheDeviceAssets(catalogAssetUrls(model.offers))
-      }),
-      lane('exhibitors', 'exhibitors', loadExhibitors(), records => {
-        setExhibitors(records)
-        setExhibitorError('')
-        void cacheDeviceAssets(exhibitorAssetUrls(records), true)
-      }),
-    ])
-    if (!isCurrent()) return
-    const globalFailures = failures.filter(resource => resource !== 'notes')
-    if (globalFailures.length) {
-      console.warn('Continuity refresh partially failed', failures)
-      setMessageTone(globalFailures.length === 1 && globalFailures[0] === 'selections' ? 'info' : 'error')
-      setMessage(globalFailures.length === 1 && globalFailures[0] === 'selections'
-        ? 'Selections are taking a moment to sync. Notes, signals, and other account data are still available.'
-        : `${globalFailures.join(', ')} could not be refreshed. Other account data is still available.`)
-    } else {
-      if (failures.length) console.warn('Continuity refresh partially failed', failures)
-      setMessage('')
+    if (only) {
+      await Promise.all(only.map(key => requests[key]?.()))
+      return
     }
-  }, [atlantaMerchReview, catalogBrowserQa, designPreview, isPreviewOwnerMode, effectiveOwnerId, markStartup, persistContinuityLane])
+    const first = screenReads(currentSurface.current, infoViewRef.current)
+    if (first.includes('walletReceipts')) await waitForForeground()
+    else if (first.length) await waitForForeground(Promise.all(first.map(key => requests[key]?.())))
+    if (!isCurrent()) return
+    await Promise.all(Object.entries(requests).filter(([key]) => !first.includes(key as ContinuityLane)).map(([, read]) => read()))
+  }, [atlantaMerchReview, catalogBrowserQa, designPreview, isPreviewOwnerMode, effectiveOwnerId, markLaneRead, markStartup, persistContinuityLane])
 
   useEffect(() => { void refreshUserContinuity() }, [refreshUserContinuity])
 
@@ -1486,8 +1537,7 @@ export default function App() {
       saveOfflineLane(effectiveOwnerId, 'companions', members)
     }).catch(error => {
       if (activeOwner.current !== effectiveOwnerId || cacheOwnerEpoch.current !== epoch) return
-      setMessageTone('error')
-      setMessage(error instanceof Error ? `Companion roster could not be refreshed: ${error.message}` : 'Companion roster could not be refreshed.')
+      console.warn('Companion roster could not be refreshed', error)
     })
   }, [designPreview, isPreviewOwnerMode, effectiveOwnerId])
 
@@ -1505,12 +1555,12 @@ export default function App() {
   useEffect(() => { void refreshCompanions() }, [refreshCompanions])
 
   useEffect(() => {
-    if (!session || !effectiveOwnerId || !online || designPreview || isPreviewOwnerMode) return
+    if (!session || !effectiveOwnerId || !online || designPreview || isPreviewOwnerMode || currentSurface.current === 'artists') return
     let active = true
     const catalogFresh = offlineLaneReadGuard(effectiveOwnerId, 'artistCatalog')
     const signingFresh = offlineLaneReadGuard(effectiveOwnerId, 'artistSigningInterests')
     void Promise.all([loadArtistCatalogFromSupabase(effectiveOwnerId), loadArtistSigningInterestMap(effectiveOwnerId)]).then(([catalog, signingInterests]) => {
-      if (!active) return
+      if (!active || currentSurface.current === 'artists') return
       if (catalogFresh()) saveOfflineLane(effectiveOwnerId, 'artistCatalog', catalog)
       if (signingFresh()) saveOfflineLane(effectiveOwnerId, 'artistSigningInterests', signingInterests)
       void cacheDeviceAssets([
@@ -1553,7 +1603,7 @@ export default function App() {
 
   useEffect(() => {
     let active = true
-    if (!navigator.onLine) return () => { active = false }
+    if (!(designPreview || isPreviewOwnerMode) || !navigator.onLine) return () => { active = false }
     void fetch(`${import.meta.env.BASE_URL}monitoring-intake.json`, { cache: 'no-store' })
       .then(response => response.ok ? response.json() : null)
       .then(payload => {
@@ -1563,10 +1613,6 @@ export default function App() {
         for (const alert of incoming) mergedById.set(alert.id, alert)
         const merged = [...mergedById.values()]
         setMonitorAlerts(merged)
-        if (effectiveOwnerId) {
-          acceptedServerLanes.current.add('monitorAlerts')
-          saveOfflineLane(effectiveOwnerId, 'monitorAlerts', merged)
-        }
       })
       .catch(() => {
         // The intake file is optional. If it is missing or malformed, keep the
@@ -1690,6 +1736,7 @@ export default function App() {
   }
 
   if (!supabase) return <SetupCard />
+  if (!online && !effectiveSession && !designPreview) return <div className="center-card empty" role="status"><p>Connect to open your field guide.</p></div>
   if (loading && !effectiveSession && !slice) return <div className="boot">Opening your field guide…</div>
   if (sessionCheckFailed && !effectiveSession && !designPreview) return <div className="center-card empty" role="alert"><p>Couldn’t check your sign-in.</p><button type="button" onClick={() => window.location.reload()}>Retry</button></div>
   if (!effectiveSession && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} messageTone={messageTone} />
@@ -2302,6 +2349,45 @@ export default function App() {
   }
   const selectedMapEvent = mapEventId ? displayedExploreEvents.find(event => event.id === mapEventId) : undefined
   const presentationSurface = activeMapTrip ? 'map' : surface
+  const freshnessKeys = screenReads(presentationSurface, infoView)
+  const liveAccount = Boolean(effectiveOwnerId && !designPreview && !isPreviewOwnerMode)
+  const screenReadStates = {
+    ...(readOwner === effectiveOwnerId ? laneReads : {}),
+    walletReceipts: walletFreshness,
+  }
+  const freshness = screenFreshness(liveAccount ? freshnessKeys : [], screenReadStates, online)
+  const readingDevice = !online && freshness.state === 'unavailable'
+    && (surface === 'wallet' ? receiptStatus === 'loading' : !savedReadsChecked)
+  const screenChecking = freshness.state === 'checking' || readingDevice
+  const showScreen = !screenChecking && freshness.state !== 'unavailable'
+  const refreshScreen = () => {
+    if (!onlineRef.current || !effectiveOwnerId) return
+    setMessage('')
+    if (surface === 'artists' && !activeMapTrip) {
+      setArtistRefreshRequest(request => request + 1)
+      return
+    }
+    if (freshnessKeys.includes('walletReceipts')) {
+      refreshReceipts.current?.()
+      return
+    }
+    const keys: ContinuityLane[] = presentationSurface === 'map'
+      ? ['selections', 'catalog', 'exhibitors']
+      : freshnessKeys
+    if (keys.length) {
+      keys.forEach(key => markLaneRead(key, { state: 'checking' }))
+      void refreshUserContinuity(true, keys)
+    }
+  }
+  const mapReads = screenFreshness(['selections', 'catalog', 'exhibitors'], screenReadStates, online)
+  const refreshChecking = presentationSurface === 'map' ? mapReads.state === 'checking' : freshness.state === 'checking'
+  const screenNotice = presentationSurface === 'map' && liveAccount && online && (mapReads.state === 'saved' || mapReads.state === 'unavailable')
+    ? 'Some map details couldn’t be refreshed.'
+    : screenChecking ? (online ? 'Checking for updates…' : 'Opening saved data…')
+    : freshness.state === 'saved' ? (freshness.savedAt
+      ? `Saved copy · ${new Date(freshness.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`
+      : 'Showing available saved data.')
+      : freshness.state === 'unavailable' ? (online ? 'Couldn’t load this view. Try refreshing.' : 'This view isn’t saved on this device.') : null
   const headerLabel = activeMapTrip ? 'MAP' : surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
   const headerTitle = activeMapTrip ? 'Map' : surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
   const headerSubtitle = activeMapTrip ? 'Building C · Level 1' : surface === 'map' ? 'MagicCon Atlanta' : surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
@@ -2404,13 +2490,15 @@ export default function App() {
         </div>
         <div className="header-status">
           <div className="header-actions">
-            {message && messageTone === 'error' && <details className="global-alert-control">
-              <summary aria-label="Account refresh alert" title="Account refresh alert">!</summary>
-              <div className="global-alert-popover" role="status">
-                <span className="eyebrow">SYNC ALERT</span>
-                <p>{message}</p>
-              </div>
-            </details>}
+            {liveAccount && (freshnessKeys.length > 0 || presentationSurface === 'map' || surface === 'artists') && <button
+              className="data-refresh"
+              type="button"
+              aria-label="Refresh this view"
+              title={online ? 'Refresh this view' : 'Connect to refresh'}
+              disabled={!online || refreshChecking}
+              aria-busy={online && refreshChecking}
+              onClick={refreshScreen}
+            ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.8 8a7 7 0 0 1 11.8-2l2.4 3M4 15l2.4 3A7 7 0 0 0 18.2 16"/></svg></button>}
             <MentionInbox
               items={mentionInboxState}
               alerts={inboxSignals}
@@ -2451,14 +2539,15 @@ export default function App() {
         </div>
       </header>
 
-      {((message && messageTone !== 'error') || navNotice) && <p role="status" className={message ? `alert ${messageTone}` : 'nav-notice'}>{message || navNotice}</p>}
+      {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone} app-status-message` : 'nav-notice'}>{message || navNotice}</p>}
+      {screenNotice && <p role="status" className={screenChecking || !showScreen ? 'screen-data-status screen-data-placeholder' : 'screen-data-status'}>{screenNotice}</p>}
       <OfflineSaveStatus ownerId={effectiveOwnerId} identityFailed={offlineIdentityFailureOwner === effectiveOwnerId && Boolean(effectiveOwnerId)} onRetryIdentity={() => {
         if (!offlineIdentity || offlineIdentity.userId !== effectiveOwnerId) return
         try { writeOfflineIdentity(offlineIdentity); setOfflineIdentityFailureOwner(undefined) }
         catch { setOfflineIdentityFailureOwner(effectiveOwnerId) }
       }} />
       {activeMapTrip && privateMap && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(session?.user.id ?? "guest") + activeMapTrip} canOpenBeta={privateMap} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
-      <div hidden={Boolean(activeMapTrip)}>
+      <div hidden={Boolean(activeMapTrip) || (!showScreen && surface !== 'info')}>
         {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'}
           calendarEntries={(continuityReady && flightsKnown && currentCompanion) || designPreview || isPreviewOwnerMode
             ? homeCalendarEntries(displayedExploreEvents, tripFlights, currentCompanion?.name ?? 'Kavi') : null}
@@ -2466,7 +2555,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface onShowOnMap={privateMap ? showEventOnMap : undefined} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={privateMap ? showEventOnMap : undefined} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface key={session?.user.id ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} canOpenBeta={privateMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
-{surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogRefreshFailed={continuityFailures.includes('catalogs')} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
+{surface === 'info' && <InfoSurface onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
@@ -2490,14 +2579,14 @@ export default function App() {
           })
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
-        {surface === 'artists' && <ArtistsSurface mapOpen={Boolean(activeMapTrip)} mapAllowed={privateMap} onShowOnMap={placeId => {
+        {surface === 'artists' && <ArtistsSurface refreshRequest={artistRefreshRequest} onRead={markLaneRead} mapOpen={Boolean(activeMapTrip)} mapAllowed={privateMap} onShowOnMap={placeId => {
           mapReturnScroll.current = window.scrollY
           mapReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
           navigate('#artists?map=' + encodeURIComponent('artist-name:' + placeId))
           window.scrollTo(0, 0)
         }} currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} selections={userSelections} onBringChange={async (id, key, value) => { if (await upsertUserSelection(id, 'artist', key, value) === false) throw new Error('Checklist save failed') }} />}
-        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} refreshFailed={continuityFailures.includes('notes')} onRetry={() => void refreshUserContinuity()} />}
-        {surface === 'plan' && (!continuityReady && !designPreview && !isPreviewOwnerMode ? <p role="status">{!online || continuityFailures.includes('selections') ? 'Plan unavailable.' : 'Loading Plan…'}</p> : <PlanSurface onShowOnMap={privateMap ? showEventOnMap : undefined} events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />)}
+        {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} />}
+        {surface === 'plan' && <PlanSurface onShowOnMap={privateMap ? showEventOnMap : undefined} events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
 
         {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onFindingDecision={decideMonitoringFinding} onFindingChoice={chooseMonitoringFinding} onFindingDefer={deferMonitoringFinding} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
       </div>
@@ -5713,16 +5802,18 @@ function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
   }
 }
 
-function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { catalogRefreshFailed?: boolean; canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
+function InfoSurface({ onViewChange, showContent, catalogRefreshFailed = false, canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { onViewChange: (view: InfoView) => void; showContent: boolean; catalogRefreshFailed?: boolean; canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
   const qaFlags = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
   const catalogMatchReviewEnabled = canUseCatalogImport && qaFlags.includes('catalog-match-review')
   const catalogBrowserQa = canUseCatalogImport && qaFlags.includes('catalog-browser')
   const atlantaMerchReview = catalogReadModel.offers.some(offer => offer.attributes?.local_review === true)
   const catalogImportQa = canUseCatalogImport && qaFlags.includes('catalog-import-lab')
-  const catalogsEnabled = catalogReadModel.offers.length > 0 || canUseCatalogImport
   const storeParam = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('store')
   const initialFamily = storeParam === 'show_store' || storeParam === 'black_lotus' || storeParam === 'prize_wall' ? storeParam : undefined
-  const [mode, setMode] = useState<'guide' | 'catalogs' | 'import' | 'exhibitors'>(initialFamily ? 'catalogs' : qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa || (canUseCatalogImport && qaFlags.includes('atlanta-merch-review')) ? 'catalogs' : 'guide')
+  const [mode, setMode] = useState<InfoView>(initialFamily ? 'catalogs' : qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa || (canUseCatalogImport && qaFlags.includes('atlanta-merch-review')) ? 'catalogs' : 'guide')
+  useLayoutEffect(() => { onViewChange(mode) }, [mode, onViewChange])
+  useLayoutEffect(() => { if (initialFamily) setMode('catalogs') }, [initialFamily])
+  const catalogsEnabled = catalogReadModel.offers.length > 0 || canUseCatalogImport || mode === 'catalogs'
   const visibleTopics = publishedInfoTopics(topics).map(topic => topic.topic_key === 'ticketed-play' && ticketedPlaySaleHasOpened()
     ? {
         ...topic,
@@ -5742,6 +5833,7 @@ function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibit
       {catalogsEnabled && <button type="button" role="tab" aria-selected={mode === 'catalogs'} className={mode === 'catalogs' ? 'active' : ''} onClick={() => setMode('catalogs')}>Store</button>}
       {canUseCatalogImport && <button type="button" role="tab" aria-selected={mode === 'import'} className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>Import</button>}
     </div>
+    <div hidden={!showContent}>
     {mode === 'guide' && <InfoGuide topics={visibleTopics} feed={visibleFeed} onOpenObject={onOpenObject} />}
     {mode === 'exhibitors' && <>
       <ArtistAssetStatus urls={exhibitorAssetUrls(exhibitors).filter((url): url is string => Boolean(url))} missingImages={0} online={navigator.onLine} revision={0} label="Exhibitor images" />
@@ -5751,6 +5843,7 @@ function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibit
     {mode === 'import' && canUseCatalogImport && <Suspense fallback={<p role="status">Loading import…</p>}>
       <CatalogImportLab canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />
     </Suspense>}
+    </div>
   </section>
 }
 
@@ -6331,7 +6424,7 @@ function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
   </div>
 }
 
-export function ArtistsSurface({ mapOpen = false, mapAllowed = false, onShowOnMap, currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity, selections = {}, onBringChange }: { mapOpen?: boolean; mapAllowed?: boolean; onShowOnMap?: (placeId: string) => void; currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void; selections?: Record<string, string>; onBringChange?: (id: string, key: 'packed' | 'signed', value: string) => Promise<void> }) {
+export function ArtistsSurface({ refreshRequest = 0, onRead, mapOpen = false, mapAllowed = false, onShowOnMap, currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity, selections = {}, onBringChange }: { refreshRequest?: number; onRead?: (key: ContinuityLane, read: Partial<ScreenRead>) => void; mapOpen?: boolean; mapAllowed?: boolean; onShowOnMap?: (placeId: string) => void; currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void; selections?: Record<string, string>; onBringChange?: (id: string, key: 'packed' | 'signed', value: string) => Promise<void> }) {
   const [view, setView] = useState<'artists' | 'cards'>('artists')
   const [artistFilter, setArtistFilter] = useState<'all' | string>('all')
   const [styleFilter, setStyleFilter] = useState<string>('all')
@@ -6411,10 +6504,15 @@ export function ArtistsSurface({ mapOpen = false, mapAllowed = false, onShowOnMa
   useLayoutEffect(() => {
     let active = true
     const cached = currentOwnerId ? readOfflineLaneSync(currentOwnerId, 'artistCatalog') : null
+    const fresh = currentOwnerId ? offlineLaneReadGuard(currentOwnerId, 'artistCatalog') : () => true
     const initial = cached?.value as { artists: ArtistSeed[]; cards: ArtistCardCandidate[] } | undefined
+    if (cached) onRead?.('artistCatalog', { savedAt: cached.savedAt })
     setCatalogState(initial ? { source: 'offline', ...initial } : { source: 'fallback', artists: artistSeeds, cards: currentOwnerId?.startsWith('preview-') ? artistCardCandidates : [] })
     if (currentOwnerId) void readOfflineLane(currentOwnerId, 'artistCatalog').then(saved => {
-      if (active && saved) setCatalogState({ source: 'offline', ...(saved.value as { artists: ArtistSeed[]; cards: ArtistCardCandidate[] }) })
+      if (active && saved && fresh()) {
+        setCatalogState({ source: 'offline', ...(saved.value as { artists: ArtistSeed[]; cards: ArtistCardCandidate[] }) })
+        onRead?.('artistCatalog', { savedAt: saved.savedAt })
+      }
     })
     return () => { active = false }
   }, [currentOwnerId])
@@ -6422,10 +6520,13 @@ export function ArtistsSurface({ mapOpen = false, mapAllowed = false, onShowOnMa
     let cancelled = false
     const fresh = currentOwnerId ? offlineLaneReadGuard(currentOwnerId, 'artistCatalog') : () => true
     if (!navigator.onLine) return () => { cancelled = true }
-    loadArtistCatalogFromSupabase(currentOwnerId)
+    onRead?.('artistCatalog', { state: 'checking' })
+    withReadDeadline(loadArtistCatalogFromSupabase(currentOwnerId))
       .then(catalog => {
-        if (cancelled || !fresh()) return
+        if (cancelled) return
+        if (!fresh()) { onRead?.('artistCatalog', { state: 'failed' }); return }
         setCatalogState({ source: 'supabase', artists: catalog.artists, cards: catalog.cards })
+        onRead?.('artistCatalog', { state: 'current', checkedAt: new Date().toISOString() })
         if (currentOwnerId) saveOfflineLane(currentOwnerId, 'artistCatalog', catalog)
         void cacheDeviceAssets([
           ...catalog.artists.map(artist => artist.thumbnailUrl),
@@ -6433,10 +6534,13 @@ export function ArtistsSurface({ mapOpen = false, mapAllowed = false, onShowOnMa
         ])
       })
       .catch(error => {
-        if (!cancelled) setCatalogState(current => ({ ...current, error: error instanceof Error ? error.message : 'Artist catalog could not be refreshed.' }))
+        if (!cancelled) {
+          onRead?.('artistCatalog', { state: 'failed' })
+          setCatalogState(current => ({ ...current, error: error instanceof Error ? error.message : 'Artist catalog could not be refreshed.' }))
+        }
       })
     return () => { cancelled = true }
-  }, [currentOwnerId, canWrite, catalogRefresh])
+  }, [currentOwnerId, canWrite, catalogRefresh, refreshRequest, onRead])
   useLayoutEffect(() => {
     let cancelled = false
     if (!supabase || !currentOwnerId || currentOwnerId.startsWith('preview-')) {
@@ -6445,23 +6549,34 @@ export function ArtistsSurface({ mapOpen = false, mapAllowed = false, onShowOnMa
       return () => { cancelled = true }
     }
     const cached = readOfflineLaneSync(currentOwnerId, 'artistSigningInterests')
+    if (cached) onRead?.('artistSigningInterests', { savedAt: cached.savedAt })
     setSigningInterest(cached ? cached.value as Record<string, ArtistSigningInterestStatus> : {})
     const fresh = offlineLaneReadGuard(currentOwnerId, 'artistSigningInterests')
     void readOfflineLane(currentOwnerId, 'artistSigningInterests').then(saved => {
-      if (!cancelled && saved && fresh()) setSigningInterest(saved.value as Record<string, ArtistSigningInterestStatus>)
+      if (!cancelled && saved && fresh()) {
+        setSigningInterest(saved.value as Record<string, ArtistSigningInterestStatus>)
+        onRead?.('artistSigningInterests', { savedAt: saved.savedAt })
+      }
     })
-    if (navigator.onLine) loadArtistSigningInterestMap(currentOwnerId)
-      .then(next => {
-        if (cancelled || !fresh()) return
+    if (navigator.onLine) {
+      onRead?.('artistSigningInterests', { state: 'checking' })
+      void withReadDeadline(loadArtistSigningInterestMap(currentOwnerId)).then(next => {
+        if (cancelled) return
+        if (!fresh()) { onRead?.('artistSigningInterests', { state: 'failed' }); return }
         setSigningInterest(next)
         saveOfflineLane(currentOwnerId, 'artistSigningInterests', next)
+        onRead?.('artistSigningInterests', { state: 'current', checkedAt: new Date().toISOString() })
         setSigningInterestError(null)
       })
       .catch(error => {
-        if (!cancelled) setSigningInterestError(error instanceof Error ? error.message : 'Signing interests could not be refreshed.')
+        if (!cancelled) {
+          onRead?.('artistSigningInterests', { state: 'failed' })
+          setSigningInterestError(error instanceof Error ? error.message : 'Signing interests could not be refreshed.')
+        }
       })
+    }
     return () => { cancelled = true }
-  }, [currentOwnerId, previewSigningInterest])
+  }, [currentOwnerId, previewSigningInterest, refreshRequest, onRead])
   const pocArtistSeeds = catalogState.artists
   const pocArtistNameSet = new Set(pocArtistSeeds.map(seed => normalizeArtistName(seed.title)))
   const activeArtistCardCandidates = catalogState.cards.filter(card => pocArtistNameSet.has(normalizeArtistName(card.artistName)))
@@ -7407,7 +7522,7 @@ function HomeSurface({ activityItems, catalog, currentPerson, calendarEntries, o
   </div>
 }
 
-function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote, refreshFailed, onRetry }: { notes: ContextNote[]; currentOwnerId?: string; onDeleteNote: (id: string) => void; onOpenNote: (note: ContextNote) => void; refreshFailed: boolean; onRetry: () => void }) {
+function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote }: { notes: ContextNote[]; currentOwnerId?: string; onDeleteNote: (id: string) => void; onOpenNote: (note: ContextNote) => void }) {
   const [personFilter, setPersonFilter] = useState<NotePersonFilter>('all')
   const [typeFilter, setTypeFilter] = useState<NoteTypeFilter>('all')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -7423,7 +7538,6 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote, refresh
   }, {})
 
   return <section className="notes-surface" aria-label="Notes">
-    {refreshFailed && <p className="notes-sync-notice">Showing the last available notes. <button type="button" onClick={onRetry}>Try again</button></p>}
     <NotesFilterBar notes={notes} personFilter={personFilter} typeFilter={typeFilter} onPersonFilter={setPersonFilter} onTypeFilter={setTypeFilter} />
     {notes.length === 0 && <div className="notes-compose">
       <div><span className="eyebrow">UNIVERSAL NOTES</span><h2>No notes yet.</h2><p>Notes added from events, receipts, trip items, places, and alerts collect here.</p></div>

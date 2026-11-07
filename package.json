@@ -21,6 +21,7 @@
     "verify:public": "pnpm build:pages && powershell -ExecutionPolicy Bypass -File scripts/verify_public_pages.ps1",
     "preview": "vite preview --configLoader runner",
     "test": "vitest run --configLoader runner",
+    "test:essentials:browser": "node scripts/test_calendar_wallet_browser.mjs",
     "ticketed:precanon": "node --use-system-ca scripts/scrape_ticketed_play_precanon.mjs",
     "ticketed:hydrate-static": "node --use-system-ca scripts/build_ticketed_explore_events.mjs",
     "monitor": "pnpm monitor:check",

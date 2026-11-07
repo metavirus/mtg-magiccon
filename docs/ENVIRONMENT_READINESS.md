@@ -40,6 +40,8 @@ pnpm is Corepack-managed. Use normal `pnpm` or `corepack pnpm`; if pnpm acts str
 
 `pnpm dev`, `pnpm preview`, `pnpm build`, and `pnpm test` use Vite/Vitest's runner config loader path. For Codex visual verification, prefer `pnpm ui:capture -- -Route <route>` after `pnpm build`; it serves the built preview and uses Playwright to capture screenshot, DOM, and visible text. When the surface depends on logged-in/user-specific state, pass a deterministic local QA query instead of relying on OAuth, for example `pnpm ui:capture -- -Route artists -Query "previewOwner=kavi&qa=artist-signing"`.
 
+After building with the public app configuration, run `pnpm test:essentials:browser` with Playwright Chromium installed. It uses synthetic saved data and intercepts the network. At phone and desktop widths it checks the online loading state, manual refresh, saved fallback, receipt page retry and offline reopen. The installed iPhone still needs an airplane-mode reopen with the real account.
+
 For interactive in-app Browser inspection against local Vite, avoid stale selected tabs. First prove `http://127.0.0.1:5173/` returns HTTP 200, then claim or open a real app tab and read URL/title/visible text. If a prior failed load left Chrome on a generated `data:` error page, do not retry that selected tab; follow the stale-tab recovery in `docs/KNOWN_GREMLINS.md`.
 
 ## Secure local setup

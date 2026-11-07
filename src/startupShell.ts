@@ -102,7 +102,7 @@ export function startWithCurrentShell({
       }
       registration.addEventListener('updatefound', updateFound)
       updateFound()
-      if (finished || stalledPresented) return
+      if (finished || stalledPresented || activationRequested) return
       // update() checks the worker script, not app data or a version endpoint.
       await registration.update()
       if (finished || stalledPresented) return
@@ -110,7 +110,9 @@ export function startWithCurrentShell({
       updateFound()
       if (!installing) finish(false)
     } catch {
-      finish(false)
+      // A failed network check says nothing about an already precached worker.
+      // Give a requested activation its own deadline and controllerchange path.
+      if (!activationRequested) finish(false)
     }
   })()
 }
