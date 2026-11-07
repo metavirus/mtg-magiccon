@@ -5257,8 +5257,8 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
       setMode(tabs[next].id)
       document.getElementById(`map-tab-${tabs[next].id}`)?.focus()
     }}>{tab.label}</button>)}</div>
-    {showNextStops && <div ref={nextStopsRef} className="map-next-stops"><span>Next calendar stops</span><div className="trip-tabs" role="group" aria-label="Next calendar stops">
-      {companions.map(({ name }) => <button key={name} type="button" aria-pressed={visiblePeople.includes(name)} className={visiblePeople.includes(name) ? 'active' : ''} onClick={() => setVisiblePeople(people => people.includes(name) ? people.filter(person => person !== name) : [...people, name])}>{name}</button>)}
+    {showNextStops && <div ref={nextStopsRef} className="map-next-stops"><span>Next calendar stops</span><div className="plan-people-filter" role="group" aria-label="Next calendar stops">
+      {companions.map(({ name }) => <button key={name} type="button" aria-label={name} title={name} aria-pressed={visiblePeople.includes(name)} className={visiblePeople.includes(name) ? 'active' : ''} onClick={() => setVisiblePeople(people => people.includes(name) ? people.filter(person => person !== name) : [...people, name])}><PersonBubbles people={[name]} /></button>)}
     </div></div>}
     <div ref={mapPanelRef} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
     {activeMode === 'levels' && returnToBeta && canOpenBeta && <button type="button" className="map-return-beta" onClick={()=>{setMode('beta');setReturnToBeta(false)}}>← Back to KaviMap</button>}
@@ -5267,7 +5267,7 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
       { id: 'mana-stage', label: 'Mana Stage · Georgia Ballroom' },
       { id: 'black-lotus', label: 'Black Lotus Lounge · Triumph Ballroom, Signia' },
     ].map(room => roomEvents[room.id]?.length ? <details className="map-card map-room-schedule" key={room.id}>
-      <summary>{room.label} {nextRooms[room.id]?.map(stop => <span key={stop.person} title={stop.title}><TravelerDots people={[stop.person]} /></span>)}</summary>
+      <summary>{room.label} {nextRooms[room.id]?.map(stop => <span key={stop.person} title={stop.title}><PersonBubbles people={[stop.person]} /></span>)}</summary>
       <ul>{roomEvents[room.id].map(event => <li key={event.id}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></li>)}</ul>
     </details> : null)}
     {canOpenBeta && (betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}><KaviMapBeta roomEvents={roomEvents} nextRooms={nextRooms} canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOtherFloors={()=>{setReturnToBeta(true);setMode('levels');requestAnimationFrame(()=>document.getElementById('map-tab-levels')?.focus())}} /></div>}
