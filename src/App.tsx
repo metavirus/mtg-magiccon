@@ -5523,7 +5523,6 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
       <ul>{roomEvents[room.id].map(event => <li key={event.id}>{canOpenBeta ? <button type="button" className="map-schedule-event" onClick={() => onOpenEvent(event.id)}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></button> : <><strong>{event.title}</strong><small>{event.day} · {event.time}</small></>}</li>)}</ul>
     </details> : null)}
     {mapRelease && (betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
-      {activeMode === 'beta' && mapRelease.fromDevice && <p className="screen-data-status" role="status">Showing saved map</p>}
       <KaviMapBeta html={mapRelease.html} schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog }}
         canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOpenEvent={onOpenEvent} onReturn={onReturn}
         onOpenPrizeCatalog={canOpenPrizeCatalog ? () => onOpenCatalog('prize_wall') : undefined}
