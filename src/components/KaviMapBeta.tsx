@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { readMapMessage, type MapPlaceRequest } from '../lib/kaviMapBridge'
+import type { MapRoomEvent } from '../lib/mapPersonalEvents'
 import { supabase } from '../lib/supabase'
 
 export function useKaviMapAccess(accountId: string | undefined) {
@@ -18,7 +19,7 @@ export function useKaviMapAccess(accountId: string | undefined) {
   return Boolean(accountId && authorizedAccount === accountId)
 }
 
-export function KaviMapBeta({ canOpenPlace, onOpenPlace, onOtherFloors }: { canOpenPlace: (place: MapPlaceRequest) => boolean; onOpenPlace: (place: MapPlaceRequest) => void; onOtherFloors: () => void }) {
+export function KaviMapBeta({ roomEvents, nextRooms, canOpenPlace, onOpenPlace, onOtherFloors }: { roomEvents: Record<string, MapRoomEvent[]>; nextRooms: Record<string, Array<{ person: string; title: string }>>; canOpenPlace: (place: MapPlaceRequest) => boolean; onOpenPlace: (place: MapPlaceRequest) => void; onOtherFloors: () => void }) {
   const frame = useRef<HTMLIFrameElement>(null)
   const lastPlace = useRef<MapPlaceRequest | null>(null)
   useEffect(() => {
@@ -34,6 +35,18 @@ export function KaviMapBeta({ canOpenPlace, onOpenPlace, onOtherFloors }: { canO
     window.addEventListener('message', receive)
     return () => window.removeEventListener('message', receive)
   }, [canOpenPlace, onOpenPlace, onOtherFloors])
+  useEffect(() => {
+    const sendSchedule = () => frame.current?.contentWindow?.postMessage({
+      type: 'kavimap:schedule', version: 1, roomEvents, nextRooms,
+    }, '*')
+    const receive = (event: MessageEvent) => {
+      if (event.source === frame.current?.contentWindow && event.origin === 'null' &&
+          event.data?.type === 'kavimap:ready' && event.data.version === 1) sendSchedule()
+    }
+    window.addEventListener('message', receive)
+    sendSchedule()
+    return () => window.removeEventListener('message', receive)
+  }, [roomEvents, nextRooms])
   const [html, setHtml] = useState<string>()
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)

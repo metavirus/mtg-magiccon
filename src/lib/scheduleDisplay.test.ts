@@ -40,3 +40,7 @@ describe('personal conflict scope', () => {
     expect(shareIncludedParticipant([], collector, all)).toBe(false)
   })
 })
+
+it('keeps noon ranges after morning sessions', () => {
+  expect(scheduleStart('12:30–1:30 PM')).toBe(750)
+})

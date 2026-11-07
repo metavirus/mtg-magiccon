@@ -5,7 +5,7 @@ export function scheduleStart(time: string): number {
   if (!range && !single) return Number.POSITIVE_INFINITY
   const match = range ?? single!
   const hour = Number(match[1])
-  const meridiem = match[3]?.toUpperCase() ?? (range![5].toUpperCase() === 'PM' && hour > Number(range![4]) ? 'AM' : range![5].toUpperCase())
+  const meridiem = match[3]?.toUpperCase() ?? (range![5].toUpperCase() === 'PM' && hour !== 12 && hour > Number(range![4]) ? 'AM' : range![5].toUpperCase())
   return (hour % 12 + (meridiem === 'PM' ? 12 : 0)) * 60 + Number(match[2] ?? 0)
 }
 

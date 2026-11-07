@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import './OfficialMapViewer.css'
 import { OfficialMapLegend } from './OfficialMapLegend'
+import { BlackLotusMark } from './BlackLotusMark'
 
 type Camera = { zoom: number; x: number; y: number }
 type Point = { x: number; y: number }
@@ -114,6 +115,10 @@ export function OfficialMapViewer({ mode }: { mode: 'floor' | 'levels' }) {
       }}>
       <img src={`${import.meta.env.BASE_URL}maps/${map.file}`} alt={map.alt} draggable={false} width={map.width} height={map.height}
         style={{ width: imageWidth || '100%', height: imageHeight || 'auto', transform: `translate(calc(-50% + ${camera.x}px), calc(-50% + ${camera.y}px)) scale(${camera.zoom})` }} />
+      {mode === 'levels' && fit > 0 && <span className="official-lotus-marker" role="img" aria-label="Black Lotus VIP Lounge, Level 3"
+        style={{ left: size.width / 2 + camera.x + (.423 - .5) * imageWidth * camera.zoom + 4, top: size.height / 2 + camera.y + (.15 - .5) * imageHeight * camera.zoom }}>
+        <BlackLotusMark />
+      </span>}
     </div>
     {mode === 'floor' && <dialog ref={legend} className="official-legend-drawer" aria-labelledby="official-legend-title" onClose={() => { setLegendOpen(false); legendButton.current?.focus() }} onClick={event => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.currentTarget.close() } }}>
       <header><h2 id="official-legend-title">Map legend</h2><button type="button" aria-label="Close legend" onClick={() => legend.current?.close()} autoFocus>×</button></header>

@@ -1,6 +1,7 @@
 import bindings from '../data/mapPlaceBindings.json'
 import type { CatalogReadModel } from './catalog'
 import programs from '../data/conventionPrograms.json'
+import { scheduleStart } from './scheduleDisplay'
 import type { TrustSlice } from './trustSlice'
 
 export type MapEventInput = { id: string; title: string; day: string; time: string; state: string; purchased?: boolean; detail?: string; price: string }
@@ -9,6 +10,32 @@ const locationIds: Record<string, string> = bindings.sourceLocationIds
 const eventLocations = new Map(programs.sessions.map(session => [`program-${session.id}`, locationIds[session.location] ?? null]))
 bindings.blackLotusLoungeEventIds.forEach(id => eventLocations.set(id, 'black-lotus'))
 
+const locationNames = new Map(Object.entries(locationIds).map(([name, id]) => [id, name]))
+locationNames.set('c101-showcase', 'Showcase Room · C101')
+locationNames.set('c102-spindown', 'Spindown Room · C102')
+locationNames.set('mana-stage', 'Mana Stage · Georgia Ballroom, Level 3')
+locationNames.set('black-lotus', 'Black Lotus Lounge · Triumph Ballroom, Signia')
+
+export function reviewedEventLocation(eventId: string) {
+  const id = eventLocations.get(eventId)
+  const name = id ? locationNames.get(id) : undefined
+  return id && name ? { id, name } : undefined
+}
+
+export type MapRoomEvent = Pick<MapEventInput, 'id' | 'title' | 'day' | 'time'>
+
+export function groupMapRoomEvents(events: readonly MapRoomEvent[]): Record<string, MapRoomEvent[]> {
+  const rooms: Record<string, MapRoomEvent[]> = {}
+  for (const { id, title, day, time } of events) {
+    const location = reviewedEventLocation(id)
+    if (location) (rooms[location.id] ??= []).push({ id, title, day, time })
+  }
+  const days = ['Thu', 'Fri', 'Sat', 'Sun']
+  for (const schedule of Object.values(rooms)) {
+    schedule.sort((a, b) => days.indexOf(a.day) - days.indexOf(b.day) || scheduleStart(a.time) - scheduleStart(b.time))
+  }
+  return rooms
+}
 
 export type MapSelectionRow = { owner_id: string; object_id: string; selection_key: string; selection_value: string }
 /** Saved owner choices only: seed defaults and companion choices are not commitments. */
@@ -29,7 +56,7 @@ export function selectMapPersonalEvents(events: MapEventInput[]): MapPersonalEve
   return events.filter(event => event.state === 'committed' || event.purchased === true).map(event => ({
     id: event.id, title: event.title, day: event.day, time: event.time,
     status: event.purchased === true ? 'paid' : 'committed',
-    locationId: eventLocations.get(event.id) ?? null, detail: event.detail ?? '',
+    locationId: reviewedEventLocation(event.id)?.id ?? null, detail: event.detail ?? '',
   }))
 }
 export function mapStudyMessage(event: Pick<MessageEvent, 'origin' | 'source' | 'data'>, source: Window | null | undefined, origin: string): 'ready' | null {

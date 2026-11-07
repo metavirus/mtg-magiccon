@@ -1,7 +1,7 @@
 import { buildAtlantaMerchReview } from './atlantaMerchReview'
 import { describe, expect, it } from 'vitest'
 import programs from '../data/conventionPrograms.json'
-import { selectMapPersonalEvents, selectMapProducts, mapStudyMessage, projectMapOwnerEvents, type MapEventInput } from './mapPersonalEvents'
+import { groupMapRoomEvents, reviewedEventLocation, selectMapPersonalEvents, selectMapProducts, mapStudyMessage, projectMapOwnerEvents, type MapEventInput } from './mapPersonalEvents'
 
 const base: MapEventInput = { id: 'unknown', title: 'Showcase Room', day: 'Fri', time: '1 PM', price: '$100', state: 'none' }
 describe('personal map projection', () => {
@@ -69,4 +69,21 @@ describe('saved owner map choices', () => {
     const rows = [{ ...row('mine', 'state', 'none'), object_id: 'explore-bl-planechase' }, { ...row('mine', 'purchased', 'false'), object_id: 'explore-bl-planechase' }]
     expect(selectMapPersonalEvents(projectMapOwnerEvents([event], rows, 'mine', trust))).toEqual([])
   })
+})
+
+it('keeps same-series events in their actual rooms and excludes unplaced Lotus sessions', () => {
+  const rooms = groupMapRoomEvents([
+    { ...base, id: 'program-954669', title: 'Spell Slayers Live', day: 'Sat' },
+    { ...base, id: 'program-954674', title: 'Spell Slayers Cast or Pass' },
+    { ...base, id: 'program-955653', title: 'Meet Spell Slayers', day: 'Sun' },
+    { ...base, id: 'bl-coffee-chat-fri', title: 'Coffee Chat' },
+    { ...base, id: 'bl-planechase', title: 'Planechase Unknown' },
+  ])
+  expect(Object.fromEntries(Object.entries(rooms).map(([room, events]) => [room, events.map(event => event.id)]))).toEqual({
+    'mana-stage': ['program-954669'],
+    'c101-showcase': ['program-954674'],
+    'meet-greets': ['program-955653'],
+    'black-lotus': ['bl-coffee-chat-fri'],
+  })
+  expect(reviewedEventLocation('bl-planechase')).toBeUndefined()
 })
