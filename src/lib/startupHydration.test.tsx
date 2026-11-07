@@ -27,7 +27,7 @@ vi.mock('./supabase', () => ({ supabase: {
     mocked.requests.push(table)
     const pending = new Promise(() => {})
     const query: Record<string, unknown> = {}
-    for (const key of ['select', 'eq', 'order', 'in', 'range', 'limit', 'single', 'maybeSingle', 'upsert']) query[key] = () => query
+    for (const key of ['select', 'eq', 'order', 'in', 'range', 'limit', 'single', 'maybeSingle', 'upsert', 'abortSignal']) query[key] = () => query
     query.then = pending.then.bind(pending)
     return query
   },

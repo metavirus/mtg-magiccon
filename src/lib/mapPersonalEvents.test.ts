@@ -1,7 +1,7 @@
 import { buildAtlantaMerchReview } from './atlantaMerchReview'
 import { describe, expect, it } from 'vitest'
 import programs from '../data/conventionPrograms.json'
-import { groupMapRoomEvents, reviewedEventLocation, selectMapPersonalEvents, selectMapProducts, mapStudyMessage, projectMapOwnerEvents, type MapEventInput } from './mapPersonalEvents'
+import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, isEventMapDestination, reviewedEventLocation, selectMapPersonalEvents, selectMapProducts, mapStudyMessage, projectMapOwnerEvents, type MapEventInput } from './mapPersonalEvents'
 
 const base: MapEventInput = { id: 'unknown', title: 'Showcase Room', day: 'Fri', time: '1 PM', price: '$100', state: 'none' }
 describe('personal map projection', () => {
@@ -86,4 +86,44 @@ it('keeps same-series events in their actual rooms and excludes unplaced Lotus s
     'black-lotus': ['bl-coffee-chat-fri'],
   })
   expect(reviewedEventLocation('bl-planechase')).toBeUndefined()
+})
+
+it('keeps a confirmed meeting point separate from its venue and host', () => {
+  const meetup = eventMapDestination('program-959866')
+  expect(meetup).toMatchObject({
+    id: 'gathering-grounds',
+    host: 'Women+ in Magic',
+    targetId: 'disability-and-accessibility-alliance',
+  })
+  expect(eventMapDestination('program-954464')).toMatchObject({
+    id: 'gathering-grounds', targetId: 'gathering-grounds', host: 'Veterans the Gathering',
+  })
+  const event = { ...base, id: 'program-959866' }
+  const schedules = groupMapRoomEvents([event])
+  expect(schedules['gathering-grounds'][0]).toEqual(schedules['disability-and-accessibility-alliance'][0])
+  expect(schedules['women-of-wizardry']).toBeUndefined()
+  const hosted = groupMapRoomEvents([{ ...base, id: 'program-954464' }])
+  expect(hosted['veterans-the-gathering'][0]).toMatchObject({ venue: 'The Gathering Grounds' })
+})
+
+it('places World Championship in Hall C and keeps sparse booth descriptions at venue level', () => {
+  expect(eventMapDestination('program-959862')).toMatchObject({ targetId: 'world-championship', name: 'World Championship · Hall C' })
+  expect(eventMapDestination('program-954455')).toMatchObject({ targetId: 'birds-of-paradise' })
+  expect(eventMapDestination('program-954457')).toMatchObject({ targetId: 'gathering-grounds', hostPlaceId: 'birds-of-paradise' })
+  const schedules = groupMapRoomEvents([{ ...base, id: 'program-954448' }, { ...base, id: 'program-955600' }])
+  expect(schedules['melanin-magic'][0]).toMatchObject({ venue: 'The Gathering Grounds' })
+  expect(schedules['women-of-wizardry'][0]).toMatchObject({ venue: 'The Gathering Grounds' })
+})
+
+it('offers service wayfinding without moving the event to that service', () => {
+  expect(eventMapDestination('ticketed-944011')).toBeUndefined()
+  expect(eventMapWayfinding('ticketed-944011')).toEqual([{ targetId: 'ticketed-play-hub', label: 'Ticketed Play help' }])
+  expect(eventMapWayfinding('ticketed-unknown')).toEqual([])
+  expect(eventMapDestination('program-954720')?.targetId).toBe('meet-greets')
+  expect(eventMapWayfinding('program-954720')[0].targetId).toBe('wristband-distribution')
+  expect(eventMapWayfinding('program-955653')).toEqual([])
+  expect(eventMapDestination('bl-mega-game-sat')).toBeUndefined()
+  expect(eventMapWayfinding('bl-mega-game-sat')[0].targetId).toBe('black-lotus')
+  expect(isEventMapDestination('ticketed-play-hub')).toBe(true)
+  expect(isEventMapDestination('wristband-distribution')).toBe(true)
 })

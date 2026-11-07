@@ -116,6 +116,7 @@ export function OfficialMapViewer({ mode, loungeNextStops }: { mode: 'floor' | '
       <img src={`${import.meta.env.BASE_URL}maps/${map.file}`} alt={map.alt} draggable={false} width={map.width} height={map.height}
         style={{ width: imageWidth || '100%', height: imageHeight || 'auto', transform: `translate(calc(-50% + ${camera.x}px), calc(-50% + ${camera.y}px)) scale(${camera.zoom})` }} />
       {mode === 'levels' && fit > 0 && <span className="official-lotus-anchor"
+        onPointerDown={event => event.stopPropagation()}
         style={{ left: size.width / 2 + camera.x + (.423 - .5) * imageWidth * camera.zoom + 4, top: size.height / 2 + camera.y + (.15 - .5) * imageHeight * camera.zoom }}>
         <span className="official-lotus-marker" role="img" aria-label="Black Lotus VIP Lounge, Level 3"><BlackLotusMark /></span>
         {loungeNextStops}

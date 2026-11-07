@@ -1,6 +1,7 @@
 import bindings from '../data/mapPlaceBindings.json'
 import type { CatalogReadModel } from './catalog'
 import programs from '../data/conventionPrograms.json'
+import { ticketedPlayExploreEvents } from '../data/ticketedPlayExploreEvents'
 import { scheduleStart } from './scheduleDisplay'
 import type { TrustSlice } from './trustSlice'
 
@@ -15,6 +16,7 @@ locationNames.set('c101-showcase', 'Showcase Room · C101')
 locationNames.set('c102-spindown', 'Spindown Room · C102')
 locationNames.set('mana-stage', 'Mana Stage · Georgia Ballroom, Level 3')
 locationNames.set('black-lotus', 'Black Lotus Lounge · Triumph Ballroom, Signia')
+locationNames.set('world-championship', 'World Championship · Hall C')
 
 export function reviewedEventLocation(eventId: string) {
   const id = eventLocations.get(eventId)
@@ -22,13 +24,79 @@ export function reviewedEventLocation(eventId: string) {
   return id && name ? { id, name } : undefined
 }
 
-export type MapRoomEvent = Pick<MapEventInput, 'id' | 'title' | 'day' | 'time'>
+type GatheringGroundsDetails = { host: string; hostPlaceId?: string; meetingPoint?: { placeId: string; label: string } }
+const gatheringGroundsDetails = new Map<string, GatheringGroundsDetails>()
+function bindGatheringGrounds(eventIds: number[], details: GatheringGroundsDetails) {
+  for (const id of eventIds) gatheringGroundsDetails.set(`program-${id}`, details)
+}
+
+// The published session description must explicitly name a meeting point.
+// The official Gathering Grounds group roster establishes booth identity, not event placement.
+bindGatheringGrounds([954448, 954449, 954450, 954451, 954452, 954453], {
+  host: 'MelaninMagic', hostPlaceId: 'melanin-magic',
+})
+bindGatheringGrounds([954454, 954455, 954456, 954458], {
+  host: 'Birds of Paradise', hostPlaceId: 'birds-of-paradise',
+  meetingPoint: { placeId: 'birds-of-paradise', label: 'At the Birds of Paradise booth' },
+})
+bindGatheringGrounds([954457, 954459], { host: 'Birds of Paradise', hostPlaceId: 'birds-of-paradise' })
+bindGatheringGrounds([954460, 954461, 954462], { host: 'Wizards Pride', hostPlaceId: 'wizards-pride' })
+bindGatheringGrounds([954464, 954465], { host: 'Veterans the Gathering', hostPlaceId: 'veterans-the-gathering' })
+bindGatheringGrounds([954466], { host: 'Disability and Accessibility Alliance', hostPlaceId: 'disability-and-accessibility-alliance' })
+bindGatheringGrounds([955599, 955600], { host: 'Women of Wizards', hostPlaceId: 'women-of-wizardry' })
+bindGatheringGrounds([959866], {
+  host: 'Women+ in Magic',
+  meetingPoint: { placeId: 'disability-and-accessibility-alliance', label: 'In front of the Disability and Accessibility Alliance booth' },
+})
+
+export function eventMapDestination(eventId: string) {
+  const venue = reviewedEventLocation(eventId)
+  if (!venue) return undefined
+  const details = gatheringGroundsDetails.get(eventId)
+  return { ...venue, ...details, targetId: details?.meetingPoint?.placeId ?? venue.id }
+}
+
+// Services can guide attendees without asserting where an event is held.
+// https://mcatlanta.mtgfestivals.com/en-us/info/mobile-app.html
+// https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html
+const ticketedEventIds = new Set<string>(ticketedPlayExploreEvents.map(event => event.id))
+const wristbandEventIds = new Set(['program-954720', 'program-954724', 'program-954726', 'program-954731'])
+const megaGameEventIds = new Set(['bl-mega-game-fri', 'bl-mega-game-sat', 'bl-mega-game-sun'])
+const ticketedPlayHelp = { targetId: 'ticketed-play-hub', label: 'Ticketed Play help' }
+const wristbandPickup = { targetId: 'wristband-distribution', label: 'Wristband pickup' }
+const megaGameRegistration = { targetId: 'black-lotus', label: 'Lounge registration by 2 PM' }
+
+export function eventMapWayfinding(eventId: string): Array<{ targetId: string; label: string }> {
+  if (ticketedEventIds.has(eventId)) return [ticketedPlayHelp]
+  if (wristbandEventIds.has(eventId)) return [wristbandPickup]
+  if (megaGameEventIds.has(eventId)) return [megaGameRegistration]
+  return []
+}
+
+const secondaryMapDestinations = new Set([
+  ticketedPlayHelp.targetId, wristbandPickup.targetId, megaGameRegistration.targetId,
+  ...Array.from(gatheringGroundsDetails.values()).flatMap(details => details.meetingPoint ? [details.meetingPoint.placeId] : []),
+])
+
+export function isEventMapDestination(placeId: string) {
+  return locationNames.has(placeId) || secondaryMapDestinations.has(placeId)
+}
+
+export type MapRoomEvent = Pick<MapEventInput, 'id' | 'title' | 'day' | 'time'> & { meetingPoint?: string; venue?: string }
 
 export function groupMapRoomEvents(events: readonly MapRoomEvent[]): Record<string, MapRoomEvent[]> {
   const rooms: Record<string, MapRoomEvent[]> = {}
   for (const { id, title, day, time } of events) {
-    const location = reviewedEventLocation(id)
-    if (location) (rooms[location.id] ??= []).push({ id, title, day, time })
+    const location = eventMapDestination(id)
+    if (!location) continue
+    const event = { id, title, day, time, meetingPoint: location.meetingPoint?.label }
+    const venueSchedule = rooms[location.id] ??= []
+    venueSchedule.push(event)
+    if (location.targetId !== location.id) (rooms[location.targetId] ??= []).push(event)
+    if (location.hostPlaceId && location.hostPlaceId !== location.targetId) {
+      const hostSchedule = rooms[location.hostPlaceId] ??= []
+      hostSchedule.push({ ...event, venue: location.name })
+    }
   }
   const days = ['Thu', 'Fri', 'Sat', 'Sun']
   for (const schedule of Object.values(rooms)) {

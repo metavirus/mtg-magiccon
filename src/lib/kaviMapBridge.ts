@@ -1,10 +1,23 @@
 export type MapPlaceRequest = { kind: 'vendor' | 'artist'; name: string; booth?: string }
-export type MapMessage = { type: 'kavimap:select' | 'kavimap:open'; version: 1; place: MapPlaceRequest } | { type: 'kavimap:levels'; version: 1 }
+export type MapUpperPlace = 'mana-stage' | 'black-lotus'
+export type MapMessage =
+  | { type: 'kavimap:select' | 'kavimap:open'; version: 1; place: MapPlaceRequest }
+  | { type: 'kavimap:levels'; version: 1; placeId?: MapUpperPlace }
+  | { type: 'kavimap:event'; version: 1; eventId: string }
+  | { type: 'kavimap:catalog'; version: 1; family: 'prize_wall' }
+  | { type: 'kavimap:return'; version: 1 }
+
 export function readMapMessage(event: Pick<MessageEvent, 'source' | 'origin' | 'data'>, source: Window | null | undefined): MapMessage | null {
   if (!source || event.source !== source || event.origin !== 'null') return null
   const d = event.data
   if (!d || d.version !== 1) return null
-  if (d.type === 'kavimap:levels' && Object.keys(d).length === 2) return d
+  const size = Object.keys(d).length
+  if (d.type === 'kavimap:levels') {
+    return size === 2 || (size === 3 && (d.placeId === 'mana-stage' || d.placeId === 'black-lotus')) ? d : null
+  }
+  if (d.type === 'kavimap:event') return size === 3 && typeof d.eventId === 'string' && /^[\w-]{1,160}$/.test(d.eventId) ? d : null
+  if (d.type === 'kavimap:catalog') return size === 3 && d.family === 'prize_wall' ? d : null
+  if (d.type === 'kavimap:return') return size === 2 ? d : null
   if (!['kavimap:select', 'kavimap:open'].includes(d.type) || Object.keys(d).length !== 3) return null
   const p = d.place
   if (!p || !['vendor', 'artist'].includes(p.kind) || typeof p.name !== 'string' || !p.name.trim() || p.name.length > 160 || (p.booth !== undefined && (typeof p.booth !== 'string' || p.booth.length > 40)) || Object.keys(p).some(k => !['kind', 'name', 'booth'].includes(k))) return null

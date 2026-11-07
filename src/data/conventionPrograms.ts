@@ -35,8 +35,8 @@ export const conventionProgramEvents = snapshot.sessions.map(session => {
     detail: `${session.location}. Times are Atlanta local time. ${session.description}${wristband ? ' Wristbands are distributed from 8:30 AM on the session day in Concourse C Lobby, first come, first served. No standby queue.' : ''}`,
     officialUrl: session.detailUrl,
     decisionFacts: [{ label: 'Location', value: session.location }, ...(wristband ? [{ label: 'Access', value: 'Wristband required; same-day pickup from 8:30 AM' }] : [])],
-    sourceNote: 'Official Atlanta event-bound schedule, reviewed from October 13, 2026 cloud checkpoint. Schedule subject to change.',
-    planEffect: 'A planning option; attendance is set only by your saved selection.',
+    sourceNote: 'Official Atlanta schedule.',
+    planEffect: '',
   }
 })
 

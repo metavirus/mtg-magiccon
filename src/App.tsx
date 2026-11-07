@@ -31,10 +31,10 @@ import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
 import { OfficialMapViewer } from './components/OfficialMapViewer'
 import './components/MapTabs.css'
-import { matchMapRecord, mapBoothFacts, type MapPlaceRequest } from './lib/kaviMapBridge'
+import { matchMapRecord, mapBoothFacts, type MapPlaceRequest, type MapUpperPlace } from './lib/kaviMapBridge'
 import { KaviMapBeta, useKaviMapAccess } from './components/KaviMapBeta'
 import { PersonalMapStudy } from './components/PersonalMapStudy'
-import { groupMapRoomEvents, projectMapOwnerEvents, reviewedEventLocation } from './lib/mapPersonalEvents'
+import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, isEventMapDestination, projectMapOwnerEvents, reviewedEventLocation, selectMapProducts } from './lib/mapPersonalEvents'
 
 export { CalendarSurface, PlanSurface, ObjectDetailLayer, InfoCatalogsPreview }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
@@ -864,6 +864,37 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [messageTone, setMessageTone] = useState<'info' | 'error'>('info')
   const [surface, setSurface] = useState<Surface>(() => surfaceFromHash(window.location.hash))
+  const privateMap = useKaviMapAccess(session?.user.id)
+  const [mapTrip, setMapTrip] = useState<string | null>(null)
+  const [mapEventId, setMapEventId] = useState<string | null>(null)
+  const mapEventReturnFocus = useRef<HTMLElement | null>(null)
+  const closeMapEvent = useCallback(() => {
+    setMapEventId(null)
+    requestAnimationFrame(() => mapEventReturnFocus.current?.focus())
+  }, [])
+  useEffect(() => {
+    if (!mapEventId) return
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeMapEvent()
+    }
+    window.addEventListener('keydown', dismiss)
+    return () => window.removeEventListener('keydown', dismiss)
+  }, [mapEventId, closeMapEvent])
+  const openMapEvent = (id: string) => {
+    mapEventReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    setMapEventId(id)
+  }
+  const mapReturnScroll = useRef(0)
+  const mapReturnFocus = useRef<HTMLElement | null>(null)
+  const previousMapTrip = useRef<string | null>(null)
+  const activeMapTrip = privateMap ? mapTrip : null
+  useLayoutEffect(() => {
+    if (previousMapTrip.current && !activeMapTrip) {
+      window.scrollTo({ top: mapReturnScroll.current, behavior: 'instant' })
+      mapReturnFocus.current?.focus({ preventScroll: true })
+    }
+    previousMapTrip.current = activeMapTrip
+  }, [activeMapTrip])
   const currentSurface = useRef(surface)
   currentSurface.current = surface
   const releaseBackgroundRefresh = useRef<(() => void) | null>(null)
@@ -1544,15 +1575,49 @@ export default function App() {
     return () => { active = false }
   }, [designPreview, isPreviewOwnerMode, effectiveOwnerId])
 
+  const mapTripFromHash = useCallback((hash: string) => {
+    const nextSurface = surfaceFromHash(hash)
+    const placeId = new URLSearchParams(hash.split('?')[1] ?? '').get('map')
+    if (!privateMap || !placeId) return null
+    if (nextSurface === 'artists' && /^artist-name:[^\r\n]{1,160}$/.test(placeId)) return placeId
+    return ['calendar', 'explore', 'plan'].includes(nextSurface) && isEventMapDestination(placeId) ? placeId : null
+  }, [privateMap])
+  useEffect(() => {
+    setMapTrip(mapTripFromHash(window.location.hash))
+  }, [mapTripFromHash])
+
   const { navigate, goBack, canGoBack } = useHashNavigation(hash => {
       setMobileNavMenu(null)
       setNavNotice('')
-      setObjectDetail(null)
       const nextSurface = surfaceFromHash(hash)
+      const tripPlace = mapTripFromHash(hash)
+      setMapEventId(null)
+      setMapTrip(tripPlace)
+      if (!tripPlace && !mapTrip) setObjectDetail(null)
       if (nextSurface !== 'explore') setExploreFocusRequest(null)
       setSurface(nextSurface)
       setExploreRouteState(parseExploreRouteState(hash))
   })
+
+  function returnFromMap() {
+    if (canGoBack) {
+      goBack()
+      return
+    }
+    const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
+    params.delete('map')
+    navigate('#' + surface + (params.size ? '?' + params.toString() : ''))
+  }
+
+  function showEventOnMap(eventId: string, targetId = eventMapDestination(eventId)?.targetId) {
+    if (!privateMap || !targetId || !isEventMapDestination(targetId)) return
+    mapReturnScroll.current = window.scrollY
+    mapReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
+    params.set('map', targetId)
+    navigate('#' + surface + '?' + params.toString())
+    window.scrollTo(0, 0)
+  }
 
   async function signInWithGoogle() {
     if (!supabase) return
@@ -2231,9 +2296,15 @@ export default function App() {
     if (finding?.evidence.home_signal_kind === 'interesting_announcement') return announcementIsCurrent(finding)
     return finding?.destination === 'Inbox' || isFeaturedTicketedPlaySale(item, Date.now())
   }).sort((a, b) => Date.parse(b.checkedAtIso) - Date.parse(a.checkedAtIso))
-  const headerLabel = surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
-  const headerTitle = surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
-  const headerSubtitle = surface === 'map' ? 'MagicCon Atlanta' : surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
+  function openMapCatalog(family: 'show_store' | 'prize_wall' | 'black_lotus') {
+    navigate('#info?store=' + family)
+    window.scrollTo(0, 0)
+  }
+  const selectedMapEvent = mapEventId ? displayedExploreEvents.find(event => event.id === mapEventId) : undefined
+  const presentationSurface = activeMapTrip ? 'map' : surface
+  const headerLabel = activeMapTrip ? 'MAP' : surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
+  const headerTitle = activeMapTrip ? 'Map' : surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
+  const headerSubtitle = activeMapTrip ? 'Building C · Level 1' : surface === 'map' ? 'MagicCon Atlanta' : surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
   const homeDestination = navigationDestination('home')
   const mapDestination = navigationDestination('map')
   const infoDestination = navigationDestination('info')
@@ -2266,18 +2337,18 @@ export default function App() {
           key={destination.name}
           type="button"
           data-tour-target={`nav-${destination.surface}`}
-          className={destination.surface === surface ? 'active' : destination.surface ? '' : 'upcoming'}
-          aria-current={destination.surface === surface ? 'page' : undefined}
+          className={destination.surface === presentationSurface ? 'active' : destination.surface ? '' : 'upcoming'}
+          aria-current={destination.surface === presentationSurface ? 'page' : undefined}
           onClick={() => openDestination(destination.name, destination.surface)}
           title={destination.surface ? destination.name : `${destination.name} · later tranche`}
         ><span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}</button>)}
       </nav>
       <nav className="mobile-primary-nav" aria-label="Mobile primary navigation">
-        <button className={surface === homeDestination.surface ? 'active' : ''} type="button" onClick={() => openDestination(homeDestination.name, homeDestination.surface)}><span aria-hidden="true"><NavIcon name={homeDestination.icon} /></span>{homeDestination.name}</button>
-        <button className={['calendar', 'plan', 'explore'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'events'} onClick={() => setMobileNavMenu(menu => menu === 'events' ? null : 'events')}><span aria-hidden="true"><NavIcon name="calendar" /></span>Events</button>
-        <button className={surface === mapDestination.surface ? 'active' : ''} type="button" data-tour-target="nav-map" onClick={() => openDestination(mapDestination.name, mapDestination.surface)}><span aria-hidden="true"><NavIcon name={mapDestination.icon} /></span>{mapDestination.name}</button>
-        <button className={surface === infoDestination.surface ? 'active' : ''} type="button" onClick={() => openDestination(infoDestination.name, infoDestination.surface)}><span aria-hidden="true"><NavIcon name={infoDestination.icon} /></span>{infoDestination.name}</button>
-        <button className={['wallet', 'trip', 'artists', 'notes', 'activity'].includes(surface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
+        <button className={presentationSurface === homeDestination.surface ? 'active' : ''} type="button" onClick={() => openDestination(homeDestination.name, homeDestination.surface)}><span aria-hidden="true"><NavIcon name={homeDestination.icon} /></span>{homeDestination.name}</button>
+        <button className={['calendar', 'plan', 'explore'].includes(presentationSurface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'events'} onClick={() => setMobileNavMenu(menu => menu === 'events' ? null : 'events')}><span aria-hidden="true"><NavIcon name="calendar" /></span>Events</button>
+        <button className={presentationSurface === mapDestination.surface ? 'active' : ''} type="button" data-tour-target="nav-map" onClick={() => openDestination(mapDestination.name, mapDestination.surface)}><span aria-hidden="true"><NavIcon name={mapDestination.icon} /></span>{mapDestination.name}</button>
+        <button className={presentationSurface === infoDestination.surface ? 'active' : ''} type="button" onClick={() => openDestination(infoDestination.name, infoDestination.surface)}><span aria-hidden="true"><NavIcon name={infoDestination.icon} /></span>{infoDestination.name}</button>
+        <button className={['wallet', 'trip', 'artists', 'notes', 'activity'].includes(presentationSurface) ? 'active' : ''} type="button" aria-expanded={mobileNavMenu === 'more'} onClick={() => setMobileNavMenu(menu => menu === 'more' ? null : 'more')}><span className="more-dots" aria-hidden="true">•••</span>More</button>
       </nav>
       <div className="rail-bottom">
         <button className={`activity-link ${surface === 'activity' ? 'active' : ''}`} type="button" onClick={() => openDestination('Activity', 'activity')}><span aria-hidden="true"><NavIcon name="activity" /></span>Activity{mentionUnreadCount > 0 && <b className="nav-count-badge">{mentionUnreadCount > 9 ? '9+' : mentionUnreadCount}</b>}</button>
@@ -2297,10 +2368,10 @@ export default function App() {
           : <header><span className="eyebrow">{mobileNavMenu === 'events' ? 'EVENTS' : 'MORE'}</span><button type="button" onClick={() => setMobileNavMenu(null)} aria-label="Close navigation drawer">×</button></header>}
         <div className={mobileNavMenu === 'main' ? 'mobile-drawer-nav mobile-drawer-nav-main' : undefined}>
           {mobileDrawerItems.map(destination => mobileNavMenu === 'main'
-            ? <button key={destination.surface} type="button" data-tour-target={`mobile-nav-${destination.surface}`} className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
+            ? <button key={destination.surface} type="button" data-tour-target={`mobile-nav-${destination.surface}`} className={presentationSurface === destination.surface ? 'active' : ''} aria-current={presentationSurface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
               <span aria-hidden="true"><NavIcon name={destination.icon} /></span>{destination.name}
             </button>
-            : <button key={destination.surface} type="button" className={surface === destination.surface ? 'active' : ''} aria-current={surface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
+            : <button key={destination.surface} type="button" className={presentationSurface === destination.surface ? 'active' : ''} aria-current={presentationSurface === destination.surface ? 'page' : undefined} onClick={() => openDestination(destination.name, destination.surface)}>
               <span aria-hidden="true"><NavIcon name={destination.icon} /></span><strong>{destination.name}</strong><small>{destination.mobileNote ?? ''}</small><b aria-hidden="true">›</b>
             </button>)}
         </div>
@@ -2314,14 +2385,14 @@ export default function App() {
       </section>
     </div>}
 
-    <main className={`surface-main surface-${surface}`} style={desktopRailLocked ? {
+    <main className={`surface-main surface-${activeMapTrip ? 'map' : surface}`} style={desktopRailLocked ? {
       display: 'block',
       width: 'auto',
       maxWidth: 'none',
       margin: '0 0 0 164px',
       padding: '24px clamp(22px, 2.4vw, 46px) 30px',
     } : undefined}>
-      <header className={`hero ${['explore', 'plan', 'calendar'].includes(surface) ? 'hero-has-funnel' : ''} ${['map', 'trip', 'artists'].includes(surface) ? 'hero-has-view-switch' : ''}`}>
+      <header className={`hero ${['explore', 'plan', 'calendar'].includes(presentationSurface) ? 'hero-has-funnel' : ''} ${['map', 'trip', 'artists'].includes(presentationSurface) ? 'hero-has-view-switch' : ''}`}>
         <div>
           <div className="hero-context">
             <button className="back-caret mobile-menu-caret" data-tour-target="mobile-menu" type="button" onClick={() => setMobileNavMenu('main')} aria-label="Open main navigation" aria-expanded={mobileNavMenu === 'main'}><span aria-hidden="true">☰</span></button>
@@ -2386,14 +2457,15 @@ export default function App() {
         try { writeOfflineIdentity(offlineIdentity); setOfflineIdentityFailureOwner(undefined) }
         catch { setOfflineIdentityFailureOwner(effectiveOwnerId) }
       }} />
-      <>
+      {activeMapTrip && privateMap && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(session?.user.id ?? "guest") + activeMapTrip} canOpenBeta={privateMap} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+      <div hidden={Boolean(activeMapTrip)}>
         {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'}
           calendarEntries={(continuityReady && flightsKnown && currentCompanion) || designPreview || isPreviewOwnerMode
             ? homeCalendarEntries(displayedExploreEvents, tripFlights, currentCompanion?.name ?? 'Kavi') : null}
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-        {surface === 'explore' && <ExploreSurface events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
-        {surface === 'map' && <MapSurface events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={session?.user.id ?? "guest"} accountId={session?.user.id} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'calendar' && <CalendarSurface onShowOnMap={privateMap ? showEventOnMap : undefined} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'explore' && <ExploreSurface onShowOnMap={privateMap ? showEventOnMap : undefined} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
+        {surface === 'map' && <MapSurface key={session?.user.id ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} canOpenBeta={privateMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogRefreshFailed={continuityFailures.includes('catalogs')} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
@@ -2418,14 +2490,26 @@ export default function App() {
           })
         }} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
-        {surface === 'artists' && <ArtistsSurface currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} selections={userSelections} onBringChange={async (id, key, value) => { if (await upsertUserSelection(id, 'artist', key, value) === false) throw new Error('Checklist save failed') }} />}
+        {surface === 'artists' && <ArtistsSurface mapOpen={Boolean(activeMapTrip)} mapAllowed={privateMap} onShowOnMap={placeId => {
+          mapReturnScroll.current = window.scrollY
+          mapReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+          navigate('#artists?map=' + encodeURIComponent('artist-name:' + placeId))
+          window.scrollTo(0, 0)
+        }} currentPerson={currentCompanion?.name ?? 'Kavi'} currentOwnerId={effectiveOwnerId} canWrite={canWrite} onOpenObject={openObjectDetail} onOpenActivity={() => openDestination('Activity', 'activity')} selections={userSelections} onBringChange={async (id, key, value) => { if (await upsertUserSelection(id, 'artist', key, value) === false) throw new Error('Checklist save failed') }} />}
         {surface === 'notes' && <NotesSurface notes={contextNotesState} currentOwnerId={effectiveOwnerId} onDeleteNote={deleteContextNote} onOpenNote={openMentionNote} refreshFailed={continuityFailures.includes('notes')} onRetry={() => void refreshUserContinuity()} />}
-        {surface === 'plan' && (!continuityReady && !designPreview && !isPreviewOwnerMode ? <p role="status">{!online || continuityFailures.includes('selections') ? 'Plan unavailable.' : 'Loading Plan…'}</p> : <PlanSurface events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />)}
+        {surface === 'plan' && (!continuityReady && !designPreview && !isPreviewOwnerMode ? <p role="status">{!online || continuityFailures.includes('selections') ? 'Plan unavailable.' : 'Loading Plan…'}</p> : <PlanSurface onShowOnMap={privateMap ? showEventOnMap : undefined} events={displayedExploreEvents} selectionRows={sharedSelectionRows} companions={companionMembers} slice={displaySlice} focusRequest={planFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onChangeSliceState={state => void changeState(state)} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />)}
 
         {surface === 'activity' && <ActivitySurface slice={displaySlice} activityItems={activityItems} notes={contextNotesState} onReviewChange={setActivityReviewState} onFindingDecision={decideMonitoringFinding} onFindingChoice={chooseMonitoringFinding} onFindingDefer={deferMonitoringFinding} onOpenItem={openActivityItem} onOpenNote={openMentionNote} />}
-      </>
+      </div>
 
     </main>
+      {selectedMapEvent && (activeMapTrip || surface === 'map') && <CalendarEventDetail
+        fromMap event={selectedMapEvent} notes={contextNotesState} currentOwnerId={effectiveOwnerId}
+        onAddNote={addContextNote} onDeleteNote={deleteContextNote}
+        onClose={closeMapEvent} onState={state => updateExploreEvent(selectedMapEvent.id, state)}
+        onPurchase={purchased => updateEventPurchase(selectedMapEvent.id, purchased)}
+        onOpenPlan={() => openPlanEventContext(selectedMapEvent.id)} online={online} saving={saving} canCommit
+      />}
       <ObjectDetailLayer canWriteNotes={canWrite} detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogInterestQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
       {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onMobileMenuChange={setMobileNavMenu} onClose={() => {
         setTutorialOpen(false)
@@ -4274,7 +4358,8 @@ function PlanParticipantBadges({ participants, compact = false, currentPerson }:
   </span>
 }
 
-function PlanSurface({ events, selectionRows, companions, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onChangeSliceState, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
+function PlanSurface({ onShowOnMap, events, selectionRows, companions, slice, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onChangeSliceState, onOpenExplore, onOpenCalendar, online, saving, canCommitBlackLotus }: {
+  onShowOnMap?: (eventId: string, targetId?: string) => void
   events: ExploreEvent[]
   selectionRows: UserSelectionRow[]
   companions: CompanionMember[]
@@ -4497,7 +4582,8 @@ function PlanSurface({ events, selectionRows, companions, slice, focusRequest, n
           {eventDecisionFacts(selected).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(selected).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
           <details className="detail-more"><summary>Planning context</summary><p>{selected.complexityWhy}</p></details>
         </section>
-        <section className="detail-section plan-summary"><strong>Plan effect</strong><p>{selected.planEffect}</p></section>
+        <EventMapLink eventId={selected.id} onShowOnMap={onShowOnMap} />
+        {selected.planEffect && <section className="detail-section plan-summary"><strong>Plan effect</strong><p>{selected.planEffect}</p></section>}
         {selected.availability === 'changed' && <div className="plan-watch"><span aria-hidden="true">✧</span><p><strong>Worth watching</strong>{selected.complexityWhy}</p></div>}
         <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${selected.id}`} objectKind="event" objectTitle={displayEventTitle(selected)} context={`Event · ${displayEventTitle(selected)}`} backlink="plan" compact />
         {(eventMoreDetails(selected).length > 0 || selected.sourceNote) && <details className="detail-more">
@@ -4567,7 +4653,7 @@ export function partitionExploreContenders<T extends { state: ExploreState }>(ev
   return { contenders, remainder }
 }
 
-function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenPlan, onOpenCalendar }: { events: ExploreEvent[]; routeState: ExploreRouteState; focusRequest: { eventId: string; noteId?: string; nonce: number } | null; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
+function ExploreSurface({ onShowOnMap, events, routeState, focusRequest, notes, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenPlan, onOpenCalendar }: { onShowOnMap?: (eventId: string, targetId?: string) => void; events: ExploreEvent[]; routeState: ExploreRouteState; focusRequest: { eventId: string; noteId?: string; nonce: number } | null; notes: ContextNote[]; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenPlan: () => void; onOpenCalendar: () => void }) {
   const [day, setDay] = useState<'all' | ExploreEvent['day']>('all')
   const [eventType, setEventType] = useState<ExploreType>('all')
   const [selectedId, setSelectedId] = useState<string | null>(() => purchaseQaEventId(events))
@@ -4786,7 +4872,7 @@ function ExploreSurface({ events, routeState, focusRequest, notes, currentOwnerI
       </div>
 
       {selected && <div className="explore-detail-slot" style={{ top: workbarPinned ? workbarHeight + 12 : detailTop }}>
-        <ExploreDetail event={selected} onPurchase={purchased => onPurchase(selected.id, purchased)} focusedNoteId={focusRequest?.eventId === selected.id ? focusRequest.noteId : undefined} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => { setSelectedId(null); setDetailOpen(false) }} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
+        <ExploreDetail onShowOnMap={onShowOnMap} event={selected} onPurchase={purchased => onPurchase(selected.id, purchased)} focusedNoteId={focusRequest?.eventId === selected.id ? focusRequest.noteId : undefined} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} open={detailOpen} onClose={() => { setSelectedId(null); setDetailOpen(false) }} onState={state => updateEvent(selected.id, state)} onOpenPlan={onOpenPlan} />
       </div>}
     </div>
   </section>
@@ -4843,7 +4929,30 @@ function getPriceTone(price: string) {
   return 'high'
 }
 
-function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onPurchase, onOpenPlan }: { event: ExploreEvent; focusedNoteId?: string; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void }) {
+function mapEventDescription(event: ExploreEvent) {
+  if (!event.id.startsWith('program-') || !eventMapDestination(event.id)) return event.detail
+  return event.detail.split('. Times are Atlanta local time. ').slice(1).join('. Times are Atlanta local time. ') || event.detail
+}
+
+function mapEventDetailFacts(event: ExploreEvent) {
+  const destination = eventMapDestination(event.id)
+  return eventDecisionFacts(event).filter(fact => !destination || fact.label !== 'Location')
+}
+
+function EventMapLink({ eventId, onShowOnMap }: { eventId: string; onShowOnMap?: (id: string, targetId?: string) => void }) {
+  const destination = eventMapDestination(eventId)
+  const wayfinding = onShowOnMap ? eventMapWayfinding(eventId) : []
+  if (!destination && !wayfinding.length) return null
+  return <div className="event-map-link">
+    {destination && <span>{destination.name}</span>}
+    {destination?.meetingPoint && <small>{destination.meetingPoint.label}</small>}
+    {destination?.host && <small>Hosted by {destination.host}</small>}
+    {destination && onShowOnMap && <button type="button" className="detail-plan-link" onClick={() => onShowOnMap(eventId)}>Show on map <span aria-hidden="true">›</span></button>}
+    {wayfinding.map(({ targetId, label }) => <button key={targetId} type="button" className="detail-plan-link" onClick={() => onShowOnMap?.(eventId, targetId)}>{label} <span aria-hidden="true">›</span></button>)}
+  </div>
+}
+
+function ExploreDetail({ onShowOnMap, event, focusedNoteId, notes, currentOwnerId, onAddNote, onDeleteNote, open, onClose, onState, onPurchase, onOpenPlan }: { onShowOnMap?: (eventId: string, targetId?: string) => void; event: ExploreEvent; focusedNoteId?: string; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; open: boolean; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void }) {
   useEffect(() => {
     if (!open) return
     const dismiss = (key: KeyboardEvent) => { if (key.key === 'Escape') onClose() }
@@ -4862,27 +4971,28 @@ function ExploreDetail({ event, focusedNoteId, notes, currentOwnerId, onAddNote,
         </span>
       </div>
       <h2>{displayEventTitle(event)}</h2>
+      <EventMapLink eventId={event.id} onShowOnMap={onShowOnMap} />
       <div className="detail-facts">
         <span><DetailFactIcon name="time" />{event.day} · {event.time}</span>
         {!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}
-        <span><DetailFactIcon name="duration" />{event.window}</span>
+        {event.window && event.window !== "Scheduled program" && <span><DetailFactIcon name="duration" />{event.window}</span>}
       </div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
       <EventStateRail event={event} context="explore" onState={onState} />
       <button type="button" className="detail-plan-link detail-hide-secondary" onClick={() => onState('hidden')}>Hide from Explore</button>
     </header>
     <CompanionCodePanel event={event} />
-    <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(event.detail)}</p></div>
+    <div className="detail-intel event-context-block"><span aria-hidden="true">✧</span><p><small>OFFICIAL DESCRIPTION</small>{renderLinkedText(mapEventDescription(event))}</p></div>
     <section className="detail-section decision-section">
       <div className="format-heading"><strong>{event.format}</strong>{event.formatHelp && <details className="format-help"><summary aria-label={`Explain ${event.format}`}>?</summary><p>{event.formatHelp}</p></details>}</div>
-      {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
+      {mapEventDetailFacts(event).length > 0 && <div className="decision-facts" aria-label="Event at a glance">{mapEventDetailFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
       <details className="detail-more"><summary>Planning context</summary><p>{event.complexityWhy}</p>{event.fit && <p>{event.fit}</p>}</details>
       <div className="event-detail-tags">{[...new Set(event.tags)].map(tag => <span key={tag}>{tag}</span>)}</div>
     </section>
-    <section className="detail-section plan-summary">
+    {event.planEffect && <section className="detail-section plan-summary">
       <strong>Plan effect</strong>
       <p>{event.planEffect}</p>
-    </section>
+    </section>}
     <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} focusedNoteId={focusedNoteId} context={`Event · ${displayEventTitle(event)}`} backlink="explore" compact />
     {(eventMoreDetails(event).length > 0 || event.sourceNote) && <details className="detail-more">
       <summary><span>More details</span></summary>
@@ -5173,9 +5283,25 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person === 'Kyle' ? 'Ky' : person[0]}</span>)}</span>
 }
 
-function MapSurface({ events, currentOwnerId, currentPerson, selections, companions, onOpenTrip, accountId, exhibitors, onOpenObject }: { events: ExploreEvent[]; currentOwnerId?: string; currentPerson: PersonName; selections: UserSelectionRow[]; companions: CompanionMember[]; onOpenTrip: () => void; accountId?: string; exhibitors: DirectoryExhibitor[]; onOpenObject: (detail: ObjectDetail) => void }) {
-  const canOpenBeta = useKaviMapAccess(accountId)
-  const [mode, setMode] = useState('floor')
+function MapSurface({ events, currentOwnerId, currentPerson, selections, companions, onOpenTrip, canOpenBeta, exhibitors, onOpenObject, catalog, onOpenCatalog, onOpenEvent, initialPlaceId, onReturn }: {
+  events: ExploreEvent[]
+  currentOwnerId?: string
+  currentPerson: PersonName
+  selections: UserSelectionRow[]
+  companions: CompanionMember[]
+  onOpenTrip: () => void
+  canOpenBeta: boolean
+  exhibitors: DirectoryExhibitor[]
+  onOpenObject: (detail: ObjectDetail) => void
+  catalog: CatalogReadModel
+  onOpenCatalog: (family: 'show_store' | 'prize_wall' | 'black_lotus') => void
+  onOpenEvent: (eventId: string) => void
+  initialPlaceId?: string
+  onReturn?: () => void
+}) {
+  const initialUpperPlace = initialPlaceId === 'mana-stage' || initialPlaceId === 'black-lotus' ? initialPlaceId : undefined
+  const [focusedLevel, setFocusedLevel] = useState<MapUpperPlace | undefined>(initialUpperPlace)
+  const [mode, setMode] = useState(initialUpperPlace ? 'levels' : initialPlaceId ? 'beta' : 'floor')
   const [betaVisited, setBetaVisited] = useState(false)
   const [returnToBeta, setReturnToBeta] = useState(false)
   const [mapArtists, setMapArtists] = useState<Array<{name: string; aliases: string[]; detail: ObjectDetail}>>([])
@@ -5216,23 +5342,33 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
       if (artist) onOpenObject(artist.detail)
     }
   }
-  const roomEvents = groupMapRoomEvents(events)
+  const mapCatalogs = useMemo(() => new Set((selectMapProducts(catalog) ?? []).map(item => item.locationId)), [catalog])
+  const roomEvents = useMemo(() => groupMapRoomEvents(events), [events])
+  const eventHits = useMemo(() => events.flatMap(({ id, title, day, time }) => {
+    const destination = eventMapDestination(id)
+    if (destination) return [{ id, title, day, time, targetId: destination.targetId, location: destination.meetingPoint?.label ?? destination.name }]
+    return eventMapWayfinding(id).map(({ targetId, label }) => ({ id, title, day, time, targetId, location: label }))
+  }), [events])
   const now = useMilestoneClock()
   const [visiblePeople, setVisiblePeople] = useState<PersonName[]>([currentPerson])
   useEffect(() => setVisiblePeople([currentPerson]), [currentOwnerId, currentPerson])
-  const nextRooms: Record<string, Array<{ person: PersonName; title: string }>> = {}
-  if (canOpenBeta && currentOwnerId) {
-    const scheduled = events.filter(event => event.id !== 'bl-first-look-thursday').map(event => ({
+  const nextRooms: Record<string, Array<{ person: PersonName; title: string; eventId: string }>> = {}
+  const scheduled = useMemo(() => canOpenBeta && currentOwnerId ? events.filter(event => event.id !== 'bl-first-look-thursday').map(event => ({
       event,
       at: atlantaConventionStart(event.day, event.time),
       participants: planParticipants(event, currentPerson, selections, companions),
-    }))
+    })) : [], [canOpenBeta, currentOwnerId, events, currentPerson, selections, companions])
+  if (scheduled.length) {
     for (const person of visiblePeople) {
       const next = nextCalendarEntry(scheduled.filter(entry => entry.participants.some(participant => participant.person === person && participant.state === 'committed')), now)
-      const room = next && reviewedEventLocation(next.event.id)
-      if (room && next) (nextRooms[room.id] ??= []).push({ person, title: next.event.title })
+      const room = next && eventMapDestination(next.event.id)
+      if (room && next) (nextRooms[room.targetId] ??= []).push({ person, title: next.event.title, eventId: next.event.id })
     }
   }
+  const eventPeople = useMemo(() => Object.fromEntries(scheduled
+    .map(({ event, participants }) => [event.id, participants.filter(person => person.state === 'committed').map(person => person.person)] as const)
+    .filter(([, people]) => people.length)), [scheduled])
+  const canOpenPrizeCatalog = mapCatalogs.has('prize-wall')
   const activeMode = mode === 'beta' && !canOpenBeta ? 'floor' : mode
   const showNextStops = Boolean(canOpenBeta && currentOwnerId && (activeMode === 'beta' || activeMode === 'levels'))
   const nextStopsRef = useRef<HTMLDivElement>(null)
@@ -5269,18 +5405,35 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
     </div></div>}
     </div>
     <div ref={mapPanelRef} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
-    {activeMode === 'levels' && returnToBeta && canOpenBeta && <button type="button" className="map-return-beta" onClick={()=>{setMode('beta');setReturnToBeta(false)}}>← Back to KaviMap</button>}
+    {activeMode !== 'beta' && onReturn && !returnToBeta && <button type="button" className="map-return-beta" onClick={onReturn}>← Back</button>}
+    {activeMode === 'levels' && returnToBeta && canOpenBeta && <button type="button" className="map-return-beta" onClick={() => { setMode('beta'); setReturnToBeta(false) }}>← Back to KaviMap</button>}
     {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} loungeNextStops={nextRooms['black-lotus']?.map(stop =>
-      <span key={stop.person} title={stop.title}><PersonBubbles people={[stop.person]} /></span>
+      <button className="map-person-stop" key={stop.person} type="button" aria-label={`${stop.person} · ${stop.title}`} onClick={() => onOpenEvent(stop.eventId)}><PersonBubbles people={[stop.person]} /></button>
     )} />}
+    {canOpenBeta && activeMode === 'levels' && mapCatalogs.has('show-store') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('show_store')}>Show Store catalog <span aria-hidden="true">›</span></button>}
     {activeMode === 'levels' && [
       { id: 'mana-stage', label: 'Mana Stage · Georgia Ballroom' },
       { id: 'black-lotus', label: 'Black Lotus Lounge · Triumph Ballroom, Signia' },
-    ].map(room => roomEvents[room.id]?.length ? <details className="map-card map-room-schedule" key={room.id}>
+    ].map(room => roomEvents[room.id]?.length ? <details className="map-card map-room-schedule" id={'map-level-' + room.id} key={room.id} open={focusedLevel === room.id || undefined}>
       <summary>{room.label} {nextRooms[room.id]?.map(stop => <span key={stop.person} title={stop.title}><PersonBubbles people={[stop.person]} /></span>)}</summary>
-      <ul>{roomEvents[room.id].map(event => <li key={event.id}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></li>)}</ul>
+      {nextRooms[room.id]?.map(stop => <button key={stop.person} className="map-schedule-event map-room-next" type="button" onClick={() => onOpenEvent(stop.eventId)}><PersonBubbles people={[stop.person]} /><strong>{stop.title}</strong></button>)}
+      {canOpenBeta && room.id === 'black-lotus' && mapCatalogs.has('black-lotus') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('black_lotus')}>Black Lotus catalog <span aria-hidden="true">›</span></button>}
+      <ul>{roomEvents[room.id].map(event => <li key={event.id}>{canOpenBeta ? <button type="button" className="map-schedule-event" onClick={() => onOpenEvent(event.id)}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></button> : <><strong>{event.title}</strong><small>{event.day} · {event.time}</small></>}</li>)}</ul>
     </details> : null)}
-    {canOpenBeta && (betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}><KaviMapBeta roomEvents={roomEvents} nextRooms={nextRooms} canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOtherFloors={()=>{setReturnToBeta(true);setMode('levels');requestAnimationFrame(()=>document.getElementById('map-tab-levels')?.focus())}} /></div>}
+    {canOpenBeta && (betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
+      <KaviMapBeta schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog }}
+        canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOpenEvent={onOpenEvent} onReturn={onReturn}
+        onOpenPrizeCatalog={canOpenPrizeCatalog ? () => onOpenCatalog('prize_wall') : undefined}
+        onOtherFloors={placeId => {
+          setReturnToBeta(true)
+          setFocusedLevel(placeId)
+          setMode('levels')
+          requestAnimationFrame(() => {
+            if (placeId) document.getElementById('map-level-' + placeId)?.scrollIntoView({ block: 'nearest' })
+            else document.getElementById('map-tab-levels')?.focus()
+          })
+        }} />
+    </div>}
     {activeMode === 'outside' && <div className="map-surface map-surface-orientation">
       <article className="map-card trip-area-card">
         <span className="eyebrow">ORIENTATION NOW</span>
@@ -5512,7 +5665,7 @@ function StoreAssetStatus({ offers, reviewOnly }: { offers: CatalogOffer[]; revi
 
 const CatalogImportLab = lazy(async () => ({ default: (await import('./CatalogImportLab')).CatalogImportLab }))
 
-function InfoCatalogsPreview({ refreshFailed = false, onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; refreshFailed?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
+function InfoCatalogsPreview({ initialFamily, refreshFailed = false, onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { initialFamily?: 'show_store' | 'prize_wall' | 'black_lotus'; onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; refreshFailed?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
   const [catalogId, setCatalogId] = useState<InfoCatalog['id']>('show-store')
   const catalog = priorEventCatalogs.find(item => item.id === catalogId) ?? priorEventCatalogs[0]
   const hasCurrentCatalog = catalogReadModel.status === 'ready' && catalogReadModel.offers.length > 0
@@ -5522,7 +5675,7 @@ function InfoCatalogsPreview({ refreshFailed = false, onOpenObject, showMatchRev
     {!reviewOnly && catalogBrowserQa && <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event products—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>}
     {showMatchReview && <CatalogMatchReview />}
     {hasCurrentCatalog
-      ? <CatalogBrowser reviewOnly={reviewOnly} model={catalogReadModel} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(preferredCatalogBookmarkOffer(catalogReadModel, offer, currentOwnerId), currentOwnerId))} />
+      ? <CatalogBrowser initialFamily={initialFamily} reviewOnly={reviewOnly} model={catalogReadModel} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(preferredCatalogBookmarkOffer(catalogReadModel, offer, currentOwnerId), currentOwnerId))} />
       : refreshFailed ? null : !catalogBrowserQa || reviewOnly ? <p role="status">{catalogReadModel.status === 'ready' ? 'No Store items yet.' : 'Loading Store…'}</p> : <><div className="info-catalog-selector" role="tablist" aria-label="Catalog preview">
       {priorEventCatalogs.map(item => <button type="button" role="tab" aria-selected={catalog.id === item.id} className={catalog.id === item.id ? 'active' : ''} key={item.id} onClick={() => setCatalogId(item.id)}>{item.id === 'black-lotus' ? 'Black Lotus' : item.title}</button>)}
     </div>
@@ -5567,7 +5720,9 @@ function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibit
   const atlantaMerchReview = catalogReadModel.offers.some(offer => offer.attributes?.local_review === true)
   const catalogImportQa = canUseCatalogImport && qaFlags.includes('catalog-import-lab')
   const catalogsEnabled = catalogReadModel.offers.length > 0 || canUseCatalogImport
-  const [mode, setMode] = useState<'guide' | 'catalogs' | 'import' | 'exhibitors'>(qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa || (canUseCatalogImport && qaFlags.includes('atlanta-merch-review')) ? 'catalogs' : 'guide')
+  const storeParam = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('store')
+  const initialFamily = storeParam === 'show_store' || storeParam === 'black_lotus' || storeParam === 'prize_wall' ? storeParam : undefined
+  const [mode, setMode] = useState<'guide' | 'catalogs' | 'import' | 'exhibitors'>(initialFamily ? 'catalogs' : qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa || (canUseCatalogImport && qaFlags.includes('atlanta-merch-review')) ? 'catalogs' : 'guide')
   const visibleTopics = publishedInfoTopics(topics).map(topic => topic.topic_key === 'ticketed-play' && ticketedPlaySaleHasOpened()
     ? {
         ...topic,
@@ -5592,7 +5747,7 @@ function InfoSurface({ catalogRefreshFailed = false, canWriteExhibitors, exhibit
       <ArtistAssetStatus urls={exhibitorAssetUrls(exhibitors).filter((url): url is string => Boolean(url))} missingImages={0} online={navigator.onLine} revision={0} label="Exhibitor images" />
       <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />
     </>}
-    {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview refreshFailed={catalogRefreshFailed} onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
+    {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview initialFamily={initialFamily} refreshFailed={catalogRefreshFailed} onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
     {mode === 'import' && canUseCatalogImport && <Suspense fallback={<p role="status">Loading import…</p>}>
       <CatalogImportLab canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />
     </Suspense>}
@@ -6176,7 +6331,7 @@ function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
   </div>
 }
 
-export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity, selections = {}, onBringChange }: { currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void; selections?: Record<string, string>; onBringChange?: (id: string, key: 'packed' | 'signed', value: string) => Promise<void> }) {
+export function ArtistsSurface({ mapOpen = false, mapAllowed = false, onShowOnMap, currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity, selections = {}, onBringChange }: { mapOpen?: boolean; mapAllowed?: boolean; onShowOnMap?: (placeId: string) => void; currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void; selections?: Record<string, string>; onBringChange?: (id: string, key: 'packed' | 'signed', value: string) => Promise<void> }) {
   const [view, setView] = useState<'artists' | 'cards'>('artists')
   const [artistFilter, setArtistFilter] = useState<'all' | string>('all')
   const [styleFilter, setStyleFilter] = useState<string>('all')
@@ -6184,6 +6339,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
   const [cardGroupBy, setCardGroupBy] = useState<'artist' | 'style' | 'price'>('artist')
   const [cardSearch, setCardSearch] = useState('')
   const [selectedArtist, setSelectedArtist] = useState<ArtistSeed | null>(null)
+  const artistMapPlace = mapAllowed && selectedArtist && selectedArtist.status === 'Official Atlanta Art of Magic guest' ? selectedArtist.title : undefined
   const [previewCard, setPreviewCard] = useState<ArtistCardCandidate | null>(null)
   const cardPreviewRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -6523,7 +6679,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
     />}
     {canUseCards && <div className="artist-top-tools">
       <div className="surface-view-tabs-desktop">{viewTabs()}</div>
-      <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>
+      {!mapOpen && <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>}
       <label className="artist-card-search">
         <span aria-hidden="true">⌕</span>
         <input value={cardSearch} onChange={event => setCardSearch(event.target.value)} placeholder={view === 'cards' ? 'Find card, artist, style' : 'Find artist'} />
@@ -6740,6 +6896,7 @@ export function ArtistsSurface({ currentPerson, currentOwnerId, canWrite, onOpen
               <div><dt>Attendance</dt><dd>{selectedArtist.attendance}</dd></div>
               {selectedArtist.facts?.slice(0, 3).map(fact => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
             </dl>
+            {artistMapPlace && onShowOnMap && <button type="button" className="text-button" onClick={() => onShowOnMap(artistMapPlace)}>Show on map</button>}
             <div className="artist-detail-popover-links">
               <a href={scryfallArtistSearchUrl(selectedArtist.title)} target="_blank" rel="noreferrer" aria-label={`Open ${selectedArtist.title} cards on Scryfall`}>🔗 Scryfall</a>
             {selectedArtist.bioUrl && <a href={selectedArtist.bioUrl} target="_blank" rel="noreferrer" aria-label={`Open official ${selectedArtist.title} source`}>🔗 Official source</a>}
@@ -6784,7 +6941,7 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ slice, events, flights, selectionRows, companions, notes, catalog, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; catalog: CatalogReadModel; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, companions, notes, catalog, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onChangeState, online, saving, canCommitBlackLotus }: { onShowOnMap?: (eventId: string, targetId?: string) => void; slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; catalog: CatalogReadModel; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const now = useMilestoneClock()
   const { upcoming } = catalogMilestones(catalog, now)
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
@@ -6983,7 +7140,7 @@ function CalendarSurface({ slice, events, flights, selectionRows, companions, no
     </>}
 
     {detail && ((detail !== 'show-catalog' && detail !== 'black-lotus-store') || upcoming.some(forecast => forecast.id === detail)) && <CalendarDetailSheet detail={detail} slice={slice} flights={flights} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-    {selectedEvent && <CalendarEventDetail event={selectedEvent} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
+    {selectedEvent && <CalendarEventDetail onShowOnMap={onShowOnMap} event={selectedEvent} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
 }
 
@@ -7006,21 +7163,22 @@ export function CompanionCodePanel({ event }: { event: Pick<ExploreEvent, 'compa
   </section>}</>
 }
 
-function CalendarEventDetail({ event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+function CalendarEventDetail({ fromMap, onShowOnMap, event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { fromMap?: boolean; onShowOnMap?: (eventId: string, targetId?: string) => void; event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
   return <aside className="calendar-detail-sheet calendar-event-detail event-detail-panel" aria-label={`${event.title} calendar detail`}>
     <button className="detail-close persistent-detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
     <header className="event-detail-heading">
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span></span></div>
       <h2>{displayEventTitle(event)}</h2>
-      <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}<span><DetailFactIcon name="duration" />{event.window}</span></div>
+      <EventMapLink eventId={event.id} onShowOnMap={onShowOnMap} />
+      <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}{event.window && event.window !== "Scheduled program" && <span><DetailFactIcon name="duration" />{event.window}</span>}</div>
       <EventDetailActions event={event} onPurchase={onPurchase} />
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
     <CompanionCodePanel event={event} />
-    <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>PLAN EFFECT</small>{event.planEffect}</p></div>
-    <section className="detail-section"><strong>{event.format}</strong><p>{renderLinkedText(event.detail)}</p></section>
-    {eventDecisionFacts(event).length > 0 && <div className="decision-facts" aria-label="Event logistics">{eventDecisionFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
-    <div className="plan-provenance"><span>{event.sourceNote?.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{renderLinkedText(event.sourceNote ?? 'Source context captured for this item.')}</small></div>
+    {event.planEffect && (!fromMap || event.planEffect !== 'Compare the published time with your other events before committing.') && <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>PLAN EFFECT</small>{event.planEffect}</p></div>}
+    <section className="detail-section"><strong>{event.format}</strong><p>{renderLinkedText(mapEventDescription(event))}</p></section>
+    {mapEventDetailFacts(event).length > 0 && <div className="decision-facts" aria-label="Event logistics">{mapEventDetailFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
+    {!fromMap && event.sourceNote && !event.id.startsWith('program-') && <div className="plan-provenance"><span>{event.sourceNote.includes('Official Atlanta') ? 'Official Atlanta source' : 'Source context'}</span><small>{renderLinkedText(event.sourceNote)}</small></div>}
     <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} objectId={`explore-${event.id}`} objectKind="event" objectTitle={displayEventTitle(event)} context={`Event · ${displayEventTitle(event)}`} backlink="calendar" compact />
     <button className="detail-plan-link" type="button" onClick={onOpenPlan}>Open in Plan <span aria-hidden="true">›</span></button>
   </aside>

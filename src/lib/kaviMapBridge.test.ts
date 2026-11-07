@@ -17,6 +17,15 @@ describe('private map bridge', () => {
     expect(matchMapRecord({kind:'vendor',name:'Beadle and Grimms'},rows)).toBe(rows[1])
     expect(matchMapRecord({kind:'artist',name:'Martina'},rows)).toBeUndefined()
   })
+  it('only accepts known actions and closed payloads from the map', () => {
+    const parse = (message: object) => readMapMessage({ source, origin: 'null', data: { version: 1, ...message } }, source)
+    expect(parse({ type: 'kavimap:event', eventId: 'bl-coffee-chat-fri' })).toMatchObject({ eventId: 'bl-coffee-chat-fri' })
+    expect(parse({ type: 'kavimap:event', eventId: 'https://example.com' })).toBeNull()
+    expect(parse({ type: 'kavimap:levels', placeId: 'mana-stage' })).toMatchObject({ placeId: 'mana-stage' })
+    expect(parse({ type: 'kavimap:levels', placeId: 'other' })).toBeNull()
+    expect(parse({ type: 'kavimap:catalog', family: 'show_store' })).toBeNull()
+    expect(parse({ type: 'kavimap:return', extra: true })).toBeNull()
+  })
   it('uses verified short map captions and preserves the official map booth', () => {
     expect(matchMapRecord({kind:'vendor',name:'Mage’s Sanctum'},[{name:'Mages Sanctum LLC'}])?.name).toBe('Mages Sanctum LLC')
     expect(matchMapRecord({kind:'artist',name:'Jason Engle'},[{name:'Jason A. Engle'}])?.name).toBe('Jason A. Engle')

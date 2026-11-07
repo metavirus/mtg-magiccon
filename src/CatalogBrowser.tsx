@@ -36,6 +36,7 @@ function CatalogProductImage({ offer }: { offer: CatalogOffer }) {
 }
 
 export function CatalogBrowser({
+  initialFamily,
   model,
   currentOwnerId,
   canEditInterest,
@@ -43,6 +44,7 @@ export function CatalogBrowser({
   onToggleInterest,
   onOpenOffer,
 }: {
+  initialFamily?: CatalogFamily
   model: CatalogReadModel
   currentOwnerId?: string
   canEditInterest: boolean
@@ -64,7 +66,7 @@ export function CatalogBrowser({
     return () => observer.disconnect()
   }, [model.status, model.offers.length])
   const families = useMemo(() => [...new Set(model.offers.map(offer => offer.family))], [model.offers])
-  const [family, setFamily] = useState<CatalogFamily>(() => families[0] ?? 'show_store')
+  const [family, setFamily] = useState<CatalogFamily>(() => initialFamily ?? families[0] ?? 'show_store')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [view, setView] = useState<CatalogViewFilter>('all')
