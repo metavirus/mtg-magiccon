@@ -5488,7 +5488,12 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
     observer.observe(toolbar)
     return () => { observer.disconnect(); panel.style.removeProperty('--map-next-stops-height') }
   }, [showNextStops])
-  const tabs = [{ id: 'floor', label: 'Show Floor' }, { id: 'levels', label: 'Other Floors' }, { id: 'beta', label: 'KaviMap™ Beta' }, { id: 'outside', label: 'Outside' }]
+  const tabs = [
+    { id: 'floor', label: 'Show Floor' },
+    { id: 'levels', label: 'Other Floors' },
+    { id: 'beta', label: 'KaviMap™ Beta' },
+    ...(!publicView ? [{ id: 'outside', label: 'Outside' }] : []),
+  ]
   return <section className="map-shell" aria-label="Map">
     <div className="map-toolbar">
     <div className="trip-tabs map-view-tabs" role="tablist" aria-label="Map view">{tabs.map(tab => <button key={tab.id} id={`map-tab-${tab.id}`} type="button" role="tab" aria-selected={activeMode === tab.id} aria-controls="map-view-panel" tabIndex={activeMode === tab.id ? 0 : -1} className={activeMode === tab.id ? 'active' : ''} onClick={() => setMode(tab.id)} onKeyDown={event => {
@@ -5533,7 +5538,7 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
           })
         }} />
     </div>}
-    {activeMode === 'outside' && <div className="map-surface map-surface-orientation">
+    {!publicView && activeMode === 'outside' && <div className="map-surface map-surface-orientation">
       <article className="map-card trip-area-card">
         <span className="eyebrow">ORIENTATION NOW</span>
         <h2>Omni to Building C, visually.</h2>
