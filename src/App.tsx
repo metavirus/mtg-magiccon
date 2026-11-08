@@ -5419,6 +5419,7 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
 }) {
   const initialUpperPlace = initialPlaceId === 'mana-stage' || initialPlaceId === 'black-lotus' ? initialPlaceId : undefined
   const [focusedLevel, setFocusedLevel] = useState<MapUpperPlace | undefined>(initialUpperPlace)
+  const [floorSchedulesOpen, setFloorSchedulesOpen] = useState(Boolean(initialUpperPlace))
   const [mode, setMode] = useState(initialUpperPlace ? 'levels' : initialPlaceId || publicView ? 'beta' : 'floor')
   const [betaVisited, setBetaVisited] = useState(false)
   const [returnToBeta, setReturnToBeta] = useState(false)
@@ -5503,6 +5504,13 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
   const canOpenPrizeCatalog = mapCatalogs.has('prize-wall')
   const activeMode = mode
   const showNextStops = Boolean(currentOwnerId && companions.length > 0 && (activeMode === 'beta' || activeMode === 'levels'))
+  const showReturnToBeta = activeMode === 'levels' && returnToBeta
+  const schedulesAvailable = Boolean(roomEvents['mana-stage']?.length || roomEvents['black-lotus']?.length)
+  const floorSchedulesRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (activeMode !== 'levels' || !focusedLevel || !floorSchedulesOpen || !schedulesAvailable) return
+    document.getElementById('map-level-' + focusedLevel)?.querySelector('summary')?.scrollIntoView({ block: 'center' })
+  }, [activeMode, focusedLevel, floorSchedulesOpen, schedulesAvailable])
   const nextStopsRef = useRef<HTMLDivElement>(null)
   const mapPanelRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
@@ -5520,7 +5528,7 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
     const observer = new ResizeObserver(reserveSpace)
     observer.observe(toolbar)
     return () => { observer.disconnect(); panel.style.removeProperty('--map-next-stops-height') }
-  }, [showNextStops])
+  }, [showNextStops, showReturnToBeta])
   const tabs = [
     { id: 'floor', label: 'Show Floor' },
     { id: 'levels', label: 'Other Floors' },
@@ -5537,26 +5545,42 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
       setMode(tabs[next].id)
       document.getElementById(`map-tab-${tabs[next].id}`)?.focus()
     }}>{tab.label}</button>)}</div>
-    {showNextStops && <div ref={nextStopsRef} className="map-next-stops"><div className="plan-people-filter" role="group" aria-label="Next calendar stops">
+    {(showNextStops || showReturnToBeta) && <div ref={nextStopsRef} className="map-next-stops">{showNextStops && <div className="plan-people-filter" role="group" aria-label="Next calendar stops">
       {companions.map(({ name }) => <button key={name} type="button" aria-label={name} title={name} aria-pressed={visiblePeople.includes(name)} className={visiblePeople.includes(name) ? 'active' : ''} onClick={() => setVisiblePeople(people => people.includes(name) ? people.filter(person => person !== name) : [...people, name])}><PersonBubbles people={[name]} /></button>)}
-    </div></div>}
+    </div>}
+      {showReturnToBeta && <button type="button" className="map-return-beta" onClick={() => {
+        setMode('beta')
+        setReturnToBeta(false)
+        document.getElementById('map-tab-beta')?.focus({ preventScroll: true })
+      }}>← Back to KaviMap</button>}
+    </div>}
     </div>
-    <div ref={mapPanelRef} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
+    <div ref={mapPanelRef} className={activeMode === 'levels' && schedulesAvailable ? 'map-has-floor-schedules' : undefined} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
     {activeMode !== 'beta' && onReturn && !returnToBeta && <button type="button" className="map-return-beta" onClick={onReturn}>← Back</button>}
-    {activeMode === 'levels' && returnToBeta && <button type="button" className="map-return-beta" onClick={() => { setMode('beta'); setReturnToBeta(false) }}>← Back to KaviMap</button>}
     {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} loungeNextStops={nextRooms['black-lotus']?.map(stop =>
       <button className="map-person-stop" key={stop.person} type="button" aria-label={`${stop.person} · ${stop.title}`} onClick={() => onOpenEvent(stop.eventId)}><PersonBubbles people={[stop.person]} /></button>
     )} />}
-    {activeMode === 'levels' && onOpenCatalog && mapCatalogs.has('show-store') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('show_store')}>Show Store catalog <span aria-hidden="true">›</span></button>}
-    {activeMode === 'levels' && [
+    {activeMode === 'levels' && onOpenCatalog && (mapCatalogs.has('show-store') || mapCatalogs.has('black-lotus')) && <div className="map-floor-catalogs">
+      {mapCatalogs.has('show-store') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('show_store')}>Show Store catalog <span aria-hidden="true">›</span></button>}
+      {mapCatalogs.has('black-lotus') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('black_lotus')}>Black Lotus catalog <span aria-hidden="true">›</span></button>}
+    </div>}
+    {activeMode === 'levels' && schedulesAvailable && <button type="button" className="map-floor-schedule-toggle"
+      aria-expanded={floorSchedulesOpen} aria-controls="map-floor-schedules" onClick={() => {
+        setFloorSchedulesOpen(!floorSchedulesOpen)
+        if (!floorSchedulesOpen && !focusedLevel) requestAnimationFrame(() => floorSchedulesRef.current?.querySelector('summary')?.scrollIntoView({ block: 'center' }))
+      }}>
+      <svg className="map-floor-schedule-arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path d="m3 10 5-5 5 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg> Room schedules
+    </button>}
+    {activeMode === 'levels' && schedulesAvailable && <div id="map-floor-schedules" ref={floorSchedulesRef} hidden={!floorSchedulesOpen}>
+    {[
       { id: 'mana-stage', label: 'Mana Stage · Georgia Ballroom' },
       { id: 'black-lotus', label: 'Black Lotus Lounge · Triumph Ballroom, Signia' },
     ].map(room => roomEvents[room.id]?.length ? <details className="map-card map-room-schedule" id={'map-level-' + room.id} key={room.id} open={focusedLevel === room.id || undefined}>
       <summary>{room.label} {nextRooms[room.id]?.map(stop => <span key={stop.person} title={stop.title}><PersonBubbles people={[stop.person]} /></span>)}</summary>
       {nextRooms[room.id]?.map(stop => <button key={stop.person} className="map-schedule-event map-room-next" type="button" onClick={() => onOpenEvent(stop.eventId)}><PersonBubbles people={[stop.person]} /><strong>{stop.title}</strong></button>)}
-      {room.id === 'black-lotus' && onOpenCatalog && mapCatalogs.has('black-lotus') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('black_lotus')}>Black Lotus catalog <span aria-hidden="true">›</span></button>}
       <ul>{roomEvents[room.id].map(event => <li key={event.id}><button type="button" className="map-schedule-event" onClick={() => onOpenEvent(event.id)}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></button></li>)}</ul>
     </details> : null)}
+    </div>}
     {(betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
       <KaviMapBeta schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog, guidePlaces }} onOpenGuide={openGuide}
         canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOpenEvent={onOpenEvent} onReturn={onReturn}
@@ -5564,11 +5588,9 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
         onOtherFloors={placeId => {
           setReturnToBeta(true)
           setFocusedLevel(placeId)
+          if (placeId) setFloorSchedulesOpen(true)
           setMode('levels')
-          requestAnimationFrame(() => {
-            if (placeId) document.getElementById('map-level-' + placeId)?.scrollIntoView({ block: 'nearest' })
-            else document.getElementById('map-tab-levels')?.focus()
-          })
+          if (!placeId) requestAnimationFrame(() => document.getElementById('map-tab-levels')?.focus({ preventScroll: true }))
         }} />
     </div>}
     {!publicView && activeMode === 'outside' && <div className="map-surface map-surface-orientation">

@@ -47,3 +47,18 @@
 .public-kavimap-heading a,.public-map-link{color:var(--blue)}
 .public-map-link{display:inline-grid;place-items:center}
 @media(max-width:600px){.public-kavimap .kavimap-beta-frame{height:calc(100dvh - 100px)}}
+.map-next-stops{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;max-width:100%}
+.map-next-stops>.map-return-beta,.map-floor-catalogs>.map-return-beta{margin:0}
+.map-floor-catalogs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.map-floor-schedule-toggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;margin-top:4px;padding:5px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--blue);font:inherit;font-size:12px;cursor:pointer}
+.map-floor-schedule-arrow{flex:none}
+.map-floor-schedule-toggle[aria-expanded=true] .map-floor-schedule-arrow{transform:rotate(180deg)}
+@media(prefers-reduced-motion:no-preference){.map-floor-schedule-toggle[aria-expanded=false] .map-floor-schedule-arrow{animation:map-schedule-nudge .65s ease-out .35s 1 both}}
+@keyframes map-schedule-nudge{0%,100%{transform:translateY(0)}40%{transform:translateY(-3px)}}
+@media(min-width:601px){
+  .map-has-floor-schedules:has(.map-floor-catalogs) .official-map-viewport{height:clamp(350px,calc(68dvh - 40px),720px)}
+}
+@media(max-width:600px){
+  .map-has-floor-schedules:has(.map-floor-catalogs){--map-catalog-row-height:44px}
+  .map-shell #map-view-panel.map-has-floor-schedules .official-map-viewer .official-map-viewport{height:clamp(176px,calc(100dvh - 370px - var(--map-next-stops-height, 0px) - var(--map-catalog-row-height, 0px)),572px)}
+}
