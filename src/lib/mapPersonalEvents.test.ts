@@ -127,3 +127,10 @@ it('offers service wayfinding without moving the event to that service', () => {
   expect(isEventMapDestination('ticketed-play-hub')).toBe(true)
   expect(isEventMapDestination('wristband-distribution')).toBe(true)
 })
+
+it('routes reviewed league registrations to the pickup desk without assigning a play venue', () => {
+  expect(eventMapWayfinding('ticketed-944074')[0]).toEqual({ targetId: 'league-pickup', label: 'Show pickup on map' })
+  expect(eventMapDestination('ticketed-944074')).toBeUndefined()
+  expect(isEventMapDestination('league-pickup')).toBe(true)
+  expect(eventMapWayfinding('bl-progressive-sealed').some(link => link.targetId === 'league-pickup')).toBe(false)
+})

@@ -60,6 +60,15 @@ export function eventMapDestination(eventId: string) {
 // https://mcatlanta.mtgfestivals.com/en-us/info/mobile-app.html
 // https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges/black-lotus-vip-experience.html
 const ticketedEventIds = new Set<string>(ticketedPlayExploreEvents.map(event => event.id))
+// The Atlanta play guide lists these four league offerings at the pickup desk.
+// https://mcatlanta.mtgfestivals.com/en-us/magic-play/your-guide-to-playing-magic-at-magiccon.html
+const leaguePickupIds = new Set([
+  'ticketed-944028', 'ticketed-944074', 'ticketed-944119', 'ticketed-944129',
+  'ticketed-944088', 'ticketed-944089', 'ticketed-944090', 'ticketed-944091', 'ticketed-944092',
+  'ticketed-944111',
+])
+const leaguePickup = { targetId: 'league-pickup', label: 'Show pickup on map' }
+export const hasLeaguePickup = (eventId: string) => leaguePickupIds.has(eventId)
 const wristbandEventIds = new Set(['program-954720', 'program-954724', 'program-954726', 'program-954731'])
 const megaGameEventIds = new Set(['bl-mega-game-fri', 'bl-mega-game-sat', 'bl-mega-game-sun'])
 const ticketedPlayHelp = { targetId: 'ticketed-play-hub', label: 'Ticketed Play help' }
@@ -67,6 +76,7 @@ const wristbandPickup = { targetId: 'wristband-distribution', label: 'Wristband 
 const megaGameRegistration = { targetId: 'black-lotus', label: 'Lounge registration by 2 PM' }
 
 export function eventMapWayfinding(eventId: string): Array<{ targetId: string; label: string }> {
+  if (hasLeaguePickup(eventId)) return [leaguePickup, ticketedPlayHelp]
   if (ticketedEventIds.has(eventId)) return [ticketedPlayHelp]
   if (wristbandEventIds.has(eventId)) return [wristbandPickup]
   if (megaGameEventIds.has(eventId)) return [megaGameRegistration]
@@ -74,7 +84,7 @@ export function eventMapWayfinding(eventId: string): Array<{ targetId: string; l
 }
 
 const secondaryMapDestinations = new Set([
-  ticketedPlayHelp.targetId, wristbandPickup.targetId, megaGameRegistration.targetId,
+  leaguePickup.targetId, ticketedPlayHelp.targetId, wristbandPickup.targetId, megaGameRegistration.targetId,
   ...Array.from(gatheringGroundsDetails.values()).flatMap(details => details.meetingPoint ? [details.meetingPoint.placeId] : []),
 ])
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { readMapMessage, type MapPlaceRequest, type MapUpperPlace } from '../lib/kaviMapBridge'
+import { readMapMessage, type MapGuidePlace, type MapPlaceRequest, type MapUpperPlace } from '../lib/kaviMapBridge'
 import type { MapRoomEvent } from '../lib/mapPersonalEvents'
 
 type FrameSchedule = {
@@ -9,6 +9,7 @@ type FrameSchedule = {
   eventPeople: Record<string, string[]>
   initialPlaceId?: string
   canOpenPrizeCatalog: boolean
+  guidePlaces?: MapGuidePlace[]
 }
 
 let rendererRequest: Promise<string> | undefined
@@ -25,12 +26,13 @@ function loadPublicRenderer() {
   return rendererRequest
 }
 
-export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn }: {
+export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onOpenGuide, onReturn }: {
   schedule: FrameSchedule
   canOpenPlace: (place: MapPlaceRequest) => boolean
   onOpenPlace: (place: MapPlaceRequest) => void
   onOtherFloors: (placeId?: MapUpperPlace) => void
   onOpenEvent: (eventId: string) => void
+  onOpenGuide?: (placeId: MapGuidePlace) => void
   onOpenPrizeCatalog?: () => void
   onReturn?: () => void
 }) {
@@ -65,6 +67,9 @@ export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors
       else if (message.type === 'kavimap:event') {
         if (schedule.eventHits.some(event => event.id === message.eventId)) onOpenEvent(message.eventId)
       }
+      else if (message.type === 'kavimap:guide') {
+        if (schedule.guidePlaces?.includes(message.placeId)) onOpenGuide?.(message.placeId)
+      }
       else if (message.type === 'kavimap:catalog') onOpenPrizeCatalog?.()
       else if (message.type === 'kavimap:return') onReturn?.()
       else if (message.type === 'kavimap:select') { lastPlace.current = message.place; reply(message.place) }
@@ -72,7 +77,7 @@ export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors
     }
     window.addEventListener('message', receive)
     return () => window.removeEventListener('message', receive)
-  }, [canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn, schedule.eventHits])
+  }, [canOpenPlace, onOpenPlace, onOtherFloors, onOpenEvent, onOpenPrizeCatalog, onReturn, onOpenGuide, schedule.eventHits, schedule.guidePlaces])
   useEffect(() => {
     const receive = (event: MessageEvent) => {
       if (event.source === frame.current?.contentWindow && event.origin === 'null' &&

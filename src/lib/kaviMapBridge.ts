@@ -1,9 +1,18 @@
+export const mapGuideTopics = {
+  registration: 'will-call',
+  'ticketed-play-hub': 'ticketed-play',
+  'ticketed-play-on-demand': 'on-demand-play',
+  'prize-wall': 'prize-tix',
+} as const
+export type MapGuidePlace = keyof typeof mapGuideTopics
+
 export type MapPlaceRequest = { kind: 'vendor' | 'artist'; name: string; booth?: string }
 export type MapUpperPlace = 'mana-stage' | 'black-lotus'
 export type MapMessage =
   | { type: 'kavimap:select' | 'kavimap:open'; version: 1; place: MapPlaceRequest }
   | { type: 'kavimap:levels'; version: 1; placeId?: MapUpperPlace }
   | { type: 'kavimap:event'; version: 1; eventId: string }
+  | { type: 'kavimap:guide'; version: 1; placeId: MapGuidePlace }
   | { type: 'kavimap:catalog'; version: 1; family: 'prize_wall' }
   | { type: 'kavimap:return'; version: 1 }
 
@@ -16,6 +25,7 @@ export function readMapMessage(event: Pick<MessageEvent, 'source' | 'origin' | '
     return size === 2 || (size === 3 && (d.placeId === 'mana-stage' || d.placeId === 'black-lotus')) ? d : null
   }
   if (d.type === 'kavimap:event') return size === 3 && typeof d.eventId === 'string' && /^[\w-]{1,160}$/.test(d.eventId) ? d : null
+  if (d.type === 'kavimap:guide') return size === 3 && typeof d.placeId === 'string' && Object.hasOwn(mapGuideTopics, d.placeId) ? d : null
   if (d.type === 'kavimap:catalog') return size === 3 && d.family === 'prize_wall' ? d : null
   if (d.type === 'kavimap:return') return size === 2 ? d : null
   if (!['kavimap:select', 'kavimap:open'].includes(d.type) || Object.keys(d).length !== 3) return null

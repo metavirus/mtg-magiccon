@@ -1282,3 +1282,7 @@ html,body{max-width:100%;overflow-x:clip}
 .catalog-bookmark-actions button{min-height:40px;padding:0 16px;border:1px solid #456080;border-radius:8px;background:#192b42;color:#dce6f3;font:inherit;font-size:12px;cursor:pointer}
 .catalog-bookmark-actions button:last-child{background:#24466c;border-color:#6c95c4}
 .catalog-bookmark-dialog button:disabled{opacity:.45;cursor:not-allowed}
+
+.league-registration-receipt{padding-top:10px;border-top:1px solid #263850}
+.league-registration-receipt summary{font-size:13px;font-weight:650;cursor:pointer}
+.league-registration-receipt[open] summary{margin-bottom:10px}

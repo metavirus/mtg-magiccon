@@ -1,3 +1,4 @@
+import mapExhibitorPlaces from './data/mapExhibitorPlaces.json'
 import { CatalogProductImageDetail } from './components/CatalogProductImageDetail'
 import { lazy, ReactNode, Suspense, type MouseEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -31,10 +32,10 @@ import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
 import { OfficialMapViewer } from './components/OfficialMapViewer'
 import './components/MapTabs.css'
-import { matchMapRecord, mapBoothFacts, type MapPlaceRequest, type MapUpperPlace } from './lib/kaviMapBridge'
+import { matchMapRecord, mapGuideTopics, type MapGuidePlace, mapBoothFacts, type MapPlaceRequest, type MapUpperPlace } from './lib/kaviMapBridge'
 import { KaviMapBeta } from './components/KaviMapBeta'
 import { PersonalMapStudy } from './components/PersonalMapStudy'
-import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, isEventMapDestination, projectMapOwnerEvents, reviewedEventLocation, selectMapProducts } from './lib/mapPersonalEvents'
+import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, hasLeaguePickup, isEventMapDestination, projectMapOwnerEvents, reviewedEventLocation, selectMapProducts } from './lib/mapPersonalEvents'
 
 export { CalendarSurface, PlanSurface, ObjectDetailLayer, InfoCatalogsPreview }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
@@ -1008,6 +1009,9 @@ export default function App() {
   const [tutorialPromptedOwner, setTutorialPromptedOwner] = useState<string | null>(null)
   continuityContext.current = { slice, effectiveSession, companionMembers }
   const currentCompanion = currentCompanionFromSession(effectiveSession, companionMembers)
+  const mapReceiptPersonKey = currentCompanion?.userId === effectiveOwnerId ||
+    (effectiveSession?.user.email && currentCompanion?.authEmail?.toLowerCase() === effectiveSession.user.email.toLowerCase())
+    ? currentCompanion?.key : undefined
   const isKaviOperator = Boolean(effectiveSession && (
     isKaviCompanion(currentCompanion)
     || effectiveSession.user.email?.trim().toLowerCase() === 'kavigrace@gmail.com'
@@ -1628,6 +1632,8 @@ export default function App() {
     const placeId = new URLSearchParams(hash.split('?')[1] ?? '').get('map')
     if (!placeId) return null
     if (nextSurface === 'artists' && /^artist-name:[^\r\n]{1,160}$/.test(placeId)) return placeId
+    if (nextSurface === 'info' && mapExhibitorPlaces.some(place => place.id === placeId)) return placeId
+    if (nextSurface === 'wallet' && placeId === 'league-pickup') return placeId
     return ['calendar', 'explore', 'plan'].includes(nextSurface) && isEventMapDestination(placeId) ? placeId : null
   }, [])
   useEffect(() => {
@@ -1658,7 +1664,10 @@ export default function App() {
   }
 
   function showEventOnMap(eventId: string, targetId = eventMapDestination(eventId)?.targetId) {
-    if (!targetId || !isEventMapDestination(targetId)) return
+    if (targetId && isEventMapDestination(targetId)) showPlaceOnMap(targetId)
+  }
+
+  function showPlaceOnMap(targetId: string) {
     mapReturnScroll.current = window.scrollY
     mapReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
@@ -2556,7 +2565,7 @@ export default function App() {
         try { writeOfflineIdentity(offlineIdentity); setOfflineIdentityFailureOwner(undefined) }
         catch { setOfflineIdentityFailureOwner(effectiveOwnerId) }
       }} />
-      {activeMapTrip && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(effectiveOwnerId ?? "guest") + activeMapTrip} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+      {activeMapTrip && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(effectiveOwnerId ?? "guest") + activeMapTrip} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
       <div hidden={Boolean(activeMapTrip) || (!showScreen && surface !== 'info')}>
         {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'}
           calendarEntries={(continuityReady && flightsKnown && currentCompanion) || designPreview || isPreviewOwnerMode
@@ -2564,10 +2573,10 @@ export default function App() {
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
-        {surface === 'map' && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'map' && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
-        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
+        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
           if (currentCompanion?.name === 'Juan') {
             const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
             if (canWrite && supabase && kaviOwnerId) {
@@ -2603,13 +2612,17 @@ export default function App() {
 
     </main>
       {selectedMapEvent && (activeMapTrip || surface === 'map') && <CalendarEventDetail
-        fromMap event={selectedMapEvent} notes={contextNotesState} currentOwnerId={effectiveOwnerId}
+        fromMap event={selectedMapEvent}
+        leagueReceipt={hasLeaguePickup(selectedMapEvent.id) && mapReceiptPersonKey
+          ? walletReceipts.find(receipt => receipt.receipt_type === 'ticketed_play' &&
+            receipt.line_items.some(line => line.event_id === selectedMapEvent.id && receiptLineBelongsTo(receipt, line, mapReceiptPersonKey)))
+          : undefined} notes={contextNotesState} currentOwnerId={effectiveOwnerId}
         onAddNote={addContextNote} onDeleteNote={deleteContextNote}
         onClose={closeMapEvent} onState={state => updateExploreEvent(selectedMapEvent.id, state)}
         onPurchase={purchased => updateEventPurchase(selectedMapEvent.id, purchased)}
         onOpenPlan={() => openPlanEventContext(selectedMapEvent.id)} online={online} saving={saving} canCommit
       />}
-      <ObjectDetailLayer canWriteNotes={canWrite} detail={objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogInterestQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
+      <ObjectDetailLayer onShowOnMap={surface === 'info' && !activeMapTrip ? showPlaceOnMap : undefined} canWriteNotes={canWrite} detail={activeMapTrip && activeMapTrip === objectDetail?.mapPlaceId ? null : objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogInterestQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
       {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onMobileMenuChange={setMobileNavMenu} onClose={() => {
         setTutorialOpen(false)
         void upsertUserSelection('onboarding-tour', 'general', 'completed', 'true')
@@ -3376,7 +3389,7 @@ function InfoReaderEvidence({ sources }: { sources: InfoSource[] }) {
   </article>)}</section>
 }
 
-function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ObjectDetailLayer({ onShowOnMap, canWriteNotes, detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { onShowOnMap?: (placeId: string) => void; canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const bookmarks = useCatalogBookmark({ model: catalogReadModel, currentOwnerId: catalogOwnerId, canEditInterest: canEditCatalogInterest, savingOfferId: catalogInterestSavingOfferId, onToggleInterest: onToggleCatalogInterest, focusFallback: () => closeButtonRef.current, scopeKey: detail?.id ?? 'closed', onConfirmed: (offer, interested) => { if (interested) onOpenObject(catalogOfferDetail(offer, catalogOwnerId)) } })
   const closeRef = useRef(onClose)
@@ -3503,6 +3516,7 @@ function ObjectDetailLayer({ canWriteNotes, detail, notes, currentOwnerId, catal
         compact
       />}
       {detail.reader && <InfoReaderEvidence sources={detail.reader.sources} />}
+      {detail.mapPlaceId && onShowOnMap && <button type="button" className="detail-plan-link" onClick={() => onShowOnMap(detail.mapPlaceId!)}>Show on map <span aria-hidden="true">›</span></button>}
       {detail.kind !== 'artist' && (detail.actions || detail.backlinks) && <footer className="object-detail-actions">
         {detail.actions?.map(action => <button key={action.label} type="button" onClick={() => action.destination ? onNavigate(action.destination) : undefined}>{action.label}</button>)}
         {detail.backlinks?.map(link => <button key={link.label} type="button" className="secondary" onClick={() => onNavigate(link.destination)}>{link.label}</button>)}
@@ -3559,6 +3573,7 @@ type ObjectDetail = {
   people?: PersonName[]
   focusedNoteId?: string
   objectAnchor?: string
+  mapPlaceId?: string
   facts?: Array<{ label: string; value: string; detail?: ObjectDetail }>
   soldOutEvents?: HomeSoldOutEvent[]
   source?: { label: string; value: string }
@@ -5382,8 +5397,12 @@ function TravelerDots({ people }: { people: Array<'Kavi' | 'Juan' | 'Chris' | 'K
   return <span className="traveler-dots" aria-label={people.join(', ')}>{people.map(person => <span key={person} className={`traveler-dot ${person.toLowerCase()}`} title={person}>{person === 'Kyle' ? 'Ky' : person[0]}</span>)}</span>
 }
 
-function MapSurface({ events, currentOwnerId, currentPerson, selections, companions, onOpenTrip, publicView = false, exhibitors, onOpenObject, catalog, onOpenCatalog, onOpenEvent, initialPlaceId, onReturn }: {
+function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics = [], infoFeed = [], currentOwnerId, currentPerson, selections, companions, onOpenTrip, publicView = false, exhibitors, onOpenObject, catalog, onOpenCatalog, onOpenEvent, initialPlaceId, onReturn }: {
   events: ExploreEvent[]
+  walletReceipts?: WalletReceiptRow[]
+  currentPersonKey?: string
+  infoTopics?: InfoTopic[]
+  infoFeed?: InfoFeedEntry[]
   currentOwnerId?: string
   currentPerson: PersonName
   selections: UserSelectionRow[]
@@ -5435,14 +5454,22 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
   const openPlace = (place: MapPlaceRequest) => {
     if (place.kind === 'vendor') {
       const exhibitor = matchMapRecord(place, exhibitors)
-      if (exhibitor) { const detail = exhibitorToObjectDetail(exhibitor); onOpenObject?.({...detail, facts: mapBoothFacts(detail.facts, place.booth), source: undefined, backlinks: undefined}) }
+      if (exhibitor) { const detail = exhibitorToObjectDetail(exhibitor); onOpenObject?.({...detail, facts: mapBoothFacts(detail.facts, place.booth), mapPlaceId: undefined, source: undefined, backlinks: undefined}) }
     } else {
       const artist = matchMapRecord(place, mapArtists)
       if (artist) onOpenObject?.(artist.detail)
     }
   }
   const mapCatalogs = useMemo(() => new Set((selectMapProducts(catalog) ?? []).map(item => item.locationId)), [catalog])
-  const roomEvents = useMemo(() => groupMapRoomEvents(events), [events])
+  const roomEvents = useMemo(() => {
+    const rooms = groupMapRoomEvents(events)
+    if (!currentOwnerId || publicView) return rooms
+    const paidIds = new Set(walletReceipts.filter(receipt => receipt.receipt_type === 'ticketed_play').flatMap(receipt =>
+      receipt.line_items.filter(line => currentPersonKey && receiptLineBelongsTo(receipt, line, currentPersonKey)).map(line => line.event_id)))
+    const leagues = events.filter(event => hasLeaguePickup(event.id) && (event.purchased || paidIds.has(event.id)))
+    if (leagues.length) rooms['league-pickup'] = leagues.map(({ id, title, day, time }) => ({ id, title, day, time }))
+    return rooms
+  }, [events, currentOwnerId, currentPersonKey, publicView, walletReceipts])
   const eventHits = useMemo(() => events.flatMap(({ id, title, day, time }) => {
     const destination = eventMapDestination(id)
     if (destination) return [{ id, title, day, time, targetId: destination.targetId, location: destination.meetingPoint?.label ?? destination.name }]
@@ -5467,6 +5494,12 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
   const eventPeople = useMemo(() => Object.fromEntries(scheduled
     .map(({ event, participants }) => [event.id, participants.filter(person => person.state === 'committed').map(person => person.person)] as const)
     .filter(([, people]) => people.length)), [scheduled])
+  const guidePlaces = (Object.keys(mapGuideTopics) as MapGuidePlace[]).filter(placeId =>
+    onOpenObject && infoTopics.some(topic => topic.topic_key === mapGuideTopics[placeId]))
+  const openGuide = (placeId: MapGuidePlace) => {
+    const topic = infoTopics.find(item => item.topic_key === mapGuideTopics[placeId])
+    if (topic) onOpenObject?.(infoTopicDetail(topic, infoFeed))
+  }
   const canOpenPrizeCatalog = mapCatalogs.has('prize-wall')
   const activeMode = mode
   const showNextStops = Boolean(currentOwnerId && companions.length > 0 && (activeMode === 'beta' || activeMode === 'levels'))
@@ -5525,7 +5558,7 @@ function MapSurface({ events, currentOwnerId, currentPerson, selections, compani
       <ul>{roomEvents[room.id].map(event => <li key={event.id}><button type="button" className="map-schedule-event" onClick={() => onOpenEvent(event.id)}><strong>{event.title}</strong><small>{event.day} · {event.time}</small></button></li>)}</ul>
     </details> : null)}
     {(betaVisited || activeMode === 'beta') && <div hidden={activeMode !== 'beta'}>
-      <KaviMapBeta schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog }}
+      <KaviMapBeta schedule={{ roomEvents, nextRooms, eventHits, eventPeople, initialPlaceId, canOpenPrizeCatalog, guidePlaces }} onOpenGuide={openGuide}
         canOpenPlace={canOpenPlace} onOpenPlace={openPlace} onOpenEvent={onOpenEvent} onReturn={onReturn}
         onOpenPrizeCatalog={canOpenPrizeCatalog && onOpenCatalog ? () => onOpenCatalog('prize_wall') : undefined}
         onOtherFloors={placeId => {
@@ -5791,13 +5824,16 @@ function InfoCatalogsPreview({ initialFamily, refreshFailed = false, onOpenObjec
 }
 
 function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
+  const places = mapExhibitorPlaces.filter(place => matchMapRecord({ ...place, kind: 'vendor' }, [exhibitor]))
+  const atBooth = places.filter(place => place.booth && exhibitor.booth?.split(/[,;\s]+/).includes(place.booth))
+  const mapPlaceId = places.length === 1 ? places[0].id : atBooth.length === 1 ? atBooth[0].id : undefined
   const links = [
     { label: 'Official exhibitor profile', url: safeExhibitorUrl(exhibitor.profileUrl) },
     { label: 'Exhibitor website', url: safeExhibitorUrl(exhibitor.website) },
     { label: 'Store', url: safeExhibitorUrl(exhibitor.storeUrl) },
   ].filter(link => link.url)
   return {
-    id: exhibitorObjectId(exhibitor.id), kind: 'exhibitor', eyebrow: 'EXHIBITORS', title: exhibitor.name,
+    mapPlaceId, id: exhibitorObjectId(exhibitor.id), kind: 'exhibitor', eyebrow: 'EXHIBITORS', title: exhibitor.name,
     summary: exhibitor.highlight || exhibitor.visitReason || 'Official exhibitor listing.',
     facts: [
       { label: 'Booth', value: exhibitor.booth || 'Not listed' },
@@ -5860,7 +5896,7 @@ function InfoSurface({ onViewChange, showContent, catalogRefreshFailed = false, 
   </section>
 }
 
-export function WalletSurface({ receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
+export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { onShowPickup?: () => void; receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [tix, setTix] = useState(() => {
     const parsed = Number(prizeTixValue)
@@ -5915,7 +5951,7 @@ export function WalletSurface({ receipts, receiptStatus = 'ready', flights, onOp
       </div>
     </div>
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openChrisBlackLotusProof={openChrisBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
-    {tab === 'play' && (playReceipts.length || receiptStatus === 'ready' ? <WalletPlayTab receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} /> : <ReceiptLoadNotice status={receiptStatus} />)}
+    {tab === 'play' && (playReceipts.length || receiptStatus === 'ready' ? <WalletPlayTab onShowPickup={onShowPickup} receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} /> : <ReceiptLoadNotice status={receiptStatus} />)}
     {tab === 'store' && (receipts.some(receipt => receipt.receipt_type === 'store')
       ? <div className="wallet-layout"><section className="receipt-list" aria-label="Store receipts">
         {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => openModal('STORE RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))} />)}
@@ -6135,6 +6171,12 @@ function receiptPerson(key: string): PersonName {
   return key === 'chris' ? 'Chris' : key === 'juan' ? 'Juan' : key === 'kyle' ? 'Kyle' : 'Kavi'
 }
 
+function receiptLineBelongsTo(receipt: WalletReceiptRow, line: WalletReceiptLine, personKey: string) {
+  const attendees = line.attendee_person_keys?.length ? line.attendee_person_keys
+    : receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key]
+  return attendees.includes(personKey)
+}
+
 function receiptPeople(receipt: WalletReceiptRow): PersonName[] {
   return (receipt.attendee_person_keys?.length ? receipt.attendee_person_keys : [receipt.attendee_person_key]).map(receiptPerson)
 }
@@ -6157,7 +6199,7 @@ function PurchaseReceiptCard({ receipt, onOpen }: { receipt: WalletReceiptRow; o
   </button>
 }
 
-function PurchaseReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletReceiptRow; currentOwnerId?: string }) {
+function PurchaseReceiptDetail({ receipt, currentOwnerId, onShowPickup }: { onShowPickup?: () => void; receipt: WalletReceiptRow; currentOwnerId?: string }) {
   const { items, pickup } = receiptPurchaseLines(receipt)
   const [mode, setMode] = useState<'info' | 'original'>('info')
   return <div className="proof-detail">
@@ -6172,6 +6214,8 @@ function PurchaseReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletRec
         <div><span>Order</span><strong>{receipt.vendor} · {new Date(receipt.receipt_date).toLocaleString()}</strong></div>
         <div><span>Total</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: receipt.currency }).format(Number(receipt.amount))}</strong></div>
       </div>
+      {onShowPickup && items.some(line => line.event_id && hasLeaguePickup(line.event_id)) &&
+        <button type="button" className="detail-plan-link" onClick={onShowPickup}>Show pickup on map <span aria-hidden="true">›</span></button>}
       <div className="receipt-lines">{items.map((line, index) => <div className="receipt-line-row" key={line.event_id ?? index}><span>{line.quantity && line.quantity > 1 ? `${line.quantity}× ` : ''}{line.title}</span><b>${line.price.toFixed(2)}{line.quantity && line.quantity > 1 ? ' each' : ''}</b>{line.code && <small>{line.code}</small>}</div>)}</div>
     </> : <>
       <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${receipt.title} original receipt`} currentOwnerId={currentOwnerId} />
@@ -6179,10 +6223,10 @@ function PurchaseReceiptDetail({ receipt, currentOwnerId }: { receipt: WalletRec
   </div>
 }
 
-function WalletPlayTab({ receipts, currentOwnerId, openModal }: { receipts: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void }) {
+function WalletPlayTab({ onShowPickup, receipts, currentOwnerId, openModal }: { onShowPickup?: () => void; receipts: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode, people?: PersonName[]) => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Ticketed play receipts">
-      {receipts.length ? receipts.map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))} />) : <article className="receipt-card future-store">
+      {receipts.length ? receipts.map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => openModal('TICKETED PLAY RECEIPT', receipt.title, <PurchaseReceiptDetail onShowPickup={onShowPickup} receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))} />) : <article className="receipt-card future-store">
         <div className="receipt-head"><span className="receipt-icon"><EventKindIcon name="ticketed" /></span><div><span className="eyebrow">TICKETED PLAY</span><h2>No paid play receipts yet</h2><p>Purchased event receipts will appear here.</p></div></div>
       </article>}
     </section>
@@ -7291,18 +7335,21 @@ export function CompanionCodePanel({ event }: { event: Pick<ExploreEvent, 'compa
   </section>}</>
 }
 
-function CalendarEventDetail({ fromMap, onShowOnMap, event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { fromMap?: boolean; onShowOnMap?: (eventId: string, targetId?: string) => void; event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+function CalendarEventDetail({ fromMap, leagueReceipt, onShowOnMap, event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { fromMap?: boolean; leagueReceipt?: WalletReceiptRow; onShowOnMap?: (eventId: string, targetId?: string) => void; event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
   return <aside className="calendar-detail-sheet calendar-event-detail event-detail-panel" aria-label={`${event.title} calendar detail`}>
     <button className="detail-close persistent-detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
     <header className="event-detail-heading">
-      <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${event.state}`}>{eventStageLabel(event.state)}</span></span></div>
+      <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${leagueReceipt ? 'committed' : event.state}`}>{leagueReceipt ? 'Registered' : eventStageLabel(event.state)}</span></span></div>
       <h2>{displayEventTitle(event)}</h2>
       <EventMapLink eventId={event.id} onShowOnMap={onShowOnMap} />
       <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}{event.window && event.window !== "Scheduled program" && <span><DetailFactIcon name="duration" />{event.window}</span>}</div>
-      <EventDetailActions event={event} onPurchase={onPurchase} />
+      {leagueReceipt ? <div className="event-detail-actions"><OfficialEventLink event={event} /></div> : <EventDetailActions event={event} onPurchase={onPurchase} />}
     </header>
     <EventStateRail event={event} context="calendar" onState={onState} disabled={!online || saving} canCommit={canCommit} />
     <CompanionCodePanel event={event} />
+    {leagueReceipt && <details className="league-registration-receipt"><summary>Registration receipt</summary>
+      <PurchaseReceiptDetail key={leagueReceipt.id} receipt={leagueReceipt} currentOwnerId={currentOwnerId} />
+    </details>}
     {event.planEffect && (!fromMap || event.planEffect !== 'Compare the published time with your other events before committing.') && <div className="detail-intel event-context-block"><span aria-hidden="true">✦</span><p><small>PLAN EFFECT</small>{event.planEffect}</p></div>}
     <section className="detail-section"><strong>{event.format}</strong><p>{renderLinkedText(mapEventDescription(event))}</p></section>
     {mapEventDetailFacts(event).length > 0 && <div className="decision-facts" aria-label="Event logistics">{mapEventDetailFacts(event).map(fact => <div key={fact.label} className={isWideEventDetail(fact.label) ? 'decision-fact-wide' : undefined}><span>{fact.icon === 'ticket' && <TicketMiniIcon />}{fact.label}</span><strong>{fact.value}</strong></div>)}</div>}
