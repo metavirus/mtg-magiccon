@@ -12,7 +12,7 @@ const maps = {
   levels: { file: 'official-other-floors.webp', width: 3210, height: 2010, alt: 'Official MagicCon Atlanta building levels: level 2 connects the areas; level 3 Mana Stage and Black Lotus lounge; level 4 ticketed merchandise pickup and World Championship viewing; level 5 official show store' },
 }
 
-export function OfficialMapViewer({ mode, loungeNextStops }: { mode: 'floor' | 'levels'; loungeNextStops?: ReactNode }) {
+export function OfficialMapViewer({ mode, loungeNextStops, onShowStore, onBlackLotus }: { mode: 'floor' | 'levels'; loungeNextStops?: ReactNode; onShowStore?: () => void; onBlackLotus?: () => void }) {
   const map = maps[mode]
   const viewport = useRef<HTMLDivElement>(null)
   const legend = useRef<HTMLDialogElement>(null)
@@ -92,6 +92,11 @@ export function OfficialMapViewer({ mode, loungeNextStops }: { mode: 'floor' | '
     }
   }
 
+  const anchor = (x: number, y: number) => ({
+    left: size.width / 2 + camera.x + (x - .5) * imageWidth * camera.zoom,
+    top: size.height / 2 + camera.y + (y - .5) * imageHeight * camera.zoom,
+  })
+
   return <div className="official-map-viewer">
     {mode === 'floor' && <button ref={legendButton} className="official-legend-toggle" type="button" aria-haspopup="dialog" aria-expanded={legendOpen} onClick={() => { legend.current?.showModal(); setLegendOpen(true) }}>Legend</button>}
     <div className="official-map-actions" aria-label="Map controls">
@@ -117,10 +122,15 @@ export function OfficialMapViewer({ mode, loungeNextStops }: { mode: 'floor' | '
         style={{ width: imageWidth || '100%', height: imageHeight || 'auto', transform: `translate(calc(-50% + ${camera.x}px), calc(-50% + ${camera.y}px)) scale(${camera.zoom})` }} />
       {mode === 'levels' && fit > 0 && <span className="official-lotus-anchor"
         onPointerDown={event => event.stopPropagation()}
-        style={{ left: size.width / 2 + camera.x + (.423 - .5) * imageWidth * camera.zoom + 4, top: size.height / 2 + camera.y + (.15 - .5) * imageHeight * camera.zoom }}>
-        <span className="official-lotus-marker" role="img" aria-label="Black Lotus VIP Lounge, Level 3"><BlackLotusMark /></span>
+        style={anchor(.435, .15)}>
+        {onBlackLotus
+          ? <button className="official-lotus-marker official-lotus-catalog" type="button" aria-label="Black Lotus catalog" onClick={onBlackLotus}><BlackLotusMark /></button>
+          : <span className="official-lotus-marker" role="img" aria-label="Black Lotus VIP Lounge, Level 3"><BlackLotusMark /></span>}
         {loungeNextStops}
       </span>}
+      {mode === 'levels' && fit > 0 && onShowStore && <button type="button" className="official-store-catalog"
+        aria-label="Show Store catalog" onPointerDown={event => event.stopPropagation()} onClick={onShowStore}
+        style={anchor(.78, .087)}>Catalog <span aria-hidden="true">›</span></button>}
     </div>
     {mode === 'floor' && <dialog ref={legend} className="official-legend-drawer" aria-labelledby="official-legend-title" onClose={() => { setLegendOpen(false); legendButton.current?.focus() }} onClick={event => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.currentTarget.close() } }}>
       <header><h2 id="official-legend-title">Map legend</h2><button type="button" aria-label="Close legend" onClick={() => legend.current?.close()} autoFocus>×</button></header>

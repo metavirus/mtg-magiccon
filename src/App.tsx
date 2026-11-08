@@ -5548,7 +5548,7 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
     {(showNextStops || showReturnToBeta) && <div ref={nextStopsRef} className="map-next-stops">{showNextStops && <div className="plan-people-filter" role="group" aria-label="Next calendar stops">
       {companions.map(({ name }) => <button key={name} type="button" aria-label={name} title={name} aria-pressed={visiblePeople.includes(name)} className={visiblePeople.includes(name) ? 'active' : ''} onClick={() => setVisiblePeople(people => people.includes(name) ? people.filter(person => person !== name) : [...people, name])}><PersonBubbles people={[name]} /></button>)}
     </div>}
-      {showReturnToBeta && <button type="button" className="map-return-beta" onClick={() => {
+      {showReturnToBeta && <button type="button" className="map-back-link" onClick={() => {
         setMode('beta')
         setReturnToBeta(false)
         document.getElementById('map-tab-beta')?.focus({ preventScroll: true })
@@ -5557,13 +5557,12 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
     </div>
     <div ref={mapPanelRef} className={activeMode === 'levels' && schedulesAvailable ? 'map-has-floor-schedules' : undefined} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
     {activeMode !== 'beta' && onReturn && !returnToBeta && <button type="button" className="map-return-beta" onClick={onReturn}>← Back</button>}
-    {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode} loungeNextStops={nextRooms['black-lotus']?.map(stop =>
+    {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode}
+      onShowStore={onOpenCatalog && mapCatalogs.has('show-store') ? () => onOpenCatalog('show_store') : undefined}
+      onBlackLotus={onOpenCatalog && mapCatalogs.has('black-lotus') ? () => onOpenCatalog('black_lotus') : undefined}
+      loungeNextStops={nextRooms['black-lotus']?.map(stop =>
       <button className="map-person-stop" key={stop.person} type="button" aria-label={`${stop.person} · ${stop.title}`} onClick={() => onOpenEvent(stop.eventId)}><PersonBubbles people={[stop.person]} /></button>
     )} />}
-    {activeMode === 'levels' && onOpenCatalog && (mapCatalogs.has('show-store') || mapCatalogs.has('black-lotus')) && <div className="map-floor-catalogs">
-      {mapCatalogs.has('show-store') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('show_store')}>Show Store catalog <span aria-hidden="true">›</span></button>}
-      {mapCatalogs.has('black-lotus') && <button type="button" className="map-return-beta" onClick={() => onOpenCatalog('black_lotus')}>Black Lotus catalog <span aria-hidden="true">›</span></button>}
-    </div>}
     {activeMode === 'levels' && schedulesAvailable && <button type="button" className="map-floor-schedule-toggle"
       aria-expanded={floorSchedulesOpen} aria-controls="map-floor-schedules" onClick={() => {
         setFloorSchedulesOpen(!floorSchedulesOpen)
