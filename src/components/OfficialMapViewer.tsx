@@ -12,7 +12,7 @@ const maps = {
   levels: { file: 'official-other-floors.webp', width: 3210, height: 2010, alt: 'Official MagicCon Atlanta building levels: level 2 connects the areas; level 3 Mana Stage and Black Lotus lounge; level 4 ticketed merchandise pickup and World Championship viewing; level 5 official show store' },
 }
 
-export function OfficialMapViewer({ mode, loungeNextStops, onShowStore, onBlackLotus }: { mode: 'floor' | 'levels'; loungeNextStops?: ReactNode; onShowStore?: () => void; onBlackLotus?: () => void }) {
+export function OfficialMapViewer({ mode, focusLevelThree, loungeNextStops, onShowStore, onBlackLotus }: { mode: 'floor' | 'levels'; focusLevelThree?: boolean; loungeNextStops?: ReactNode; onShowStore?: () => void; onBlackLotus?: () => void }) {
   const map = maps[mode]
   const viewport = useRef<HTMLDivElement>(null)
   const legend = useRef<HTMLDialogElement>(null)
@@ -27,11 +27,18 @@ export function OfficialMapViewer({ mode, loungeNextStops, onShowStore, onBlackL
   const imageHeight = map.height * fit
   const startZoom = mode === 'floor' && fit > 0 ? Math.max(1.35, Math.min(3, size.height / (fit * 2900))) : 1
   const startCamera: Camera = { zoom: startZoom, x: mode === 'floor' && size.width < 620 ? (map.width / 2 - 2350) * fit * startZoom : Math.max(0, (imageWidth * startZoom - size.width) / 2), y: Math.max(0, (imageHeight * startZoom - size.height) / 2) }
+  // Both Level 3 rooms are printed in one callout on the official overview.
+  const levelThree = { x: .331, y: .202 }
+  const levelThreeOffset = (zoom: number) => ({
+    x: (.5 - levelThree.x) * imageWidth * zoom,
+    y: (.5 - levelThree.y) * imageHeight * zoom,
+  })
 
   function update(next: Camera) {
     const zoom = Math.max(1, Math.min(12, next.zoom))
-    const limitX = Math.max(0, (imageWidth * zoom - size.width) / 2)
-    const limitY = Math.max(0, (imageHeight * zoom - size.height) / 2)
+    const offset = focusLevelThree && zoom > 1 ? levelThreeOffset(zoom) : { x: 0, y: 0 }
+    const limitX = Math.max(offset.x, (imageWidth * zoom - size.width) / 2)
+    const limitY = Math.max(offset.y, (imageHeight * zoom - size.height) / 2)
     const value = { zoom, x: Math.max(-limitX, Math.min(limitX, next.x)), y: Math.max(-limitY, Math.min(limitY, next.y)) }
     cameraRef.current = value
     setCamera(value)
@@ -54,9 +61,11 @@ export function OfficialMapViewer({ mode, loungeNextStops, onShowStore, onBlackL
 
   useEffect(() => {
     pointers.current.clear()
-    cameraRef.current = startCamera
-    setCamera(startCamera)
-  }, [mode, size.width, size.height])
+    const zoom = 2.6
+    const entry = focusLevelThree && fit > 0 ? { zoom, ...levelThreeOffset(zoom) } : startCamera
+    cameraRef.current = entry
+    setCamera(entry)
+  }, [mode, focusLevelThree, size.width, size.height])
 
   useEffect(() => {
     const element = viewport.current

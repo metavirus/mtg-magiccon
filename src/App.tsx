@@ -5552,10 +5552,6 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
   const showReturnToBeta = activeMode === 'levels' && returnToBeta
   const schedulesAvailable = Boolean(roomEvents['mana-stage']?.length || roomEvents['black-lotus']?.length)
   const floorSchedulesRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (activeMode !== 'levels' || !focusedLevel || !floorSchedulesOpen || !schedulesAvailable) return
-    document.getElementById('map-level-' + focusedLevel)?.querySelector('summary')?.scrollIntoView({ block: 'center' })
-  }, [activeMode, focusedLevel, floorSchedulesOpen, schedulesAvailable])
   const nextStopsRef = useRef<HTMLDivElement>(null)
   const mapPanelRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
@@ -5602,7 +5598,7 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
     </div>
     <div ref={mapPanelRef} className={activeMode === 'levels' && schedulesAvailable ? 'map-has-floor-schedules' : undefined} id="map-view-panel" role="tabpanel" aria-labelledby={`map-tab-${activeMode}`}>
     {activeMode !== 'beta' && onReturn && !returnToBeta && <button type="button" className="map-return-beta" onClick={onReturn}>← Back</button>}
-    {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode} mode={activeMode}
+    {(activeMode === 'floor' || activeMode === 'levels') && <OfficialMapViewer key={activeMode + (focusedLevel ?? '')} mode={activeMode} focusLevelThree={activeMode === 'levels' && Boolean(focusedLevel)}
       onShowStore={onOpenCatalog && mapCatalogs.has('show-store') ? () => onOpenCatalog('show_store') : undefined}
       onBlackLotus={onOpenCatalog && mapCatalogs.has('black-lotus') ? () => onOpenCatalog('black_lotus') : undefined}
       loungeNextStops={nextRooms['black-lotus']?.map(stop =>
