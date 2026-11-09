@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export type NavIconName = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'info' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity'
+export type NavIconName = 'home' | 'calendar' | 'plan' | 'explore' | 'map' | 'info' | 'wallet' | 'trip' | 'artists' | 'notes' | 'activity' | 'refresh'
 
 const paths: Record<NavIconName, ReactNode> = {
   home: <><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9.5 20v-6h5v6"/></>,
@@ -14,6 +14,7 @@ const paths: Record<NavIconName, ReactNode> = {
   artists: <><path d="M12 22a9 9 0 1 0-7.4-3.9c.7 1 1.9 1 2.8.4l.6-.4a2 2 0 0 1 3.1 1.7V20a2 2 0 0 0 2 2Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="7" r=".8"/><circle cx="14" cy="7.5" r=".8"/><circle cx="16.5" cy="11" r=".8"/></>,
   notes: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></>,
   activity: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></>,
+  refresh: <path d="M20 11a8 8 0 1 0-2 6.3M20 6v5h-5"/>,
 }
 
 export function NavIcon({ name }: { name: NavIconName }) {

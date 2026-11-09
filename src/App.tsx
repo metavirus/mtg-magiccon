@@ -2572,7 +2572,7 @@ export default function App() {
               disabled={!online || refreshChecking}
               aria-busy={online && refreshChecking}
               onClick={refreshScreen}
-            ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.8 8a7 7 0 0 1 11.8-2l2.4 3M4 15l2.4 3A7 7 0 0 0 18.2 16"/></svg></button>}
+            ><NavIcon name="refresh" /></button>}
             <MentionInbox
               items={mentionInboxState}
               alerts={inboxSignals}
@@ -5098,7 +5098,7 @@ function mapEventDetailFacts(event: ExploreEvent) {
   return eventDecisionFacts(event).filter(fact => !destination || fact.label !== 'Location')
 }
 
-function EventMapLink({ eventId, onShowOnMap }: { eventId: string; onShowOnMap?: (id: string, targetId?: string) => void }) {
+function EventMapLink({ eventId, onShowOnMap, showPrimary = true }: { eventId: string; onShowOnMap?: (id: string, targetId?: string) => void; showPrimary?: boolean }) {
   const destination = eventMapDestination(eventId)
   const wayfinding = onShowOnMap ? eventMapWayfinding(eventId) : []
   if (!destination && !wayfinding.length) return null
@@ -5106,7 +5106,7 @@ function EventMapLink({ eventId, onShowOnMap }: { eventId: string; onShowOnMap?:
     {destination && <span>{destination.name}</span>}
     {destination?.meetingPoint && <small>{destination.meetingPoint.label}</small>}
     {destination?.host && <small>Hosted by {destination.host}</small>}
-    {destination && onShowOnMap && <button type="button" className="detail-plan-link" onClick={() => onShowOnMap(eventId)}>Show on map <span aria-hidden="true">›</span></button>}
+    {showPrimary && destination && onShowOnMap && <button type="button" className="detail-plan-link" onClick={() => onShowOnMap(eventId)}>Show on map <span aria-hidden="true">›</span></button>}
     {wayfinding.map(({ targetId, label }) => <button key={targetId} type="button" className="detail-plan-link" onClick={() => onShowOnMap?.(eventId, targetId)}>{label} <span aria-hidden="true">›</span></button>)}
   </div>
 }
@@ -7424,12 +7424,18 @@ export function CompanionCodePanel({ event }: { event: Pick<ExploreEvent, 'compa
 }
 
 function CalendarEventDetail({ fromMap, leagueReceipt, onShowOnMap, event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { fromMap?: boolean; leagueReceipt?: WalletReceiptRow; onShowOnMap?: (eventId: string, targetId?: string) => void; event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+  const destination = eventMapDestination(event.id)
   return <aside className="calendar-detail-sheet calendar-event-detail event-detail-panel" aria-label={`${event.title} calendar detail`}>
     <button className="detail-close persistent-detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
     <header className="event-detail-heading">
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${leagueReceipt ? 'committed' : event.state}`}>{leagueReceipt ? 'Registered' : eventStageLabel(event.state)}</span></span></div>
-      <h2>{displayEventTitle(event)}</h2>
-      <EventMapLink eventId={event.id} onShowOnMap={onShowOnMap} />
+      <div className="calendar-event-title-row">
+        <h2>{displayEventTitle(event)}</h2>
+        {destination && onShowOnMap && <button type="button" className="calendar-event-map-button" aria-label="Show on map" onClick={() => onShowOnMap(event.id, destination.targetId)}>
+          <NavIcon name="map" /> Map
+        </button>}
+      </div>
+      <EventMapLink eventId={event.id} onShowOnMap={onShowOnMap} showPrimary={false} />
       <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}{event.window && event.window !== "Scheduled program" && <span><DetailFactIcon name="duration" />{event.window}</span>}</div>
       {leagueReceipt ? <div className="event-detail-actions"><OfficialEventLink event={event} /></div> : <EventDetailActions event={event} onPurchase={onPurchase} />}
     </header>

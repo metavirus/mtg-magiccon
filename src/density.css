@@ -45,7 +45,7 @@ html,body{max-width:100%;overflow-x:clip}
 .oauth-button{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:40px;margin-top:8px;border:1px solid #456b9d;border-radius:11px;background:#f4f7fb;color:#132238;font-weight:750;cursor:pointer}.oauth-button:hover{background:#fff;border-color:#79aaff}.oauth-button span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#fff;color:#315b95;font-weight:850;box-shadow:0 0 0 1px #d5dfed}.preview-link{display:block;margin-top:11px;color:#8fb4e8;font-size:12px;text-align:center;text-decoration:none}.preview-link:hover{color:#fff;text-decoration:underline}
 .login-message{margin:12px 0 0;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.45}.login-message.info{border:1px solid #304967;background:#101f32;color:#a9c9f7}.login-message.error,.alert.error{border-color:#704551;background:#2a1922;color:#f0bdc7}.alert.info{border-color:#304967;background:#101f32;color:#a9c9f7}
 .data-refresh{display:grid;place-items:center;flex:none;width:38px;height:36px;padding:0;border:1px solid var(--line);border-radius:11px;background:var(--panel);color:#a9c9ff;cursor:pointer}
-.data-refresh svg{width:19px;height:19px}
+.data-refresh .nav-icon{width:18px;height:18px}
 .data-refresh:disabled{cursor:default}
 .data-refresh:disabled:not([aria-busy=true]){opacity:.55}
 @media(prefers-reduced-motion:no-preference){.data-refresh[aria-busy=true] svg{animation:data-refresh-spin 1s linear infinite}@keyframes data-refresh-spin{to{transform:rotate(360deg)}}}
@@ -1301,4 +1301,16 @@ html,body{max-width:100%;overflow-x:clip}
 @media (max-width:650px){
   .store-order-notes .note-composer textarea{font-size:16px}
   .store-order-notes .note-save,.store-order-notes .note-private-inline{min-height:40px}
+}
+
+.calendar-detail-sheet.calendar-event-detail>.persistent-detail-close+.event-detail-heading{padding-right:0}
+.calendar-event-detail .event-detail-heading>.detail-head{min-height:28px;padding-right:42px}
+.calendar-event-title-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px}
+.calendar-event-title-row h2{margin:0;overflow-wrap:anywhere}
+.calendar-event-map-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--blue);font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.calendar-event-map-button .nav-icon{width:16px;height:16px;flex:none}
+.calendar-event-map-button:hover{border-color:var(--blue)}
+@media(max-width:560px){
+  .calendar-detail-sheet.calendar-event-detail>.persistent-detail-close+.event-detail-heading{padding-right:16px}
+  .calendar-event-map-button{min-height:44px}
 }
