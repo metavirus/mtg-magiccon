@@ -78,6 +78,16 @@ describe('app navigation sequences', () => {
     expect(document.querySelector('.explore-event button button')).toBeNull()
     expect(document.querySelector('.explore-event-main > .event-scan')).not.toBeNull()
   })
+
+  it('takes a purchased Calendar event to the main Ticketed Play area and preserves its detail on return', async () => {
+    window.history.replaceState(null, '', '/?preview=1&qa=purchased-event,ticketed-availability#calendar')
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Show main Ticketed Play area on map' }))
+    expect(window.location.hash).toBe('#calendar?map=ticketed-play-upper')
+    expect(screen.getByRole('heading', { level: 1, name: 'Map' })).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Back to previous view' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Show main Ticketed Play area on map' })).toBeVisible())
+  })
   it('traverses Home → Explore → Plan → Back → Back without adding entries', async () => {
     render(<App />)
     navigate('Explore')

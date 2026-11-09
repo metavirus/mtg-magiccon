@@ -36,7 +36,7 @@ import './components/MapTabs.css'
 import { matchMapRecord, mapGuideTopics, type MapGuidePlace, mapBoothFacts, type MapPlaceRequest, type MapUpperPlace } from './lib/kaviMapBridge'
 import { KaviMapBeta } from './components/KaviMapBeta'
 import { PersonalMapStudy } from './components/PersonalMapStudy'
-import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, hasLeaguePickup, isEventMapDestination, projectMapOwnerEvents, reviewedEventLocation, selectMapProducts } from './lib/mapPersonalEvents'
+import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, hasLeaguePickup, isEventMapDestination, mainTicketedPlayArea, projectMapOwnerEvents, reviewedEventLocation, selectMapProducts } from './lib/mapPersonalEvents'
 
 export { CalendarSurface, PlanSurface, ObjectDetailLayer, InfoCatalogsPreview }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
@@ -5098,9 +5098,9 @@ function mapEventDetailFacts(event: ExploreEvent) {
   return eventDecisionFacts(event).filter(fact => !destination || fact.label !== 'Location')
 }
 
-function EventMapLink({ eventId, onShowOnMap, showPrimary = true }: { eventId: string; onShowOnMap?: (id: string, targetId?: string) => void; showPrimary?: boolean }) {
+function EventMapLink({ eventId, onShowOnMap, showPrimary = true, headerTarget }: { eventId: string; onShowOnMap?: (id: string, targetId?: string) => void; showPrimary?: boolean; headerTarget?: string }) {
   const destination = eventMapDestination(eventId)
-  const wayfinding = onShowOnMap ? eventMapWayfinding(eventId) : []
+  const wayfinding = onShowOnMap ? eventMapWayfinding(eventId).filter(link => link.targetId !== headerTarget) : []
   if (!destination && !wayfinding.length) return null
   return <div className="event-map-link">
     {destination && <span>{destination.name}</span>}
@@ -7400,7 +7400,7 @@ function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, c
     </>}
 
     {detail && ((detail !== 'show-catalog' && detail !== 'black-lotus-store') || upcoming.some(forecast => forecast.id === detail)) && <CalendarDetailSheet detail={detail} slice={slice} flights={flights} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
-    {selectedEvent && <CalendarEventDetail onShowOnMap={onShowOnMap} event={selectedEvent} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
+    {selectedEvent && <CalendarEventDetail onShowOnMap={onShowOnMap} event={selectedEvent} hasPurchasedAttendee={participantMap.get(selectedEvent.id)?.some(person => person.purchased)} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
 }
 
@@ -7423,19 +7423,25 @@ export function CompanionCodePanel({ event }: { event: Pick<ExploreEvent, 'compa
   </section>}</>
 }
 
-function CalendarEventDetail({ fromMap, leagueReceipt, onShowOnMap, event, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { fromMap?: boolean; leagueReceipt?: WalletReceiptRow; onShowOnMap?: (eventId: string, targetId?: string) => void; event: ExploreEvent; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
+function CalendarEventDetail({ fromMap, leagueReceipt, onShowOnMap, event, hasPurchasedAttendee, notes, currentOwnerId, onAddNote, onDeleteNote, onClose, onState, onPurchase, onOpenPlan, online, saving, canCommit }: { fromMap?: boolean; leagueReceipt?: WalletReceiptRow; onShowOnMap?: (eventId: string, targetId?: string) => void; event: ExploreEvent; hasPurchasedAttendee?: boolean; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onState: (state: ExploreState) => void; onPurchase: (purchased: boolean) => void; onOpenPlan: () => void; online: boolean; saving: boolean; canCommit: boolean }) {
   const destination = eventMapDestination(event.id)
+  // The VIP lounge is useful for wayfinding even when the session room is unconfirmed.
+  const loungeShortcut = !destination && event.kind === 'Black Lotus'
+  const ticketedArea = !destination && event.kind === 'Ticketed play' && (event.purchased || hasPurchasedAttendee)
+  const mapTarget = destination?.targetId ?? (loungeShortcut ? 'black-lotus' : ticketedArea ? mainTicketedPlayArea : undefined)
+  const roomLabel = loungeShortcut ? (event.format === 'Behind the Card Frame' ? 'Signia Ballroom' : 'Event room not announced') : ticketedArea ? 'Main Ticketed Play area' : undefined
   return <aside className="calendar-detail-sheet calendar-event-detail event-detail-panel" aria-label={`${event.title} calendar detail`}>
     <button className="detail-close persistent-detail-close" type="button" onClick={onClose} aria-label="Close event detail">×</button>
     <header className="event-detail-heading">
       <div className="detail-head"><span className={`detail-kind ${event.kind === 'Black Lotus' ? 'lotus' : ''}`}>{event.kind}</span><span className="detail-head-actions"><span className={`event-stage stage-${leagueReceipt ? 'committed' : event.state}`}>{leagueReceipt ? 'Registered' : eventStageLabel(event.state)}</span></span></div>
       <div className="calendar-event-title-row">
         <h2>{displayEventTitle(event)}</h2>
-        {destination && onShowOnMap && <button type="button" className="calendar-event-map-button" aria-label="Show on map" onClick={() => onShowOnMap(event.id, destination.targetId)}>
-          <NavIcon name="map" /> Map
+        {mapTarget && onShowOnMap && <button type="button" className="calendar-event-map-button" aria-label={loungeShortcut ? 'Black Lotus VIP Lounge on map' : ticketedArea ? 'Show main Ticketed Play area on map' : 'Show on map'} onClick={() => onShowOnMap(event.id, mapTarget)}>
+          <NavIcon name="map" /> {loungeShortcut ? 'VIP Lounge' : 'Map'}
         </button>}
       </div>
-      <EventMapLink eventId={event.id} onShowOnMap={onShowOnMap} showPrimary={false} />
+      {roomLabel && <div className="event-map-link">{roomLabel}</div>}
+      <EventMapLink eventId={event.id} onShowOnMap={onShowOnMap} showPrimary={false} headerTarget={mapTarget} />
       <div className="detail-facts"><span><DetailFactIcon name="time" />{event.day} · {event.time}</span>{!canPurchaseEvent(event.price) && <span><EventPriceLabel event={event} icon /></span>}{event.window && event.window !== "Scheduled program" && <span><DetailFactIcon name="duration" />{event.window}</span>}</div>
       {leagueReceipt ? <div className="event-detail-actions"><OfficialEventLink event={event} /></div> : <EventDetailActions event={event} onPurchase={onPurchase} />}
     </header>

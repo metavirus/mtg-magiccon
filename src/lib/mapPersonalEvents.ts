@@ -72,6 +72,7 @@ export const hasLeaguePickup = (eventId: string) => leaguePickupIds.has(eventId)
 const wristbandEventIds = new Set(['program-954720', 'program-954724', 'program-954726', 'program-954731'])
 const megaGameEventIds = new Set(['bl-mega-game-fri', 'bl-mega-game-sat', 'bl-mega-game-sun'])
 const ticketedPlayHelp = { targetId: 'ticketed-play-hub', label: 'Ticketed Play help' }
+export const mainTicketedPlayArea = 'ticketed-play-upper'
 const wristbandPickup = { targetId: 'wristband-distribution', label: 'Wristband pickup' }
 const megaGameRegistration = { targetId: 'black-lotus', label: 'Lounge registration by 2 PM' }
 
@@ -84,7 +85,7 @@ export function eventMapWayfinding(eventId: string): Array<{ targetId: string; l
 }
 
 const secondaryMapDestinations = new Set([
-  leaguePickup.targetId, ticketedPlayHelp.targetId, wristbandPickup.targetId, megaGameRegistration.targetId,
+  mainTicketedPlayArea, leaguePickup.targetId, ticketedPlayHelp.targetId, wristbandPickup.targetId, megaGameRegistration.targetId,
   ...Array.from(gatheringGroundsDetails.values()).flatMap(details => details.meetingPoint ? [details.meetingPoint.placeId] : []),
 ])
 
