@@ -93,5 +93,5 @@ export function KaviMapBeta({ schedule, canOpenPlace, onOpenPlace, onOtherFloors
   }}>Retry</button></p>
   if (!html) return <p role="status">Loading KaviMap…</p>
   return <iframe onLoad={syncFrame} ref={frame} className="kavimap-beta-frame"
-    srcDoc={html} sandbox="allow-scripts" title="KaviMap™ Beta" />
+    srcDoc={html} sandbox="allow-scripts" title="KaviMap™" />
 }

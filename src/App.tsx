@@ -5454,7 +5454,7 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
   const initialUpperPlace = initialPlaceId === 'mana-stage' || initialPlaceId === 'black-lotus' ? initialPlaceId : undefined
   const [focusedLevel, setFocusedLevel] = useState<MapUpperPlace | undefined>(initialUpperPlace)
   const [floorSchedulesOpen, setFloorSchedulesOpen] = useState(Boolean(initialUpperPlace))
-  const [mode, setMode] = useState(initialUpperPlace ? 'levels' : initialPlaceId || publicView ? 'beta' : 'floor')
+  const [mode, setMode] = useState(initialUpperPlace ? 'levels' : 'beta')
   const [betaVisited, setBetaVisited] = useState(false)
   const [returnToBeta, setReturnToBeta] = useState(false)
   const [mapArtists, setMapArtists] = useState<Array<{name: string; aliases: string[]; detail: ObjectDetail}>>([])
@@ -5564,10 +5564,10 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
     return () => { observer.disconnect(); panel.style.removeProperty('--map-next-stops-height') }
   }, [showNextStops, showReturnToBeta])
   const tabs = [
-    { id: 'floor', label: 'Show Floor' },
+    { id: 'beta', label: 'KaviMap™' },
     { id: 'levels', label: 'Other Floors' },
-    { id: 'beta', label: 'KaviMap™ Beta' },
     ...(!publicView ? [{ id: 'outside', label: 'Outside' }] : []),
+    { id: 'floor', label: 'Official Map' },
   ]
   return <section className="map-shell" aria-label="Map">
     <div className="map-toolbar">
@@ -8174,7 +8174,7 @@ function PublicKaviMap() {
   const event = publicMapEvents.find(item => item.id === eventId)
   return <main className="public-kavimap">
     <header className="public-kavimap-heading">
-      <h1>KaviMap™ Beta</h1>
+      <h1>KaviMap™</h1>
       <a href="#home">Sign in</a>
     </header>
     <MapSurface publicView events={publicMapEvents} currentPerson="Kavi" selections={[]} companions={[]}
