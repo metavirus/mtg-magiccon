@@ -1,5 +1,7 @@
 # Catalog ingestion
 
+November 9 update: Kavi authorized the bounded unattended Prize Wall preview lane in [PRIZE_WALL_AUTOMATION.md](PRIZE_WALL_AUTOMATION.md). Official text/listing images can refresh the preview and publish without operator intervention. The canonical catalog promotion gate below still applies to canonical offers; this lane never changes balances, personal interests, availability, or catalog tables. There will be no separate Black Lotus catalog.
+
 Status: historical photo proof, fail-closed promotion planner, Kavi-only local operator UI, atomic promotion RPC/client boundary, canonical read path, shopping-interest path, companion browse UI, canonical migration, and live schema/RLS validation are complete. No real Atlanta catalog has been promoted; first-source capture, review, promotion, and exact live offer readback remain pending until that catalog releases.
 
 ## Product boundary

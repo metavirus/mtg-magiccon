@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "event": "magiccon-atlanta-2026",
+  "sourceUrl": "https://mcatlanta.mtgfestivals.com/en-us/magic-play/prize-wall.html",
+  "sourceSha256": "817178a7431d570bc9ae7c7d4a758dc2945d20b12e4b27387622e4a78a5b500e",
+  "retrievedAt": "2026-11-09T17:17:39.467Z",
+  "extractionComplete": true,
+  "prices": [
+    {
+      "name": "Play Boosters",
+      "tix": 500,
+      "qualifier": "starting",
+      "evidence": {
+        "text": "Play Boosters starting at 500 Prize Tix",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1)"
+      }
+    },
+    {
+      "name": "Collector Boosters",
+      "tix": 2500,
+      "qualifier": "starting",
+      "evidence": {
+        "text": "Collector Boosters starting at 2,500 Prize Tix",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2)"
+      }
+    },
+    {
+      "name": "Commander Precons",
+      "tix": 5000,
+      "qualifier": "starting",
+      "evidence": {
+        "text": "Commander Precons starting at 5,000 Prize Tix",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3)"
+      }
+    },
+    {
+      "name": "Bundles",
+      "tix": 6000,
+      "qualifier": "starting",
+      "evidence": {
+        "text": "Bundles starting at 6,000 Prize Tix",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(4)"
+      }
+    },
+    {
+      "name": "12” x 17” ‘Jumbo’ Cards",
+      "tix": 20000,
+      "qualifier": "starting",
+      "evidence": {
+        "text": "12” x 17” ‘Jumbo’ Cards starting at 20,000 Prize Tix",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(5)"
+      }
+    },
+    {
+      "name": "23” x 32” 'Oversized’ Cards",
+      "tix": 40000,
+      "qualifier": "starting",
+      "evidence": {
+        "text": "23” x 32” 'Oversized’ Cards starting at 40,000 Prize Tix",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(6)"
+      }
+    },
+    {
+      "name": "Uncut Sheets",
+      "tix": 50000,
+      "qualifier": "starting",
+      "evidence": {
+        "text": "Uncut Sheets starting at 50,000 Prize Tix",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(7)"
+      }
+    }
+  ],
+  "optionalItems": [
+    "Deck Boxes & Sleeves",
+    "Playmats",
+    "Dice",
+    "Secret Lairs",
+    "Cool Magic Related Items"
+  ],
+  "operationalDetails": [
+    {
+      "text": "The Prize Wall is located inside the Magic Ticketed Play Area",
+      "evidence": {
+        "text": "The Prize Wall is located inside the Magic Ticketed Play Area",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(7) > div:nth-of-type(1) > p:nth-of-type(1)"
+      }
+    },
+    {
+      "text": "Friday and Saturday: 10:00 AM to 11:59 PM",
+      "evidence": {
+        "text": "Friday and Saturday: 10:00 AM to 11:59 PM",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(7) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1)"
+      }
+    },
+    {
+      "text": "Sunday: 10:00 AM – 6:00 PM",
+      "evidence": {
+        "text": "Sunday: 10:00 AM – 6:00 PM",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(7) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2)"
+      }
+    },
+    {
+      "text": "NOTE: You must be in line by 5:30 PM on Sunday",
+      "evidence": {
+        "text": "NOTE: You must be in line by 5:30 PM on Sunday",
+        "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(7) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1)"
+      }
+    }
+  ],
+  "catalogLinks": [],
+  "semanticSha256": "1894b397c30751b10567972108fd4d747d81c06417ce7baa0e16f47453df1e28",
+  "catalogResourceSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+}

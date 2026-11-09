@@ -1,5 +1,9 @@
 # Current Frontier
 
+## November 9 Prize Wall automation
+
+The Prize Wall preview is driven by a source snapshot with a daily cloud ingestion/publication job, independent of unrelated surveyor holds. It handles clear text prices and listing images, including bounded OCR, keeps valid neighboring updates when one row is unclear, and verifies exact public data after Pages deployment. See [PRIZE_WALL_AUTOMATION.md](docs/PRIZE_WALL_AUTOMATION.md) for scope and receipts. Canonical catalog offers and personal Prize Tix balances are untouched. PDF catalogs are captured and linked, not transcribed automatically.
+
 ## November 7 onsite reliability
 
 KaviMap uses the public renderer at `public/kavimap/index.html`. The app precaches it with the service worker. The sign-in screen links to the public map, which receives the published event schedule. The signed-in map receives personal calendar markers through the existing sandbox bridge.

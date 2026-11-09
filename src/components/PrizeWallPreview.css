@@ -7,6 +7,9 @@
 .prize-wall-preview p{margin:0;color:var(--muted)}
 .prize-wall-preview .map-back-link{display:inline-flex;align-items:center;text-decoration:none}
 .prize-wall-preview .map-back-link:hover{text-decoration:underline}
+.prize-wall-item{display:flex;align-items:center;gap:10px}
+.prize-wall-item img{display:block;width:44px;height:44px;object-fit:contain;border-radius:6px;background:var(--panel)}
+.prize-wall-price-list small{display:block;color:var(--muted);font-size:var(--text-xs,12px);font-weight:400}
 
 
 .catalog-browser-heading.prize-wall-heading{align-items:center;flex-wrap:nowrap}

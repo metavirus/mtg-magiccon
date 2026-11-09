@@ -1,0 +1,66 @@
+name: Update official Prize Wall
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: prize-wall-ingestion
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      NODE_OPTIONS: --use-system-ca
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Set up pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.16.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Test ingestion guards
+        run: pnpm test scripts/lib/prize_wall_ingestion.test.ts scripts/lib/prize_wall_sync.test.ts
+      - name: Capture official text and image listings
+        id: prepare
+        run: node scripts/sync_prize_wall.mjs --prepare
+      - name: Retain original evidence before publication
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: prize-wall-source-evidence
+          include-hidden-files: true
+          path: |
+            .codex-local/prize-wall-ingest/*.html
+            .codex-local/prize-wall-ingest/*.json
+            .codex-local/prize-wall-ingest/*.original
+          retention-days: 90
+          if-no-files-found: error
+      - name: Validate changed app data
+        if: steps.prepare.outputs.changed == 'true'
+        run: pnpm check:ship
+      - name: Publish and verify exact public data
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/publish_prize_wall.mjs
+      - name: Retain publication receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: prize-wall-publication
+          include-hidden-files: true
+          path: .codex-local/prize-wall-ingest/publication.json
+          retention-days: 90
+          if-no-files-found: ignore

@@ -24,6 +24,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  prize-wall:
+    if: github.ref == 'refs/heads/main' && inputs.replay_run_id == ''
+    uses: ./.github/workflows/prize-wall-sync.yml
+    permissions:
+      contents: write
+      actions: write
+
   monitor:
     runs-on: windows-latest
     timeout-minutes: 15

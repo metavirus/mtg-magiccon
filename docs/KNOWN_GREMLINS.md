@@ -1,5 +1,9 @@
 # Known gremlins and how not to waste time on them
 
+## Shared release-worktree dependency installation
+
+The map release worktree shares root `node_modules`. When adding a dependency there, use `NODE_OPTIONS=--use-system-ca` and `pnpm ... --virtual-store-dir C:/Users/kavig/Documents/Codex/mtg-magiccon/node_modules/.pnpm`; do not reinstall or purge the shared tree. For checks in that worktree, set `npm_config_verifyDepsBeforeRun=false` so pnpm does not try to relink the root manifest. Tesseract's donation-only postinstall is explicitly disabled in `pnpm-workspace.yaml`; OCR itself needs no install script. Use the elevated native package-manager lane when the sandbox cannot access Corepack's cache/network.
+
 ## Gmail tools disappear before authentication
 
 October 25 recurrence: repeated heartbeats retried only the unavailable connector and reused an older empty browser inventory. A fresh inventory exposed signed-in Chrome Gmail; all three overlapping searches completed without OAuth changes. Re-enumerate browser surfaces on every due wake instead of treating a past capability failure as durable. Browser fallback restores search coverage, not the connector dispatch route; never label the latter fixed without a successful connector call.
