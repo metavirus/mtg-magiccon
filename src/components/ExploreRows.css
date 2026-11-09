@@ -3,9 +3,10 @@
 .explore-event-open{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:10px;min-width:0;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
 .explore-event .event-title-block strong{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
 @media(max-width:650px){
+  .explore-event{--event-text-offset:50px}
   .explore-event .explore-event-main{grid-template-columns:minmax(0,1fr);gap:6px}
-  .explore-event-open{grid-template-columns:28px minmax(0,1fr);gap:8px}
-  .explore-event .event-scan{display:flex;justify-content:flex-start;justify-items:start;margin-left:36px;min-width:0}
+  .explore-event-open{grid-template-columns:calc(var(--event-text-offset) - 8px) minmax(0,1fr);gap:8px}
+  .explore-event .event-scan{display:flex;justify-content:flex-start;justify-items:start;margin-left:var(--event-text-offset);min-width:0}
 }
 
 /* Browse rows show identity/value/state; secondary context lives in detail. */
@@ -21,7 +22,7 @@
 .event-detail-tags span{border:1px solid #2f4260;border-radius:8px;padding:3px 6px}
 @media(max-width:650px){
   .compact-explore-row .explore-event-main{grid-template-columns:minmax(0,1fr);gap:4px}
-  .compact-explore-row .event-scan{margin-left:36px;gap:8px;flex-wrap:wrap}
+  .compact-explore-row .event-scan{gap:8px;flex-wrap:wrap}
   .compact-explore-row .event-title-block strong{font-size:13px}
   .compact-explore-row .event-source-mark{bottom:10px}
 }
