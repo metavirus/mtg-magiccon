@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { catalogBookmarkOptions, useCatalogBookmark } from './CatalogBookmark'
 import { blackLotusPurchaseLimits, formatCatalogOfferValue, type CatalogFamily, type CatalogOffer, type CatalogReadModel } from './lib/catalog'
@@ -37,6 +38,7 @@ function CatalogProductImage({ offer }: { offer: CatalogOffer }) {
 
 export function CatalogBrowser({
   initialFamily,
+  headingAction,
   model,
   currentOwnerId,
   canEditInterest,
@@ -45,6 +47,7 @@ export function CatalogBrowser({
   onOpenOffer,
 }: {
   initialFamily?: CatalogFamily
+  headingAction?: ReactNode
   model: CatalogReadModel
   currentOwnerId?: string
   canEditInterest: boolean
@@ -118,10 +121,10 @@ export function CatalogBrowser({
       {families.map(item => <button type="button" role="tab" aria-selected={family === item} className={family === item ? 'active' : ''} key={item} onClick={() => { setFamily(item); setCategory('all') }}>{familyLabels[item]}</button>)}
     </div>}
 
-    <header className="catalog-browser-heading">
+    <header className={headingAction ? 'catalog-browser-heading prize-wall-heading' : 'catalog-browser-heading'}>
       <div><h2>{unifiedStore ? 'Store' : familyOffers[0]?.catalog_title ?? familyLabels[family]}</h2></div>
       {unifiedStore && lotusLimits.length > 0 && <button type="button" className="store-lotus-button" onClick={event => { lotusLauncher.current = event.currentTarget; setShowLotusRules(true) }}><LotusIcon />Black Lotus rules</button>}
-      <span><strong>{visibleOffers.length}</strong> of {familyOffers.length} items</span>
+      {headingAction ?? <span><strong>{visibleOffers.length}</strong> of {familyOffers.length} items</span>}
     </header>
 
     <div ref={toolbarRef} className="catalog-toolbar">

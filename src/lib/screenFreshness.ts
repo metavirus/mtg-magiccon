@@ -2,7 +2,7 @@ import type { Surface } from './navigation'
 import type { ContinuityLane } from './offlineContinuity'
 
 export type ScreenRead = { state: 'checking' | 'current' | 'failed'; checkedAt?: string; savedAt?: string }
-export type InfoView = 'guide' | 'catalogs' | 'import' | 'exhibitors'
+export type InfoView = 'guide' | 'catalogs' | 'import' | 'exhibitors' | 'prize_wall'
 
 const requiredReads: Record<Surface, ContinuityLane[]> = {
   home: ['selections', 'flights', 'activity', 'findings', 'monitorAlerts'],
@@ -21,7 +21,7 @@ const requiredReads: Record<Surface, ContinuityLane[]> = {
 export function screenReads(surface: Surface, infoView: InfoView): ContinuityLane[] {
   if (surface === 'info' && infoView === 'catalogs') return ['catalog']
   if (surface === 'info' && infoView === 'exhibitors') return ['exhibitors', 'selections']
-  if (surface === 'info' && infoView === 'import') return []
+  if (surface === 'info' && (infoView === 'import' || infoView === 'prize_wall')) return []
   return requiredReads[surface]
 }
 

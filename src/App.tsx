@@ -1,3 +1,4 @@
+import { PrizeWallPreview } from './components/PrizeWallPreview'
 import mapExhibitorPlaces from './data/mapExhibitorPlaces.json'
 import { CatalogProductImageDetail } from './components/CatalogProductImageDetail'
 import { lazy, ReactNode, Suspense, type MouseEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -955,6 +956,8 @@ export default function App() {
   const [readOwner, setReadOwner] = useState<string>()
   const [laneReads, setLaneReads] = useState<Partial<Record<ContinuityLane, ScreenRead>>>({})
   const [savedReadsChecked, setSavedReadsChecked] = useState(false)
+  const [prizeTixSaving, setPrizeTixSaving] = useState(false)
+  const prizeTixWritePending = useRef(false)
   const [infoView, setInfoView] = useState<InfoView>('guide')
   const changeInfoView = useCallback((view: InfoView) => {
     setInfoView(view)
@@ -2359,6 +2362,41 @@ export default function App() {
     navigate('#info?store=' + family)
     window.scrollTo(0, 0)
   }
+  const prizeTixValue = (currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]
+  const prizeTixDisabled = prizeTixSaving || (!designPreview && !isPreviewOwnerMode && (!canWrite || !continuityReady))
+  async function savePrizeTix(value: number, delta: number) {
+    if (!delta || prizeTixDisabled || prizeTixWritePending.current) return
+    prizeTixWritePending.current = true
+    setPrizeTixSaving(true)
+    try {
+      if (currentCompanion?.name === 'Juan' && canWrite && supabase) {
+        const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
+        if (!kaviOwnerId) return
+        const row = { owner_id: kaviOwnerId, object_id: 'wallet-prize-tix', object_kind: 'wallet' as const,
+          selection_key: 'balance', selection_value: String(value), updated_at: new Date().toISOString() }
+        const { error } = await supabase.from('user_selections').upsert(row, { onConflict: 'owner_id,object_id,selection_key' })
+        if (error) {
+          setMessageTone('error')
+          setMessage('Prize Tix could not be saved: ' + error.message)
+          return
+        }
+        if (activeOwner.current === effectiveOwnerId) setSharedSelectionRows(rows => [
+          ...rows.filter(item => !(item.owner_id === kaviOwnerId && item.object_id === row.object_id && item.selection_key === row.selection_key)),
+          row,
+        ])
+      } else if (await upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value)) === false) return
+      void recordUserActivity({
+        objectId: 'wallet-prize-tix',
+        objectKind: 'wallet',
+        activityType: 'prize_tix_adjusted',
+        summary: `${noteAuthorFromSession(effectiveSession, companionMembers)} ${delta > 0 ? 'added' : 'spent'} ${Math.abs(delta)} Prize Tix.`,
+        details: { delta, next_balance: value },
+      })
+    } finally {
+      prizeTixWritePending.current = false
+      setPrizeTixSaving(false)
+    }
+  }
   const selectedMapEvent = mapEventId ? displayedExploreEvents.find(event => event.id === mapEventId) : undefined
   const presentationSurface = activeMapTrip ? 'map' : surface
   const freshnessKeys = screenReads(presentationSurface, infoView)
@@ -2574,29 +2612,9 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
-{surface === 'info' && <InfoSurface onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
+{surface === 'info' && <InfoSurface prizeTixCounter={<PrizeTixCounter value={prizeTixValue} onChange={savePrizeTix} disabled={prizeTixDisabled} />} onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
-        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={(currentCompanion?.name === 'Juan' ? sharedSelectionRows.find(row => row.owner_id === companionMembers.find(member => member.key === 'kavi')?.userId && row.object_id === 'wallet-prize-tix' && row.selection_key === 'balance')?.selection_value : undefined) ?? userSelections[selectionKey('wallet-prize-tix', 'balance')]} proofRequest={walletProofRequest} onPrizeTixChange={(value, delta) => {
-          if (currentCompanion?.name === 'Juan') {
-            const kaviOwnerId = companionMembers.find(member => member.key === 'kavi')?.userId
-            if (canWrite && supabase && kaviOwnerId) {
-              void supabase.from('user_selections').upsert({ owner_id: kaviOwnerId, object_id: 'wallet-prize-tix', object_kind: 'wallet', selection_key: 'balance', selection_value: String(value), updated_at: new Date().toISOString() }, { onConflict: 'owner_id,object_id,selection_key' }).then(({ error }) => {
-                if (error) { setMessageTone('error'); setMessage(`Prize Tix could not be saved: ${error.message}`) }
-              })
-            }
-          } else void upsertUserSelection('wallet-prize-tix', 'wallet', 'balance', String(value))
-          if (!delta) return
-          void recordUserActivity({
-            objectId: 'wallet-prize-tix',
-            objectKind: 'wallet',
-            activityType: 'prize_tix_adjusted',
-            summary: `${noteAuthorFromSession(effectiveSession, companionMembers)} ${delta > 0 ? 'added' : 'spent'} ${Math.abs(delta)} Prize Tix.`,
-            details: {
-              delta,
-              next_balance: value,
-            },
-          })
-        }} />}
+        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={prizeTixValue} proofRequest={walletProofRequest} onPrizeTixChange={savePrizeTix} prizeTixDisabled={prizeTixDisabled} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
         {surface === 'artists' && <ArtistsSurface refreshRequest={artistRefreshRequest} onRead={markLaneRead} mapOpen={Boolean(activeMapTrip)} mapAllowed onShowOnMap={placeId => {
           mapReturnScroll.current = window.scrollY
@@ -5501,7 +5519,7 @@ function MapSurface({ events, walletReceipts = [], currentPersonKey, infoTopics 
     const topic = infoTopics.find(item => item.topic_key === mapGuideTopics[placeId])
     if (topic) onOpenObject?.(infoTopicDetail(topic, infoFeed))
   }
-  const canOpenPrizeCatalog = mapCatalogs.has('prize-wall')
+  const canOpenPrizeCatalog = Boolean(onOpenCatalog)
   const activeMode = mode
   const showNextStops = Boolean(currentOwnerId && companions.length > 0 && (activeMode === 'beta' || activeMode === 'levels'))
   const showReturnToBeta = activeMode === 'levels' && returnToBeta
@@ -5821,17 +5839,24 @@ function StoreAssetStatus({ offers, reviewOnly }: { offers: CatalogOffer[]; revi
 
 const CatalogImportLab = lazy(async () => ({ default: (await import('./CatalogImportLab')).CatalogImportLab }))
 
-function InfoCatalogsPreview({ initialFamily, refreshFailed = false, onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { initialFamily?: 'show_store' | 'prize_wall' | 'black_lotus'; onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; refreshFailed?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
+function InfoCatalogsPreview({ prizeTixCounter, initialFamily, refreshFailed = false, onOpenObject, showMatchReview = false, catalogReadModel, currentOwnerId, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, catalogBrowserQa, reviewOnly = false }: { prizeTixCounter?: ReactNode; initialFamily?: 'show_store' | 'prize_wall' | 'black_lotus'; onOpenObject: (detail: ObjectDetail) => void; showMatchReview?: boolean; refreshFailed?: boolean; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; catalogBrowserQa: boolean; reviewOnly?: boolean }) {
   const [catalogId, setCatalogId] = useState<InfoCatalog['id']>('show-store')
   const catalog = priorEventCatalogs.find(item => item.id === catalogId) ?? priorEventCatalogs[0]
-  const hasCurrentCatalog = catalogReadModel.status === 'ready' && catalogReadModel.offers.length > 0
+  const prizeWall = initialFamily === 'prize_wall'
+  const visibleCatalog = {
+    ...catalogReadModel,
+    offers: catalogReadModel.offers.filter(offer => (offer.family === 'prize_wall') === prizeWall),
+  }
+  const hasCurrentCatalog = visibleCatalog.status === 'ready' && visibleCatalog.offers.length > 0
+  if (prizeWall && !hasCurrentCatalog) return <PrizeWallPreview counter={prizeTixCounter} />
+
   return <section className="info-catalog-preview" role="tabpanel" aria-label="Store preview">
     {refreshFailed && <p role="status">{hasCurrentCatalog ? 'Store could not be refreshed. Showing saved items.' : 'Store could not be loaded. Try refreshing.'}</p>}
-    {hasCurrentCatalog && <StoreAssetStatus offers={catalogReadModel.offers} reviewOnly={reviewOnly} />}
+    {hasCurrentCatalog && <StoreAssetStatus offers={visibleCatalog.offers} reviewOnly={reviewOnly} />}
     {!reviewOnly && catalogBrowserQa && <aside className="info-catalog-warning"><span className="eyebrow">QA PREVIEW</span><strong>Prior-event products—not Atlanta inventory.</strong><p>This surface stays hidden in the real app until an official Atlanta catalog is captured and verified.</p></aside>}
     {showMatchReview && <CatalogMatchReview />}
     {hasCurrentCatalog
-      ? <CatalogBrowser initialFamily={initialFamily} reviewOnly={reviewOnly} model={catalogReadModel} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(preferredCatalogBookmarkOffer(catalogReadModel, offer, currentOwnerId), currentOwnerId))} />
+      ? <CatalogBrowser initialFamily={initialFamily} headingAction={prizeWall ? prizeTixCounter : undefined} reviewOnly={reviewOnly} model={visibleCatalog} currentOwnerId={currentOwnerId} canEditInterest={canEditCatalogInterest} savingOfferId={catalogInterestSavingOfferId} onToggleInterest={onToggleCatalogInterest} onOpenOffer={offer => onOpenObject(catalogOfferDetail(preferredCatalogBookmarkOffer(catalogReadModel, offer, currentOwnerId), currentOwnerId))} />
       : refreshFailed ? null : !catalogBrowserQa || reviewOnly ? <p role="status">{catalogReadModel.status === 'ready' ? 'No Store items yet.' : 'Loading Store…'}</p> : <><div className="info-catalog-selector" role="tablist" aria-label="Catalog preview">
       {priorEventCatalogs.map(item => <button type="button" role="tab" aria-selected={catalog.id === item.id} className={catalog.id === item.id ? 'active' : ''} key={item.id} onClick={() => setCatalogId(item.id)}>{item.id === 'black-lotus' ? 'Black Lotus' : item.title}</button>)}
     </div>
@@ -5872,7 +5897,7 @@ function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
   }
 }
 
-function InfoSurface({ onViewChange, showContent, catalogRefreshFailed = false, canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { onViewChange: (view: InfoView) => void; showContent: boolean; catalogRefreshFailed?: boolean; canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
+function InfoSurface({ prizeTixCounter, onViewChange, showContent, catalogRefreshFailed = false, canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { prizeTixCounter: ReactNode; onViewChange: (view: InfoView) => void; showContent: boolean; catalogRefreshFailed?: boolean; canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
   const qaFlags = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
   const catalogMatchReviewEnabled = canUseCatalogImport && qaFlags.includes('catalog-match-review')
   const catalogBrowserQa = canUseCatalogImport && qaFlags.includes('catalog-browser')
@@ -5880,10 +5905,11 @@ function InfoSurface({ onViewChange, showContent, catalogRefreshFailed = false, 
   const catalogImportQa = canUseCatalogImport && qaFlags.includes('catalog-import-lab')
   const storeParam = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('store')
   const initialFamily = storeParam === 'show_store' || storeParam === 'black_lotus' || storeParam === 'prize_wall' ? storeParam : undefined
-  const [mode, setMode] = useState<InfoView>(initialFamily ? 'catalogs' : qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa || (canUseCatalogImport && qaFlags.includes('atlanta-merch-review')) ? 'catalogs' : 'guide')
+  const linkedMode = initialFamily === 'prize_wall' ? 'prize_wall' : initialFamily ? 'catalogs' : undefined
+  const [mode, setMode] = useState<InfoView>(linkedMode ?? (qaFlags.includes('exhibitors') ? 'exhibitors' : catalogImportQa && canUseCatalogImport ? 'import' : catalogMatchReviewEnabled || catalogBrowserQa || (canUseCatalogImport && qaFlags.includes('atlanta-merch-review')) ? 'catalogs' : 'guide'))
   useLayoutEffect(() => { onViewChange(mode) }, [mode, onViewChange])
-  useLayoutEffect(() => { if (initialFamily) setMode('catalogs') }, [initialFamily])
-  const catalogsEnabled = catalogReadModel.offers.length > 0 || canUseCatalogImport || mode === 'catalogs'
+  useLayoutEffect(() => { if (linkedMode) setMode(linkedMode) }, [linkedMode, initialFamily])
+  const catalogsEnabled = catalogReadModel.offers.some(offer => offer.family !== 'prize_wall') || canUseCatalogImport || mode === 'catalogs'
   const visibleTopics = publishedInfoTopics(topics).map(topic => topic.topic_key === 'ticketed-play' && ticketedPlaySaleHasOpened()
     ? {
         ...topic,
@@ -5901,7 +5927,7 @@ function InfoSurface({ onViewChange, showContent, catalogRefreshFailed = false, 
       <button type="button" role="tab" aria-selected={mode === 'guide'} className={mode === 'guide' ? 'active' : ''} onClick={() => setMode('guide')}>Guide</button>
       <button type="button" role="tab" aria-selected={mode === 'exhibitors'} className={mode === 'exhibitors' ? 'active' : ''} onClick={() => setMode('exhibitors')}>Exhibitors</button>
       {catalogsEnabled && <button type="button" role="tab" aria-selected={mode === 'catalogs'} className={mode === 'catalogs' ? 'active' : ''} onClick={() => setMode('catalogs')}>Store</button>}
-      {canUseCatalogImport && <button type="button" role="tab" aria-selected={mode === 'import'} className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>Import</button>}
+      <button type="button" role="tab" aria-selected={mode === 'prize_wall'} className={mode === 'prize_wall' ? 'active' : ''} onClick={() => setMode('prize_wall')}>Prize Wall</button>
     </div>
     <div hidden={!showContent}>
     {mode === 'guide' && <InfoGuide topics={visibleTopics} feed={visibleFeed} onOpenObject={onOpenObject} />}
@@ -5909,7 +5935,7 @@ function InfoSurface({ onViewChange, showContent, catalogRefreshFailed = false, 
       <ArtistAssetStatus urls={exhibitorAssetUrls(exhibitors).filter((url): url is string => Boolean(url))} missingImages={0} online={navigator.onLine} revision={0} label="Exhibitor images" />
       <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />
     </>}
-    {mode === 'catalogs' && catalogsEnabled && <InfoCatalogsPreview initialFamily={initialFamily} refreshFailed={catalogRefreshFailed} onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
+    {(mode === 'prize_wall' || (mode === 'catalogs' && catalogsEnabled)) && <InfoCatalogsPreview key={mode} prizeTixCounter={prizeTixCounter} initialFamily={mode === 'prize_wall' ? 'prize_wall' : initialFamily === 'black_lotus' ? 'black_lotus' : undefined} refreshFailed={catalogRefreshFailed} onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
     {mode === 'import' && canUseCatalogImport && <Suspense fallback={<p role="status">Loading import…</p>}>
       <CatalogImportLab canPromote={canPromoteCatalog} promoting={catalogPromotionSaving} onPromote={onPromoteCatalog} />
     </Suspense>}
@@ -5917,12 +5943,28 @@ function InfoSurface({ onViewChange, showContent, catalogRefreshFailed = false, 
   </section>
 }
 
-export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange }: { onShowPickup?: () => void; receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
+function PrizeTixCounter({ value, onChange, disabled }: {
+  value?: string
+  onChange: (value: number, delta: number) => void
+  disabled?: boolean
+}) {
+  const parsed = Number(value)
+  const tix = Number.isFinite(parsed) ? Math.max(0, parsed) : 0
+  const adjustTix = (delta: number) => {
+    const next = Math.max(0, tix + delta)
+    onChange(next, next - tix)
+  }
+  return <div className="wallet-tix-counter" aria-label={`${tix.toLocaleString()} Prize Tix`}>
+        <TicketMiniIcon />
+        <span className="wallet-tix-label">Prize Tix</span>
+        <button type="button" disabled={disabled || tix === 0} aria-label="Subtract 100 Prize Tix" onClick={() => adjustTix(-100)}>−</button>
+        <strong>{tix.toLocaleString()}</strong>
+        <button type="button" disabled={disabled} aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+</button>
+      </div>
+}
+
+export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange, prizeTixDisabled }: { prizeTixDisabled?: boolean; onShowPickup?: () => void; receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
-  const [tix, setTix] = useState(() => {
-    const parsed = Number(prizeTixValue)
-    return Number.isFinite(parsed) ? parsed : 0
-  })
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
   const playReceipts = receipts.filter(receipt => receipt.receipt_type === 'ticketed_play')
   const badgeReceipts = receipts.filter(receipt => receipt.receipt_type === 'badge')
@@ -5934,10 +5976,6 @@ export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready',
   const openChrisBlackLotusProof = () => openModal('BLACK LOTUS TRANSFER', 'Chris Black Lotus badge proof', <ChrisBlackLotusTransferDetail originalReceipt={blackLotusReceipt} transferReceipt={chrisBlackLotusReceipt} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Chris'])
   const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail receipt={juanPremiumReceipt} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
   useEffect(() => {
-    const parsed = Number(prizeTixValue)
-    if (Number.isFinite(parsed)) setTix(parsed)
-  }, [prizeTixValue])
-  useEffect(() => {
     if (!proofRequest) return
     if (proofRequest.target === 'black-lotus') openBlackLotusProof()
     if (proofRequest.target === 'juan-premium') openJuanProof()
@@ -5947,12 +5985,6 @@ export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready',
       openModal('HOTEL REFERENCE', tripHotelDetail(kind).title, <HotelWalletReference kind={kind} receipts={receipts} currentOwnerId={currentOwnerId} />)
     }
   }, [proofRequest?.nonce, receipts, currentOwnerId])
-  const adjustTix = (delta: number) => setTix(value => {
-    const next = Math.max(0, value + delta)
-    onPrizeTixChange(next, next - value)
-    return next
-  })
-
   return <section className="wallet-surface" aria-label="Wallet">
     <div className="wallet-toolbar">
       <div className="wallet-tabs" role="tablist" aria-label="Wallet section">
@@ -5963,13 +5995,7 @@ export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready',
           ['other', 'Other'],
         ] as Array<[WalletTab, string]>).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={tab === value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}>{label}</button>)}
       </div>
-      <div className="wallet-tix-counter" aria-label={`${tix.toLocaleString()} Prize Tix`}>
-        <TicketMiniIcon />
-        <span className="wallet-tix-label">Prize Tix</span>
-        <button type="button" aria-label="Subtract 100 Prize Tix" onClick={() => adjustTix(-100)}>−</button>
-        <strong>{tix.toLocaleString()}</strong>
-        <button type="button" aria-label="Add 100 Prize Tix" onClick={() => adjustTix(100)}>+</button>
-      </div>
+      <PrizeTixCounter value={prizeTixValue} onChange={onPrizeTixChange} disabled={prizeTixDisabled} />
     </div>
     {tab === 'home' && <WalletHomeTab openBlackLotusProof={openBlackLotusProof} openChrisBlackLotusProof={openChrisBlackLotusProof} openJuanProof={openJuanProof} onOpenObject={onOpenObject} />}
     {tab === 'play' && (playReceipts.length || receiptStatus === 'ready' ? <WalletPlayTab onShowPickup={onShowPickup} receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} /> : <ReceiptLoadNotice status={receiptStatus} />)}
