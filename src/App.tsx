@@ -2626,7 +2626,7 @@ export default function App() {
         {surface === 'map' && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface prizeTixCounter={<PrizeTixCounter value={prizeTixValue} onChange={savePrizeTix} disabled={prizeTixDisabled} />} onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
-        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} prizeTixValue={prizeTixValue} proofRequest={walletProofRequest} onPrizeTixChange={savePrizeTix} prizeTixDisabled={prizeTixDisabled} />}
+        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} canEditStoreNotes={canWrite || designPreview || isPreviewOwnerMode} prizeTixValue={prizeTixValue} proofRequest={walletProofRequest} onPrizeTixChange={savePrizeTix} prizeTixDisabled={prizeTixDisabled} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
         {surface === 'artists' && <ArtistsSurface refreshRequest={artistRefreshRequest} onRead={markLaneRead} mapOpen={Boolean(activeMapTrip)} mapAllowed onShowOnMap={placeId => {
           mapReturnScroll.current = window.scrollY
@@ -2662,7 +2662,8 @@ export default function App() {
 
 type ForecastId = 'black-lotus-store' | 'show-catalog'
 type CalendarDetail = ForecastId | 'arrival' | 'preview' | 'friday' | 'event' | 'airport' | 'sunday' | 'bl-thursday' | 'bl-friday' | 'bl-sunday'
-type WalletProofTarget = 'black-lotus' | 'juan-premium' | 'hotel-courtyard' | 'hotel-omni' | 'hotel-hilton'
+type WalletProofTarget = 'black-lotus' | 'juan-premium' | 'hotel-courtyard' | 'hotel-omni' | 'hotel-hilton' | `store:${string}`
+const storeReceiptNotePrefix = 'wallet-store-receipt-'
 
 function trustSliceToObjectDetail(slice: TrustSlice): ObjectDetail {
   return {
@@ -2876,6 +2877,9 @@ function receiptSourceDetail(note: ContextNote): ObjectDetail | null {
 }
 
 function receiptTargetFromNote(note: ContextNote): WalletProofTarget | null {
+  if (note.objectKind === 'receipt' && note.objectId.startsWith(storeReceiptNotePrefix)) {
+    return `store:${note.objectId.slice(storeReceiptNotePrefix.length)}`
+  }
   if (note.objectId === 'wallet-black-lotus-order') return 'black-lotus'
   if (note.objectId === 'wallet-juan-premium-order') return 'juan-premium'
   return null
@@ -5362,7 +5366,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
       </article>)}
     </div>}
     <div className="note-composer">
-      <textarea disabled={!canEdit} value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={canEdit ? `Note on ${objectTitle}` : 'Read-only — connect and sign in to add a private note'} />
+      <textarea disabled={!canEdit} value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={canEdit ? `Note on ${objectTitle}` : 'Connect and sign in to add a note'} />
       <small className="note-mention-hint">{privateExhibitor ? 'Your exhibitor notes are private.' : 'Use @Kavi, @Chris, @Juan, or @Kyle to mention a companion.'}</small>
       {!privateExhibitor && mentionPreview.length > 0 && <div className="note-mention-preview" aria-label="Recognized mentions">
         <span>Will notify</span>
@@ -5975,9 +5979,12 @@ function PrizeTixCounter({ value, onChange, disabled }: {
       </div>
 }
 
-export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, prizeTixValue, proofRequest, onPrizeTixChange, prizeTixDisabled }: { prizeTixDisabled?: boolean; onShowPickup?: () => void; receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
+export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, canEditStoreNotes = Boolean(currentOwnerId), prizeTixValue, proofRequest, onPrizeTixChange, prizeTixDisabled }: { prizeTixDisabled?: boolean; onShowPickup?: () => void; receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; canEditStoreNotes?: boolean; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
-  const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | null>(null)
+  const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | { storeReceiptId: string } | null>(null)
+  const storeReceipt = modal && 'storeReceiptId' in modal
+    ? receipts.find(receipt => receipt.receipt_type === 'store' && receipt.id === modal.storeReceiptId)
+    : undefined
   const playReceipts = receipts.filter(receipt => receipt.receipt_type === 'ticketed_play')
   const badgeReceipts = receipts.filter(receipt => receipt.receipt_type === 'badge')
   const blackLotusReceipt = badgeReceipts.find(receipt => receipt.attendee_person_keys.includes('kavi') && receipt.attendee_person_keys.includes('chris')) ?? null
@@ -5989,6 +5996,10 @@ export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready',
   const openJuanProof = () => openModal('PREMIUM WEEKEND ORDER', 'Juan badge proof', <JuanPremiumProofDetail receipt={juanPremiumReceipt} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />, ['Juan'])
   useEffect(() => {
     if (!proofRequest) return
+    if (proofRequest.target.startsWith('store:')) {
+      setTab('store')
+      setModal({ storeReceiptId: proofRequest.target.slice('store:'.length) })
+    }
     if (proofRequest.target === 'black-lotus') openBlackLotusProof()
     if (proofRequest.target === 'juan-premium') openJuanProof()
     if (proofRequest.target.startsWith('hotel-')) {
@@ -6013,11 +6024,17 @@ export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready',
     {tab === 'play' && (playReceipts.length || receiptStatus === 'ready' ? <WalletPlayTab onShowPickup={onShowPickup} receipts={playReceipts} currentOwnerId={currentOwnerId} openModal={openModal} /> : <ReceiptLoadNotice status={receiptStatus} />)}
     {tab === 'store' && (receipts.some(receipt => receipt.receipt_type === 'store')
       ? <div className="wallet-layout"><section className="receipt-list" aria-label="Store receipts">
-        {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => openModal('STORE RECEIPT', receipt.title, <PurchaseReceiptDetail receipt={receipt} currentOwnerId={currentOwnerId} />, receiptPeople(receipt))} />)}
+        {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => setModal({ storeReceiptId: receipt.id })} />)}
       </section></div>
       : receiptStatus === 'ready' ? <WalletStoreEmpty /> : <ReceiptLoadNotice status={receiptStatus} />)}
     {tab === 'other' && <WalletOtherTab flights={flights} receipts={receipts} currentOwnerId={currentOwnerId} openModal={openModal} onOpenTrip={onOpenTrip} />}
-    {modal && <WalletModal {...modal} onClose={() => setModal(null)} />}
+    {modal && !('storeReceiptId' in modal) && <WalletModal {...modal} onClose={() => setModal(null)} />}
+    {storeReceipt && <WalletModal key={storeReceipt.id} eyebrow="STORE RECEIPT" title={storeReceipt.title} people={receiptPeople(storeReceipt)} onClose={() => setModal(null)}
+      body={<PurchaseReceiptDetail receipt={storeReceipt} currentOwnerId={currentOwnerId}>
+        <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote}
+          objectId={storeReceiptNotePrefix + storeReceipt.id} objectKind="receipt" objectTitle={storeReceipt.title}
+          context="Wallet · Store order" backlink="wallet" canEdit={canEditStoreNotes} compact />
+      </PurchaseReceiptDetail>} />}
   </section>
 }
 
@@ -6258,7 +6275,7 @@ function PurchaseReceiptCard({ receipt, onOpen }: { receipt: WalletReceiptRow; o
   </button>
 }
 
-function PurchaseReceiptDetail({ receipt, currentOwnerId, onShowPickup }: { onShowPickup?: () => void; receipt: WalletReceiptRow; currentOwnerId?: string }) {
+function PurchaseReceiptDetail({ receipt, currentOwnerId, onShowPickup, children }: { onShowPickup?: () => void; receipt: WalletReceiptRow; currentOwnerId?: string; children?: ReactNode }) {
   const { items, pickup } = receiptPurchaseLines(receipt)
   const [mode, setMode] = useState<'info' | 'original'>('info')
   return <div className="proof-detail">
@@ -6279,6 +6296,7 @@ function PurchaseReceiptDetail({ receipt, currentOwnerId, onShowPickup }: { onSh
     </> : <>
       <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title={`${receipt.title} original receipt`} currentOwnerId={currentOwnerId} />
     </>}
+    {children && <div className="store-order-notes" hidden={mode !== 'info'}>{children}</div>}
   </div>
 }
 

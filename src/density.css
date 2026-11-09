@@ -1296,3 +1296,9 @@ html,body{max-width:100%;overflow-x:clip}
 .league-registration-receipt{padding-top:10px;border-top:1px solid #263850}
 .league-registration-receipt summary{font-size:13px;font-weight:650;cursor:pointer}
 .league-registration-receipt[open] summary{margin-bottom:10px}
+
+.store-order-notes .note-composer textarea{font-family:inherit}
+@media (max-width:650px){
+  .store-order-notes .note-composer textarea{font-size:16px}
+  .store-order-notes .note-save,.store-order-notes .note-private-inline{min-height:40px}
+}

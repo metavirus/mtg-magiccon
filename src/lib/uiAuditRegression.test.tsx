@@ -89,6 +89,31 @@ describe('September 19 cross-surface usability regressions', () => {
     await waitFor(() => expect(document.querySelector('img[src="blob:store-original"]')).toBeTruthy())
   })
 
+  it('saves a note against the exact Store receipt and updates the open thread', () => {
+    const receipt: HotelReceipt = { ...hotelReceipt, receipt_type: 'store', title: 'Merch preorder', receipt_artifacts: [],
+      line_items: [{ title: 'Mug', price: 20 }] }
+    const onAddNote = vi.fn()
+    const onDeleteNote = vi.fn()
+    const props = { receipts: [receipt], flights: [], currentOwnerId: 'store-viewer', onOpenObject: vi.fn(), onOpenTrip: vi.fn(),
+      onAddNote, onDeleteNote, proofRequest: { target: `store:${receipt.id}` as const, nonce: 1 }, onPrizeTixChange: vi.fn() }
+    const { rerender } = render(<WalletSurface {...props} notes={[]} />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'The mug is for Chris.' } })
+    fireEvent.click(screen.getByRole('tab', { name: 'Original' }))
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'Info' }))
+    expect(screen.getByRole('textbox')).toHaveValue('The mug is for Chris.')
+    fireEvent.click(screen.getByRole('button', { name: 'Save note' }))
+    expect(onAddNote).toHaveBeenCalledWith(expect.objectContaining({ objectId: `wallet-store-receipt-${receipt.id}`,
+      objectKind: 'receipt', backlink: 'wallet', visibility: 'shared', body: 'The mug is for Chris.' }))
+    rerender(<WalletSurface {...props} notes={[
+      { ...onAddNote.mock.calls[0][0], id: 'saved-note', ownerId: 'store-viewer', title: receipt.title, author: 'Kavi', updatedAt: 'Now' },
+      { ...onAddNote.mock.calls[0][0], id: 'other-note', objectId: 'wallet-store-receipt-other', ownerId: 'store-viewer',
+        title: receipt.title, body: 'Another order', author: 'Kavi', updatedAt: 'Now' },
+    ]} />)
+    expect(screen.getByText('The mug is for Chris.')).toBeVisible()
+    expect(screen.queryByText('Another order')).not.toBeInTheDocument()
+  })
+
   it('never selects another hotel, a title-only match, a different receipt type, or ambiguous originals', () => {
     const invalidSets = [
       [{ ...hotelReceipt, line_items: [{ event_id: 'hotel-omni', title: 'Hilton reservation', price: 100 }] }],
