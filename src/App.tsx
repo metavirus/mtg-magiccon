@@ -1638,7 +1638,7 @@ export default function App() {
     if (nextSurface === 'artists' && /^artist-name:[^\r\n]{1,160}$/.test(placeId)) return placeId
     if (nextSurface === 'info' && mapExhibitorPlaces.some(place => place.id === placeId)) return placeId
     if (nextSurface === 'wallet' && placeId === 'league-pickup') return placeId
-    return ['calendar', 'explore', 'plan'].includes(nextSurface) && isEventMapDestination(placeId) ? placeId : null
+    return isEventMapDestination(placeId) ? placeId : null
   }, [])
   useEffect(() => {
     setMapTrip(mapTripFromHash(window.location.hash))
@@ -2366,7 +2366,12 @@ export default function App() {
     const minutes = minutesUntilEvent(entry, now)
     if (minutes === null || !entry.eventId) return []
     const key = `event-start-${entry.eventId}-${entry.at}`
-    return alertReview[key] ? [] : [{ key, eventId: entry.eventId, title: entry.title, location: entry.location, minutes }]
+    if (alertReview[key]) return []
+    const destination = eventMapDestination(entry.eventId)
+    const mapLink = destination
+      ? { targetId: destination.targetId, label: 'Show on KaviMap' }
+      : eventMapWayfinding(entry.eventId)[0]
+    return [{ key, eventId: entry.eventId, title: entry.title, location: destination?.meetingPoint?.label ?? entry.location, minutes, mapLink }]
   })
   function openMapCatalog(family: 'show_store' | 'prize_wall' | 'black_lotus') {
     navigate('#info?store=' + family)
@@ -2457,7 +2462,9 @@ export default function App() {
       : freshness.state === 'unavailable' ? (online ? 'Couldn’t load this view. Try refreshing.' : 'This view isn’t saved on this device.') : null
   const headerLabel = activeMapTrip ? 'MAP' : surfaceLabel(surface)
   const headerTitle = activeMapTrip ? 'Map' : surfaceTitle(surface)
-  const headerSubtitle = activeMapTrip ? 'Building C · Level 1' : surface === 'map' ? 'MagicCon Atlanta' : surfaceSubtitle(surface)
+  const headerSubtitle = activeMapTrip && activeMapTrip !== 'mana-stage' && activeMapTrip !== 'black-lotus'
+    ? 'Building C · Level 1'
+    : presentationSurface === 'map' ? 'MagicCon Atlanta' : surfaceSubtitle(surface)
   const homeDestination = navigationDestination('home')
   const mapDestination = navigationDestination('map')
   const infoDestination = navigationDestination('info')
@@ -2571,6 +2578,10 @@ export default function App() {
               alerts={inboxSignals}
               reminders={eventReminders}
               onOpenReminder={reminder => { setAlertReviewState(reminder.key, 'reviewed'); openPlanEventContext(reminder.eventId) }}
+              onShowReminderOnMap={(reminder, targetId) => {
+                setAlertReviewState(reminder.key, 'reviewed')
+                showEventOnMap(reminder.eventId, targetId)
+              }}
               onDismissReminder={reminder => setAlertReviewState(reminder.key, 'archived')}
               onOpenMention={openMentionNote}
               onOpenAlert={openActivityItem}
@@ -2623,7 +2634,7 @@ export default function App() {
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
-        {surface === 'map' && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
+        {surface === 'map' && !activeMapTrip && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface prizeTixCounter={<PrizeTixCounter value={prizeTixValue} onChange={savePrizeTix} disabled={prizeTixDisabled} />} onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} canEditStoreNotes={canWrite || designPreview || isPreviewOwnerMode} prizeTixValue={prizeTixValue} proofRequest={walletProofRequest} onPrizeTixChange={savePrizeTix} prizeTixDisabled={prizeTixDisabled} />}
@@ -7558,7 +7569,7 @@ function formatTicketedDay(day: string, includeDate: boolean) {
 }
 
 type HomeCalendarEntry = { id: string; title: string; at: number; eventId?: string; location?: string }
-type EventReminder = { key: string; eventId: string; title: string; location?: string; minutes: number }
+type EventReminder = { key: string; eventId: string; title: string; location?: string; minutes: number; mapLink?: { targetId: string; label: string } }
 
 function minutesUntilEvent(entry: HomeCalendarEntry, now: number) {
   const remaining = entry.at - now
@@ -8046,6 +8057,7 @@ export function MentionInbox({
   alerts,
   reminders = [],
   onOpenReminder,
+  onShowReminderOnMap,
   onDismissReminder,
   onOpenMention,
   onOpenAlert,
@@ -8058,6 +8070,7 @@ export function MentionInbox({
   alerts: ActivityItem[]
   reminders?: EventReminder[]
   onOpenReminder?: (reminder: EventReminder) => void
+  onShowReminderOnMap?: (reminder: EventReminder, targetId: string) => void
   onDismissReminder?: (reminder: EventReminder) => void
   onOpenMention: (note: ContextNote) => void
   onOpenAlert: (item: ActivityItem) => void
@@ -8118,18 +8131,29 @@ export function MentionInbox({
           }
         }}>×</button>
       </header>
-      {reminders.map(reminder => <div className="mention-row mention-alert-row mention-event-reminder" key={reminder.key}>
-        <button type="button" className="mention-item mention-alert-item" onClick={event => {
-          const root = event.currentTarget.closest('details.mention-inbox')
-          if (root instanceof HTMLDetailsElement) root.open = false
-          onOpenReminder?.(reminder)
-        }}>
-          <span className="home-event-soon" aria-hidden="true"><b>!</b></span>
-          <span><strong>{reminder.title}</strong><small>Starts in {reminder.minutes} min{reminder.location && ` · ${reminder.location}`}</small></span>
-          <i aria-hidden="true">›</i>
-        </button>
-        <button className="mention-dismiss" type="button" aria-label={`Dismiss reminder for ${reminder.title}`} onClick={() => onDismissReminder?.(reminder)}>×</button>
-      </div>)}
+      {reminders.map(reminder => {
+        const { mapLink } = reminder
+        return <div className="mention-row mention-alert-row mention-event-reminder" key={reminder.key}>
+          <button type="button" className="mention-item mention-alert-item" onClick={event => {
+            const root = event.currentTarget.closest('details.mention-inbox')
+            if (root instanceof HTMLDetailsElement) root.open = false
+            onOpenReminder?.(reminder)
+          }}>
+            <span className="home-event-soon" aria-hidden="true"><b>!</b></span>
+            <span><strong>{reminder.title}</strong><small>Starts in {reminder.minutes} min{reminder.location && ` · ${reminder.location}`}</small></span>
+            <i aria-hidden="true">›</i>
+          </button>
+          {mapLink && onShowReminderOnMap && <button type="button" className="detail-plan-link mention-reminder-map" onClick={event => {
+            const root = event.currentTarget.closest('details.mention-inbox')
+            if (root instanceof HTMLDetailsElement) {
+              root.open = false
+              root.querySelector('summary')?.focus()
+            }
+            onShowReminderOnMap(reminder, mapLink.targetId)
+          }}>{mapLink.label} <span aria-hidden="true">›</span></button>}
+          <button className="mention-dismiss" type="button" aria-label={`Dismiss reminder for ${reminder.title}`} onClick={() => onDismissReminder?.(reminder)}>×</button>
+        </div>
+      })}
       {activeAlerts.map(alert => <div className="mention-row mention-alert-row" key={alert.id}>
         <button type="button" className="mention-item mention-alert-item" onClick={event => openAlertButton(event, alert)}>
           <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>

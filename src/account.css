@@ -383,6 +383,19 @@
 }
 
 .mention-event-reminder .mention-item { padding-right: 44px; }
+.mention-event-reminder .mention-item small {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+.mention-event-reminder .mention-reminder-map {
+  width: auto;
+  min-height: 36px;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 6px 37px;
+}
 
 .mention-popover header strong {
   color: #edf4fc;

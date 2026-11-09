@@ -2,7 +2,15 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 
-vi.mock('./supabase', () => ({ supabase: {} }))
+vi.mock('./supabase', () => {
+  const read = {
+    select: () => read,
+    eq: () => read,
+    limit: () => read,
+    abortSignal: async () => ({ data: [], error: null }),
+  }
+  return { supabase: { from: () => read } }
+})
 
 beforeEach(() => {
   window.history.replaceState(null, '', '/?preview=1#home')
@@ -43,6 +51,24 @@ describe('app navigation sequences', () => {
     fireEvent(document, new Event('visibilitychange'))
     expect(inbox.queryByText(/starts in \d+ min/i)).toBeNull()
     expect(within(schedule).queryByText('Commander Sealed Draft with Commander at Home')).toBeNull()
+  })
+
+  it('opens the reminder’s map destination from Home and returns with Back', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-13T15:30:00Z'))
+    window.history.replaceState(null, '', '/?preview=1&qa=purchased-event,ticketed-availability#home')
+    const { container } = render(<App />)
+    const inbox = container.querySelector<HTMLDetailsElement>('details.mention-inbox')!
+    inbox.setAttribute('open', '')
+    // This event publishes no table location. The map action must be labeled as help.
+    fireEvent.click(within(inbox).getByRole('button', { name: 'Ticketed Play help' }))
+    expect(window.location.hash).toBe('#home?map=ticketed-play-hub')
+    expect(screen.getByRole('heading', { level: 1, name: 'Map' })).toBeVisible()
+    expect(inbox).not.toHaveAttribute('open')
+    fireEvent.click(screen.getByLabelText('Back to previous view'))
+    await waitFor(() => expect(window.location.hash).toBe('#home'))
+    expect(screen.getByRole('region', { name: 'What’s next' })).toBeVisible()
+    expect(within(inbox).queryByText(/Starts in 60 min/)).toBeNull()
   })
 
   it('keeps Explore title and purchase actions as separate buttons', () => {
