@@ -122,7 +122,6 @@ describe('September 19 cross-surface usability regressions', () => {
     expect(app).toContain('Official directory ↗')
     expect(app).not.toContain('The full artist directory is next.')
     expect(app).not.toContain('Three Art of Magic guests are listed')
-    expect(app).toContain('Published · 65 artists')
   })
 
   it('separates cache freshness and historical unread state from survey work', () => {

@@ -366,10 +366,23 @@
 }
 
 .mention-popover header {
+  position: relative;
   display: grid;
   gap: 3px;
+  min-height: 40px;
+  padding-right: 44px;
   margin-bottom: 10px;
 }
+
+.mention-popover header .mention-dismiss,
+.mention-event-reminder .mention-dismiss {
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.mention-event-reminder .mention-item { padding-right: 44px; }
 
 .mention-popover header strong {
   color: #edf4fc;

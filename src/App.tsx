@@ -45,7 +45,7 @@ import { loadExhibitors, exhibitorObjectId, exhibitorQaFixtures, safeExhibitorUr
 import { ExhibitorMaterials } from './components/ExhibitorMaterials'
 import { exhibitorHighlight } from './lib/exhibitorHighlights'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
-import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, isTicketedPlaySaleOpen, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
+import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { monitoringNoticeSeverity } from './lib/monitoringNoticeLifecycle'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
@@ -89,7 +89,7 @@ const states: { value: PlanningState; label: string; symbol: string }[] = [
 
 function surfaceLabel(surface: Surface) {
   const labels: Record<Surface, string> = {
-    home: 'QUIET MONITORING',
+    home: 'HOME',
     calendar: 'CALENDAR',
     plan: 'PLAN',
     explore: 'EXPLORE',
@@ -106,7 +106,7 @@ function surfaceLabel(surface: Surface) {
 
 function surfaceTitle(surface: Surface) {
   const titles: Record<Surface, string> = {
-    home: 'Atlanta is quiet.',
+    home: 'MagicCon Atlanta',
     calendar: 'The road to Atlanta.',
     plan: 'Shape the weekend.',
     explore: 'Find the keepers.',
@@ -123,7 +123,7 @@ function surfaceTitle(surface: Surface) {
 
 function surfaceSubtitle(surface: Surface) {
   const subtitles: Record<Surface, string> = {
-    home: 'Changes and decisions worth seeing.',
+    home: 'Your schedule and convention updates.',
     calendar: 'Trip milestones and committed events.',
     plan: "Compare everyone's possible and committed events.",
     explore: 'Events worth comparing.',
@@ -846,6 +846,7 @@ function hashForSurface(next: Surface) {
 }
 
 export default function App() {
+  const now = useMilestoneClock()
   const standalone = window.matchMedia('(display-mode: standalone)').matches
     || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
   const appSearch = standaloneAppSearch(window.location.search, standalone)
@@ -2350,14 +2351,23 @@ export default function App() {
     }
     setMonitoringFindings(current => current.map(row => row.id === finding.id ? result.data as MonitoringFindingRow : row))
   }
-  const homeHeaderSignals = surface === 'home' ? homeWorthKnowingItems(activityItems, Date.now(), currentCompanion?.name ?? 'Kavi') : []
-  const homeHeaderHotCount = homeHeaderSignals.filter(item => item.severity === 'hot').length
   const inboxSignals = activityItems.filter(item => {
     const finding = item.monitoringFinding
     if (finding && findingIsRoutineSellout(finding)) return false
     if (finding?.evidence.home_signal_kind === 'interesting_announcement') return announcementIsCurrent(finding)
     return finding?.destination === 'Inbox' || isFeaturedTicketedPlaySale(item, Date.now())
   }).sort((a, b) => Date.parse(b.checkedAtIso) - Date.parse(a.checkedAtIso))
+  const homeSchedule = (continuityReady && currentCompanion) || designPreview || isPreviewOwnerMode
+    ? homeCalendarEntries(displayedExploreEvents, flightsKnown ? tripFlights : [], currentCompanion?.name ?? 'Kavi')
+      .filter(entry => Number.isFinite(entry.at) && entry.at >= now)
+      .sort((left, right) => left.at - right.at)
+    : null
+  const eventReminders = (homeSchedule ?? []).flatMap(entry => {
+    const minutes = minutesUntilEvent(entry, now)
+    if (minutes === null || !entry.eventId) return []
+    const key = `event-start-${entry.eventId}-${entry.at}`
+    return alertReview[key] ? [] : [{ key, eventId: entry.eventId, title: entry.title, location: entry.location, minutes }]
+  })
   function openMapCatalog(family: 'show_store' | 'prize_wall' | 'black_lotus') {
     navigate('#info?store=' + family)
     window.scrollTo(0, 0)
@@ -2445,9 +2455,9 @@ export default function App() {
       ? `Saved copy · ${new Date(freshness.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`
       : 'Showing available saved data.')
       : freshness.state === 'unavailable' ? (online ? 'Couldn’t load this view. Try refreshing.' : 'This view isn’t saved on this device.') : null
-  const headerLabel = activeMapTrip ? 'MAP' : surface === 'home' && homeHeaderHotCount ? 'ACTIVE WATCH' : surfaceLabel(surface)
-  const headerTitle = activeMapTrip ? 'Map' : surface === 'home' ? 'Atlanta here we come!' : surfaceTitle(surface)
-  const headerSubtitle = activeMapTrip ? 'Building C · Level 1' : surface === 'map' ? 'MagicCon Atlanta' : surface === 'home' && homeHeaderHotCount ? 'New MagicCon signal is ready to review.' : surfaceSubtitle(surface)
+  const headerLabel = activeMapTrip ? 'MAP' : surfaceLabel(surface)
+  const headerTitle = activeMapTrip ? 'Map' : surfaceTitle(surface)
+  const headerSubtitle = activeMapTrip ? 'Building C · Level 1' : surface === 'map' ? 'MagicCon Atlanta' : surfaceSubtitle(surface)
   const homeDestination = navigationDestination('home')
   const mapDestination = navigationDestination('map')
   const infoDestination = navigationDestination('info')
@@ -2559,6 +2569,9 @@ export default function App() {
             <MentionInbox
               items={mentionInboxState}
               alerts={inboxSignals}
+              reminders={eventReminders}
+              onOpenReminder={reminder => { setAlertReviewState(reminder.key, 'reviewed'); openPlanEventContext(reminder.eventId) }}
+              onDismissReminder={reminder => setAlertReviewState(reminder.key, 'archived')}
               onOpenMention={openMentionNote}
               onOpenAlert={openActivityItem}
               onDismissAlert={item => setActivityReviewState(item, 'archived')}
@@ -2605,9 +2618,8 @@ export default function App() {
       }} />
       {activeMapTrip && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(effectiveOwnerId ?? "guest") + activeMapTrip} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
       <div hidden={Boolean(activeMapTrip) || (!showScreen && surface !== 'info')}>
-        {surface === 'home' && <HomeSurface activityItems={activityItems} catalog={catalogReadModel} currentPerson={currentCompanion?.name ?? 'Kavi'}
-          calendarEntries={(continuityReady && flightsKnown && currentCompanion) || designPreview || isPreviewOwnerMode
-            ? homeCalendarEntries(displayedExploreEvents, tripFlights, currentCompanion?.name ?? 'Kavi') : null}
+        {surface === 'home' && <HomeSurface activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'}
+          calendarEntries={homeSchedule} now={now} onOpenEvent={openPlanEventContext}
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
@@ -7527,17 +7539,26 @@ function formatTicketedDay(day: string, includeDate: boolean) {
     : { weekday: 'long' })
 }
 
+type HomeCalendarEntry = { id: string; title: string; at: number; eventId?: string; location?: string }
+type EventReminder = { key: string; eventId: string; title: string; location?: string; minutes: number }
+
+function minutesUntilEvent(entry: HomeCalendarEntry, now: number) {
+  const remaining = entry.at - now
+  return entry.eventId && remaining > 0 && remaining <= 60 * 60_000 ? Math.ceil(remaining / 60_000) : null
+}
+
 function homeCalendarEntries(events: ExploreEvent[], flights: TripFlight[], person: PersonName) {
-  const entries = events.filter(event => event.id !== 'bl-first-look-thursday' && (event.state === 'committed' || event.purchased))
-    .map(event => ({ title: displayEventTitle(event), at: atlantaConventionStart(event.day, event.time) }))
+  const entries: HomeCalendarEntry[] = events.filter(event => event.id !== 'bl-first-look-thursday' && (event.state === 'committed' || event.purchased || event.purchaseLocked))
+    .map(event => ({ id: event.id, eventId: event.id, title: displayEventTitle(event), at: atlantaConventionStart(event.day, event.time),
+      location: reviewedEventLocation(event.id)?.name }))
   const trip = tripFlightCalendarProjection(flights)
   if (trip?.flight.traveler_person_keys.includes(person.toLowerCase())) {
     entries.push(
-      { title: 'Arrive ATL · Courtyard night', at: Date.parse(trip.outbound.arrival_at) },
-      { title: 'Fly home from ATL', at: Date.parse(trip.returnLeg.departure_at) },
+      { id: 'arrive-atl', title: 'Arrive ATL · Courtyard night', at: Date.parse(trip.outbound.arrival_at) },
+      { id: 'depart-atl', title: 'Fly home from ATL', at: Date.parse(trip.returnLeg.departure_at) },
     )
   }
-  if (person === 'Kavi' || person === 'Juan') entries.push({ title: 'Omni check-in begins', at: atlantaConventionStart('Thu', '4:00 PM') })
+  if (person === 'Kavi' || person === 'Juan') entries.push({ id: 'omni-check-in', title: 'Omni check-in begins', at: atlantaConventionStart('Thu', '4:00 PM') })
   return entries
 }
 
@@ -7545,25 +7566,36 @@ const homeCalendarTime = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
 })
 
-function HomeSurface({ activityItems, catalog, currentPerson, calendarEntries, onOpenCalendar, onOpenItem, onOpenActivity }: { activityItems: ActivityItem[]; catalog: CatalogReadModel; currentPerson: PersonName; calendarEntries: ReturnType<typeof homeCalendarEntries> | null; onOpenCalendar: () => void; onOpenItem: (item: ActivityItem) => void; onOpenActivity: () => void }) {
-  const [showTicketedPlayMilestone, setShowTicketedPlayMilestone] = useState(false)
-  const now = useMilestoneClock()
-  const next = calendarEntries && nextCalendarEntry(calendarEntries, now)
-  const { fulfilled, upcoming } = catalogMilestones(catalog, now)
+function HomeSurface({ activityItems, currentPerson, calendarEntries, now, onOpenCalendar, onOpenEvent, onOpenItem, onOpenActivity }: { activityItems: ActivityItem[]; currentPerson: PersonName; calendarEntries: HomeCalendarEntry[] | null; now: number; onOpenCalendar: () => void; onOpenEvent: (id: string) => void; onOpenItem: (item: ActivityItem) => void; onOpenActivity: () => void }) {
   const homeSignals = groupHomeSoldOutSignals(homeWorthKnowingItems(activityItems, now, currentPerson))
   const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
-  const ticketedPlaySaleIsOpen = ticketedPlaySaleHasOpened(now) || activityItems.some(isTicketedPlaySaleOpen)
   const ordinarySignals = homeSignals.filter(item => item.id !== featuredSale?.id)
   const featuredAlreadyCounted = Boolean(featuredSale && homeSignals.some(item => item.id === featuredSale.id))
   const visibleSignalCount = homeSignals.length + (featuredSale && !featuredAlreadyCounted ? 1 : 0)
   const hotCount = ordinarySignals.filter(item => item.severity === 'hot' && homeSignalIsHotNow(item.checkedAtIso, now)).length + (featuredSale?.severity === 'hot' && !featuredAlreadyCounted ? 1 : 0)
   const saleUrl = featuredSale?.officialResources?.find(resource => /ticketed.play|schedule/i.test(`${resource.label} ${resource.url}`))?.url
   return <div className="home-surface">
-    {next && <button type="button" className="next-milestone" onClick={onOpenCalendar}>
-      <div className="milestone-symbol" aria-hidden="true"><NavIcon name="calendar" /></div>
-      <div><span className="eyebrow">WHAT’S NEXT</span><h2>{next.title}</h2><p><time dateTime={new Date(next.at).toISOString()}>{homeCalendarTime.format(next.at)}</time></p></div>
-    </button>}
     <div className="home-main-row">
+      <section className="home-agenda" aria-labelledby="home-agenda-heading">
+        <header className="home-lane-head">
+          <h2 id="home-agenda-heading">What’s next</h2>
+          <button type="button" onClick={onOpenCalendar}>Calendar</button>
+        </header>
+        {calendarEntries?.slice(0, 2).map((entry, index) => {
+          const minutes = minutesUntilEvent(entry, now)
+          return <button key={entry.id} type="button" className="home-agenda-entry"
+            onClick={() => entry.eventId ? onOpenEvent(entry.eventId) : onOpenCalendar()}>
+            <span className="home-agenda-entry-top">
+              <span className="eyebrow">{index === 0 ? 'UP NEXT' : 'AFTER THAT'}</span>
+              {minutes !== null && <span className="home-event-soon"><b aria-hidden="true">!</b> In {minutes} min</span>}
+            </span>
+            <strong>{entry.title}</strong>
+            <span><time dateTime={new Date(entry.at).toISOString()}>{homeCalendarTime.format(entry.at)}</time>{entry.location && ` · ${entry.location}`}</span>
+          </button>
+        })}
+        {calendarEntries?.length === 0 && <p className="home-agenda-empty">Nothing scheduled next.</p>}
+        {calendarEntries === null && <p className="home-agenda-empty">Checking your schedule…</p>}
+      </section>
       <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading" data-tour-target="home-signals">
         <div className="home-lane-head">
           <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">Your convention briefing</h2></div>
@@ -7584,47 +7616,10 @@ function HomeSurface({ activityItems, catalog, currentPerson, calendarEntries, o
           <HomeBriefing items={ordinarySignals} now={now} spotlightSlots={featuredSale ? 1 : 2} onOpenItem={onOpenItem}
             renderIcon={item => item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}
             renderPeople={item => (item.actors?.length || item.actor) ? <PersonBubbles people={item.actors ?? [item.actor!]} /> : null} />
-          {!visibleSignalCount && <button type="button" className="signal-chip-card quiet" onClick={onOpenActivity}>
-            <span><MilestoneIcon name="badges" /></span>
-            <div><strong>Activity</strong><small>View updates</small></div>
-          </button>}
+          {!visibleSignalCount && <p className="home-agenda-empty">No new updates.</p>}
         </div>
       </section>
 
-      <div className="home-right-rail">
-        {!ticketedPlaySaleIsOpen && <button className="next-milestone home-top-forecast" type="button" onClick={() => setShowTicketedPlayMilestone(true)}>
-              <div className="milestone-symbol" aria-hidden="true"><MilestoneIcon name="ticketed-play" /></div>
-              <div><span className="eyebrow">NEXT EXPECTED</span><h2>Ticketed play purchasing is next.</h2><p>The schedule page is published. Now the next milestone is buying ticketed play on August 25 at 10 AM PT.</p></div>
-              <span className="milestone-date"><small>Official</small><strong>Aug 25</strong></span>
-            </button>}
-
-        <section className="runway planning-runway home-runway-only" aria-labelledby="planning-runway-heading">
-          <div className="runway-heading"><h3 id="planning-runway-heading">Convention milestones</h3></div>
-          <ol>
-            <li className="complete"><span className="runway-icon"><MilestoneIcon name="badges" /></span><div><strong>Badges on sale</strong><small>Live now</small></div></li>
-            {ticketedPlaySaleIsOpen && <li className="complete"><span className="runway-icon"><MilestoneIcon name="ticketed-play" /></span><div><strong>Ticketed Play purchasing</strong><small>Opened Aug 25</small></div></li>}
-            <li className="complete"><span className="runway-icon"><MilestoneIcon name="artists" /></span><div><strong>Artist directory</strong><small>Published · 65 artists</small></div></li>
-            {fulfilled['show-catalog'] && <li className="complete"><span className="runway-icon"><MilestoneIcon name="show-catalog" /></span><div><strong>Show catalog</strong><small>Published</small></div></li>}
-            {fulfilled['black-lotus-store'] && <li className="complete"><span className="runway-icon"><MilestoneIcon name="black-lotus-store" /></span><div><strong>Black Lotus preorder</strong><small>Details published</small></div></li>}
-            {upcoming.map((forecast, index) => <li key={forecast.id} className={index === 0 ? 'current' : ''}>
-              <span className="runway-icon"><MilestoneIcon name={forecast.id} /></span>
-              <details className="runway-forecast">
-                <summary><strong>{forecast.title}</strong><small><b>{forecast.window}</b> · {forecast.confidence}</small></summary>
-                <p>{forecast.rationale}</p>
-              </details>
-            </li>)}
-          </ol>
-        </section>
-      </div>
-      {showTicketedPlayMilestone && !ticketedPlaySaleIsOpen && <div className="milestone-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setShowTicketedPlayMilestone(false) }}>
-        <aside className="calendar-detail-sheet milestone-detail-sheet" role="dialog" aria-modal="true" aria-label="Ticketed play purchasing milestone">
-          <div className="calendar-detail-head"><span className="eyebrow">NEXT EXPECTED · AUG 25</span><button className="detail-close" type="button" onClick={() => setShowTicketedPlayMilestone(false)} aria-label="Close milestone details">×</button></div>
-          <h2>Ticketed play purchasing opens next.</h2>
-          <p>The official schedule is already published. Purchasing is expected to open August 25 at 10 AM PT.</p>
-          <div className="milestone-not-now"><strong>NOT OPEN YET</strong><span>No action is needed until purchasing opens.</span></div>
-          <p>When sales open, purchased events will become firm calendar blocks. Until then, Explore and Plan remain the right places to compare the schedule.</p>
-        </aside>
-      </div>}
     </div>
   </div>
 }
@@ -7671,12 +7666,13 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote }: { not
 }
 
 function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewChange, onFindingDecision, onFindingChoice, onFindingDefer, onOpenItem, onOpenNote }: { slice: TrustSlice; activityItems: ActivityItem[]; notes: ContextNote[]; onReviewChange: (item: ActivityItem, state: AlertReviewState) => void; onFindingDecision: (finding: MonitoringFindingRow, decision: MonitoringFindingDecision) => void; onFindingChoice: (finding: MonitoringFindingRow, choiceKey: string) => void; onFindingDefer: (finding: MonitoringFindingRow) => void; onOpenItem: (item: ActivityItem) => void; onOpenNote: (note: ContextNote) => void }) {
-  const [stream, setStream] = useState<ActivityStream>('hot')
+  const [selectedStream, setStream] = useState<ActivityStream | null>(null)
   const hotCount = incomingItems.filter(item => item.reviewState === 'needs-review' && item.severity === 'hot').length
   const eventCount = incomingItems.filter(item => item.reviewState !== 'archived' && isEventActivityItem(item)).length
   const sourceCount = incomingItems.filter(item => item.reviewState !== 'archived' && item.sourceKind === 'monitor' && item.kind !== 'manual').length
   const changeCount = incomingItems.filter(item => item.reviewState !== 'archived' && (item.sourceKind === 'selection' || item.sourceKind === 'activity-log' || (item.sourceKind === 'monitor' && isChangeLikeAlert(item as MonitoringAlert)))).length
   const activeAlertCount = incomingItems.filter(item => item.reviewState !== 'archived').length
+  const stream = selectedStream ?? (activeAlertCount ? 'all' : notes.length ? 'personal' : incomingItems.length ? 'archived' : 'all')
   const streamDefs: Array<{ value: ActivityStream; label: string; icon: ReactNode; count: number }> = [
     { value: 'hot', label: 'Hot', icon: <span className="activity-fire" aria-hidden="true">🔥</span>, count: hotCount },
     { value: 'events', label: 'Events', icon: <NavIcon name="calendar" />, count: eventCount },
@@ -7704,7 +7700,6 @@ function ActivitySurface({ slice, activityItems: incomingItems, notes, onReviewC
       <div>
         <span className="eyebrow">REVIEW INBOX</span>
         <h2>{hotCount ? `${hotCount} hot finding${hotCount === 1 ? '' : 's'}` : 'Nothing hot right now.'}</h2>
-        <p>Hot is the default lane for signals worth attention. Changes, sources, notes, and the full history stay one tap away.</p>
       </div>
       <span className={hotCount ? 'review-count active hot' : 'review-count'}>{hotCount}</span>
     </section>}
@@ -7850,7 +7845,7 @@ const tutorialSteps = [
   {
     kicker: 'HOME',
     title: 'Start with what changed',
-    copy: 'Worth knowing collects the latest useful signals without flooding the page. The right side keeps the next milestone and the runway in view.',
+    copy: 'Home shows your next two plans and recent convention updates.',
     icon: 'home' as NavIconName,
     surface: 'home' as Surface,
     target: 'home-signals',
@@ -7905,7 +7900,7 @@ const tutorialSteps = [
 
 const mobileTutorialSteps = [
   { kicker: 'WELCOME', title: 'Start here', copy: 'Open this menu anytime to move around MagicCon.', icon: 'home' as NavIconName, surface: 'home' as Surface, target: 'mobile-menu', placement: 'right' },
-  { kicker: 'HOME', title: 'What changed', copy: 'Home keeps the latest useful signals and milestones together.', icon: 'home' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-home', placement: 'right' },
+  { kicker: 'HOME', title: 'What’s next', copy: 'See your next two plans and recent convention updates.', icon: 'home' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-home', placement: 'right' },
   { kicker: 'EXPLORE', title: 'Find possibilities', copy: 'Browse the full event field and mark what catches your eye.', icon: 'explore' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-explore', placement: 'right' },
   { kicker: 'PLAN', title: 'Compare the group', copy: 'Layer everyone’s picks and spot overlap or conflicts.', icon: 'plan' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-plan', placement: 'right' },
   { kicker: 'CALENDAR', title: 'Firm commitments', copy: 'See committed events, convention times, and travel anchors.', icon: 'calendar' as NavIconName, surface: 'home' as Surface, target: 'mobile-nav-calendar', placement: 'right' },
@@ -8031,6 +8026,9 @@ function OnboardingTutorial({ surface, onNavigate, onMobileMenuChange, onClose }
 export function MentionInbox({
   items,
   alerts,
+  reminders = [],
+  onOpenReminder,
+  onDismissReminder,
   onOpenMention,
   onOpenAlert,
   onDismissAlert,
@@ -8040,6 +8038,9 @@ export function MentionInbox({
 }: {
   items: MentionInboxItem[]
   alerts: ActivityItem[]
+  reminders?: EventReminder[]
+  onOpenReminder?: (reminder: EventReminder) => void
+  onDismissReminder?: (reminder: EventReminder) => void
   onOpenMention: (note: ContextNote) => void
   onOpenAlert: (item: ActivityItem) => void
   onDismissAlert: (item: ActivityItem) => void
@@ -8050,8 +8051,8 @@ export function MentionInbox({
   const { active, dismissed } = partitionMentionInboxItems(items)
   const activeAlerts = alerts.filter(item => item.reviewState === 'needs-review')
   const dismissedAlerts = alerts.filter(item => item.reviewState === 'archived')
-  const urgent = activeAlerts.some(item => item.severity === 'hot')
-  const unread = active.length + activeAlerts.length
+  const urgent = reminders.length > 0 || activeAlerts.some(item => item.severity === 'hot')
+  const unread = active.length + activeAlerts.length + reminders.length
   const dismissedCount = dismissed.length + dismissedAlerts.length
 
   const mentionButton = (item: MentionInboxItem) => <button
@@ -8091,7 +8092,26 @@ export function MentionInbox({
       <header>
         <span className="eyebrow">INBOX</span>
         <strong>{unread ? `${unread} for you` : 'Nothing waiting'}</strong>
+        <button className="mention-dismiss" type="button" aria-label="Close Inbox" onClick={event => {
+          const root = event.currentTarget.closest('details.mention-inbox')
+          if (root instanceof HTMLDetailsElement) {
+            root.open = false
+            root.querySelector('summary')?.focus()
+          }
+        }}>×</button>
       </header>
+      {reminders.map(reminder => <div className="mention-row mention-alert-row mention-event-reminder" key={reminder.key}>
+        <button type="button" className="mention-item mention-alert-item" onClick={event => {
+          const root = event.currentTarget.closest('details.mention-inbox')
+          if (root instanceof HTMLDetailsElement) root.open = false
+          onOpenReminder?.(reminder)
+        }}>
+          <span className="home-event-soon" aria-hidden="true"><b>!</b></span>
+          <span><strong>{reminder.title}</strong><small>Starts in {reminder.minutes} min{reminder.location && ` · ${reminder.location}`}</small></span>
+          <i aria-hidden="true">›</i>
+        </button>
+        <button className="mention-dismiss" type="button" aria-label={`Dismiss reminder for ${reminder.title}`} onClick={() => onDismissReminder?.(reminder)}>×</button>
+      </div>)}
       {activeAlerts.map(alert => <div className="mention-row mention-alert-row" key={alert.id}>
         <button type="button" className="mention-item mention-alert-item" onClick={event => openAlertButton(event, alert)}>
           <span className="mention-alert-icon"><MilestoneIcon name="ticketed-play" /></span>
@@ -8107,7 +8127,7 @@ export function MentionInbox({
             <button className="mention-dismiss" type="button" aria-label={`Dismiss mention from ${item.note.author}`} title="Dismiss" onClick={() => onDismissMention(item)}>×</button>
           </div>)}
         </div>
-        : <p className="mention-empty">No @mentions yet. Shared notes that name you will land here.</p>}
+        : !unread && <p className="mention-empty">No unread items.</p>}
       {dismissedCount > 0 && <details className="mention-dismissed">
         <summary>Dismissed <b>{dismissedCount}</b></summary>
         <div className="mention-list">

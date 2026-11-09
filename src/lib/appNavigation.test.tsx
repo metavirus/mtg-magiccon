@@ -14,6 +14,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.unstubAllGlobals()
 })
 
@@ -25,6 +26,25 @@ function navigate(name: string) {
 }
 
 describe('app navigation sequences', () => {
+  it('shows a saved event in Home and Inbox as it enters the one-hour window', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-13T15:29:00Z'))
+    window.history.replaceState(null, '', '/?preview=1&qa=purchased-event,ticketed-availability#home')
+    const { container } = render(<App />)
+    const schedule = await screen.findByRole('region', { name: 'What’s next' })
+    const inbox = within(container.querySelector('details.mention-inbox')!)
+    expect(within(schedule).getByText('Commander Sealed Draft with Commander at Home')).toBeVisible()
+    expect(inbox.queryByText(/starts in \d+ min/i)).toBeNull()
+    vi.setSystemTime(new Date('2026-11-13T15:30:00Z'))
+    fireEvent(window, new Event('focus'))
+    expect(within(schedule).getByText('In 60 min')).toBeVisible()
+    expect(inbox.getByText(/Starts in 60 min/)).toBeInTheDocument()
+    vi.setSystemTime(new Date('2026-11-13T16:30:01Z'))
+    fireEvent(document, new Event('visibilitychange'))
+    expect(inbox.queryByText(/starts in \d+ min/i)).toBeNull()
+    expect(within(schedule).queryByText('Commander Sealed Draft with Commander at Home')).toBeNull()
+  })
+
   it('keeps Explore title and purchase actions as separate buttons', () => {
     window.history.replaceState(null, '', '/?preview=1#explore')
     render(<App />)
