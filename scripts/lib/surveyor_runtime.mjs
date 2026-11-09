@@ -22,6 +22,7 @@ export function editorialFingerprints(manifest) {
 export async function runSurveyorRuntime({ ops, now = new Date().toISOString(), runId, replayRunId = null }) {
   let pending = null
   let recovered = null
+  let editorialBacklog = []
   let phase = 'load'
   const receipt = async (operationalStatus, fields = {}, exitCode = 0) => {
     const value = { schemaVersion: 1, operationalStatus, runId, replayRunId, recordedAt: now,
@@ -35,8 +36,8 @@ export async function runSurveyorRuntime({ ops, now = new Date().toISOString(), 
     const fields = { firstHeldAt, originalRunId: prior?.originalRunId ?? runId,
       fingerprints: prior?.operationalStatus === 'awaiting_editorial' ? prior.fingerprints : editorialFingerprints(manifest ?? {}),
       reportCheckedAt: report.checkedAt, overdue: Date.parse(now) - Date.parse(firstHeldAt) > HOLD_LIMIT_MS }
-    if (!replayRunId) await ops.savePending({ ...fields, operationalStatus: status, report, manifest })
-    return receipt(status, fields, fields.overdue ? 1 : 0)
+    if (!replayRunId) await ops.savePending({ ...fields, operationalStatus: status, report, manifest, editorialBacklog })
+    return receipt(status, { ...fields, retainedEditorialReports: editorialBacklog.length }, fields.overdue ? 1 : 0)
   }
   const stage = async report => {
     phase = 'stage'
@@ -55,21 +56,41 @@ export async function runSurveyorRuntime({ ops, now = new Date().toISOString(), 
     }
     pending = await ops.loadPending()
     if (pending && !['awaiting_editorial', 'awaiting_repair'].includes(pending.operationalStatus)) throw new Error('Unknown retained hold status')
-    if (pending?.operationalStatus === 'awaiting_editorial') {
-      if (!coverageComplete(pending.report)) throw new Error('Retained editorial report has incomplete coverage')
-      const manifest = await stage(pending.report)
-      if (manifest.status !== 'complete') return await hold('awaiting_editorial', pending.report, manifest, pending)
+    const { editorialBacklog: retainedBacklog = [], ...latest } = pending ?? {}
+    const retained = [...retainedBacklog]
+    if (editorialFingerprints(latest.manifest ?? {}).length) retained.push(latest)
+    for (const item of retained) {
+      let manifest
+      try {
+        manifest = await stage(item.report)
+      } catch (error) {
+        // Preserve the exact older evidence. A failed replay must not prevent
+        // fresh discovery; fresh staging still enforces its own readbacks.
+        editorialBacklog.push({ ...item, retryErrorCode: error.code ?? 'SURVEYOR_EXECUTION_FAILED' })
+        continue
+      }
+      if (manifest.status !== 'complete') {
+        editorialBacklog.push({ ...item, manifest })
+        continue
+      }
       phase = 'recovery-proof'
-      recovered = { originalRunId: pending.originalRunId, firstHeldAt: pending.firstHeldAt,
-        fingerprints: pending.fingerprints, reportCheckedAt: pending.report.checkedAt }
-      await ops.saveRecovery(pending.report, manifest, recovered)
-      pending = null
+      recovered = { originalRunId: item.originalRunId, firstHeldAt: item.firstHeldAt,
+        fingerprints: item.fingerprints, reportCheckedAt: item.report.checkedAt }
+      await ops.saveRecovery(item.report, manifest, recovered)
     }
     phase = 'discover'
     const report = await ops.discover()
-    if (!coverageComplete(report)) return await hold('awaiting_repair', report, await stage(report), pending)
     const manifest = await stage(report)
-    if (manifest.status !== 'complete') return await hold('awaiting_editorial', report, manifest, pending)
+    const oldestUnresolved = editorialBacklog[0]
+    const currentFingerprints = new Set((manifest.catches ?? []).flatMap(item =>
+      (item.readbacks ?? []).map(proof => proof.match?.fingerprint).filter(Boolean)))
+    editorialBacklog = editorialBacklog.filter(item => {
+      const fingerprints = editorialFingerprints(item.manifest ?? {})
+      return !fingerprints.length || !fingerprints.every(fingerprint => currentFingerprints.has(fingerprint))
+    })
+    const prior = oldestUnresolved ?? (recovered && pending?.operationalStatus === 'awaiting_editorial' ? null : pending)
+    if (!coverageComplete(report)) return await hold('awaiting_repair', report, manifest, prior)
+    if (manifest.status !== 'complete' || editorialBacklog.length) return await hold('awaiting_editorial', report, manifest, prior)
     phase = 'verify'
     await ops.verify(report, manifest)
     phase = 'alert'

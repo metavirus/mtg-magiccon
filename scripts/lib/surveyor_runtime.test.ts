@@ -35,15 +35,35 @@ describe('daily surveyor runtime', () => {
     expect(result.readyForCache).toBe(true)
     expect(result.recovered.originalRunId).toBe('original')
   })
-  it('pending retry performs no rediscovery and preserves age and exact original identity', async () => {
-    const h = harness(retained, [editorial])
+  it('stages fresh findings while an older exact editorial report remains unresolved', async () => {
+    const h = harness(retained, [editorial, complete])
     const result = await runSurveyorRuntime({ ops: h.ops, now: '2026-10-08T00:00:01Z', runId: 'new' })
-    expect(h.calls).toEqual(['stage'])
+    expect(h.calls).toEqual(['stage', 'discover', 'stage'])
     expect(result).toMatchObject({ operationalStatus: 'awaiting_editorial', firstHeldAt: retained.firstHeldAt,
-      originalRunId: 'original', fingerprints: ['original-fingerprint'], exitCode: 1, readyForCache: false })
+      originalRunId: 'original', fingerprints: ['original-fingerprint'], exitCode: 1, readyForCache: false, retainedEditorialReports: 1 })
+    expect(h.saved[0].editorialBacklog[0]).toMatchObject({ report, manifest: editorial })
+  })
+  it('keeps retained evidence across a fresh coverage failure and an unsuccessful replay', async () => {
+    const fresh = { ...report, coverageStatus: 'partial', checkedAt: '2026-10-07T12:00:00Z' }
+    const h = harness(retained)
+    h.ops.discover = async () => fresh
+    h.ops.stage = async (current: any) => {
+      if (current === report) throw Object.assign(new Error('sensitive diagnostic'), { code: 'CHILD_EXIT_1' })
+      return completeSurveyorClosureManifest(current, new Map())
+    }
+    const result = await runSurveyorRuntime({ ops: h.ops, now: fresh.checkedAt, runId: 'new' })
+    expect(result).toMatchObject({ operationalStatus: 'awaiting_repair', retainedEditorialReports: 1, readyForCache: false })
+    expect(h.saved[0].editorialBacklog[0]).toMatchObject({ report, retryErrorCode: 'CHILD_EXIT_1' })
+    expect(JSON.stringify(h.saved)).not.toContain('sensitive diagnostic')
+  })
+  it('keeps a single report when fresh discovery sees the same unresolved fingerprint', async () => {
+    const h = harness(retained, [editorial, editorial])
+    const result = await runSurveyorRuntime({ ops: h.ops, now: '2026-10-07T12:00:00Z', runId: 'new' })
+    expect(result).toMatchObject({ operationalStatus: 'awaiting_editorial', retainedEditorialReports: 0, firstHeldAt: retained.firstHeldAt })
+    expect(h.saved[0].manifest).toEqual(editorial)
   })
   it('incomplete coverage holds even with no catches and retries freshness without resetting age', async () => {
-    const h = harness({ ...retained, operationalStatus: 'awaiting_repair' })
+    const h = harness({ ...retained, operationalStatus: 'awaiting_repair', manifest: complete })
     h.ops.discover = async () => { h.calls.push('discover'); return { ...report, coverageStatus: 'partial' } }
     h.ops.stage = async (current: any) => { h.calls.push('stage'); return completeSurveyorClosureManifest(current, new Map()) }
     const result = await runSurveyorRuntime({ ops: h.ops, now: '2026-10-07T12:00:00Z', runId: 'new' })

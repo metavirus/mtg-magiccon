@@ -16,7 +16,7 @@ Every runtime produces `run-receipt.json`. GitHub's conclusion alone is insuffic
 
 Expected holds finish the workflow successfully while remaining explicitly unfinished in the operational receipt. They preserve their original report, fingerprints, run ID and first-held time in `.surveyor-runtime`. Rechecking cannot reset the 24-hour resolution deadline. An overdue hold fails visibly. No generic `continue-on-error` or blanket notification suppression is used.
 
-Normal runs restage retained editorial work first. If it remains pending they do no fresh discovery. Once resolved, the same run performs a fresh check, exact staging/readback, full coverage verification, watched email delivery, exact-report acceptance and checkpoint retention. Coverage repairs require a fresh check because old missing evidence cannot be invented by replay.
+Normal runs retry retained editorial work, then discover and stage fresh findings even when an older report still needs review or its retry fails. Unresolved exact reports remain in `pending.json` under `editorialBacklog` when the fresh report does not account for their fingerprints. Fresh staging can publish verified findings while the accepted baseline and watched reopening email wait for complete coverage and closure. Coverage repairs require a fresh check because old missing evidence cannot be recovered by replay.
 
 An unrelated coverage gap does not discard successfully observed source evidence. The runtime stages those observed catches and verifies their consequences while retaining `awaiting_repair`. It still cannot send watched reopening emails or advance any accepted baseline until the complete-coverage gate passes.
 
@@ -24,7 +24,7 @@ An unrelated coverage gap does not discard successfully observed source evidence
 
 The accepted public baseline still belongs to GitHub Actions. Its cache is backed by a 90-day retained `daily-magiccon-baseline` artifact containing the exact report, closure, digests and only the configured public baseline files. Recovery validates coverage, closure, hashes and file paths before replacing a missing/stale cache. No private Gmail state is included. If both copies are unavailable, fail before discovery rather than manufacture a cold roster/news release.
 
-Pending work and email delivery receipts use a separate runtime cache and artifact retained even on failed runs. They cannot advance the accepted baseline. Workflow concurrency serializes writers. The supervisor must inspect these artifacts for green holds as well as failed runs, and must not dispatch repeated discovery over unresolved retained work.
+Pending work and email delivery receipts use a separate runtime cache and artifact retained even on failed runs. They cannot advance the accepted baseline. Workflow concurrency serializes writers. For green holds and failed runs, the supervisor inspects both the fresh report and any exact editorial reports retained in `pending.json`. Scheduled discovery continues on its normal cadence while review is pending.
 
 ## Completion and resilience
 

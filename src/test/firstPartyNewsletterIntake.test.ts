@@ -97,6 +97,26 @@ describe('bounded first-party newsletter intake', () => {
     expect(monitorSource).toContain('missingDiscoverySourceIds.length === 0')
   })
 
+  it('follows approved article moves and keeps prior evidence when another article is empty', async () => {
+    const base = 'https://www.mtgfestivals.com/global/en-us/magiccon-news/'
+    const links = ['old', 'empty'].map(name => ({ url: base + name + '.html', label: 'Atlanta news' }))
+    const visited: string[] = []
+    const fetchImpl = async (url: string) => {
+      visited.push(url)
+      if (url === links[0].url) return new Response('', { status: 301, headers: { location: 'new.html' } })
+      return new Response(url === links[1].url ? '<main></main>' : '<main>Atlanta schedule update.</main>', {
+        headers: { 'content-type': 'text/html' },
+      })
+    }
+    const result = await fetchNewsletterPages({ links, policy, limits, fetchImpl, observedAt: '2026-09-06T10:00:00Z',
+      seen: { [links[1].url]: 'prior-hash' }, lastFetchedAt: { [links[1].url]: 'prior-time' } })
+    expect(visited).toEqual([links[0].url, base + 'new.html', links[1].url])
+    expect(result.observations).toMatchObject([{ url: links[0].url, semanticSummary: 'Atlanta schedule update.' }])
+    expect(result.failures).toMatchObject([{ url: links[1].url, error: 'empty article content' }])
+    expect(result.seen[links[1].url]).toBe('prior-hash')
+    expect(result.lastFetchedAt[links[1].url]).toBe('prior-time')
+  })
+
   it('checks every tracked article in one run even with legacy count limits', async () => {
     const links = Array.from({ length: 6 }, (_, index) => ({ url: `https://www.mtgfestivals.com/global/en-us/magiccon-news/atlanta-${index}.html`, label: `Atlanta ${index}` }))
     const seen = Object.fromEntries(links.map(link => [link.url, 'old']))

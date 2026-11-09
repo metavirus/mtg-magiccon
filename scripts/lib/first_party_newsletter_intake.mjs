@@ -139,17 +139,27 @@ export async function fetchNewsletterPages({ links, policy, fetchImpl = fetch, l
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), limits.timeoutMs)
     try {
-      const response = await fetchRetryableRequest(safeUrl, {
+      let articleUrl = safeUrl
+      const request = {
         redirect: 'manual',
         signal: controller.signal,
         headers: { accept: 'text/html,application/xhtml+xml', 'user-agent': 'MagicCon Atlanta companion monitor/1.0 (+https://metavirus.github.io/mtg-magiccon/)' },
-      }, { fetchImpl, timeoutMs: limits.timeoutMs })
-      if (response.status >= 300 && response.status < 400) throw new Error(`redirect rejected (${response.status})`)
+      }
+      let response = await fetchRetryableRequest(articleUrl, request, { fetchImpl, timeoutMs: limits.timeoutMs })
+      for (let hops = 0; [301, 302, 303, 307, 308].includes(response.status); hops += 1) {
+        const location = response.headers.get('location')
+        const target = location && canonicalNewsletterUrl(location, articleUrl, policy)
+        await response.body?.cancel()
+        if (!target || hops >= 3) throw new Error(`redirect rejected (${response.status})`)
+        articleUrl = target
+        response = await fetchRetryableRequest(articleUrl, request, { fetchImpl, timeoutMs: limits.timeoutMs })
+      }
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const contentType = response.headers.get('content-type') ?? ''
       if (!/^text\/html\b|^application\/xhtml\+xml\b/i.test(contentType)) throw new Error(`unsupported content type (${contentType || 'missing'})`)
       const html = await readBoundedBody(response, limits.maxBytes)
       const text = newsletterArticleText(html, limits.maxTextChars)
+      if (!text) throw new Error('empty article content')
       const relevance = newsletterRelevance(link, text)
       if (relevance === 'other-location') inspectedNonAtlanta.push({ url: safeUrl, label: link.label })
       if (relevance === 'uncertain') uncertainCount += 1
