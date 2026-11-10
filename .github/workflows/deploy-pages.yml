@@ -53,6 +53,15 @@ jobs:
       - name: Prepare Pages artifact
         run: pnpm prepare:pages-artifact
 
+      - name: Install browser for release checks
+        run: pnpm exec playwright install chromium
+
+      - name: Verify installed upgrade and offline essentials
+        run: |
+          node scripts/test_installed_shell_upgrade.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm test:essentials:browser
+
       - name: Configure Pages
         uses: actions/configure-pages@v6
 

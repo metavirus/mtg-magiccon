@@ -27,6 +27,19 @@ describe('Pages deployment workflow contract', () => {
     expect(packageJson.scripts['check:ship']).toBe('pnpm check:deploy')
   })
 
+  it('requires browser upgrade and offline checks on the packaged artifact before upload', () => {
+    const prepare = workflow.indexOf('pnpm prepare:pages-artifact')
+    const install = workflow.indexOf('playwright install chromium')
+    const upgrade = workflow.indexOf('node scripts/test_installed_shell_upgrade.mjs')
+    const offline = workflow.indexOf('pnpm test:essentials:browser')
+    const upload = workflow.indexOf('actions/upload-pages-artifact')
+
+    expect(install).toBeGreaterThan(prepare)
+    expect(upgrade).toBeGreaterThan(install)
+    expect(offline).toBeGreaterThan(upgrade)
+    expect(upload).toBeGreaterThan(offline)
+  })
+
   it('uses truthful local Pages command names', () => {
     expect(packageJson.scripts['publish:pages']).toBeUndefined()
     expect(packageJson.scripts['prepare:pages']).toBe('pnpm check:deploy && pnpm prepare:pages-artifact')
