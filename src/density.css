@@ -1315,9 +1315,12 @@ html,body{max-width:100%;overflow-x:clip}
   .calendar-event-map-button{min-height:44px}
 }
 .flight-journey{border-top:1px solid #30445e;padding-top:8px}
-.flight-journey summary{cursor:pointer;padding:6px 0;color:#edf3fb}
-.flight-journey summary span{display:block;padding:4px 0 0 1em;color:#a9b8ca;font-size:.85rem}
+.flight-journey>h3{margin:0 0 6px;font-size:.95rem}
 .flight-journey>p{margin:6px 0;color:#a9b8ca;font-size:.85rem}
-.flight-journey[open]:not(:last-child){padding-bottom:9px}
+.flight-journey:not(:last-child){padding-bottom:9px}
 .flight-travelers>summary{cursor:pointer;padding:6px 0}
 .flight-travelers>summary h2{display:inline;margin-left:6px}
+.flight-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 12px;margin-top:10px;padding-top:8px;border-top:1px solid #30445e;font-size:.82rem}
+.flight-overview>strong{grid-column:1/-1}
+.flight-overview>span{color:#a9b8ca}
+.flight-overview b{display:block;color:#edf3fb;font-weight:600}

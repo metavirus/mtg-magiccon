@@ -6556,18 +6556,29 @@ function FlightsTripTab({ flights, flightsKnown }: { flights: TripFlight[]; flig
     return new Intl.DateTimeFormat('en-US', { timeZone: zone.timeZone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(value))
   }
   return <div className="flight-grid" aria-label="Flight details">
-    {[...travelerGroups].map(([key, group]) => <details key={key} className="flight-card flight-travelers">
-      <summary><h2>{group.people.join(' + ')}</h2></summary>
-      {group.flights.flatMap(flight =>
-        groupTripFlightJourneys(flight.legs).map(legs => {
+    {[...travelerGroups].map(([key, group]) => {
+      const journeys = group.flights.flatMap(flight => groupTripFlightJourneys(flight.legs).map(legs => ({ flight, legs })))
+        .sort((a, b) => Date.parse(a.legs[0].departure_at) - Date.parse(b.legs[0].departure_at))
+      return <details key={key} className="flight-card flight-travelers">
+        <summary>
+          <h2>{group.people.join(' + ')}</h2>
+          {journeys.map(({ flight, legs }) => {
+            const first = legs[0]
+            const last = legs[legs.length - 1]
+            const direction = last.arrival_airport === 'ATL' ? 'To Atlanta' : first.departure_airport === 'ATL' ? 'Home' : 'Flight'
+            return <span className="flight-overview" key={`${flight.itinerary_key}:${first.leg_key}`}>
+              <strong>{direction} · {first.departure_airport} → {last.arrival_airport}</strong>
+              <span>Departs <b>{airportDateTime(first.departure_at, first.departure_airport)}</b></span>
+              <span>Arrives <b>{airportDateTime(last.arrival_at, last.arrival_airport)}</b></span>
+            </span>
+          })}
+        </summary>
+        {journeys.map(({ flight, legs }) => {
           const first = legs[0]
           const last = legs[legs.length - 1]
           const stop = flight.source_state?.through_stop as { flight_number?: string; city?: string; arrival_at?: string; departure_at?: string; plane_change?: boolean } | undefined
-          return <details className="flight-journey" key={`${flight.itinerary_key}:${first.leg_key}`}>
-            <summary>
-              <strong>{first.departure_airport} → {last.arrival_airport}</strong>
-              <span>{airportDateTime(first.departure_at, first.departure_airport)} → {airportDateTime(last.arrival_at, last.arrival_airport)}</span>
-            </summary>
+          return <section className="flight-journey" key={`${flight.itinerary_key}:${first.leg_key}`}>
+            <h3>{first.departure_airport} → {last.arrival_airport}</h3>
             {flight.carrier && <p>{flight.carrier}</p>}
             {flight.confirmation_code && <p>Confirmation <strong>{flight.confirmation_code}</strong></p>}
             <div className="flight-legs" aria-label="Flight segments">
@@ -6581,10 +6592,10 @@ function FlightsTripTab({ flights, flightsKnown }: { flights: TripFlight[]; flig
                 </article>
               })}
             </div>
-          </details>
-        }),
-      )}
-    </details>)}
+          </section>
+        })}
+      </details>
+    })}
   </div>
 }
 
