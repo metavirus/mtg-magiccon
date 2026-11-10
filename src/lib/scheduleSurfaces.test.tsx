@@ -21,7 +21,7 @@ const event = (id: string, time: string): CalendarProps['events'][number] => ({ 
 const calendarProps = (): CalendarProps => ({
   slice: DESIGN_PREVIEW_SLICE, events: [event('Late event', '5:30-6:15 PM'), event('Earlier event', '4:15-5:15 PM')], flights: previewTripFlights,
   selectionRows: [], companions: [], notes: [], catalog: { status: 'ready', offers: [] }, currentPerson: 'Kavi',
-  onAddNote: vi.fn(), onDeleteNote: vi.fn(), onUpdateEvent: vi.fn(), onPurchase: vi.fn(), onOpenExplore: vi.fn(), onOpenPlan: vi.fn(), onOpenPlanEvent: vi.fn(), onOpenTrip: vi.fn(), onChangeState: vi.fn(), online: true, saving: false, canCommitBlackLotus: true,
+  onAddNote: vi.fn(), onDeleteNote: vi.fn(), onUpdateEvent: vi.fn(), onPurchase: vi.fn(), onOpenExplore: vi.fn(), onOpenPlan: vi.fn(), onOpenPlanEvent: vi.fn(), onOpenTrip: vi.fn(), onOpenFlights: vi.fn(), onChangeState: vi.fn(), online: true, saving: false, canCommitBlackLotus: true,
 })
 
 describe('Calendar display and inspector regression', () => {
