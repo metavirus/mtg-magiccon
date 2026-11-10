@@ -101,7 +101,7 @@ describe('Wallet current itinerary', () => {
     fireEvent.click(screen.getByRole('button', { name: /DL 999.*Departs 3:00 PM/ }))
     expect(openModal.mock.calls[0][1]).toBe('DL 999')
     render(openModal.mock.calls[0][2])
-    expect(screen.getByText(/3:00 PM–9:16 PM/)).toBeInTheDocument()
+    expect(screen.getByText(/3:00 PM PT – 9:16 PM ET/)).toBeInTheDocument()
   })
   it('keeps Wallet wired to the same live flight prop and conflicts wired to participant scope', () => {
     const source = readFileSync('src/App.tsx', 'utf8')
