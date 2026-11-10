@@ -51,6 +51,7 @@ html,body{max-width:100%;overflow-x:clip}
 @media(prefers-reduced-motion:no-preference){.data-refresh[aria-busy=true] svg{animation:data-refresh-spin 1s linear infinite}@keyframes data-refresh-spin{to{transform:rotate(360deg)}}}
 .screen-data-status,.app-status-message{max-inline-size:100%;min-inline-size:0;overflow-wrap:anywhere}
 .screen-data-status{margin:0 0 12px;color:#b8c9df;font-size:13px;line-height:1.5}
+.loading-brand{display:flex;align-items:center;gap:12px}.loading-brand img{flex:none;width:40px;height:40px;border-radius:10px}.boot.loading-brand{justify-content:center;padding:32px}.screen-data-placeholder.loading-brand{display:flex;justify-content:center}
 .screen-data-placeholder{display:grid;place-items:center;min-height:160px;padding:18px;text-align:center;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
 @media(max-width:375px){.hero-has-funnel .countdown-chip,.hero-has-view-switch .countdown-chip{display:none}}
 .nav-notice{margin:0 0 12px;padding:8px 11px;border-left:3px solid #637c9f;background:#101c2e;color:#9eacc0;font-size:12px}

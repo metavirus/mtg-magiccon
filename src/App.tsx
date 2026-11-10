@@ -1764,7 +1764,7 @@ export default function App() {
   if (surface === 'map' && !effectiveSession && !designPreview && (!loading || !online || !supabase)) return <PublicKaviMap />
   if (!supabase) return <SetupCard />
   if (!online && !effectiveSession && !designPreview) return <div className="center-card empty" role="status"><p>Connect to open your field guide.</p></div>
-  if (loading && !effectiveSession && !slice) return <div className="boot">Opening your field guide…</div>
+  if (loading && !effectiveSession && !slice) return <div className="boot loading-brand" role="status"><img src={assetUrl('apple-touch-icon.png')} alt="" width="40" height="40" />Opening your field guide…</div>
   if (sessionCheckFailed && !effectiveSession && !designPreview) return <div className="center-card empty" role="alert"><p>Couldn’t check your sign-in.</p><button type="button" onClick={() => window.location.reload()}>Retry</button></div>
   if (!effectiveSession && !designPreview) return <Login onGoogleSignIn={() => void signInWithGoogle()} message={message} messageTone={messageTone} />
 
@@ -2642,7 +2642,7 @@ export default function App() {
       </header>
 
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone} app-status-message` : 'nav-notice'}>{message || navNotice}</p>}
-      {screenNotice && freshness.state !== 'saved' && <p role="status" className={screenChecking || !showScreen ? 'screen-data-status screen-data-placeholder' : 'screen-data-status'}>{screenNotice}</p>}
+      {screenNotice && freshness.state !== 'saved' && <p role="status" className={screenChecking || !showScreen ? 'screen-data-status screen-data-placeholder loading-brand' : 'screen-data-status'}>{screenChecking && <img src={assetUrl('apple-touch-icon.png')} alt="" width="40" height="40" />}{screenNotice}</p>}
       <OfflineSaveStatus ownerId={effectiveOwnerId} identityFailed={offlineIdentityFailureOwner === effectiveOwnerId && Boolean(effectiveOwnerId)} onRetryIdentity={() => {
         if (!offlineIdentity || offlineIdentity.userId !== effectiveOwnerId) return
         try { writeOfflineIdentity(offlineIdentity); setOfflineIdentityFailureOwner(undefined) }
