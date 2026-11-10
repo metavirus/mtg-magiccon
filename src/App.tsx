@@ -27,7 +27,7 @@ import { catalogBrowserPreviewModel, catalogBrowserPreviewOwnerId } from './lib/
 import { canLoadAtlantaMerchReview } from './lib/catalogReviewMode'
 import type { CatalogPromotionPlan } from './lib/catalogImport'
 import { promoteCatalogPlan } from './lib/catalogPromotion'
-import { additionalTripFlightLegs, flightAirportZone, loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
+import { additionalTripFlightLegs, flightAirportZone, groupTripFlightJourneys, loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { atlantaConventionStart, nextCalendarEntry, shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
 import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
@@ -6541,27 +6541,45 @@ function flightDateParts(leg: TripFlightLeg) {
 }
 
 function FlightsTripTab({ flights, flightsKnown }: { flights: TripFlight[]; flightsKnown: boolean }) {
-  if (!flights.length) return <p role="status">{flightsKnown ? 'No flights saved.' : 'Flight details are unavailable.'}</p>
+  const travelers = [...new Set(flights.flatMap(flight => flight.traveler_person_keys))]
+  if (!travelers.length) return <p role="status">{flightsKnown ? 'No flights saved.' : 'Flight details are unavailable.'}</p>
+  const atlantaTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
   return <div className="flight-grid" aria-label="Flight details">
-    {flights.map(flight => <section key={flight.itinerary_key} className="flight-card">
+    {travelers.map(traveler => <section key={traveler} className="flight-card">
       <div className="flight-card-head">
         <span className="flight-icon"><NavIcon name="trip" /></span>
-        <div><span className="eyebrow">{flight.traveler_person_keys.map(receiptPerson).join(' + ')}{flight.carrier && ` · ${flight.carrier}`}</span><h2>{flight.route_summary}</h2></div>
-        <TravelerDots people={flight.traveler_person_keys.map(receiptPerson)} />
+        <div><span className="eyebrow">ATLANTA TIME</span><h2>{receiptPerson(traveler)}</h2></div>
       </div>
-      {flight.confirmation_code && <div className="flight-confirmation"><span>Confirmation</span><strong>{flight.confirmation_code}</strong></div>}
-      <div className="flight-legs" aria-label="Flight segments">
-        {flight.legs.map(leg => {
-          const date = flightDateParts(leg)
-          return <article key={leg.leg_key}>
-            <time dateTime={leg.departure_at}><strong>{date.day}</strong><span>{date.weekday}</span></time>
-            <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightLegTimes(leg)}</p></div>
-          </article>
-        })}
-      </div>
+      {flights.filter(flight => flight.traveler_person_keys.includes(traveler)).flatMap(flight =>
+        groupTripFlightJourneys(flight.legs).map(legs => {
+          const first = legs[0]
+          const last = legs[legs.length - 1]
+          const stop = flight.source_state?.through_stop as { flight_number?: string; city?: string; arrival_at?: string; departure_at?: string; plane_change?: boolean } | undefined
+          return <details className="flight-journey" key={`${flight.itinerary_key}:${first.leg_key}`}>
+            <summary>
+              <strong>{first.departure_airport} → {last.arrival_airport}</strong>
+              <span>{atlantaTime.format(new Date(first.departure_at))} → {atlantaTime.format(new Date(last.arrival_at))} ET</span>
+            </summary>
+            {flight.carrier && <p>{flight.carrier}</p>}
+            {flight.confirmation_code && <p>Confirmation <strong>{flight.confirmation_code}</strong></p>}
+            <div className="flight-legs" aria-label="Flight segments">
+              {legs.map(leg => {
+                const date = flightDateParts(leg)
+                return <article key={leg.leg_key}>
+                  <time dateTime={leg.departure_at}><strong>{date.day}</strong><span>{date.weekday}</span></time>
+                  <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightLegTimes(leg)}</p>
+                    {stop?.flight_number === leg.flight_number && stop.city && <p>Stop in {stop.city}{stop.arrival_at && stop.departure_at ? ` · ${flightAirportTime(stop.arrival_at, 'ATL')}–${flightAirportTime(stop.departure_at, 'ATL')} ET` : ''}{stop.plane_change === false ? ' · No plane change' : ''}</p>}
+                  </div>
+                </article>
+              })}
+            </div>
+          </details>
+        }),
+      )}
     </section>)}
   </div>
 }
+
 
 export function ArtistsSurface({ refreshRequest = 0, onRead, mapOpen = false, mapAllowed = false, onShowOnMap, currentPerson, currentOwnerId, canWrite, onOpenObject, onOpenActivity, selections = {}, onBringChange }: { refreshRequest?: number; onRead?: (key: ContinuityLane, read: Partial<ScreenRead>) => void; mapOpen?: boolean; mapAllowed?: boolean; onShowOnMap?: (placeId: string) => void; currentPerson: PersonName; currentOwnerId?: string; canWrite: boolean; onOpenObject: (detail: ObjectDetail) => void; onOpenActivity: () => void; selections?: Record<string, string>; onBringChange?: (id: string, key: 'packed' | 'signed', value: string) => Promise<void> }) {
   const [view, setView] = useState<'artists' | 'cards'>('artists')

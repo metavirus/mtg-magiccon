@@ -71,6 +71,21 @@ export function flightAirportZone(airport: string) {
   }
 }
 
+export function groupTripFlightJourneys(legs: TripFlightLeg[]) {
+  const journeys: TripFlightLeg[][] = []
+  for (const leg of [...legs].sort((a, b) => a.sequence_number - b.sequence_number)) {
+    const journey = journeys.at(-1)
+    const previous = journey?.at(-1)
+    const connection = previous ? Date.parse(leg.departure_at) - Date.parse(previous.arrival_at) : Infinity
+    if (journey && previous?.arrival_airport === leg.departure_airport && connection >= 0 && connection <= 12 * 60 * 60 * 1000) {
+      journey.push(leg)
+    } else {
+      journeys.push([leg])
+    }
+  }
+  return journeys
+}
+
 export type FlightUpdateMatch = {
   confirmationCode?: string
   carrier?: string

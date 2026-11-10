@@ -102,9 +102,12 @@ describe('startup hydration', () => {
 
     window.history.replaceState(null, '', '/?auth=1&tripView=flights#trip')
     const trip = render(<App />)
-    expect(await screen.findByRole('heading', { name: 'Atlanta to Oakland via Denver' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Chris' })).toBeVisible()
+    const summary = screen.getByText('ATL → OAK')
+    expect(summary.parentElement).toHaveTextContent(/Nov 16.*11:50 AM.*Nov 16.*8:15 PM/)
+    fireEvent.click(summary)
     expect(screen.getByText('3:35 PM MT – 5:15 PM PT')).toBeVisible()
-    expect(screen.getAllByText('Confirmation', { exact: true })).toHaveLength(1)
+    expect(summary.closest('details')).not.toHaveTextContent('Confirmation')
     trip.unmount()
 
     window.history.replaceState(null, '', '/?auth=1#calendar')

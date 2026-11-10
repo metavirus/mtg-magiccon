@@ -1314,3 +1314,7 @@ html,body{max-width:100%;overflow-x:clip}
   .calendar-detail-sheet.calendar-event-detail>.persistent-detail-close+.event-detail-heading{padding-right:16px}
   .calendar-event-map-button{min-height:44px}
 }
+.flight-journey{border-top:1px solid #30445e;padding-top:8px}
+.flight-journey summary{cursor:pointer;padding:6px 0;color:#edf3fb}
+.flight-journey summary span{display:block;padding:4px 0 0 1em;color:#a9b8ca;font-size:.85rem}
+.flight-journey>p{margin:6px 0;color:#a9b8ca;font-size:.85rem}
