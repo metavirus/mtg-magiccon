@@ -64,6 +64,7 @@ export function flightAirportZone(airport: string) {
   switch (airport) {
     case 'ATL': return { timeZone: 'America/New_York', label: 'ET' }
     case 'DEN': return { timeZone: 'America/Denver', label: 'MT' }
+    case 'LAX':
     case 'OAK':
     case 'SNA': return { timeZone: 'America/Los_Angeles', label: 'PT' }
     default: return { timeZone: 'UTC', label: 'UTC' }
