@@ -85,6 +85,42 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('startup hydration', () => {
+  it('keeps a companion’s connecting flight visible in saved Trip, Calendar and Wallet', async () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    saved('owner-a', 'Saved guide')
+    deviceLaneCache(async () => undefined)
+    const base = previewTripFlights[0]
+    await writeOfflineLane('owner-a', 'flights', [...previewTripFlights, {
+      ...base, itinerary_key: 'companion-return', carrier: '', confirmation_code: null,
+      route_summary: 'Atlanta to Oakland via Denver', traveler_person_keys: ['chris'],
+      legs: [
+        { ...base.legs[0], itinerary_key: 'companion-return', flight_number: '100', departure_airport: 'ATL', arrival_airport: 'DEN', departure_at: '2026-11-16T11:50:00-05:00', arrival_at: '2026-11-16T13:10:00-07:00' },
+        { ...base.legs[1], itinerary_key: 'companion-return', flight_number: '200', departure_airport: 'DEN', arrival_airport: 'OAK', departure_at: '2026-11-16T15:35:00-07:00', arrival_at: '2026-11-16T17:15:00-08:00' },
+      ],
+    }])
+    await writeOfflineLane('owner-a', 'walletReceipts', [])
+
+    window.history.replaceState(null, '', '/?auth=1&tripView=flights#trip')
+    const trip = render(<App />)
+    expect(await screen.findByRole('heading', { name: 'Atlanta to Oakland via Denver' })).toBeVisible()
+    expect(screen.getByText('3:35 PM MT – 5:15 PM PT')).toBeVisible()
+    expect(screen.getAllByText('Confirmation', { exact: true })).toHaveLength(1)
+    trip.unmount()
+
+    window.history.replaceState(null, '', '/?auth=1#calendar')
+    const calendar = render(<App />)
+    expect(await screen.findByRole('heading', { name: 'DEN to OAK' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Arrive ATL · Courtyard night' })).toBeVisible()
+    calendar.unmount()
+
+    window.history.replaceState(null, '', '/?auth=1#wallet')
+    render(<App />)
+    fireEvent.click(await screen.findByRole('tab', { name: 'Other' }))
+    expect(await screen.findByRole('heading', { name: 'Flights · Chris' })).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: /200 · Nov 16 · DEN to OAK/ }))
+    expect(screen.getByText(/3:35 PM MT – 5:15 PM PT/)).toBeVisible()
+  })
+
   it.each([true, false])('opens saved Calendar and Wallet after a bounded check, or immediately offline (online=%s)', async online => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(online)
     saved('owner-a', 'Saved guide')

@@ -15,7 +15,7 @@ export type TripFlightLeg = {
 export type TripFlight = {
   itinerary_key: string
   carrier: string
-  confirmation_code: string
+  confirmation_code: string | null
   route_summary: string
   traveler_person_keys: string[]
   source_state: Record<string, unknown>
@@ -50,6 +50,24 @@ export function tripFlightCalendarProjection(flights: TripFlight[]): TripFlightC
   const returnLeg = flight.legs.find(leg => leg.leg_key === 'return') ?? flight.legs[flight.legs.length - 1]
   if (!outbound || !returnLeg) return null
   return { flight, outbound, returnLeg }
+}
+
+export function additionalTripFlightLegs(flights: TripFlight[]) {
+  const anchoredItinerary = tripFlightCalendarProjection(flights)?.flight.itinerary_key
+  return flights
+    .filter(flight => flight.itinerary_key !== anchoredItinerary)
+    .flatMap(flight => flight.legs.map(leg => ({ flight, leg })))
+    .sort((a, b) => Date.parse(a.leg.departure_at) - Date.parse(b.leg.departure_at))
+}
+
+export function flightAirportZone(airport: string) {
+  switch (airport) {
+    case 'ATL': return { timeZone: 'America/New_York', label: 'ET' }
+    case 'DEN': return { timeZone: 'America/Denver', label: 'MT' }
+    case 'OAK':
+    case 'SNA': return { timeZone: 'America/Los_Angeles', label: 'PT' }
+    default: return { timeZone: 'UTC', label: 'UTC' }
+  }
 }
 
 export type FlightUpdateMatch = {

@@ -27,7 +27,7 @@ import { catalogBrowserPreviewModel, catalogBrowserPreviewOwnerId } from './lib/
 import { canLoadAtlantaMerchReview } from './lib/catalogReviewMode'
 import type { CatalogPromotionPlan } from './lib/catalogImport'
 import { promoteCatalogPlan } from './lib/catalogPromotion'
-import { loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
+import { additionalTripFlightLegs, flightAirportZone, loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
 import { atlantaConventionStart, nextCalendarEntry, shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
 import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
@@ -1775,6 +1775,10 @@ export default function App() {
     setNavNotice(`${name} is mapped into the shell; its working surface comes in a later review tranche.`)
   }
   const openObjectDetail = (detail: ObjectDetail) => setObjectDetail(detail)
+  const openTripFlights = () => {
+    navigate('#trip?view=flights')
+    window.scrollTo(0, 0)
+  }
   const openPlanEventContext = (eventId: string) => {
     closeObjectDetail()
     setPlanFocusRequest({ eventId, nonce: Date.now() })
@@ -2632,13 +2636,13 @@ export default function App() {
         {surface === 'home' && <HomeSurface activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'}
           calendarEntries={homeSchedule} now={now} onOpenEvent={openPlanEventContext}
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={openTripFlights} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && !activeMapTrip && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface prizeTixCounter={<PrizeTixCounter value={prizeTixValue} onChange={savePrizeTix} disabled={prizeTixDisabled} />} onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
-        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} canEditStoreNotes={canWrite || designPreview || isPreviewOwnerMode} prizeTixValue={prizeTixValue} proofRequest={walletProofRequest} onPrizeTixChange={savePrizeTix} prizeTixDisabled={prizeTixDisabled} />}
-        {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} />}
+        {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} onOpenFlights={openTripFlights} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} canEditStoreNotes={canWrite || designPreview || isPreviewOwnerMode} prizeTixValue={prizeTixValue} proofRequest={walletProofRequest} onPrizeTixChange={savePrizeTix} prizeTixDisabled={prizeTixDisabled} />}
+        {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} flightsKnown={flightsKnown} />}
         {surface === 'artists' && <ArtistsSurface refreshRequest={artistRefreshRequest} onRead={markLaneRead} mapOpen={Boolean(activeMapTrip)} mapAllowed onShowOnMap={placeId => {
           mapReturnScroll.current = window.scrollY
           mapReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -5986,7 +5990,7 @@ function PrizeTixCounter({ value, onChange, disabled }: {
       </div>
 }
 
-export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, canEditStoreNotes = Boolean(currentOwnerId), prizeTixValue, proofRequest, onPrizeTixChange, prizeTixDisabled }: { prizeTixDisabled?: boolean; onShowPickup?: () => void; receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; canEditStoreNotes?: boolean; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
+export function WalletSurface({ onShowPickup, onOpenFlights, receipts, receiptStatus = 'ready', flights, onOpenObject, onOpenTrip, notes, currentOwnerId, onAddNote, onDeleteNote, canEditStoreNotes = Boolean(currentOwnerId), prizeTixValue, proofRequest, onPrizeTixChange, prizeTixDisabled }: { prizeTixDisabled?: boolean; onShowPickup?: () => void; onOpenFlights?: () => void; receipts: WalletReceiptRow[]; receiptStatus?: ReceiptLoadStatus; flights: TripFlight[]; onOpenObject: (detail: ObjectDetail) => void; onOpenTrip: () => void; notes: ContextNote[]; currentOwnerId?: string; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; canEditStoreNotes?: boolean; prizeTixValue?: string; proofRequest: { target: WalletProofTarget; nonce: number } | null; onPrizeTixChange: (value: number, delta: number) => void }) {
   const [tab, setTab] = useState<WalletTab>('home')
   const [modal, setModal] = useState<{ title: string; eyebrow: string; body: ReactNode; people?: PersonName[] } | { storeReceiptId: string } | null>(null)
   const storeReceipt = modal && 'storeReceiptId' in modal
@@ -6034,7 +6038,7 @@ export function WalletSurface({ onShowPickup, receipts, receiptStatus = 'ready',
         {receipts.filter(receipt => receipt.receipt_type === 'store').map(receipt => <PurchaseReceiptCard key={receipt.id} receipt={receipt} onOpen={() => setModal({ storeReceiptId: receipt.id })} />)}
       </section></div>
       : receiptStatus === 'ready' ? <WalletStoreEmpty /> : <ReceiptLoadNotice status={receiptStatus} />)}
-    {tab === 'other' && <WalletOtherTab flights={flights} receipts={receipts} currentOwnerId={currentOwnerId} openModal={openModal} onOpenTrip={onOpenTrip} />}
+    {tab === 'other' && <WalletOtherTab flights={flights} receipts={receipts} currentOwnerId={currentOwnerId} openModal={openModal} onOpenTrip={onOpenTrip} onOpenFlights={onOpenFlights} />}
     {modal && !('storeReceiptId' in modal) && <WalletModal {...modal} onClose={() => setModal(null)} />}
     {storeReceipt && <WalletModal key={storeReceipt.id} eyebrow="STORE RECEIPT" title={storeReceipt.title} people={receiptPeople(storeReceipt)} onClose={() => setModal(null)}
       body={<PurchaseReceiptDetail receipt={storeReceipt} currentOwnerId={currentOwnerId}>
@@ -6355,20 +6359,18 @@ export function HotelWalletReference({ kind, receipts = [], currentOwnerId }: { 
   </div>
 }
 
-export function WalletOtherTab({ flights, receipts = [], currentOwnerId, openModal, onOpenTrip }: { flights: TripFlight[]; receipts?: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void }) {
-  const flight = tripFlightCalendarProjection(flights)?.flight
+export function WalletOtherTab({ flights, receipts = [], currentOwnerId, openModal, onOpenTrip, onOpenFlights = onOpenTrip }: { flights: TripFlight[]; receipts?: WalletReceiptRow[]; currentOwnerId?: string; openModal: (eyebrow: string, title: string, body: ReactNode) => void; onOpenTrip: () => void; onOpenFlights?: () => void }) {
   return <div className="wallet-layout">
     <section className="receipt-list" aria-label="Other wallet references">
-      {flight && <article className="receipt-card">
-        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">CURRENT ITINERARY</span><h2>Flights · Kavi + Juan</h2><p>Confirmation {flight.confirmation_code} · SNA ⇄ ATL</p></div><PersonBubbles people={['Kavi', 'Juan']} /></div>
+      {flights.map(flight => <article key={flight.itinerary_key} className="receipt-card">
+        <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">CURRENT ITINERARY</span><h2>Flights · {flight.traveler_person_keys.map(receiptPerson).join(' + ')}</h2><p>{flight.route_summary}{flight.confirmation_code && ` · Confirmation ${flight.confirmation_code}`}</p></div><PersonBubbles people={flight.traveler_person_keys.map(receiptPerson)} /></div>
         <div className="receipt-lines">{flight.legs.map(leg => {
-          const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: leg.departure_airport === 'ATL' ? 'America/New_York' : 'America/Los_Angeles' }).format(new Date(leg.departure_at))
+          const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: flightAirportZone(leg.departure_airport).timeZone }).format(new Date(leg.departure_at))
           const departure = flightAirportTime(leg.departure_at, leg.departure_airport)
-          const arrival = flightAirportTime(leg.arrival_at, leg.arrival_airport)
-          return <button key={leg.leg_key} type="button" onClick={() => openModal('CURRENT FLIGHT', leg.flight_number, <p>{leg.departure_airport} to {leg.arrival_airport} · {date} · {departure}–{arrival} (local airport times) · confirmation {flight.confirmation_code}.</p>)}><span>{leg.flight_number} · {date} · {leg.departure_airport} to {leg.arrival_airport}</span><b>Departs {departure}</b></button>
+          return <button key={leg.leg_key} type="button" onClick={() => openModal('CURRENT FLIGHT', leg.flight_number, <p>{leg.departure_airport} to {leg.arrival_airport} · {date} · {flightLegTimes(leg)}{flight.confirmation_code && ` · Confirmation ${flight.confirmation_code}`}</p>)}><span>{leg.flight_number} · {date} · {leg.departure_airport} to {leg.arrival_airport}</span><b>Departs {departure} {flightAirportZone(leg.departure_airport).label}</b></button>
         })}</div>
-        <div className="receipt-actions"><button type="button" onClick={onOpenTrip}>Open Trip</button></div>
-      </article>}
+        <div className="receipt-actions"><button type="button" onClick={onOpenFlights}>Open Trip</button></div>
+      </article>)}
       <article className="receipt-card">
         <div className="receipt-head"><span className="receipt-icon"><NavIcon name="trip" /></span><div><span className="eyebrow">HOTEL REFERENCES</span><h2>Atlanta lodging</h2><p>Saved itinerary details and linked receipts</p></div><PersonBubbles people={['Kavi', 'Juan', 'Chris', 'Kyle']} /></div>
         <div className="receipt-lines">
@@ -6380,8 +6382,8 @@ export function WalletOtherTab({ flights, receipts = [], currentOwnerId, openMod
   </div>
 }
 
-function TripSurface({ onOpenObject, flights }: { onOpenObject: (detail: ObjectDetail) => void; flights: TripFlight[] }) {
-  const [tab, setTab] = useState<'hotels' | 'flights'>(() => new URLSearchParams(window.location.search).get('tripView') === 'flights' ? 'flights' : 'hotels')
+function TripSurface({ onOpenObject, flights, flightsKnown }: { onOpenObject: (detail: ObjectDetail) => void; flights: TripFlight[]; flightsKnown: boolean }) {
+  const [tab, setTab] = useState<'hotels' | 'flights'>(() => new URLSearchParams(window.location.hash.split('?')[1]).get('view') === 'flights' || new URLSearchParams(window.location.search).get('tripView') === 'flights' ? 'flights' : 'hotels')
   const viewTabs = (mobile = false) => <div className={`trip-tabs${mobile ? ' mobile-surface-view-tabs' : ''}`} role="tablist" aria-label="Trip section">
     <button type="button" role="tab" aria-selected={tab === 'hotels'} className={tab === 'hotels' ? 'active' : ''} onClick={() => setTab('hotels')}>Hotels</button>
     <button type="button" role="tab" aria-selected={tab === 'flights'} className={tab === 'flights' ? 'active' : ''} onClick={() => setTab('flights')}>Flights</button>
@@ -6391,7 +6393,7 @@ function TripSurface({ onOpenObject, flights }: { onOpenObject: (detail: ObjectD
     <div className="surface-view-tabs-desktop">{viewTabs()}</div>
     <MobileHeaderViewSlot>{viewTabs(true)}</MobileHeaderViewSlot>
 
-    {tab === 'hotels' ? <HotelsTripTab onOpenObject={onOpenObject} /> : <FlightsTripTab flights={flights} />}
+    {tab === 'hotels' ? <HotelsTripTab onOpenObject={onOpenObject} /> : <FlightsTripTab flights={flights} flightsKnown={flightsKnown} />}
   </section>
 }
 
@@ -6526,42 +6528,38 @@ function HotelsTripTab({ onOpenObject }: { onOpenObject: (detail: ObjectDetail) 
 }
 
 function flightAirportTime(value: string, airport: string) {
-  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: airport === 'ATL' ? 'America/New_York' : 'America/Los_Angeles' }).format(new Date(value))
+  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: flightAirportZone(airport).timeZone }).format(new Date(value))
+}
+
+function flightLegTimes(leg: TripFlightLeg) {
+  return `${flightAirportTime(leg.departure_at, leg.departure_airport)} ${flightAirportZone(leg.departure_airport).label} – ${flightAirportTime(leg.arrival_at, leg.arrival_airport)} ${flightAirportZone(leg.arrival_airport).label}`
 }
 
 function flightDateParts(leg: TripFlightLeg) {
-  const values = new Intl.DateTimeFormat('en-US', { day: 'numeric', weekday: 'short', timeZone: leg.departure_airport === 'ATL' ? 'America/New_York' : 'America/Los_Angeles' }).formatToParts(new Date(leg.departure_at))
+  const values = new Intl.DateTimeFormat('en-US', { day: 'numeric', weekday: 'short', timeZone: flightAirportZone(leg.departure_airport).timeZone }).formatToParts(new Date(leg.departure_at))
   return { day: values.find(part => part.type === 'day')?.value ?? '', weekday: (values.find(part => part.type === 'weekday')?.value ?? '').toUpperCase() }
 }
 
-function FlightsTripTab({ flights }: { flights: TripFlight[] }) {
-  const projection = tripFlightCalendarProjection(flights)
-  if (!projection) return <p role="status">Flight details are not available yet.</p>
-  const { flight } = projection
+function FlightsTripTab({ flights, flightsKnown }: { flights: TripFlight[]; flightsKnown: boolean }) {
+  if (!flights.length) return <p role="status">{flightsKnown ? 'No flights saved.' : 'Flight details are unavailable.'}</p>
   return <div className="flight-grid" aria-label="Flight details">
-    <section className="flight-card">
+    {flights.map(flight => <section key={flight.itinerary_key} className="flight-card">
       <div className="flight-card-head">
         <span className="flight-icon"><NavIcon name="trip" /></span>
-        <div><span className="eyebrow">{flight.carrier.toUpperCase()}</span><h2>Orange County / Atlanta</h2></div>
-        <TravelerDots people={['Kavi', 'Juan']} />
+        <div><span className="eyebrow">{flight.traveler_person_keys.map(receiptPerson).join(' + ')}{flight.carrier && ` · ${flight.carrier}`}</span><h2>{flight.route_summary}</h2></div>
+        <TravelerDots people={flight.traveler_person_keys.map(receiptPerson)} />
       </div>
-      <div className="flight-confirmation"><span>Confirmation</span><strong>{flight.confirmation_code}</strong></div>
-      <div className="flight-legs" aria-label="Delta itinerary legs">
+      {flight.confirmation_code && <div className="flight-confirmation"><span>Confirmation</span><strong>{flight.confirmation_code}</strong></div>}
+      <div className="flight-legs" aria-label="Flight segments">
         {flight.legs.map(leg => {
           const date = flightDateParts(leg)
           return <article key={leg.leg_key}>
-            <time><strong>{date.day}</strong><span>{date.weekday}</span></time>
-            <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightAirportTime(leg.departure_at, leg.departure_airport)} {leg.departure_airport === 'ATL' ? 'ET' : 'PT'} – {flightAirportTime(leg.arrival_at, leg.arrival_airport)} {leg.arrival_airport === 'ATL' ? 'ET' : 'PT'}</p></div>
+            <time dateTime={leg.departure_at}><strong>{date.day}</strong><span>{date.weekday}</span></time>
+            <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightLegTimes(leg)}</p></div>
           </article>
         })}
       </div>
-      <div className="flight-facts"><span>Kavi and Juan</span><span>Main Classic</span><span>Source: Gmail receipt</span></div>
-    </section>
-
-    <aside className="trip-insight flight-ai">
-      <span className="insight-icon"><NavIcon name="activity" /></span>
-      <div><span className="eyebrow">QUIET CHECK</span><h2>No travel action needed</h2><p>The flight window matches the hotel plan: arrive before the shared Courtyard night, depart after Sunday events and Omni check-out. Only a Delta change or cancellation email should interrupt this quiet state.</p></div>
-    </aside>
+    </section>)}
   </div>
 }
 
@@ -7393,6 +7391,15 @@ function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, c
       <div className="agenda-copy"><span className="agenda-kind">Checkout + flight</span><h2>Omni check-out · fly home</h2><p>Omni check-out 11 AM; {flightProjection.returnLeg.flight_number} departs ATL {returnDepartureTime}.</p></div>
       <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
     </button>}
+    {showTravel && additionalTripFlightLegs(flights).map(({ flight, leg }) => {
+      const date = flightDateParts(leg)
+      return <button key={`${flight.itinerary_key}:${leg.leg_key}`} className="agenda-row agenda-action travel-row" type="button" onClick={onOpenTrip}>
+        <div className="agenda-date"><strong>{date.day}</strong><span>{date.weekday}</span><em>{flightAirportTime(leg.departure_at, leg.departure_airport)}</em></div>
+        <div className="agenda-icon"><NavIcon name="trip" /></div>
+        <div className="agenda-copy"><span className="agenda-kind">Flight</span><h2>{leg.departure_airport} to {leg.arrival_airport}</h2><p>{leg.flight_number} · {flightLegTimes(leg)}</p></div>
+        <span className="agenda-signals"><TravelerDots people={flight.traveler_person_keys.map(receiptPerson)} /></span>
+      </button>
+    })}
     </>}
 
     {detail && ((detail !== 'show-catalog' && detail !== 'black-lotus-store') || upcoming.some(forecast => forecast.id === detail)) && <CalendarDetailSheet detail={detail} slice={slice} flights={flights} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={onOpenTrip} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
@@ -7594,6 +7601,10 @@ function homeCalendarEntries(events: ExploreEvent[], flights: TripFlight[], pers
       { id: 'arrive-atl', title: 'Arrive ATL · Courtyard night', at: Date.parse(trip.outbound.arrival_at) },
       { id: 'depart-atl', title: 'Fly home from ATL', at: Date.parse(trip.returnLeg.departure_at) },
     )
+  }
+  for (const { flight, leg } of additionalTripFlightLegs(flights)) {
+    if (!flight.traveler_person_keys.includes(person.toLowerCase())) continue
+    entries.push({ id: `${flight.itinerary_key}:${leg.leg_key}`, title: `Fly ${leg.departure_airport} to ${leg.arrival_airport}`, at: Date.parse(leg.departure_at) })
   }
   if (person === 'Kavi' || person === 'Juan') entries.push({ id: 'omni-check-in', title: 'Omni check-in begins', at: atlantaConventionStart('Thu', '4:00 PM') })
   return entries
