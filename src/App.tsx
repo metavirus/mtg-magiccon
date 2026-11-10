@@ -2584,6 +2584,7 @@ export default function App() {
         </div>
         <div className="header-status">
           <div className="header-actions">
+            {freshness.state === 'saved' && screenNotice && <span className="saved-copy-indicator" role="status" title={screenNotice} aria-label={screenNotice}>Saved copy</span>}
             {liveAccount && (freshnessKeys.length > 0 || presentationSurface === 'map' || surface === 'artists') && <button
               className="data-refresh"
               type="button"
@@ -2641,7 +2642,7 @@ export default function App() {
       </header>
 
       {(message || navNotice) && <p role="status" className={message ? `alert ${messageTone} app-status-message` : 'nav-notice'}>{message || navNotice}</p>}
-      {screenNotice && <p role="status" className={screenChecking || !showScreen ? 'screen-data-status screen-data-placeholder' : 'screen-data-status'}>{screenNotice}</p>}
+      {screenNotice && freshness.state !== 'saved' && <p role="status" className={screenChecking || !showScreen ? 'screen-data-status screen-data-placeholder' : 'screen-data-status'}>{screenNotice}</p>}
       <OfflineSaveStatus ownerId={effectiveOwnerId} identityFailed={offlineIdentityFailureOwner === effectiveOwnerId && Boolean(effectiveOwnerId)} onRetryIdentity={() => {
         if (!offlineIdentity || offlineIdentity.userId !== effectiveOwnerId) return
         try { writeOfflineIdentity(offlineIdentity); setOfflineIdentityFailureOwner(undefined) }
@@ -7732,7 +7733,7 @@ function HomeSurface({ activityItems, currentPerson, calendarEntries, essentials
       <section className="home-agenda" aria-labelledby="home-agenda-heading">
         <header className="home-lane-head">
           <h2 id="home-agenda-heading">What’s next</h2>
-          <button type="button" onClick={onOpenCalendar}>Calendar</button>
+          <button className="home-calendar-shortcut" type="button" onClick={onOpenCalendar} aria-label="Calendar" title="Open Calendar"><NavIcon name="calendar" /></button>
         </header>
         {calendarEntries?.slice(0, 2).map((entry, index) => {
           const minutes = minutesUntilEvent(entry, now)
