@@ -6559,42 +6559,43 @@ function FlightsTripTab({ flights, flightsKnown }: { flights: TripFlight[]; flig
     {[...travelerGroups].map(([key, group]) => {
       const journeys = group.flights.flatMap(flight => groupTripFlightJourneys(flight.legs).map(legs => ({ flight, legs })))
         .sort((a, b) => Date.parse(a.legs[0].departure_at) - Date.parse(b.legs[0].departure_at))
-      return <details key={key} className="flight-card flight-travelers">
-        <summary>
-          <h2>{group.people.join(' + ')}</h2>
-          {journeys.map(({ flight, legs }) => {
-            const first = legs[0]
-            const last = legs[legs.length - 1]
-            const direction = last.arrival_airport === 'ATL' ? 'To Atlanta' : first.departure_airport === 'ATL' ? 'Home' : 'Flight'
-            return <span className="flight-overview" key={`${flight.itinerary_key}:${first.leg_key}`}>
-              <strong>{direction} · {first.departure_airport} → {last.arrival_airport}</strong>
-              <span>Departs <b>{airportDateTime(first.departure_at, first.departure_airport)}</b></span>
-              <span>Arrives <b>{airportDateTime(last.arrival_at, last.arrival_airport)}</b></span>
-            </span>
-          })}
-        </summary>
+      return <section key={key} className="flight-card flight-travelers">
+        <h2>{group.people.join(' + ')}</h2>
         {journeys.map(({ flight, legs }) => {
           const first = legs[0]
           const last = legs[legs.length - 1]
-          const stop = flight.source_state?.through_stop as { flight_number?: string; city?: string; arrival_at?: string; departure_at?: string; plane_change?: boolean } | undefined
-          return <section className="flight-journey" key={`${flight.itinerary_key}:${first.leg_key}`}>
-            <h3>{first.departure_airport} → {last.arrival_airport}</h3>
-            {flight.carrier && <p>{flight.carrier}</p>}
-            {flight.confirmation_code && <p>Confirmation <strong>{flight.confirmation_code}</strong></p>}
-            <div className="flight-legs" aria-label="Flight segments">
-              {legs.map(leg => {
-                const date = flightDateParts(leg)
-                return <article key={leg.leg_key}>
-                  <time dateTime={leg.departure_at}><strong>{date.day}</strong><span>{date.weekday}</span></time>
-                  <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightLegTimes(leg)}</p>
-                    {stop?.flight_number === leg.flight_number && stop.city && <p>Stop in {stop.city}{stop.arrival_at && stop.departure_at ? ` · ${flightAirportTime(stop.arrival_at, 'ATL')}–${flightAirportTime(stop.departure_at, 'ATL')} ET` : ''}{stop.plane_change === false ? ' · No plane change' : ''}</p>}
-                  </div>
-                </article>
-              })}
-            </div>
-          </section>
+          const direction = last.arrival_airport === 'ATL' ? 'To Atlanta' : first.departure_airport === 'ATL' ? 'Home' : 'Flight'
+          return <span className="flight-overview" key={`${flight.itinerary_key}:${first.leg_key}`}>
+            <strong>{direction} · {first.departure_airport} → {last.arrival_airport}</strong>
+            <span>Departs <b>{airportDateTime(first.departure_at, first.departure_airport)}</b></span>
+            <span>Arrives <b>{airportDateTime(last.arrival_at, last.arrival_airport)}</b></span>
+          </span>
         })}
-      </details>
+        <details>
+          <summary>Flight details</summary>
+          {journeys.map(({ flight, legs }) => {
+            const first = legs[0]
+            const last = legs[legs.length - 1]
+            const stop = flight.source_state?.through_stop as { flight_number?: string; city?: string; arrival_at?: string; departure_at?: string; plane_change?: boolean } | undefined
+            return <section className="flight-journey" key={`${flight.itinerary_key}:${first.leg_key}`}>
+              <h3>{first.departure_airport} → {last.arrival_airport}</h3>
+              {flight.carrier && <p>{flight.carrier}</p>}
+              {flight.confirmation_code && <p>Confirmation <strong>{flight.confirmation_code}</strong></p>}
+              <div className="flight-legs" aria-label="Flight segments">
+                {legs.map(leg => {
+                  const date = flightDateParts(leg)
+                  return <article key={leg.leg_key}>
+                    <time dateTime={leg.departure_at}><strong>{date.day}</strong><span>{date.weekday}</span></time>
+                    <div><small>{leg.flight_number}</small><h3>{leg.departure_airport} to {leg.arrival_airport}</h3><p>{flightLegTimes(leg)}</p>
+                      {stop?.flight_number === leg.flight_number && stop.city && <p>Stop in {stop.city}{stop.arrival_at && stop.departure_at ? ` · ${flightAirportTime(stop.arrival_at, 'ATL')}–${flightAirportTime(stop.departure_at, 'ATL')} ET` : ''}{stop.plane_change === false ? ' · No plane change' : ''}</p>}
+                    </div>
+                  </article>
+                })}
+              </div>
+            </section>
+          })}
+        </details>
+      </section>
     })}
   </div>
 }

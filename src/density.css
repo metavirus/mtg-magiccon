@@ -1318,8 +1318,7 @@ html,body{max-width:100%;overflow-x:clip}
 .flight-journey>h3{margin:0 0 6px;font-size:.95rem}
 .flight-journey>p{margin:6px 0;color:#a9b8ca;font-size:.85rem}
 .flight-journey:not(:last-child){padding-bottom:9px}
-.flight-travelers>summary{cursor:pointer;padding:6px 0}
-.flight-travelers>summary h2{display:inline;margin-left:6px}
+.flight-travelers>details>summary{cursor:pointer;padding:6px 0;color:#a9c9f7}
 .flight-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 12px;margin-top:10px;padding-top:8px;border-top:1px solid #30445e;font-size:.82rem}
 .flight-overview>strong{grid-column:1/-1}
 .flight-overview>span{color:#a9b8ca}
