@@ -1,3 +1,4 @@
+import { loadViewerFindings, sharedAnnouncementStatus, type SharedAnnouncement } from './lib/sharedAnnouncements'
 import { PrizeWallPreview } from './components/PrizeWallPreview'
 import mapExhibitorPlaces from './data/mapExhibitorPlaces.json'
 import { CatalogProductImageDetail } from './components/CatalogProductImageDetail'
@@ -619,6 +620,13 @@ async function loadMonitoringFindings(): Promise<MonitoringFindingRow[]> {
     .limit(100)
   if (result.error) throw result.error
   return result.data as MonitoringFindingRow[]
+}
+
+async function loadSharedAnnouncements(): Promise<SharedAnnouncement[]> {
+  if (!supabase) return []
+  const result = await supabase.rpc('shared_monitoring_announcements')
+  if (result.error) throw result.error
+  return result.data as SharedAnnouncement[]
 }
 
 async function loadMonitoringConcepts(): Promise<MonitoringConceptRow[]> {
@@ -1419,7 +1427,7 @@ export default function App() {
         if (!Array.isArray(payload?.alerts)) throw new Error('Updates unavailable')
         return payload.alerts.filter(isMonitoringAlert) as MonitoringAlert[]
       }, setMonitorAlerts),
-      findings: () => lane('findings', () => isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringFindings() : Promise.resolve([]), setMonitoringFindings),
+      findings: () => lane('findings', () => loadViewerFindings(isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)), loadMonitoringFindings, loadSharedAnnouncements), setMonitoringFindings),
       concepts: () => lane('concepts', () => isKaviCompanion(currentCompanionFromSession(continuityContext.current.effectiveSession, continuityContext.current.companionMembers)) ? loadMonitoringConcepts() : Promise.resolve([]), setMonitoringConcepts),
       info: () => lane('info', loadInfoKnowledge, info => { setInfoTopics(info.topics); setInfoFeed(info.feed) }),
       ticketedAvailability: () => lane('ticketedAvailability', loadTicketedPlayAvailability, setTicketedAvailability),
@@ -2174,7 +2182,9 @@ export default function App() {
       officialResources: resources,
     }
   })
-  const findingActivity: ActivityItem[] = monitoringFindings.map(finding => {
+  const findingActivity: ActivityItem[] = monitoringFindings.map(storedFinding => {
+    const sharedAnnouncement = storedFinding.evidence.shared_announcement === true
+    const finding = sharedAnnouncement ? { ...storedFinding, status: sharedAnnouncementStatus(alertReview[`finding-${storedFinding.id}`]) } : storedFinding
     const resources = findingOfficialResources(finding)
     const informational = findingIsInformational(finding)
     const ticketedInventory = finding.evidence.intake_kind === 'ticketed_play_inventory'
@@ -2215,12 +2225,12 @@ export default function App() {
     objectDetail: {
       id: `monitoring-finding-${finding.id}`,
       kind: 'alert',
-      eyebrow: ticketedInventory ? 'Ticketed Play update' : 'Surveyor finding',
+      eyebrow: ticketedInventory ? 'Ticketed Play update' : interestingAnnouncement ? 'Official update' : 'Surveyor finding',
       kindLabel: ticketedInventory ? 'Sold out' : undefined,
       title: finding.title,
       summary: ticketedSummary,
-      monitoringMetadata: !ticketedInventory,
-      facts: ticketedInventory ? [
+      monitoringMetadata: !ticketedInventory && !interestingAnnouncement,
+      facts: interestingAnnouncement ? [] : ticketedInventory ? [
         { label: 'Events', value: String(ticketedEvents.length) },
         { label: 'Days', value: ticketedDayGroups.map(group => formatTicketedDay(group.day, false)).join(', ') },
       ] : [
@@ -2233,7 +2243,7 @@ export default function App() {
       soldOutEvents: ticketedInventory ? ticketedEvents : undefined,
       source: { label: finding.source_label, value: finding.source_url },
       links: resources,
-      rationale: ticketedInventory ? 'These events are no longer purchasable. The grouped list keeps the change visible without flooding Home with one alert per event.' : informational ? 'Use the labeled official resources below; no app data changes are waiting for approval.' : findingExecutionDetail(finding),
+      rationale: interestingAnnouncement ? undefined : ticketedInventory ? 'These events are no longer purchasable. The grouped list keeps the change visible without flooding Home with one alert per event.' : informational ? 'Use the labeled official resources below; no app data changes are waiting for approval.' : findingExecutionDetail(finding),
       backlinks: [{ label: 'Activity', destination: 'activity' }],
     },
     monitoringFinding: finding,
@@ -2278,6 +2288,10 @@ export default function App() {
       return
     }
     if (item.monitoringFinding) {
+      if (item.monitoringFinding.evidence.shared_announcement === true) {
+        setAlertReviewState(item.id, state)
+        return
+      }
       if (!findingIsInformational(item.monitoringFinding) || !supabase) return
       const findingStatus = state === 'reviewed' ? 'read' : state === 'archived' ? 'archived' : 'unread'
       setMonitoringFindings(current => current.map(row => row.id === item.monitoringFinding!.id ? { ...row, status: findingStatus } : row))

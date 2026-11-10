@@ -1002,6 +1002,15 @@ html,body{max-width:100%;overflow-x:clip}
 .explore-hide-action button:hover{border-color:#7b8797;background:#263140;color:#e4e8ed}
 .explore-hide-action button[aria-pressed=true]{border-color:#7b8797;background:#303744;color:#d0d6de}
 .calendar-people-filter{justify-self:end}
+@media(max-width:560px){
+  .calendar-toolbar .calendar-filter{grid-column:1/-1;max-width:100%}
+}
+@media(max-width:380px){
+  .wallet-toolbar{flex-wrap:wrap}
+  .wallet-toolbar .wallet-tabs{flex:1 0 100%;width:100%}
+  .wallet-toolbar .wallet-tabs button{flex:1 0 auto;min-width:52px}
+  .wallet-toolbar .wallet-tix-counter{margin-left:auto}
+}
 .convention-event-row{position:relative;grid-template-columns:94px 34px minmax(0,1fr) auto auto;align-items:center}.convention-event-row .agenda-date,.convention-event-row .agenda-icon,.convention-event-row .agenda-copy,.convention-event-row .agenda-signals{align-self:center}
 .convention-event-row .agenda-date em{max-width:82px;font-size:9px;text-align:center}
 .convention-event-row .agenda-icon.type-play{background:#182a43;color:#8fb9f3}
