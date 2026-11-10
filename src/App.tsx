@@ -50,6 +50,7 @@ import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, ti
 import { monitoringNoticeSeverity } from './lib/monitoringNoticeLifecycle'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
+import { homeNoticeVisible } from './lib/homeNoticeVisibility'
 import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh } from './lib/offlineContinuity'
@@ -3770,7 +3771,7 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
 
 function homeWorthKnowingItems(items: ActivityItem[], now = Date.now(), currentPerson: PersonName = 'Kavi') {
   const eligibleItems = items
-    .filter(item => item.reviewState === 'needs-review')
+    .filter(homeNoticeVisible)
     .filter(item => {
       if (ticketedPlaySaleAlertHasExpired(item, now)) return false
       if (item.monitoringFinding?.destination === 'Inbox') return false
