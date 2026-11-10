@@ -1318,3 +1318,6 @@ html,body{max-width:100%;overflow-x:clip}
 .flight-journey summary{cursor:pointer;padding:6px 0;color:#edf3fb}
 .flight-journey summary span{display:block;padding:4px 0 0 1em;color:#a9b8ca;font-size:.85rem}
 .flight-journey>p{margin:6px 0;color:#a9b8ca;font-size:.85rem}
+.flight-journey[open]:not(:last-child){padding-bottom:9px}
+.flight-travelers>summary{cursor:pointer;padding:6px 0}
+.flight-travelers>summary h2{display:inline;margin-left:6px}

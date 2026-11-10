@@ -6541,16 +6541,24 @@ function flightDateParts(leg: TripFlightLeg) {
 }
 
 function FlightsTripTab({ flights, flightsKnown }: { flights: TripFlight[]; flightsKnown: boolean }) {
-  const travelers = [...new Set(flights.flatMap(flight => flight.traveler_person_keys))]
-  if (!travelers.length) return <p role="status">{flightsKnown ? 'No flights saved.' : 'Flight details are unavailable.'}</p>
-  const atlantaTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+  const travelerGroups = new Map<string, { people: PersonName[]; flights: TripFlight[] }>()
+  for (const flight of flights) {
+    const keys = [...new Set(flight.traveler_person_keys)].sort()
+    if (!keys.length) continue
+    const key = keys.join(',')
+    const existing = travelerGroups.get(key)
+    if (existing) existing.flights.push(flight)
+    else travelerGroups.set(key, { people: flight.traveler_person_keys.map(receiptPerson), flights: [flight] })
+  }
+  if (!travelerGroups.size) return <p role="status">{flightsKnown ? 'No flights saved.' : 'Flight details are unavailable.'}</p>
+  const airportDateTime = (value: string, airport: string) => {
+    const zone = flightAirportZone(airport)
+    return new Intl.DateTimeFormat('en-US', { timeZone: zone.timeZone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(value))
+  }
   return <div className="flight-grid" aria-label="Flight details">
-    {travelers.map(traveler => <section key={traveler} className="flight-card">
-      <div className="flight-card-head">
-        <span className="flight-icon"><NavIcon name="trip" /></span>
-        <div><span className="eyebrow">ATLANTA TIME</span><h2>{receiptPerson(traveler)}</h2></div>
-      </div>
-      {flights.filter(flight => flight.traveler_person_keys.includes(traveler)).flatMap(flight =>
+    {[...travelerGroups].map(([key, group]) => <details key={key} className="flight-card flight-travelers">
+      <summary><h2>{group.people.join(' + ')}</h2></summary>
+      {group.flights.flatMap(flight =>
         groupTripFlightJourneys(flight.legs).map(legs => {
           const first = legs[0]
           const last = legs[legs.length - 1]
@@ -6558,7 +6566,7 @@ function FlightsTripTab({ flights, flightsKnown }: { flights: TripFlight[]; flig
           return <details className="flight-journey" key={`${flight.itinerary_key}:${first.leg_key}`}>
             <summary>
               <strong>{first.departure_airport} → {last.arrival_airport}</strong>
-              <span>{atlantaTime.format(new Date(first.departure_at))} → {atlantaTime.format(new Date(last.arrival_at))} ET</span>
+              <span>{airportDateTime(first.departure_at, first.departure_airport)} → {airportDateTime(last.arrival_at, last.arrival_airport)}</span>
             </summary>
             {flight.carrier && <p>{flight.carrier}</p>}
             {flight.confirmation_code && <p>Confirmation <strong>{flight.confirmation_code}</strong></p>}
@@ -6576,7 +6584,7 @@ function FlightsTripTab({ flights, flightsKnown }: { flights: TripFlight[]; flig
           </details>
         }),
       )}
-    </section>)}
+    </details>)}
   </div>
 }
 
