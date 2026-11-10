@@ -2584,12 +2584,12 @@ export default function App() {
         </div>
         <div className="header-status">
           <div className="header-actions">
-            {freshness.state === 'saved' && screenNotice && <span className="saved-copy-indicator" role="status" title={screenNotice} aria-label={screenNotice}>Saved copy</span>}
             {liveAccount && (freshnessKeys.length > 0 || presentationSurface === 'map' || surface === 'artists') && <button
               className="data-refresh"
               type="button"
               aria-label="Refresh this view"
-              title={online ? 'Refresh this view' : 'Connect to refresh'}
+              title={freshness.state === 'saved' ? `${online ? 'Refresh this view' : 'Connect to refresh'} · ${screenNotice}` : online ? 'Refresh this view' : 'Connect to refresh'}
+              aria-description={freshness.state === 'saved' ? screenNotice ?? undefined : undefined}
               disabled={!online || refreshChecking}
               aria-busy={online && refreshChecking}
               onClick={refreshScreen}

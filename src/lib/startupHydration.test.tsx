@@ -188,7 +188,7 @@ describe('startup hydration', () => {
     expect(mocked.requests).not.toContain('wallet_receipts')
     if (online) await act(async () => { await vi.advanceTimersByTimeAsync(4000) })
     expect(online ? screen.getByRole('heading', { name: 'Arrive ATL · Courtyard night' }) : await screen.findByRole('heading', { name: 'Arrive ATL · Courtyard night' })).toBeVisible()
-    expect(screen.getByText(/^Saved copy/)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Refresh this view' })).toHaveAttribute('title', expect.stringContaining('Saved copy'))
     calendar.unmount()
     mocked.requests.length = 0
     window.history.replaceState(null, '', '/?auth=1#wallet')
@@ -206,7 +206,7 @@ describe('startup hydration', () => {
     await screen.findByRole('tab', { name: 'Store' })
     fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
     expect(await screen.findByText('Saved convention item')).toBeInTheDocument()
-    expect(screen.getByText(/^Saved copy/)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Refresh this view' })).toHaveAttribute('title', expect.stringContaining('Saved copy'))
   })
 
   it('offers a retry if a fresh session check stalls and recovers on a late valid session', async () => {
@@ -252,7 +252,7 @@ describe('startup hydration', () => {
     render(<App />)
     await act(async () => { read.reject(new Error('offline')) })
     expect(screen.getByText('Saved current hours', { selector: 'strong' })).toBeVisible()
-    expect(screen.getByText(/^Saved copy/)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Refresh this view' })).toHaveAttribute('title', expect.stringContaining('Saved copy'))
     expect(screen.queryByRole('heading', { name: 'Getting in' })).not.toBeInTheDocument()
     expect(readOfflineContinuity('owner-a')?.lanes.info).toMatchObject({ topics: [{ title: 'Saved current hours' }] })
   })
@@ -294,7 +294,8 @@ describe('startup hydration', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('tab', { name: 'Store' }))
     await act(async () => { store.resolve({ status: 'unavailable', offers: [] }) })
-    expect(await screen.findByText(cached ? /^Saved copy/ : 'Couldn’t load this view. Try refreshing.')).toHaveAttribute('role', 'status')
+    if (cached) expect(screen.getByRole('button', { name: 'Refresh this view' })).toHaveAttribute('aria-description', expect.stringContaining('Saved copy'))
+    else expect(await screen.findByText('Couldn’t load this view. Try refreshing.')).toHaveAttribute('role', 'status')
     const nestedLoading = screen.queryByText('Loading Store…')
     if (nestedLoading) expect(nestedLoading).not.toBeVisible()
     if (cached) {
