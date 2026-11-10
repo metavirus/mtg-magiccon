@@ -9,6 +9,7 @@ import { showStartupStalled, startWithCurrentShell } from './startupShell'
 startWithCurrentShell({
   serviceWorker: import.meta.env.PROD && 'serviceWorker' in navigator ? navigator.serviceWorker : undefined,
   online: navigator.onLine,
+  foreground: document,
   workerUrl: `${import.meta.env.BASE_URL}sw.js`,
   mount: () => {
     // Enter the standalone study only after the shell update gate has activated

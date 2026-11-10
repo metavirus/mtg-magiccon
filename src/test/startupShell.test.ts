@@ -211,11 +211,15 @@ describe('startup shell coherence', () => {
     expect(reload).toHaveBeenCalledOnce()
   })
 
-  it('keeps complete JS precaching and image cache while deferring activation', () => {
+  it('keeps complete precaching and legacy chunks while activating a fully installed shell', () => {
     const config = readFileSync('vite.config.ts', 'utf8')
     expect(config).toContain("registerType: 'prompt'")
     expect(config).toContain('injectRegister: null')
     expect(config).toContain('skipWaiting: false')
+    expect(config).toContain("importScripts: ['shell-upgrade.js']")
+    expect(config).toContain("cacheId: 'magiccon-shell-v2'")
+    expect(config).toContain('cleanupOutdatedCaches: false')
+    expect(config).toContain('await caches.match(request)')
     expect(config).toContain('clientsClaim: true')
     expect(config).toContain("globPatterns: ['index.html', '**/*.{js,css,svg}']")
     expect(config).toContain("cacheName: 'magiccon-remote-images-v1'")

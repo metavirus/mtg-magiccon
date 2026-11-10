@@ -62,7 +62,8 @@ export default defineConfig({
   base: './',
   plugins: [localCatalogIntake(), react(), VitePWA({
     registerType: 'prompt',
-    // Startup owns activation/reload; later updates wait to preserve drafts and lazy chunks.
+    // The worker installs the whole shell before activation. A mounted page
+    // keeps its React state until the next navigation.
     injectRegister: null,
     includeAssets: [
       'favicon-peach-v2.png',
@@ -94,13 +95,20 @@ export default defineConfig({
     workbox: {
       skipWaiting: false,
       clientsClaim: true,
-      cleanupOutdatedCaches: true,
+      cacheId: 'magiccon-shell-v2',
+      cleanupOutdatedCaches: false,
+      importScripts: ['shell-upgrade.js'],
       navigateFallback: 'index.html',
       navigateFallbackDenylist: [/\/(?:map-preview|kavimap)\//],
       globIgnores: ['map-preview/**'],
       globPatterns: ['index.html', '**/*.{js,css,svg}'],
       maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       runtimeCaching: [{
+        // Tabs running the pre-bridge shell may still request a lazy chunk
+        // after the new controller takes over. Only hashed assets use this fallback.
+        urlPattern: ({ sameOrigin, url }) => sameOrigin && /\/assets\/[^/]+-[\w-]+\.(?:js|css)$/.test(url.pathname),
+        handler: async ({ request }) => (await caches.match(request)) ?? fetch(request),
+      }, {
         // Explicit hydration refresh must reach the network, not CacheFirst's
         // old response. The warmer writes the refreshed bytes back afterward.
         urlPattern: ({ request, url }) => request.cache !== 'reload' && (request.destination === 'image' || /\.(?:avif|gif|jpe?g|png|webp)(?:\?.*)?$/i.test(url.href)),

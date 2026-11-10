@@ -3,6 +3,7 @@ export function startWithCurrentShell({
   serviceWorker,
   online,
   workerUrl,
+  foreground,
   mount,
   reload,
   stalled,
@@ -12,12 +13,30 @@ export function startWithCurrentShell({
   serviceWorker?: ServiceWorkerContainer
   online: boolean
   workerUrl: string
+  foreground?: Document
   mount: () => void
   reload: () => void
   stalled: () => void
   discoveryMs?: number
   installMs?: number
 }): void {
+  if (serviceWorker && foreground) {
+    // A Home Screen launch can resume the existing document instead of
+    // mounting it again. Check on resume without interrupting in-progress UI.
+    let checking = false
+    foreground.addEventListener('visibilitychange', async () => {
+      if (foreground.hidden || !foreground.defaultView?.navigator.onLine || checking) return
+      checking = true
+      try {
+        const registration = await serviceWorker.getRegistration(workerUrl)
+        await registration?.update()
+      } catch {
+        // Keep the current offline shell when the update check cannot reach Pages.
+      } finally {
+        checking = false
+      }
+    })
+  }
   if (!serviceWorker || !online) {
     mount()
     return
