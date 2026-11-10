@@ -118,6 +118,21 @@ try {
     await page.getByRole('button', { name: 'Next receipt page' }).click()
     await assertReadableProof('Page 2 of 2')
     console.log(`${viewport.width}px: online check kept the header visible and hid cached content; retry, saved fallback, and offline proof passed`)
+    await context.setOffline(false)
+    await page.goto(origin + '/mtg-magiccon/kavimap/index.html')
+    await page.locator('.pf-toolbar').waitFor()
+    await page.evaluate(() => window.postMessage({ type: 'kavimap:schedule', version: 1,
+      nextRooms: { 'black-lotus': ['Kavi', 'Chris', 'Juan', 'Kyle'].map(person => ({ person, title: 'Upcoming event', eventId: person })) },
+      eventHits: [], eventPeople: {}, roomEvents: {},
+    }, '*'))
+    await page.locator('.map-person-stop').first().waitFor()
+    const markers = await page.locator('.map-person-stop').evaluateAll(nodes => nodes.map(node => {
+      const frame = node.closest('foreignObject').getBoundingClientRect()
+      const bubble = node.querySelector('.person-bubble').getBoundingClientRect()
+      return { inside: bubble.left - 3 >= frame.left - .5 && bubble.right + 3 <= frame.right + .5 && bubble.top - 3 >= frame.top - .5 && bubble.bottom + 3 <= frame.bottom + .5 }
+    }))
+    assert.equal(markers.length, 4)
+    assert(markers.every(marker => marker.inside), 'Every person bubble must stay inside its SVG marker, without inherited drawer positioning')
     await context.close()
   }
 } finally {

@@ -45,6 +45,9 @@
 .person-bubble{box-shadow:0 0 0 1px #f0b26f,0 0 0 3px #8f6148}
 .person-bubble{min-width:21px;height:21px;font-size:7px}
 .map-person-stop{display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;pointer-events:auto}
+/* SVG markers must stay in their foreignObject, not inherit drawer positioning. */
+.map-person-stop .person-bubbles{position:static;inset:auto;transform:none;display:inline-flex;align-items:center;justify-content:center;justify-self:center;grid-column:auto;padding:0;margin:0;width:auto;height:auto}
+.map-person-stop .person-bubble{width:24px;min-width:24px;height:24px;margin:0;padding:0;font-size:9px}
   :root {
     color-scheme: dark;
     --panel: #101d2e;
