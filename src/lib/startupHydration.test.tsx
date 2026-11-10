@@ -85,6 +85,33 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('startup hydration', () => {
+  it('starts and retries every Home lane when receipts share the foreground with other data', async () => {
+    saved('owner-a', 'Saved guide')
+    deviceLaneCache(async () => undefined)
+    await writeOfflineLane('owner-a', 'walletReceipts', [])
+    window.history.replaceState(null, '', '/?auth=1#home')
+    vi.useFakeTimers()
+    render(<App />)
+    await act(async () => { await vi.advanceTimersByTimeAsync(150) })
+    expect(mocked.requests).toContain('wallet_receipts')
+    expect(mocked.requests).toContain('trip_flights')
+    expect(mocked.info).toHaveBeenCalled()
+    await act(async () => { await vi.advanceTimersByTimeAsync(4500) })
+    expect(screen.queryByText('Checking for updates…')).toBeNull()
+    expect(screen.getByText('At the convention')).toBeVisible()
+    const flights = mocked.requests.filter(table => table === 'trip_flights').length
+    const receipts = mocked.requests.filter(table => table === 'wallet_receipts').length
+    const info = mocked.info.mock.calls.length
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh this view' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(150) })
+    expect(mocked.requests.filter(table => table === 'trip_flights').length).toBeGreaterThan(flights)
+    expect(mocked.requests.filter(table => table === 'wallet_receipts').length).toBeGreaterThan(receipts)
+    expect(mocked.info.mock.calls.length).toBeGreaterThan(info)
+    await act(async () => { await vi.advanceTimersByTimeAsync(4500) })
+    expect(screen.queryByText('Checking for updates…')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Refresh this view' })).toBeEnabled()
+  })
+
   it('keeps a companion’s connecting flight visible in saved Trip, Calendar and Wallet', async () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
     saved('owner-a', 'Saved guide')

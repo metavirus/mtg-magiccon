@@ -1460,8 +1460,9 @@ export default function App() {
       return
     }
     const first = screenReads(currentSurface.current, infoViewRef.current)
-    if (first.includes('walletReceipts')) await waitForForeground()
-    else if (first.length) await waitForForeground(Promise.all(first.map(key => requests[key]?.())))
+    const foregroundLanes = first.filter(key => key !== 'walletReceipts')
+    if (foregroundLanes.length) await waitForForeground(Promise.all(foregroundLanes.map(key => requests[key]?.())))
+    else if (first.includes('walletReceipts')) await waitForForeground()
     if (!isCurrent()) return
     await Promise.all(Object.entries(requests).filter(([key]) => !first.includes(key as ContinuityLane)).map(([, read]) => read()))
   }, [atlantaMerchReview, catalogBrowserQa, designPreview, isPreviewOwnerMode, effectiveOwnerId, markLaneRead, markStartup, persistContinuityLane])
@@ -2454,11 +2455,10 @@ export default function App() {
     }
     if (freshnessKeys.includes('walletReceipts')) {
       refreshReceipts.current?.()
-      return
     }
     const keys: ContinuityLane[] = presentationSurface === 'map'
       ? ['selections', 'catalog', 'exhibitors']
-      : freshnessKeys
+      : freshnessKeys.filter(key => key !== 'walletReceipts')
     if (presentationSurface === 'map') setMapRefreshOwner(effectiveOwnerId)
     if (keys.length) {
       keys.forEach(key => markLaneRead(key, { state: 'checking' }))
