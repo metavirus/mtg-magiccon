@@ -51,6 +51,7 @@ import { monitoringNoticeSeverity } from './lib/monitoringNoticeLifecycle'
 import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { homeNoticeVisible } from './lib/homeNoticeVisibility'
+import { personalBadgeReceipt } from './lib/homePass'
 import { findingIsRoutineSellout, selloutChangedAt, selloutNoticeIsCurrent, announcementIsCurrent } from './lib/monitoringFindings'
 import { applyPurchaseTransition, canPurchaseEvent } from './lib/eventPurchase'
 import { createReconnectRefresh } from './lib/offlineContinuity'
@@ -2649,6 +2650,11 @@ export default function App() {
       {activeMapTrip && <MapSurface onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} key={(effectiveOwnerId ?? "guest") + activeMapTrip} initialPlaceId={activeMapTrip} onReturn={returnFromMap} onOpenTrip={() => openDestination('Trip', 'trip')} />}
       <div hidden={Boolean(activeMapTrip) || (!showScreen && surface !== 'info')}>
         {surface === 'home' && <HomeSurface activityItems={activityItems} currentPerson={currentCompanion?.name ?? 'Kavi'}
+          essentials={<HomeEssentials companion={currentCompanion} receipts={walletReceipts} topics={infoTopics}
+            onOpenPass={target => { setWalletProofRequest({ target, nonce: Date.now() }); openDestination('Wallet', 'wallet') }}
+            onOpenWallet={() => { setWalletProofRequest(null); openDestination('Wallet', 'wallet') }}
+            onOpenGuide={topic => topic ? openObjectDetail(infoTopicDetail(topic, infoFeed)) : openDestination('Info', 'info')}
+            onOpenMap={() => openDestination('Map', 'map')} />}
           calendarEntries={homeSchedule} now={now} onOpenEvent={openPlanEventContext}
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
         {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onOpenFlights={openTripFlights} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
@@ -2692,7 +2698,7 @@ export default function App() {
 
 type ForecastId = 'black-lotus-store' | 'show-catalog'
 type CalendarDetail = ForecastId | 'arrival' | 'preview' | 'friday' | 'event' | 'airport' | 'sunday' | 'bl-thursday' | 'bl-friday' | 'bl-sunday'
-type WalletProofTarget = 'black-lotus' | 'juan-premium' | 'hotel-courtyard' | 'hotel-omni' | 'hotel-hilton' | `store:${string}`
+type WalletProofTarget = 'black-lotus' | 'chris-black-lotus' | 'juan-premium' | 'hotel-courtyard' | 'hotel-omni' | 'hotel-hilton' | `store:${string}` | `badge:${string}`
 const storeReceiptNotePrefix = 'wallet-store-receipt-'
 
 function trustSliceToObjectDetail(slice: TrustSlice): ObjectDetail {
@@ -6027,7 +6033,13 @@ export function WalletSurface({ onShowPickup, onOpenFlights, receipts, receiptSt
       setModal({ storeReceiptId: proofRequest.target.slice('store:'.length) })
     }
     if (proofRequest.target === 'black-lotus') openBlackLotusProof()
+    if (proofRequest.target === 'chris-black-lotus') openChrisBlackLotusProof()
     if (proofRequest.target === 'juan-premium') openJuanProof()
+    if (proofRequest.target.startsWith('badge:')) {
+      const receipt = badgeReceipts.find(row => row.id === proofRequest.target.slice(6))
+      if (receipt) openModal('CONVENTION PASS', receipt.title,
+        <PrivateReceiptArtifacts receipt={receipt} roles={['original']} title="Original receipt" currentOwnerId={currentOwnerId} />, receiptPeople(receipt))
+    }
     if (proofRequest.target.startsWith('hotel-')) {
       const kind = proofRequest.target.replace('hotel-', '') as 'courtyard' | 'omni' | 'hilton'
       setTab('other')
@@ -7667,7 +7679,47 @@ const homeCalendarTime = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
 })
 
-function HomeSurface({ activityItems, currentPerson, calendarEntries, now, onOpenCalendar, onOpenEvent, onOpenItem, onOpenActivity }: { activityItems: ActivityItem[]; currentPerson: PersonName; calendarEntries: HomeCalendarEntry[] | null; now: number; onOpenCalendar: () => void; onOpenEvent: (id: string) => void; onOpenItem: (item: ActivityItem) => void; onOpenActivity: () => void }) {
+export function HomeEssentials({ companion, receipts, topics, onOpenPass, onOpenWallet, onOpenGuide, onOpenMap }: {
+  companion?: CompanionMember | null; receipts: WalletReceiptRow[]; topics: InfoTopic[]
+  onOpenPass: (target: WalletProofTarget) => void; onOpenWallet: () => void
+  onOpenGuide: (topic?: InfoTopic) => void; onOpenMap: () => void
+}) {
+  const pass = personalBadgeReceipt(receipts, companion?.key)
+  const hours = topics.find(topic => topic.topic_key === 'hours')
+  const willCall = topics.find(topic => topic.topic_key === 'will-call')
+  const friday = infoFact(hours, 'Friday')
+  const saturday = infoFact(hours, 'Saturday')
+  const sunday = infoFact(hours, 'Sunday')
+  const floorHours = [friday && `${friday === saturday ? 'Fri–Sat' : 'Fri'} ${friday}`, saturday && friday !== saturday && `Sat ${saturday}`, sunday && `Sun ${sunday}`].filter(Boolean).join(' · ')
+  const openPass = () => {
+    if (!pass || !companion) return onOpenWallet()
+    onOpenPass(companion.key === 'kavi' ? 'black-lotus' : companion.key === 'chris' ? 'chris-black-lotus' : companion.key === 'juan' ? 'juan-premium' : `badge:${pass.id}`)
+  }
+  return <section className="home-agenda home-essentials" aria-labelledby="home-essentials-heading">
+    <header className="home-lane-head"><h2 id="home-essentials-heading">At the convention</h2></header>
+    <button className={`home-essential-link home-personal-pass ${companion?.badgeTier === 'black_lotus' ? 'is-lotus' : ''}`} type="button" onClick={openPass}>
+      <span className="home-essential-icon" aria-hidden="true"><MilestoneIcon name="badges" /></span>
+      <span className="home-essential-copy"><small>{pass ? `${companion?.name}’s pass` : 'Your Wallet'}</small>
+        <strong>{pass ? companion?.badgeTier === 'black_lotus' ? 'Black Lotus VIP' : companion?.badgeTier === 'premium' ? 'Premium Weekend' : pass.title : 'Passes & receipts'}</strong>
+        <span>{pass ? 'Open badge proof' : 'Open Wallet'}</span></span>
+      <span aria-hidden="true">›</span>
+    </button>
+    <button className="home-essential-link" type="button" onClick={() => onOpenGuide(willCall)}>
+      <span className="home-essential-icon" aria-hidden="true"><NavIcon name="info" /></span>
+      <span className="home-essential-copy"><strong>Getting in</strong><span>Badge pickup & entry details</span></span><span aria-hidden="true">›</span>
+    </button>
+    <button className="home-essential-link" type="button" onClick={() => onOpenGuide(hours)}>
+      <span className="home-essential-icon" aria-hidden="true"><NavIcon name="calendar" /></span>
+      <span className="home-essential-copy"><strong>Show floor hours</strong><span>{floorHours || 'Open the hours guide'}</span></span><span aria-hidden="true">›</span>
+    </button>
+    <button className="home-essential-link" type="button" onClick={onOpenMap}>
+      <span className="home-essential-icon" aria-hidden="true"><NavIcon name="map" /></span>
+      <span className="home-essential-copy"><strong>Find your way</strong><span>Rooms, artists & booths</span></span><span aria-hidden="true">›</span>
+    </button>
+  </section>
+}
+
+function HomeSurface({ activityItems, currentPerson, calendarEntries, essentials, now, onOpenCalendar, onOpenEvent, onOpenItem, onOpenActivity }: { activityItems: ActivityItem[]; currentPerson: PersonName; calendarEntries: HomeCalendarEntry[] | null; essentials: ReactNode; now: number; onOpenCalendar: () => void; onOpenEvent: (id: string) => void; onOpenItem: (item: ActivityItem) => void; onOpenActivity: () => void }) {
   const homeSignals = groupHomeSoldOutSignals(homeWorthKnowingItems(activityItems, now, currentPerson))
   const featuredSale = activityItems.find(item => isFeaturedTicketedPlaySale(item, now))
   const ordinarySignals = homeSignals.filter(item => item.id !== featuredSale?.id)
@@ -7697,7 +7749,8 @@ function HomeSurface({ activityItems, currentPerson, calendarEntries, now, onOpe
         {calendarEntries?.length === 0 && <p className="home-agenda-empty">Nothing scheduled next.</p>}
         {calendarEntries === null && <p className="home-agenda-empty">Checking your schedule…</p>}
       </section>
-      <section className={`home-activity-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading" data-tour-target="home-signals">
+      {essentials}
+      {visibleSignalCount > 0 && <section className={`home-activity-lane home-news-lane ${hotCount ? 'has-hot' : ''}`} aria-labelledby="home-activity-heading" data-tour-target="home-signals">
         <div className="home-lane-head">
           <div><span className="eyebrow">WORTH KNOWING</span><h2 id="home-activity-heading">Your convention briefing</h2></div>
           <button type="button" onClick={onOpenActivity}>Full Activity</button>
@@ -7717,9 +7770,8 @@ function HomeSurface({ activityItems, currentPerson, calendarEntries, now, onOpe
           <HomeBriefing items={ordinarySignals} now={now} spotlightSlots={featuredSale ? 1 : 2} onOpenItem={onOpenItem}
             renderIcon={item => item.sourceKind === 'note' ? <NavIcon name="notes" /> : <AlertKindIcon kind={item.kind} />}
             renderPeople={item => (item.actors?.length || item.actor) ? <PersonBubbles people={item.actors ?? [item.actor!]} /> : null} />
-          {!visibleSignalCount && <p className="home-agenda-empty">No new updates.</p>}
         </div>
-      </section>
+      </section>}
 
     </div>
   </div>

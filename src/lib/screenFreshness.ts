@@ -5,7 +5,7 @@ export type ScreenRead = { state: 'checking' | 'current' | 'failed'; checkedAt?:
 export type InfoView = 'guide' | 'catalogs' | 'import' | 'exhibitors' | 'prize_wall'
 
 const requiredReads: Record<Surface, ContinuityLane[]> = {
-  home: ['selections', 'flights', 'activity', 'findings', 'monitorAlerts'],
+  home: ['selections', 'flights', 'activity', 'findings', 'monitorAlerts', 'walletReceipts', 'info'],
   calendar: ['selections', 'flights'],
   plan: ['selections'],
   explore: ['selections', 'ticketedAvailability'],
