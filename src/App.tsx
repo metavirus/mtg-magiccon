@@ -1976,7 +1976,6 @@ export default function App() {
     if (input.objectId.startsWith('catalog-offer-review:')) return
     if (input.objectKind === 'exhibitor') {
       if (!canWrite) return
-      input = { ...input, visibility: 'private' }
     }
     const now = new Date()
     const ownerId = effectiveOwnerId
@@ -2002,7 +2001,8 @@ export default function App() {
     const client = supabase
     const saveNote = async () => {
       try {
-        const mentionTargets = note.objectKind === 'exhibitor' ? [] : extractNoteMentions(note.body, companionMembers, effectiveSession)
+        const mentionTargets = note.objectKind === 'exhibitor' && note.visibility === 'private'
+          ? [] : extractNoteMentions(note.body, companionMembers, effectiveSession)
         const { data, error } = await client.from('personal_notes').insert({
           owner_id: ownerId,
           title: note.title,
@@ -5380,13 +5380,14 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
   currentSession?: Session | null
 }) {
   const [body, setBody] = useState('')
-  const privateExhibitor = objectKind === 'exhibitor'
-  const [visibility, setVisibility] = useState<NoteVisibility>(privateExhibitor ? 'private' : 'shared')
+  const isExhibitorNote = objectKind === 'exhibitor'
+  const [visibility, setVisibility] = useState<NoteVisibility>('shared')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const focusedNoteRef = useRef<HTMLElement | null>(null)
   const mentionPreview = mentionPreviewFromBody(body, companions ?? fallbackCompanionMembers, currentSession ?? null)
   const objectNotes = notes
-    .filter(note => note.objectId === objectId && (!(objectAnchor || privateExhibitor) || note.objectAnchor === objectAnchor) && (!privateExhibitor || Boolean(currentOwnerId && note.ownerId === currentOwnerId)))
+    .filter(note => note.objectId === objectId && (!(objectAnchor || isExhibitorNote) || note.objectAnchor === objectAnchor)
+      && (!isExhibitorNote || note.visibility === 'shared' || Boolean(currentOwnerId && note.ownerId === currentOwnerId)))
     .sort((a, b) => (a.id === focusedNoteId ? -1 : b.id === focusedNoteId ? 1 : 0))
   useEffect(() => {
     if (!focusedNoteId) return
@@ -5396,9 +5397,9 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
   const submit = () => {
     const trimmed = body.trim()
     if (!trimmed || !canEdit) return
-    onAddNote({ objectId, objectKind, objectTitle, objectAnchor, context, body: trimmed, visibility: privateExhibitor ? 'private' : visibility, backlink })
+    onAddNote({ objectId, objectKind, objectTitle, objectAnchor, context, body: trimmed, visibility, backlink })
     setBody('')
-    setVisibility(privateExhibitor ? 'private' : 'shared')
+    setVisibility('shared')
   }
 
   return <section className={`object-notes ${compact ? 'compact' : ''}`} aria-label={`Notes for ${objectTitle}`}>
@@ -5409,7 +5410,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
     {objectNotes.length > 0 && <div className="note-thread">
       {objectNotes.map(note => <article key={note.id} ref={note.id === focusedNoteId ? focusedNoteRef : undefined} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
         <PersonBubbles people={[note.author]} />
-        <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor && !privateExhibitor ? ` · ${note.objectAnchor}` : ''}</small></div>
+        <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor && !isExhibitorNote ? ` · ${note.objectAnchor}` : ''}</small></div>
         {canEdit && note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
         {canEdit && note.ownerId === currentOwnerId && confirmDeleteId === note.id && <div className="note-delete-confirm" role="alert">
           <span>Delete?</span>
@@ -5420,15 +5421,15 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
     </div>}
     <div className="note-composer">
       <textarea disabled={!canEdit} value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={canEdit ? `Note on ${objectTitle}` : 'Connect and sign in to add a note'} />
-      <small className="note-mention-hint">{privateExhibitor ? 'Your exhibitor notes are private.' : 'Use @Kavi, @Chris, @Juan, or @Kyle to mention a companion.'}</small>
-      {!privateExhibitor && mentionPreview.length > 0 && <div className="note-mention-preview" aria-label="Recognized mentions">
+      <small className="note-mention-hint">{isExhibitorNote && visibility === 'private' ? 'Private notes don’t notify companions.' : 'Use @Kavi, @Chris, @Juan, or @Kyle to mention a companion.'}</small>
+      {(!isExhibitorNote || visibility === 'shared') && mentionPreview.length > 0 && <div className="note-mention-preview" aria-label="Recognized mentions">
         <span>Will notify</span>
         {mentionPreview.map(item => <strong key={item.key}><PersonBubbles people={[item.person]} />{item.token}</strong>)}
       </div>}
       <div className="note-composer-actions">
         <label className="note-private-inline">
           <span>Private only me</span>
-          <input type="checkbox" checked={privateExhibitor || visibility === 'private'} disabled={privateExhibitor} onChange={event => setVisibility(event.target.checked ? 'private' : 'shared')} />
+          <input type="checkbox" checked={visibility === 'private'} onChange={event => setVisibility(event.target.checked ? 'private' : 'shared')} />
         </label>
         <button type="button" className="note-save" onClick={submit} disabled={!canEdit || !body.trim()}>Save note</button>
       </div>

@@ -12,7 +12,7 @@ The nonspatial directory lives under Info → Exhibitors. It is separate from pr
 
 ## Personal state and UI
 
-The list searches names, raw booth text and reviewed aliases. Saved entries use owner-scoped `user_selections` with kind `exhibitor`; notes use `personal_notes` with an enforced private-only constraint. Exhibitor actions are excluded from shared Activity and mention delivery. `scripts/verify_exhibitor_privacy.sql` verifies owner readback and cross-companion isolation in a rolled-back transaction.
+The list searches names, raw booth text and reviewed aliases. Exhibitor and item bookmarks use owner-scoped `user_selections` with kind `exhibitor`. Each item has its own note thread in `personal_notes`. New notes default to shared with active companions and support mentions. Authors can select “Private only me” to save a note without notifying companions. Existing private notes remain private. `scripts/verify_exhibitor_privacy.sql` verifies private isolation, shared-note mention delivery and non-companion access in a rolled-back transaction.
 
 The directory joins the owner-scoped read-only offline cache. Offline save/note controls cannot write. Source links require an online browser. Vendor descriptions and offers remain source claims; zero-price placeholders are not labeled free, and listed prices are not inventory guarantees.
 
