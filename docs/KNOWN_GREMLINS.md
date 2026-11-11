@@ -574,3 +574,7 @@ Live October31 quota errors proved that server success and image-cache success d
 Storage access can fail at the localStorage getter before a function body, not only at setItem. Keep storage access inside the protected boundary; UI-only preferences must not crash pages. A legacy multi-lane owner snapshot must not be parsed once per lane: reuse one unchanged, immutable compatibility parse. Known eviction is actionable; total origin eviction can erase its own receipt, so never claim universal readiness from quiet UI. See docs/OFFLINE_RELIABILITY_REPAIR_2026-11-01.md.
 
 Exact staged-source validation does not certify working-copy encoding: Git can normalize a CRLF file into an LF blob while the edited local file still fails validate:text. Normalize edited source files themselves to UTF-8/LF before handoff; an isolated release gate cannot substitute for that local encoding check.
+
+## Readiness counts restrictive policies as permission grants
+
+November 11: adding the exhibitor note restriction made readiness fail because it required exactly four total note policies. Count the four PERMISSIVE operation policies; RESTRICTIVE policies only narrow their access. Keep the named update USING/WITH CHECK and exact role-grant checks. Personal-event privacy must also pass the transactional RLS verification, not merely the generic readiness count.

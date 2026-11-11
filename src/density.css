@@ -1350,3 +1350,24 @@ html,body{max-width:100%;overflow-x:clip}
 .flight-overview>strong{grid-column:1/-1}
 .flight-overview>span{color:#a9b8ca}
 .flight-overview b{display:block;color:#edf3fb;font-weight:600}
+
+/* Personal calendar uses the existing agenda, inspector and companion controls. */
+.personal-calendar-add{flex:none!important;width:auto!important;justify-self:start;min-height:32px;margin:0!important;padding:6px 10px;white-space:nowrap}
+.personal-calendar-form{display:grid;gap:16px;padding:4px 0 16px}
+.personal-calendar-form label{display:grid;gap:6px;color:#b7c8de;font-size:12px;font-weight:600;min-width:0}
+.personal-calendar-form input,.personal-calendar-form select{width:100%;min-width:0;min-height:40px;box-sizing:border-box;padding:8px 10px;border:1px solid #354d69;border-radius:9px;background:#101d2e;color:#edf4ff;font:inherit;color-scheme:dark}
+.personal-calendar-times{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.personal-calendar-form fieldset{min-width:0;margin:0;padding:0;border:0}
+.personal-calendar-form legend{margin-bottom:8px;color:#b7c8de;font-size:12px;font-weight:600}
+.personal-calendar-dialog .object-detail-actions{position:static;margin:12px 0;padding:12px 0;background:none;border-top:1px solid #263850}
+.personal-calendar-dialog .object-detail-section p{overflow-wrap:anywhere}
+.personal-calendar-dialog button:disabled{opacity:.45;cursor:default}
+
+.personal-calendar-people{display:flex;flex-wrap:wrap;gap:8px}
+.personal-calendar-people button{display:inline-flex;align-items:center;justify-content:flex-start;gap:7px;min-height:40px;padding:6px 10px;border:1px solid #354d69;border-radius:9px;background:#101d2e;color:#aebbd0;font-size:12px;cursor:pointer}
+.personal-calendar-people button.active{border-color:#79aaff;background:#203956;color:#edf4ff}
+.personal-calendar-people .person-bubble{position:static;display:grid;place-items:center;flex:none;width:24px;height:24px;margin:0;border-radius:50%;background:#354d69;color:#edf4ff;font-size:10px}
+.personal-calendar-dialog .object-detail-actions button{min-height:40px;padding:7px 12px;font-size:12px}
+
+@media(min-width:1100px){.calendar-toolbar{grid-template-columns:auto auto auto minmax(0,1fr)}}
+@media(min-width:701px) and (max-width:1099px){.calendar-people-filter{grid-column:1/-1}}

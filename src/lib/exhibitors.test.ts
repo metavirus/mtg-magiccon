@@ -13,7 +13,7 @@ describe('exhibitor integration boundaries', () => {
   it('keeps exhibitor saves out of Activity and suppresses mentions on private notes', () => {
     const app = readFileSync('src/App.tsx', 'utf8')
     expect(app).toContain("if (input.objectKind === 'exhibitor') return")
-    expect(app).toMatch(/note\.objectKind === 'exhibitor' && note\.visibility === 'private'\s*\? \[\] : extractNoteMentions/)
+    expect(app).toMatch(/\(note\.objectKind === 'exhibitor' \|\| note\.objectId\.startsWith\('personal-calendar:'\)\) && note\.visibility === 'private'\s*\? \[\] : extractNoteMentions/)
     expect(app).toContain("notes.filter(note => note.objectKind !== 'exhibitor')")
     expect(app).not.toContain("input = { ...input, visibility: 'private' }")
     expect(app).toContain("canEdit={detail.kind !== 'exhibitor' || canWriteNotes}")

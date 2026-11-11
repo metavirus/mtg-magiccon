@@ -6,7 +6,7 @@ export type InfoView = 'guide' | 'catalogs' | 'import' | 'exhibitors' | 'prize_w
 
 const requiredReads: Record<Surface, ContinuityLane[]> = {
   home: ['selections', 'flights', 'activity', 'findings', 'monitorAlerts', 'walletReceipts', 'info'],
-  calendar: ['selections', 'flights'],
+  calendar: ['selections', 'flights', 'personalCalendar', 'notes'],
   plan: ['selections'],
   explore: ['selections', 'ticketedAvailability'],
   wallet: ['walletReceipts'],

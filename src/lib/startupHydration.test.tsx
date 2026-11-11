@@ -169,6 +169,8 @@ describe('startup hydration', () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(online)
     saved('owner-a', 'Saved guide')
     deviceLaneCache(async () => undefined)
+    await writeOfflineLane('owner-a', 'personalCalendar', [])
+    await writeOfflineLane('owner-a', 'notes', [])
     await writeOfflineLane('owner-a', 'flights', previewTripFlights)
     await writeOfflineLane('owner-a', 'walletReceipts', [{
       id: 'saved-receipt', title: 'Saved convention order', receipt_type: 'store', amount: 5, currency: 'USD',

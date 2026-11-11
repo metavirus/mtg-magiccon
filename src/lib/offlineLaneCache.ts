@@ -4,7 +4,7 @@ import { OFFLINE_CONTINUITY_CACHE_PREFIX, readOfflineContinuity, type OfflineCon
 export const OFFLINE_LANE_CACHE = 'magiccon-continuity-lanes-v1'
 export const OFFLINE_LANE_LOCAL_PREFIX = 'magiccon:offline-lane:v1:'
 export const OFFLINE_LANE_STATUS_EVENT = 'magiccon-offline-lane-status'
-export const ALL_OFFLINE_LANES: ContinuityLane[] = ['notes', 'mentions', 'selections', 'activity', 'findings', 'concepts', 'info', 'flights', 'ticketedAvailability', 'catalog', 'exhibitors', 'walletReceipts', 'companions', 'artistCatalog', 'artistSigningInterests', 'monitorAlerts', 'trustSlice', 'kaviMap']
+export const ALL_OFFLINE_LANES: ContinuityLane[] = ['personalCalendar', 'notes', 'mentions', 'selections', 'activity', 'findings', 'concepts', 'info', 'flights', 'ticketedAvailability', 'catalog', 'exhibitors', 'walletReceipts', 'companions', 'artistCatalog', 'artistSigningInterests', 'monitorAlerts', 'trustSlice', 'kaviMap']
 export const STARTUP_CACHE_LANES: ContinuityLane[] = ALL_OFFLINE_LANES.filter(lane => !['walletReceipts', 'companions', 'artistCatalog', 'artistSigningInterests', 'kaviMap'].includes(lane))
 export type OfflineLaneSnapshot = { version: 1; ownerId: string; lane: ContinuityLane; savedAt: string; value: unknown; artistCatalogVersion?: 2; source?: 'local-storage' | 'cache-storage' }
 export type OfflineLaneStatus = { ownerId: string; lane: ContinuityLane; status: 'saving' | 'verified' | 'failed'; errorName?: string }

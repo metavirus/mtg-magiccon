@@ -25,6 +25,21 @@ const calendarProps = (): CalendarProps => ({
 })
 
 describe('Calendar display and inspector regression', () => {
+  it('merges personal events with timed convention markers and keeps invitations neutral', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-11T12:00:00Z'))
+    try {
+      const personal = { owner_id: 'owner', event_date: '2026-11-13', visibility: 'shared' as const, invited_user_ids: ['other'], updated_at: '' }
+      const { container } = render(<CalendarSurface {...calendarProps()} personalEvents={[
+        { ...personal, id: 'breakfast', title: 'Personal breakfast', start_time: '08:00:00', end_time: '09:00:00' },
+        { ...personal, id: 'dinner', title: 'Personal dinner', start_time: '20:00:00', end_time: '21:00:00' },
+      ]} />)
+      const text = container.textContent!
+      expect(text.indexOf('Personal breakfast')).toBeLessThan(text.indexOf('Black Lotus lounge opens'))
+      expect(text.indexOf('Show floor closes')).toBeLessThan(text.indexOf('Personal dinner'))
+      expect(screen.getByRole('button', { name: /Personal dinner/ }).querySelector('.purchase-control')).toBeNull()
+    } finally { vi.useRealTimers() }
+  })
   it('puts both months in the primary cross-month forecast date, with intact endpoints', () => {
     const { container } = render(<CalendarSurface {...calendarProps()} />)
     const dates = (id: string) => [...container.querySelectorAll(`.forecast-${id} .forecast-date-tile strong span`)].map(node => node.textContent)

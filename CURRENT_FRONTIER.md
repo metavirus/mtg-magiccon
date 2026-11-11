@@ -1,5 +1,11 @@
 # Current Frontier
 
+## November 11 personal Calendar events
+
+Calendar supports title, date and start/end time (ET), private by default, with group sharing and individually invited companions. Personal events use the existing agenda and detail/notes controls; invitations grant visibility without manufacturing attendance or purchase status. Notes and mentions are constrained to event readers. The new owner-bound offline lane participates in startup, resume and Calendar refresh; offline edits are disabled.
+
+Canonical migration `20261111213617` is applied. `supabase/tests/personal_calendar_rls.sql` proves access, revocation, note/mention privacy and owner-only mutation with rolled-back records; existing exhibitor sharing also passes. `scripts/test_personal_calendar_browser.mjs` is the isolated phone/desktop regression journey. The browser connector is unavailable in this session, so actual signed-in production interaction remains unverified; fixture UI evidence must not be described as a real-account save.
+
 ## November 9 Prize Wall automation
 
 The Prize Wall preview is driven by a source snapshot with a daily cloud ingestion/publication job, independent of unrelated surveyor holds. It handles clear text prices and listing images, including bounded OCR, keeps valid neighboring updates when one row is unclear, and verifies exact public data after Pages deployment. See [PRIZE_WALL_AUTOMATION.md](docs/PRIZE_WALL_AUTOMATION.md) for scope and receipts. Canonical catalog offers and personal Prize Tix balances are untouched. PDF catalogs are captured and linked, not transcribed automatically.

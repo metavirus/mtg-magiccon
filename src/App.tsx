@@ -1,3 +1,5 @@
+import { PersonalCalendar } from './components/PersonalCalendar'
+import { personalCalendarFields, personalCalendarObjectId, type PersonalCalendarEvent } from './lib/personalCalendar'
 import { loadViewerFindings, sharedAnnouncementStatus, type SharedAnnouncement } from './lib/sharedAnnouncements'
 import { PrizeWallPreview } from './components/PrizeWallPreview'
 import mapExhibitorPlaces from './data/mapExhibitorPlaces.json'
@@ -29,7 +31,7 @@ import { canLoadAtlantaMerchReview } from './lib/catalogReviewMode'
 import type { CatalogPromotionPlan } from './lib/catalogImport'
 import { promoteCatalogPlan } from './lib/catalogPromotion'
 import { additionalTripFlightLegs, flightAirportZone, groupTripFlightJourneys, loadTripFlights, previewTripFlights, tripFlightCalendarProjection, type TripFlight, type TripFlightLeg } from './lib/tripFlights'
-import { atlantaConventionStart, nextCalendarEntry, shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
+import { atlantaConventionStart, nextCalendarEntry, scheduleStart, shareIncludedParticipant, sortScheduledEvents } from './lib/scheduleDisplay'
 import { ArtistBringList } from './components/ArtistBringList'
 import { HomeBriefing } from './components/HomeBriefing'
 import { OfficialMapViewer } from './components/OfficialMapViewer'
@@ -945,6 +947,7 @@ export default function App() {
   const [exploreEventState, setExploreEventState] = useState<ExploreEvent[]>(() => purchaseQaEvents(exploreEvents))
   const [objectDetail, setObjectDetail] = useState<ObjectDetail | null>(null)
   const [walletProofRequest, setWalletProofRequest] = useState<{ target: WalletProofTarget; nonce: number } | null>(null)
+  const [personalCalendarRows, setPersonalCalendarRows] = useState<PersonalCalendarEvent[]>([])
   const [contextNotesState, setContextNotesState] = useState<ContextNote[]>(designPreview ? contextNotes : [])
   const [mentionInboxState, setMentionInboxState] = useState<MentionInboxItem[]>([])
   const [userSelections, setUserSelections] = useState<Record<string, string>>({})
@@ -1217,6 +1220,7 @@ export default function App() {
     setSavedReadsChecked(false)
     markStartup('shell')
     if (designPreview || isPreviewOwnerMode) return
+    setPersonalCalendarRows([])
     setContextNotesState([])
     setMentionInboxState([])
     setAlertReview({})
@@ -1250,6 +1254,7 @@ export default function App() {
       }
       markStartup('cache')
       const lanes = cached.lanes
+      if (lanes.personalCalendar) setPersonalCalendarRows(lanes.personalCalendar as PersonalCalendarEvent[])
       if (lanes.notes) setContextNotesState(lanes.notes as ContextNote[])
       if (lanes.mentions) setMentionInboxState(lanes.mentions as MentionInboxItem[])
       if (lanes.activity) setUserActivityRows(lanes.activity as UserActivityEventRow[])
@@ -1288,6 +1293,7 @@ export default function App() {
       switch (key) {
         case 'trustSlice': setSlice(value as TrustSlice | null); break
         case 'monitorAlerts': setMonitorAlerts(value as MonitoringAlert[]); break
+        case 'personalCalendar': setPersonalCalendarRows(value as PersonalCalendarEvent[]); break
         case 'notes': setContextNotesState(value as ContextNote[]); break
         case 'mentions': setMentionInboxState(value as MentionInboxItem[]); break
         case 'activity': setUserActivityRows(value as UserActivityEventRow[]); break
@@ -1353,6 +1359,7 @@ export default function App() {
       if (previewHydrated.current === previewKey) return
       if (qaFlags.includes('exhibitors')) void cacheDeviceAssets(exhibitorAssetUrls(exhibitorQaFixtures), true)
       setMessage('')
+      setPersonalCalendarRows([])
       setContextNotesState(designPreview ? contextNotes : [])
       setMentionInboxState(new URLSearchParams(window.location.search).get('qa') === 'mention-inbox' ? mentionInboxQaRows() : [])
       setAlertReview({})
@@ -1419,6 +1426,11 @@ export default function App() {
         setExploreEventState(applySelectionState(exploreEvents, selections, context.slice, currentCompanionFromSession(context.effectiveSession, context.companionMembers)))
         setContinuityReady(true)
       }),
+      personalCalendar: () => lane('personalCalendar', async () => {
+        const result = await supabase!.from('personal_calendar_events').select(personalCalendarFields).order('event_date').order('start_time').limit(500)
+        if (result.error) throw result.error
+        return result.data as PersonalCalendarEvent[]
+      }, setPersonalCalendarRows),
       notes: () => lane('notes', () => loadContextNotes(effectiveOwnerId), setContextNotesState),
       mentions: () => lane('mentions', () => loadMentionInbox(effectiveOwnerId), setMentionInboxState),
       activity: () => lane('activity', () => loadUserActivityEvents(effectiveOwnerId), setUserActivityRows),
@@ -1839,6 +1851,15 @@ export default function App() {
     openObjectDetail(item.objectDetail)
   }
   const openMentionNote = (note: ContextNote) => {
+    if (note.objectId.startsWith('personal-calendar:')) {
+      closeObjectDetail()
+      openDestination('Calendar', 'calendar')
+      const url = new URL(window.location.href)
+      url.searchParams.set('calendarEvent', note.objectId.slice('personal-calendar:'.length))
+      window.history.replaceState(null, '', url)
+      window.dispatchEvent(new Event('magiccon-open-personal-calendar'))
+      return
+    }
     const receiptTarget = receiptTargetFromNote(note)
     closeObjectDetail()
     if (note.objectId.startsWith('catalog-offer-')) {
@@ -1991,6 +2012,7 @@ export default function App() {
 
   const addContextNote = (input: AddContextNoteInput) => {
     if (input.objectId.startsWith('catalog-offer-review:')) return
+    if (input.objectId.startsWith('personal-calendar:') && !canWrite) return
     if (input.objectKind === 'exhibitor') {
       if (!canWrite) return
     }
@@ -2018,8 +2040,8 @@ export default function App() {
     const client = supabase
     const saveNote = async () => {
       try {
-        const mentionTargets = note.objectKind === 'exhibitor' && note.visibility === 'private'
-          ? [] : extractNoteMentions(note.body, companionMembers, effectiveSession)
+        const mentionTargets = (note.objectKind === 'exhibitor' || note.objectId.startsWith('personal-calendar:')) && note.visibility === 'private'
+          ? [] : extractNoteMentions(note.body, companionMembers, effectiveSession).filter(target => !input.allowedMentionUserIds || Boolean(target.mentionedUserId && input.allowedMentionUserIds.includes(target.mentionedUserId)))
         const { data, error } = await client.from('personal_notes').insert({
           owner_id: ownerId,
           title: note.title,
@@ -2683,7 +2705,7 @@ export default function App() {
             onOpenMap={() => openDestination('Map', 'map')} />}
           calendarEntries={homeSchedule} now={now} onOpenEvent={openPlanEventContext}
           onOpenCalendar={() => openDestination('Calendar', 'calendar')} onOpenItem={openActivityItem} onOpenActivity={() => openDestination('Activity', 'activity')} />}
-        {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onOpenFlights={openTripFlights} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
+        {surface === 'calendar' && <CalendarSurface personalEvents={personalCalendarRows} onPersonalEventsChange={setPersonalCalendarRows} canWrite={canWrite} currentSession={effectiveSession} onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onOpenFlights={openTripFlights} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && !activeMapTrip && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
 {surface === 'info' && <InfoSurface prizeTixCounter={<PrizeTixCounter value={prizeTixValue} onChange={savePrizeTix} disabled={prizeTixDisabled} />} onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedItems={infoView === 'exhibitors' ? savedExhibitorItems(exhibitors, userSelections, contextNotesState, effectiveOwnerId, openObjectDetail, saveExhibitorItem) : undefined} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
@@ -3702,6 +3724,7 @@ type ObjectDetail = {
 }
 type NoteVisibility = 'private' | 'shared'
 type AddContextNoteInput = {
+  allowedMentionUserIds?: string[]
   objectId: string
   objectKind: ObjectDetailKind
   objectTitle: string
@@ -5393,6 +5416,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
 }) {
   const [body, setBody] = useState('')
   const isExhibitorNote = objectKind === 'exhibitor'
+  const isPersonalEventNote = objectId.startsWith('personal-calendar:')
   const [visibility, setVisibility] = useState<NoteVisibility>('shared')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const focusedNoteRef = useRef<HTMLElement | null>(null)
@@ -5433,8 +5457,8 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
     </div>}
     <div className="note-composer">
       <textarea disabled={!canEdit} value={body} onChange={event => setBody(event.target.value)} rows={compact ? 2 : 3} placeholder={canEdit ? `Note on ${objectTitle}` : 'Connect and sign in to add a note'} />
-      <small className="note-mention-hint">{isExhibitorNote && visibility === 'private' ? 'Private notes don’t notify companions.' : 'Use @Kavi, @Chris, @Juan, or @Kyle to mention a companion.'}</small>
-      {(!isExhibitorNote || visibility === 'shared') && mentionPreview.length > 0 && <div className="note-mention-preview" aria-label="Recognized mentions">
+      {(!isPersonalEventNote || Boolean(companions?.length)) && <small className="note-mention-hint">{(isExhibitorNote || isPersonalEventNote) && visibility === 'private' ? 'Private notes don’t notify companions.' : isPersonalEventNote ? `Mention ${companions?.map(person => '@' + person.name).join(', ') || 'an invited companion'}.` : 'Use @Kavi, @Chris, @Juan, or @Kyle to mention a companion.'}</small>}
+      {(!(isExhibitorNote || isPersonalEventNote) || visibility === 'shared') && mentionPreview.length > 0 && <div className="note-mention-preview" aria-label="Recognized mentions">
         <span>Will notify</span>
         {mentionPreview.map(item => <strong key={item.key}><PersonBubbles people={[item.person]} />{item.token}</strong>)}
       </div>}
@@ -7315,7 +7339,7 @@ function AgendaMarker({
     : <div className="agenda-marker">{content}</div>
 }
 
-function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, companions, notes, catalog, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onOpenFlights, onChangeState, online, saving, canCommitBlackLotus }: { onShowOnMap?: (eventId: string, targetId?: string) => void; slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; catalog: CatalogReadModel; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onOpenFlights: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
+function CalendarSurface({ personalEvents = [], onPersonalEventsChange = () => {}, canWrite = false, currentSession, onShowOnMap, slice, events, flights, selectionRows, companions, notes, catalog, currentOwnerId, currentPerson, onAddNote, onDeleteNote, onUpdateEvent, onPurchase, onOpenExplore, onOpenPlan, onOpenPlanEvent, onOpenTrip, onOpenFlights, onChangeState, online, saving, canCommitBlackLotus }: { personalEvents?: PersonalCalendarEvent[]; onPersonalEventsChange?: (rows: PersonalCalendarEvent[]) => void; canWrite?: boolean; currentSession?: Session | null; onShowOnMap?: (eventId: string, targetId?: string) => void; slice: TrustSlice; events: ExploreEvent[]; flights: TripFlight[]; selectionRows: UserSelectionRow[]; companions: CompanionMember[]; notes: ContextNote[]; catalog: CatalogReadModel; currentOwnerId?: string; currentPerson: PersonName; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onUpdateEvent: (id: string, state: ExploreState) => void; onPurchase: (id: string, purchased: boolean) => void; onOpenExplore: () => void; onOpenPlan: () => void; onOpenPlanEvent: (id: string) => void; onOpenTrip: () => void; onOpenFlights: () => void; onChangeState: (state: PlanningState) => void; online: boolean; saving: boolean; canCommitBlackLotus: boolean }) {
   const now = useMilestoneClock()
   const { upcoming } = catalogMilestones(catalog, now)
   const [mode, setMode] = useState<'upcoming' | 'past'>('upcoming')
@@ -7412,8 +7436,43 @@ function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, c
     }
   }, [])
 
-  return <section className="calendar-surface" aria-label="Meaningful dates">
+  return <PersonalCalendar rows={personalEvents} onRowsChange={onPersonalEventsChange} ownerId={currentOwnerId} canWrite={canWrite} online={online} mode={mode} companions={companions} renderNotes={(event, readers) => <ObjectNotes key={event.id} notes={notes} currentOwnerId={currentOwnerId} onAddNote={input => onAddNote({ ...input, allowedMentionUserIds: readers.flatMap(person => person.userId && person.userId !== currentOwnerId ? [person.userId] : []) })} onDeleteNote={onDeleteNote} objectId={personalCalendarObjectId(event.id)} objectKind="event" objectTitle={event.title} context="Calendar" backlink="calendar" companions={companions.filter(person => person.userId !== currentOwnerId && readers.some(reader => reader.userId === person.userId))} currentSession={currentSession} canEdit={canWrite && online} />}>
+    {({ rows, renderRow, add }) => {
+      const datedRows = filter === 'all' ? rows : []
+      const markers: Record<string, Array<{ id: string; time: number; node: ReactNode }>> = {
+        '2026-11-12': [{ id: 'marker-12-0', time: scheduleStart('12:00 PM'), node: showConvention && hasCommittedEvent('bl-progressive-sealed') ? <AgendaMarker key="marker-12-0" time="12:00 PM" label="Progressive Sealed pickup/play begins" detail="Committed league continues through Sunday" onOpen={() => openEvent('bl-progressive-sealed')} /> : null },
+          { id: 'marker-12-1', time: scheduleStart('4:00 PM'), node: showTravel ? <AgendaMarker key="marker-12-1" time="4:00 PM" label="Omni check-in begins" detail="Kavi + Juan hotel shift; luggage plan may matter" onOpen={() => setDetail('preview')} /> : null }],
+        '2026-11-13': [{ id: 'marker-13-0', time: scheduleStart('8:30 AM'), node: showConvention ? <AgendaMarker key="marker-13-0" time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} /> : null },
+          { id: 'marker-13-1', time: scheduleStart('9:45 AM'), node: showConvention ? <AgendaMarker key="marker-13-1" time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} /> : null },
+          { id: 'marker-13-2', time: scheduleStart('10:00 AM'), node: showConvention ? <AgendaMarker key="marker-13-2" time="10:00 AM" label="Show floor opens" detail="Friday show-floor hours run 10 AM–7 PM" /> : null },
+          { id: 'marker-13-3', time: scheduleStart('7:00 PM'), node: showConvention ? <AgendaMarker key="marker-13-3" time="7:00 PM" label="Show floor closes" detail="Gaming remains open until 11:59 PM" /> : null },
+          { id: 'marker-13-4', time: scheduleStart('11:59 PM'), node: showConvention ? <AgendaMarker key="marker-13-4" time="11:59 PM" label="Gaming closes" detail="End of Friday play-area hours" /> : null }],
+        '2026-11-14': [{ id: 'marker-14-0', time: scheduleStart('10:00 AM'), node: showConvention ? <AgendaMarker key="marker-14-0" time="10:00 AM" label="Show floor opens" detail="Saturday show-floor hours run 10 AM-7 PM" /> : null },
+          { id: 'marker-14-1', time: scheduleStart('7:00 PM'), node: showConvention ? <AgendaMarker key="marker-14-1" time="7:00 PM" label="Show floor closes" detail="Gaming remains open until 11:59 PM" /> : null },
+          { id: 'marker-14-2', time: scheduleStart('11:59 PM'), node: showConvention ? <AgendaMarker key="marker-14-2" time="11:59 PM" label="Gaming closes" detail="End of Saturday play-area hours" /> : null }],
+        '2026-11-15': [{ id: 'marker-15-0', time: scheduleStart('8:30 AM'), node: showConvention ? <AgendaMarker key="marker-15-0" time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-sunday')} /> : null },
+          { id: 'marker-15-1', time: scheduleStart('9:45 AM'), node: showConvention ? <AgendaMarker key="marker-15-1" time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-sunday')} /> : null },
+          { id: 'marker-15-2', time: scheduleStart('10:00 AM'), node: showConvention ? <AgendaMarker key="marker-15-2" time="10:00 AM" label="Show floor opens" detail="Sunday show-floor hours run 10 AM–6 PM" /> : null },
+          { id: 'marker-15-3', time: scheduleStart('4:00 PM'), node: showConvention ? <AgendaMarker key="marker-15-3" time="4:00 PM" label="Last Mystery Booster 2 draft fires" onOpen={() => setDetail('bl-sunday')} /> : null },
+          { id: 'marker-15-4', time: scheduleStart('5:00 PM'), node: showConvention && hasCommittedEvent('bl-progressive-sealed') ? <AgendaMarker key="marker-15-4" time="5:00 PM" label="Final chance to claim Progressive Sealed booster prizes" onOpen={() => openEvent('bl-progressive-sealed')} /> : null },
+          { id: 'marker-15-5', time: scheduleStart('6:00 PM'), node: showConvention ? <AgendaMarker key="marker-15-5" time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} /> : null },
+          { id: 'marker-15-6', time: scheduleStart('6:00 PM'), node: showConvention ? <AgendaMarker key="marker-15-6" time="6:00 PM" label="Gaming closes" detail="End of Sunday convention hours" /> : null }],
+      }
+      const renderDay = (date: string, scheduled: ExploreEvent[]) => [
+        ...(markers[date] ?? []).filter(marker => marker.node),
+        ...(showConvention ? scheduled : []).map(event => ({ id: event.id, time: scheduleStart(event.time), node: renderCommittedEvent(event) })),
+        ...datedRows.filter(event => event.event_date === date).map(event => ({ id: event.id, time: Number(event.start_time.slice(0, 2)) * 60 + Number(event.start_time.slice(3, 5)), node: renderRow(event) })),
+      ].sort((a, b) => a.time - b.time || a.id.localeCompare(b.id)).map(event => event.node)
+      const otherDates = (before: boolean) => {
+        const entries = datedRows.filter(event => before ? event.event_date < '2026-11-12' : event.event_date > '2026-11-15')
+        return [...new Set(entries.map(event => event.event_date))].sort().flatMap(date => {
+          const instant = new Date(`${date}T12:00:00Z`)
+          return [<CalendarDayHeader key={`date-${date}`} day={instant.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }).toUpperCase()} date={instant.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })} label="" />, ...entries.filter(event => event.event_date === date).map(renderRow)]
+        })
+      }
+      return <section className="calendar-surface" aria-label="Meaningful dates">
     <div ref={toolbarRef} className={`calendar-toolbar surface-workbar calendar-workbar ${toolbarPinned ? 'pinned' : ''}`} data-tour-target="calendar-controls">
+      <button className="detail-plan-link personal-calendar-add" type="button" disabled={!canWrite || !online} onClick={() => { setDetail(null); add() }}>+ Add event</button>
       <div className="calendar-modes" aria-label="Calendar period">
         <button type="button" className={mode === 'upcoming' ? 'active' : ''} onClick={() => { setMode('upcoming'); setDetail(null) }}>Upcoming</button>
         <button type="button" className={mode === 'past' ? 'active' : ''} onClick={() => { setMode('past'); setDetail(null) }}>Past</button>
@@ -7428,6 +7487,7 @@ function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, c
     {toolbarPinned && <div className="workbar-spacer" style={{ height: toolbarHeight }} aria-hidden="true" />}
 
     {mode === 'past' ? <div className="past-calendar">
+      {rows.map(renderRow)}
       <div className="calendar-month"><span>COMPLETED</span><strong>Milestones</strong></div>
       <a className="agenda-row agenda-action completed-row" href="https://mcatlanta.mtgfestivals.com/en-us/badges/buy-badges.html" target="_blank" rel="noreferrer">
         <span className="agenda-date"><strong>✓</strong><span>DONE</span></span>
@@ -7460,6 +7520,7 @@ function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, c
     {showTravel && showConvention && upcoming.length > 0 && <div className="calendar-gap"><span>then travel</span></div>}
     <div className="calendar-month"><span>NOV</span><strong>Atlanta trip</strong></div>
 
+    {otherDates(true)}
     {showTravel && flightProjection && <button className="agenda-row agenda-action travel-row" type="button" onClick={onOpenFlights}>
       <div className="agenda-date"><strong>11</strong><span>WED</span><em>{outboundArrivalTime}</em></div>
       <div className="agenda-icon"><NavIcon name="trip" /></div>
@@ -7467,35 +7528,18 @@ function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, c
       <span className="agenda-destination"><NavIcon name="trip" />Trip</span>
     </button>}
 
-    {(showTravel || showThursday) && <CalendarDayHeader day="THU" date="November 12" label={showThursday ? 'Committed events' : 'Thursday transition'} />}
-    {showConvention && hasCommittedEvent('bl-progressive-sealed') && <AgendaMarker time="12:00 PM" label="Progressive Sealed pickup/play begins" detail="Committed league continues through Sunday" onOpen={() => openEvent('bl-progressive-sealed')} />}
-    {showTravel && <AgendaMarker time="4:00 PM" label="Omni check-in begins" detail="Kavi + Juan hotel shift; luggage plan may matter" onOpen={() => setDetail('preview')} />}
-    {showConvention && thursdaySelected.map(renderCommittedEvent)}
+    {(showTravel || showThursday || datedRows.some(event => event.event_date === '2026-11-12')) && <CalendarDayHeader day="THU" date="November 12" label={showThursday ? 'Committed events' : 'Thursday transition'} />}
+    {renderDay('2026-11-12', thursdaySelected)}
 
     {showConvention && <div className="calendar-month compact"><span>NOV 13–15</span><strong>MagicCon weekend</strong></div>}
 
     {showConvention && <CalendarDayHeader day="FRI" date="November 13" label={showFriday ? 'Committed events' : 'Convention day 1'} />}
-    {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-friday')} />}
-    {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-friday')} />}
-    {showConvention && <AgendaMarker time="10:00 AM" label="Show floor opens" detail="Friday show-floor hours run 10 AM–7 PM" />}
-    {showConvention && fridaySelected.map(renderCommittedEvent)}
-    {showConvention && <AgendaMarker time="7:00 PM" label="Show floor closes" detail="Gaming remains open until 11:59 PM" />}
-    {showConvention && <AgendaMarker time="11:59 PM" label="Gaming closes" detail="End of Friday play-area hours" />}
+    {renderDay('2026-11-13', fridaySelected)}
     {showConvention && <CalendarDayHeader day="SAT" date="November 14" label={showSaturday ? 'Committed events' : 'Convention day 2'} />}
-    {showConvention && <AgendaMarker time="10:00 AM" label="Show floor opens" detail="Saturday show-floor hours run 10 AM-7 PM" />}
-    {showConvention && saturdaySelected.map(renderCommittedEvent)}
-    {showConvention && <AgendaMarker time="7:00 PM" label="Show floor closes" detail="Gaming remains open until 11:59 PM" />}
-    {showConvention && <AgendaMarker time="11:59 PM" label="Gaming closes" detail="End of Saturday play-area hours" />}
+    {renderDay('2026-11-14', saturdaySelected)}
 
     {showConvention && <CalendarDayHeader day="SUN" date="November 15" label={showSunday ? 'Committed events' : 'Final day'} />}
-    {showConvention && <AgendaMarker time="8:30 AM" label="Black Lotus lounge opens" onOpen={() => setDetail('bl-sunday')} />}
-    {showConvention && <AgendaMarker time="9:45 AM" label="Priority entry to the show floor" onOpen={() => setDetail('bl-sunday')} />}
-    {showConvention && <AgendaMarker time="10:00 AM" label="Show floor opens" detail="Sunday show-floor hours run 10 AM–6 PM" />}
-    {showConvention && sundaySelected.map(renderCommittedEvent)}
-    {showConvention && <AgendaMarker time="4:00 PM" label="Last Mystery Booster 2 draft fires" onOpen={() => setDetail('bl-sunday')} />}
-    {showConvention && hasCommittedEvent('bl-progressive-sealed') && <AgendaMarker time="5:00 PM" label="Final chance to claim Progressive Sealed booster prizes" onOpen={() => openEvent('bl-progressive-sealed')} />}
-    {showConvention && <AgendaMarker time="6:00 PM" label="Black Lotus lounge closes" onOpen={() => setDetail('bl-sunday')} />}
-    {showConvention && <AgendaMarker time="6:00 PM" label="Gaming closes" detail="End of Sunday convention hours" />}
+    {renderDay('2026-11-15', sundaySelected)}
 
     {showTravel && flightProjection && <button className="agenda-row agenda-action travel-row airport-row" type="button" onClick={() => setDetail('airport')}>
       <div className="agenda-date"><strong>15</strong><span>SUN</span><em>TBD</em></div>
@@ -7520,11 +7564,14 @@ function CalendarSurface({ onShowOnMap, slice, events, flights, selectionRows, c
         <span className="agenda-signals"><TravelerDots people={flight.traveler_person_keys.map(receiptPerson)} /></span>
       </button>
     })}
+    {otherDates(false)}
     </>}
 
     {detail && ((detail !== 'show-catalog' && detail !== 'black-lotus-store') || upcoming.some(forecast => forecast.id === detail)) && <CalendarDetailSheet detail={detail} slice={slice} flights={flights} onClose={() => setDetail(null)} onOpenPlan={onOpenPlan} onOpenTrip={detail === 'preview' ? onOpenTrip : onOpenFlights} onChangeState={onChangeState} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
     {selectedEvent && <CalendarEventDetail onShowOnMap={onShowOnMap} event={selectedEvent} hasPurchasedAttendee={participantMap.get(selectedEvent.id)?.some(person => person.purchased)} onPurchase={purchased => onPurchase(selectedEvent.id, purchased)} notes={notes} currentOwnerId={currentOwnerId} onAddNote={onAddNote} onDeleteNote={onDeleteNote} onClose={() => setSelectedEventId(null)} onState={state => updateCalendarEvent(selectedEvent, state)} onOpenPlan={() => onOpenPlanEvent(selectedEvent.id)} online={online} saving={saving} canCommit />}
   </section>
+    }}
+  </PersonalCalendar>
 }
 
 export function CompanionCodePanel({ event }: { event: Pick<ExploreEvent, 'companionCode'> }) {

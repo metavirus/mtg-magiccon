@@ -1,7 +1,7 @@
 export const OFFLINE_CONTINUITY_CACHE_PREFIX = 'magiccon:offline-continuity:v1:'
 
 export type ContinuityLane =
-  | 'notes' | 'mentions' | 'selections' | 'activity'
+  | 'personalCalendar' | 'notes' | 'mentions' | 'selections' | 'activity'
   | 'findings' | 'concepts' | 'info' | 'flights'
   | 'ticketedAvailability' | 'catalog' | 'walletReceipts'
   | 'trustSlice' | 'companions' | 'artistCatalog' | 'artistSigningInterests' | 'monitorAlerts' | 'exhibitors' | 'kaviMap'

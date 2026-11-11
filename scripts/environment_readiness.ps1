@@ -130,7 +130,7 @@ else {
 select
   current_database() = 'postgres'
   and (select relrowsecurity and relforcerowsecurity from pg_class where oid = 'public.personal_notes'::regclass)
-  and (select count(*) = 4 from pg_policies where schemaname = 'public' and tablename = 'personal_notes')
+  and (select count(*) = 4 from pg_policies where schemaname = 'public' and tablename = 'personal_notes' and permissive = 'PERMISSIVE')
   and (select qual is not null and with_check is not null from pg_policies where schemaname = 'public' and tablename = 'personal_notes' and policyname = 'owners_update_personal_notes')
   and (select count(*) = 0 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'personal_notes' and grantee = 'anon')
   and (select count(*) = 4 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'personal_notes' and grantee = 'authenticated')

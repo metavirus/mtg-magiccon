@@ -17,6 +17,14 @@ function quotaStorage(storage = memoryStorage()) {
 afterEach(() => vi.restoreAllMocks())
 
 describe('complete read-only continuity fallback', () => {
+  it('persists personal Calendar in the owner boundary without cross-account reuse', async () => {
+    const local = memoryStorage()
+    const caches = memoryCaches()
+    const events = [{ id: 'dinner', title: 'Private dinner', owner_id: 'calendar-owner' }]
+    await writeOfflineLane('calendar-owner', 'personalCalendar', events, local, caches.storage)
+    expect((await readOfflineLane('calendar-owner', 'personalCalendar', caches.storage, local))?.value).toEqual(events)
+    expect(await readOfflineLane('other-owner', 'personalCalendar', caches.storage, local)).toBeNull()
+  })
   it('round-trips a complete oversized lane while leaving all prior original/local lanes untouched', async () => {
     const local = memoryStorage()
     writeOfflineContinuityLane('large-owner', 'notes', [{ full: 'original note' }], local)
