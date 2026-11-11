@@ -54,6 +54,8 @@ try {
         leg('outbound','DL 329','SNA','ATL','2026-11-11T14:00:00-08:00','2026-11-11T21:16:00-05:00'),
         leg('return','DL 1602','ATL','SNA','2026-11-15T20:25:00-05:00','2026-11-15T22:14:00-08:00'),
       ] }])
+      save('personalCalendar', [])
+      save('notes', [])
       save('selections', [{ owner_id: ownerId, object_id: 'onboarding-tour', selection_key: 'completed', selection_value: 'true' }])
       save('walletReceipts', [{
         id: 'fixture-order', title: 'Saved convention order', receipt_type: 'store', vendor: 'MagicCon', amount: 5, currency: 'USD',

@@ -578,3 +578,7 @@ Exact staged-source validation does not certify working-copy encoding: Git can n
 ## Readiness counts restrictive policies as permission grants
 
 November 11: adding the exhibitor note restriction made readiness fail because it required exactly four total note policies. Count the four PERMISSIVE operation policies; RESTRICTIVE policies only narrow their access. Keep the named update USING/WITH CHECK and exact role-grant checks. Personal-event privacy must also pass the transactional RLS verification, not merely the generic readiness count.
+
+## New screen read omitted from offline browser fixture
+
+November 11 personal Calendar: unit and feature browser tests passed, but Pages run 43107072122 correctly rejected the older essentials fixture, which lacked personalCalendar and notes snapshots. When changing screenReads, update and run scripts/test_calendar_wallet_browser.mjs before publication, alongside affected startup fixtures. Preserve the saved-status assertion; do not relax it to hide incomplete saved data.
