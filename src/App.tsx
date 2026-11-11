@@ -43,7 +43,7 @@ export { CalendarSurface, PlanSurface, ObjectDetailLayer, InfoCatalogsPreview }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
 import { ExhibitorDirectory, type Exhibitor } from './components/ExhibitorDirectory'
 import { loadExhibitors, exhibitorObjectId, exhibitorQaFixtures, safeExhibitorUrl, type DirectoryExhibitor } from './lib/exhibitors'
-import { ExhibitorMaterials } from './components/ExhibitorMaterials'
+import { ExhibitorMaterials, ExhibitorItemActions } from './components/ExhibitorMaterials'
 import { exhibitorHighlight } from './lib/exhibitorHighlights'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
@@ -1503,17 +1503,25 @@ export default function App() {
         return false
       }
       if (offer.attributes?.local_review || isPreviewOwnerMode) return false
-      await setCatalogInterest(supabase, { ownerId, offerId: offer.offer_id, interested })
-      const refreshed = await loadCatalogReadModel(supabase, 'magiccon_atlanta_2026')
-      const refreshedOffer = refreshed.offers.find(item => item.offer_id === offer.offer_id)
-      if (refreshed.status !== 'ready' || !refreshedOffer) throw new Error('Bookmark update could not be confirmed. Try again.')
-      const confirmed = refreshedOffer.interests.some(item => item.ownerId === ownerId && item.interested)
-      if (confirmed !== interested) throw new Error('Bookmark update was not confirmed. Try again.')
+      const previous = offer.interests.find(item => item.ownerId === ownerId)
+      const receipt = await setCatalogInterest(supabase, { ownerId, offerId: offer.offer_id, interested, note: previous?.note })
       if (activeOwner.current !== ownerId) return false
       acceptedServerLanes.current.add('catalog')
-      setCatalogReadModel(refreshed)
-      persistContinuityLane(ownerId, 'catalog', refreshed)
-      void cacheDeviceAssets(catalogAssetUrls(refreshed.offers))
+      const member = continuityContext.current.companionMembers.find(person => person.userId === ownerId)
+      setCatalogReadModel(current => {
+        const updated = { ...current, offers: current.offers.map(item => item.offer_id !== receipt.offer_id ? item : {
+          ...item,
+          interests: [...item.interests.filter(interest => interest.ownerId !== ownerId), {
+            ownerId, personKey: member?.key ?? previous?.personKey ?? null,
+            displayName: member?.name ?? previous?.displayName ?? null,
+            bubbleLabel: member?.bubbleLabel ?? previous?.bubbleLabel ?? null,
+            bubbleColor: member?.bubbleColor ?? previous?.bubbleColor ?? null,
+            interested: receipt.interested, note: receipt.note, updatedAt: receipt.updated_at,
+          }],
+        }) }
+        persistContinuityLane(ownerId, 'catalog', updated)
+        return updated
+      })
     } catch (error) {
       setMessageTone('error')
       setMessage(error instanceof Error ? `Shopping list could not be updated: ${error.message}` : 'Shopping list could not be updated.')
@@ -2689,7 +2697,7 @@ export default function App() {
         onPurchase={purchased => updateEventPurchase(selectedMapEvent.id, purchased)}
         onOpenPlan={() => openPlanEventContext(selectedMapEvent.id)} online={online} saving={saving} canCommit
       />}
-      <ObjectDetailLayer onShowOnMap={surface === 'info' && !activeMapTrip ? showPlaceOnMap : undefined} canWriteNotes={canWrite} detail={activeMapTrip && activeMapTrip === objectDetail?.mapPlaceId ? null : objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogInterestQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
+      <ObjectDetailLayer selections={userSelections} onSaveExhibitorItem={async (id, saved) => { if (canWrite && await upsertUserSelection(id, 'exhibitor', 'saved', String(saved)) === false) throw new Error('Bookmark failed') }} onShowOnMap={surface === 'info' && !activeMapTrip ? showPlaceOnMap : undefined} canWriteNotes={canWrite} detail={activeMapTrip && activeMapTrip === objectDetail?.mapPlaceId ? null : objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogInterestQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
       {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onMobileMenuChange={setMobileNavMenu} onClose={() => {
         setTutorialOpen(false)
         void upsertUserSelection('onboarding-tour', 'general', 'completed', 'true')
@@ -2866,7 +2874,7 @@ function noteToObjectDetail(note: ContextNote): ObjectDetail {
       { label: 'Visibility', value: note.visibility },
       { label: 'Updated', value: note.updatedAt },
       { label: 'Backlink', value: note.backlink },
-      ...(note.objectAnchor ? [{ label: 'Anchor', value: note.objectAnchor }] : []),
+      ...(note.objectAnchor && note.objectKind !== 'exhibitor' ? [{ label: 'Anchor', value: note.objectAnchor }] : []),
     ],
     note: note.body,
     backlinks: [{ label: note.backlink, destination: note.backlink.toLowerCase() as Surface }, { label: 'Notes', destination: 'notes' }],
@@ -3460,7 +3468,7 @@ function InfoReaderEvidence({ sources }: { sources: InfoSource[] }) {
   </article>)}</section>
 }
 
-function ObjectDetailLayer({ onShowOnMap, canWriteNotes, detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { onShowOnMap?: (placeId: string) => void; canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ObjectDetailLayer({ selections, onSaveExhibitorItem, onShowOnMap, canWriteNotes, detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { selections?: Record<string, string>; onSaveExhibitorItem?: (id: string, saved: boolean) => Promise<void>; onShowOnMap?: (placeId: string) => void; canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const bookmarks = useCatalogBookmark({ model: catalogReadModel, currentOwnerId: catalogOwnerId, canEditInterest: canEditCatalogInterest, savingOfferId: catalogInterestSavingOfferId, onToggleInterest: onToggleCatalogInterest, focusFallback: () => closeButtonRef.current, scopeKey: detail?.id ?? 'closed', onConfirmed: (offer, interested) => { if (interested) onOpenObject(catalogOfferDetail(offer, catalogOwnerId)) } })
   const closeRef = useRef(onClose)
@@ -3555,7 +3563,15 @@ function ObjectDetailLayer({ onShowOnMap, canWriteNotes, detail, notes, currentO
         <h3>{detail.rationaleLabel ?? 'Why it matters'}</h3>
         <p>{renderLinkedText(detail.rationale)}</p>
       </section>}
-      {detail.exhibitorOffers && <ExhibitorMaterials description={detail.exhibitorDescription} sections={detail.exhibitorOffers} />}
+      {detail.exhibitorOffers && <ExhibitorMaterials description={detail.exhibitorDescription} sections={detail.exhibitorOffers} focusedAnchor={detail.objectAnchor}
+        renderItemActions={(offer, anchor) => {
+          const itemId = detail.id + ':offer:' + anchor
+          return <ExhibitorItemActions saved={selections?.[selectionKey(itemId, 'saved')] === 'true'} canWrite={canWriteNotes && Boolean(onSaveExhibitorItem)} onSave={async saved => { await onSaveExhibitorItem?.(itemId, saved) }}>
+            <ObjectNotes notes={notes} currentOwnerId={currentOwnerId} canEdit={canWriteNotes} onAddNote={onAddNote} onDeleteNote={onDeleteNote}
+              objectId={detail.id} objectKind="exhibitor" objectTitle={offer.title || detail.title} objectAnchor={anchor}
+              focusedNoteId={detail.focusedNoteId} context={offer.title ? `${detail.title} · ${offer.title}` : detail.title} backlink="info" compact />
+          </ExhibitorItemActions>
+        }} />}
       {detail.links && detail.links.length > 0 && <section className="object-detail-section">
         <h3>Official resources</h3>
         <nav className="object-resource-links" aria-label="Official resources">
@@ -3580,7 +3596,7 @@ function ObjectDetailLayer({ onShowOnMap, canWriteNotes, detail, notes, currentO
         objectId={detail.id}
         objectKind={detail.kind}
         objectTitle={detail.title}
-        objectAnchor={detail.objectAnchor}
+        objectAnchor={detail.kind === 'exhibitor' ? undefined : detail.objectAnchor}
         focusedNoteId={detail.focusedNoteId}
         context={`${detail.kindLabel ?? detailKindLabel(detail.kind)} · ${detail.title}`}
         backlink={detail.backlinks?.[0]?.destination ?? 'notes'}
@@ -3656,7 +3672,7 @@ type ObjectDetail = {
   noteLabel?: string
   backlinks?: Array<{ label: string; destination: Surface }>
   catalogOfferId?: string
-  exhibitorOffers?: Array<{ title: string; offers: Array<{ title: string; description: string; price?: string; url?: string; imageUrl?: string }> }>
+  exhibitorOffers?: Array<{ title: string; offers: Array<{ id?: string; title: string; description: string; price?: string; url?: string; imageUrl?: string }> }>
   exhibitorDescription?: string
 }
 type NoteVisibility = 'private' | 'shared'
@@ -5370,7 +5386,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
   const focusedNoteRef = useRef<HTMLElement | null>(null)
   const mentionPreview = mentionPreviewFromBody(body, companions ?? fallbackCompanionMembers, currentSession ?? null)
   const objectNotes = notes
-    .filter(note => note.objectId === objectId && (!objectAnchor || note.objectAnchor === objectAnchor) && (!privateExhibitor || Boolean(currentOwnerId && note.ownerId === currentOwnerId)))
+    .filter(note => note.objectId === objectId && (!(objectAnchor || privateExhibitor) || note.objectAnchor === objectAnchor) && (!privateExhibitor || Boolean(currentOwnerId && note.ownerId === currentOwnerId)))
     .sort((a, b) => (a.id === focusedNoteId ? -1 : b.id === focusedNoteId ? 1 : 0))
   useEffect(() => {
     if (!focusedNoteId) return
@@ -5393,7 +5409,7 @@ function ObjectNotes({ notes, currentOwnerId, onAddNote, onDeleteNote, objectId,
     {objectNotes.length > 0 && <div className="note-thread">
       {objectNotes.map(note => <article key={note.id} ref={note.id === focusedNoteId ? focusedNoteRef : undefined} className={`note-item ${note.id === focusedNoteId ? 'focused' : ''}`}>
         <PersonBubbles people={[note.author]} />
-        <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</small></div>
+        <div><p>{note.body}</p><small>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor && !privateExhibitor ? ` · ${note.objectAnchor}` : ''}</small></div>
         {canEdit && note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note from ${note.author}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
         {canEdit && note.ownerId === currentOwnerId && confirmDeleteId === note.id && <div className="note-delete-confirm" role="alert">
           <span>Delete?</span>
@@ -7804,7 +7820,7 @@ function NotesSurface({ notes, currentOwnerId, onDeleteNote, onOpenNote }: { not
         {contextItems.map(note => <article key={note.id} className="note-index-row">
           <button type="button" className="note-index-open" onClick={() => onOpenNote(note)}>
             <PersonBubbles people={[note.author]} />
-            <span><strong>{note.body}</strong><em>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor ? ` · ${note.objectAnchor}` : ''}</em></span>
+            <span><strong>{note.body}</strong><em>{note.author} · {note.updatedAt} · {note.visibility}{note.objectAnchor && note.objectKind !== 'exhibitor' ? ` · ${note.objectAnchor}` : ''}</em></span>
             <b aria-hidden="true">›</b>
           </button>
           {note.ownerId === currentOwnerId && <button type="button" className="note-delete" aria-label={`Delete note ${note.title}`} onClick={() => setConfirmDeleteId(note.id)}>×</button>}
@@ -8223,7 +8239,7 @@ export function MentionInbox({
     <PersonBubbles people={[item.note.author]} />
     <span>
       <strong>{item.note.author} mentioned you as {item.mentionToken}</strong>
-      <small>{item.note.objectTitle}{item.note.objectAnchor ? ` · ${item.note.objectAnchor}` : ''}</small>
+      <small>{item.note.objectTitle}{item.note.objectAnchor && item.note.objectKind !== 'exhibitor' ? ` · ${item.note.objectAnchor}` : ''}</small>
       <em>{item.note.body}</em>
     </span>
     <i aria-hidden="true">›</i>

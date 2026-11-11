@@ -106,7 +106,7 @@ function fakeStorageClient(result: StorageResult | Error): SupabaseClient {
   } as unknown as SupabaseClient
 }
 
-function fakeInterestMutationClient(mode: 'success' | 'error' | 'missing') {
+function fakeInterestMutationClient(mode: 'success' | 'error' | 'missing' | 'postgres') {
   let written: Record<string, unknown> | null = null
   let conflictTarget: string | undefined
   const builder = {
@@ -119,6 +119,7 @@ function fakeInterestMutationClient(mode: 'success' | 'error' | 'missing') {
     single: async () => {
       if (mode === 'error') return { data: null, error: { code: '42501', message: 'not authorized' } }
       if (mode === 'missing') return { data: null, error: null }
+      if (mode === 'postgres') return { data: { ...written, updated_at: String(written?.updated_at).replace(/Z$/, '+00:00') }, error: null }
       return { data: written, error: null }
     },
   }
@@ -261,6 +262,11 @@ describe('catalog read model', () => {
       updated_at: expect.any(String),
     })
     expect(result).toEqual(mutation.written())
+  })
+
+  it('accepts the same timestamp in Postgres UTC format', async () => {
+    const mutation = fakeInterestMutationClient('postgres')
+    await expect(setCatalogInterest(mutation.client, { ownerId: 'user-kavi', offerId: 'offer-1', interested: true })).resolves.toMatchObject({ interested: true })
   })
 
   it('preserves explicit interested=false semantics instead of deleting the row', async () => {

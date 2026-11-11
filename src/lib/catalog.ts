@@ -284,7 +284,7 @@ export async function setCatalogInterest(
     || readback.offer_id !== write.offer_id
     || readback.interested !== write.interested
     || readback.note !== write.note
-    || readback.updated_at !== write.updated_at
+    || Date.parse(readback.updated_at) !== Date.parse(write.updated_at)
   ) {
     throw new Error('Catalog interest write readback did not match the requested state.')
   }
