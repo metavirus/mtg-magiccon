@@ -61,10 +61,27 @@ describe('Exhibitor directory', () => {
     expect(callbacks.onToggleSaved).not.toHaveBeenCalled()
     expect(screen.getByRole('button', { name: 'Open Another Vendor details' })).toBeEnabled()
   })
+  it('shows a saved item with its booth and notes even when its exhibitor is not saved', async () => {
+    const open = vi.fn()
+    const unsave = vi.fn().mockResolvedValue(undefined)
+    render(<ExhibitorDirectory {...props()} savedItems={[{
+      id: 'saved-coin', title: 'Monarch Coin', exhibitor: exhibitors[0],
+      notes: [{ id: 'note-1', body: 'Ask about the booth quest' }], open, unsave,
+    }]} />)
+    expect(screen.queryByRole('button', { name: 'Open Monarch Coin' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Saved' }))
+    expect(screen.getByText('Example Card Supply · Booth 101, 203')).toBeVisible()
+    expect(screen.getByText('Ask about the booth quest')).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Open Example Card Supply details' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Open Monarch Coin' }))
+    expect(open).toHaveBeenCalledOnce()
+    fireEvent.click(screen.getByRole('button', { name: 'Unsave Monarch Coin' }))
+    await waitFor(() => expect(unsave).toHaveBeenCalledOnce())
+  })
   it('reports a failed save without inventing a saved state', async () => {
     render(<ExhibitorDirectory {...props()} onToggleSaved={vi.fn().mockRejectedValue(new Error('offline'))} />)
     fireEvent.click(screen.getByRole('button', { name: 'Save Example Card Supply' }))
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Could not save'))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Could not update bookmark'))
     expect(screen.getByRole('button', { name: 'Save Example Card Supply' })).toHaveAttribute('aria-pressed', 'false')
   })
 })

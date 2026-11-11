@@ -23,6 +23,7 @@ export type Exhibitor = {
 export type ExhibitorDirectoryProps = {
   exhibitors: Exhibitor[]
   savedIds: string[]
+  savedItems?: Array<{ id: string; title: string; exhibitor: Exhibitor; notes: Array<{ id: string; body: string }>; open: () => void; unsave: () => Promise<void> }>
   onToggleSaved: (id: string) => void | Promise<void>
   onOpen: (exhibitor: Exhibitor) => void
   canWrite: boolean
@@ -32,13 +33,17 @@ export type ExhibitorDirectoryProps = {
 
 const searchable = (value: string) => value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase()
 
-export function ExhibitorDirectory({ exhibitors, savedIds, onToggleSaved, onOpen, canWrite, loading = false, error = '' }: ExhibitorDirectoryProps) {
+export function ExhibitorDirectory({ exhibitors, savedIds, savedItems = [], onToggleSaved, onOpen, canWrite, loading = false, error = '' }: ExhibitorDirectoryProps) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'highlights' | 'saved'>('all')
   const [savingId, setSavingId] = useState<string | null>(null)
   const [saveError, setSaveError] = useState('')
   const saved = new Set(savedIds)
   const terms = searchable(query).trim().split(/\s+/).filter(Boolean)
+  const visibleItems = filter === 'saved' ? savedItems.filter(item => {
+    const text = searchable([item.title, item.exhibitor.name, item.exhibitor.booth, ...item.exhibitor.aliases, ...item.notes.map(note => note.body)].join(' '))
+    return terms.every(term => text.includes(term))
+  }) : []
   const visible = exhibitors.filter(exhibitor => {
     if (filter === 'saved' && !saved.has(exhibitor.id)) return false
     if (filter === 'highlights' && !exhibitor.highlight) return false
@@ -46,12 +51,12 @@ export function ExhibitorDirectory({ exhibitors, savedIds, onToggleSaved, onOpen
     const text = searchable([exhibitor.name, exhibitor.booth, exhibitor.highlight ?? '', ...exhibitor.aliases, ...offers.flatMap(offer => [offer.title, offer.description])].join(' '))
     return terms.every(term => text.includes(term))
   })
-  async function toggle(id: string) {
+  async function toggle(id: string, save = () => onToggleSaved(id)) {
     if (!canWrite || savingId) return
     setSavingId(id)
     setSaveError('')
-    try { await onToggleSaved(id) }
-    catch { setSaveError('Could not save that exhibitor. Please try again.') }
+    try { await save() }
+    catch { setSaveError('Could not update bookmark. Try again.') }
     finally { setSavingId(null) }
   }
   return <section className="exhibitor-directory" aria-label="Exhibitors">
@@ -67,11 +72,24 @@ export function ExhibitorDirectory({ exhibitors, savedIds, onToggleSaved, onOpen
         <button type="button" className={filter === 'saved' ? 'active' : ''} aria-pressed={filter === 'saved'} onClick={() => setFilter('saved')}>Saved</button>
       </div>
     </div>
-    <div className="exhibitor-summary"><span>{visible.length} {visible.length === 1 ? 'exhibitor' : 'exhibitors'}</span>{!canWrite && <span>Read-only</span>}</div>
+    <div className="exhibitor-summary"><span>{filter === 'saved' ? `${visible.length + visibleItems.length} saved` : `${visible.length} ${visible.length === 1 ? 'exhibitor' : 'exhibitors'}`}</span>{!canWrite && <span>Read-only</span>}</div>
     {loading && <p className="exhibitor-message" role="status">Loading exhibitors…</p>}
     {error && <p className="exhibitor-message" role="alert">{error}</p>}
     {saveError && <p className="exhibitor-message" role="alert">{saveError}</p>}
     <div className="exhibitor-list">
+      {visibleItems.map(item => <article className="exhibitor-row" key={item.id}>
+        <button type="button" className="exhibitor-open" onClick={item.open} aria-label={`Open ${item.title}`}>
+          <span className="exhibitor-logo-frame"><ExhibitorImage src={item.exhibitor.imageUrl} name={item.exhibitor.name} logo /></span>
+          <span className="exhibitor-copy"><strong>{item.title}</strong>
+            <small>{item.exhibitor.name} · {item.exhibitor.booth ? `Booth ${item.exhibitor.booth}` : 'Booth not listed'}</small>
+            {item.notes.map(note => <span className="exhibitor-highlight exhibitor-saved-note" key={note.id}>{note.body}</span>)}
+          </span>
+          <span className="exhibitor-chevron" aria-hidden="true">›</span>
+        </button>
+        <button type="button" className="exhibitor-save" aria-label={`Unsave ${item.title}`} aria-pressed="true" disabled={!canWrite || savingId !== null} onClick={() => void toggle(item.id, item.unsave)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v16l-6-3.4L6 21V5a1 1 0 0 1 1-1Z" /></svg>
+        </button>
+      </article>)}
       {visible.map(exhibitor => <article className="exhibitor-row" key={exhibitor.id}>
         <button type="button" className="exhibitor-open" aria-label={`Open ${exhibitor.name} details`} onClick={() => onOpen(exhibitor)}>
           <span className="exhibitor-logo-frame"><ExhibitorImage src={exhibitor.imageUrl} name={exhibitor.name} logo /></span>
@@ -83,6 +101,6 @@ export function ExhibitorDirectory({ exhibitors, savedIds, onToggleSaved, onOpen
         </button>
       </article>)}
     </div>
-    {!loading && !error && !visible.length && <p className="exhibitor-message">{query.trim() ? 'No exhibitors match that search.' : filter === 'saved' ? 'No saved exhibitors yet.' : filter === 'highlights' ? 'No reviewed highlights available yet.' : 'No exhibitors available yet.'}</p>}
+    {!loading && !error && !visible.length && !visibleItems.length && <p className="exhibitor-message">{query.trim() ? 'No results match that search.' : filter === 'saved' ? 'No bookmarks yet.' : filter === 'highlights' ? 'No reviewed highlights available yet.' : 'No exhibitors available yet.'}</p>}
   </section>
 }

@@ -1,9 +1,9 @@
 import { ExhibitorImage } from './ExhibitorImage'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ProductImageViewer } from './ProductImageViewer'
 type Offer = { id?: string; title: string; description: string; price?: string; url?: string; imageUrl?: string }
 
-function exhibitorOfferAnchor(section: string, offer: Offer) {
+export function exhibitorOfferAnchor(section: string, offer: Offer) {
   const identity = offer.id || JSON.stringify([offer.title, offer.url, offer.imageUrl, offer.title ? '' : offer.description])
   let hash = 2166136261
   for (const character of identity) hash = Math.imul(hash ^ character.codePointAt(0)!, 16777619)
@@ -34,6 +34,10 @@ export function ExhibitorMaterials({ description, sections, renderItemActions, f
   renderItemActions?: (offer: Offer, anchor: string) => ReactNode; focusedAnchor?: string
 }) {
   const [selected, setSelected] = useState<Offer | null>(null)
+  const focusedItem = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (focusedAnchor) focusedItem.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [focusedAnchor])
   const count = sections.reduce((total, section) => total + section.offers.length, 0)
   if (!description && !count) return null
   const pictured = sections.flatMap(section => section.offers.filter(offer => offer.imageUrl).map(offer => ({ ...offer, section: section.title })))
@@ -57,7 +61,7 @@ export function ExhibitorMaterials({ description, sections, renderItemActions, f
       <h3>{section.title}</h3>
       {section.offers.map(offer => {
         const anchor = exhibitorOfferAnchor(section.title, offer)
-        return <article className="exhibitor-offer" key={anchor}>
+        return <article className="exhibitor-offer" key={anchor} ref={focusedAnchor === anchor ? focusedItem : undefined}>
         <div className="exhibitor-offer-copy">
         <h4>{offer.title}{offer.price && !/^\$?0+(?:\.0+)?$/.test(offer.price.trim()) ? ` · Listed price ${offer.price}` : ''}</h4>
         {offer.description && <p>{offer.description}</p>}

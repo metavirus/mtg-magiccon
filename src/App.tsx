@@ -41,14 +41,14 @@ import { eventMapDestination, eventMapWayfinding, groupMapRoomEvents, hasLeagueP
 
 export { CalendarSurface, PlanSurface, ObjectDetailLayer, InfoCatalogsPreview }
 import { partitionMentionInboxItems } from './lib/mentionInbox'
-import { ExhibitorDirectory, type Exhibitor } from './components/ExhibitorDirectory'
+import { ExhibitorDirectory, type Exhibitor, type ExhibitorDirectoryProps } from './components/ExhibitorDirectory'
 import { loadExhibitors, exhibitorObjectId, exhibitorQaFixtures, safeExhibitorUrl, type DirectoryExhibitor } from './lib/exhibitors'
-import { ExhibitorMaterials, ExhibitorItemActions } from './components/ExhibitorMaterials'
+import { ExhibitorMaterials, ExhibitorItemActions, exhibitorOfferAnchor } from './components/ExhibitorMaterials'
 import { exhibitorHighlight } from './lib/exhibitorHighlights'
 import { applyTicketedPlayAvailabilityProjection, partitionExploreAvailability, ticketedPurchasePresentation, type TicketedPlayAvailabilityProjectionRow } from './lib/ticketedPlayAvailabilityProjection'
 import { homeSignalAgeBucket, homeSignalIsHotNow, isFeaturedTicketedPlaySale, ticketedPlaySaleHasOpened, ticketedPlaySaleAlertHasExpired, TICKETED_PLAY_SALE_OPENED_AT } from './lib/homeSignalAge'
 import { monitoringNoticeSeverity } from './lib/monitoringNoticeLifecycle'
-import { groupNotesByObject, isSyntheticNoteGroupId, noteGroupFactLabel } from './lib/noteActivityGrouping'
+import { groupNotesByObject, isSyntheticNoteGroupId } from './lib/noteActivityGrouping'
 import { groupHomeSoldOutEventsByDay, type HomeSoldOutEvent } from './lib/homeSoldOutGrouping'
 import { homeNoticeVisible } from './lib/homeNoticeVisibility'
 import { personalBadgeReceipt } from './lib/homePass'
@@ -1804,11 +1804,11 @@ export default function App() {
     openDestination('Plan', 'plan')
   }
   const openActivityItem = (item: ActivityItem) => {
-    if (item.destination === 'Inbox') {
-      openObjectDetail(item.objectDetail)
-      return
+    if (item.sourceKind === 'note') {
+      const note = contextNotesState.find(row => row.id === item.objectDetail.focusedNoteId)
+      if (note) { openMentionNote(note); return }
     }
-    if (item.objectDetail.id.startsWith('note-group-')) {
+    if (item.destination === 'Inbox') {
       openObjectDetail(item.objectDetail)
       return
     }
@@ -1841,6 +1841,18 @@ export default function App() {
   const openMentionNote = (note: ContextNote) => {
     const receiptTarget = receiptTargetFromNote(note)
     closeObjectDetail()
+    if (note.objectId.startsWith('catalog-offer-')) {
+      const offerId = note.objectId.slice('catalog-offer-'.length)
+      const offer = catalogReadModel.offers.find(row => row.offer_id === offerId)
+      changeInfoView(offer?.family === 'prize_wall' ? 'prize_wall' : 'catalogs')
+      openDestination('Info', 'info')
+      openObjectDetail(focusDetailOnNote({
+        id: note.objectId, catalogOfferId: offerId, kind: 'alert', kindLabel: 'Product',
+        eyebrow: 'STORE', title: note.objectTitle, summary: '',
+      }, note))
+      if (!offer && online) void refreshUserContinuity(true, ['catalog'])
+      return
+    }
     if (receiptTarget) {
       setWalletProofRequest({ target: receiptTarget, nonce: Date.now() })
       openDestination('Wallet', 'wallet')
@@ -1857,11 +1869,12 @@ export default function App() {
     }
     const exhibitor = note.objectKind === 'exhibitor' ? exhibitors.find(row => exhibitorObjectId(row.id) === note.objectId) : undefined
     const detail = exhibitor ? focusDetailOnNote(exhibitorToObjectDetail(exhibitor), note) : noteSourceObjectDetail(note)
+    if (exhibitor) changeInfoView('exhibitors')
     if (detail.kind === 'note') {
       openDestination('Notes', 'notes')
       return
     }
-    const destination = surfaceFromNoteBacklink(note)
+    const destination = exhibitor ? 'info' : surfaceFromNoteBacklink(note)
     openDestination(surfaceTitle(destination), destination)
     setObjectDetail(detail)
   }
@@ -1924,6 +1937,10 @@ export default function App() {
       return next
     })
     return true
+  }
+
+  const saveExhibitorItem = async (id: string, saved: boolean) => {
+    if (!canWrite || await upsertUserSelection(id, 'exhibitor', 'saved', String(saved)) === false) throw new Error('Bookmark failed')
   }
 
   const recordUserActivity = async (input: {
@@ -2669,7 +2686,7 @@ export default function App() {
         {surface === 'calendar' && <CalendarSurface onShowOnMap={showEventOnMap} slice={displaySlice} events={displayedExploreEvents} flights={tripFlights} selectionRows={sharedSelectionRows} companions={companionMembers} notes={contextNotesState} catalog={catalogReadModel} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenExplore={() => openDestination('Explore', 'explore')} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenPlanEvent={openPlanEventContext} onOpenTrip={() => openDestination('Trip', 'trip')} onOpenFlights={openTripFlights} onChangeState={state => void changeState(state)} online={online} saving={saving} canCommitBlackLotus={canCommitBlackLotus} />}
         {surface === 'explore' && <ExploreSurface onShowOnMap={showEventOnMap} events={displayedExploreEvents} routeState={exploreRouteState} focusRequest={exploreFocusRequest} notes={contextNotesState} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onUpdateEvent={updateExploreEvent} onPurchase={updateEventPurchase} onOpenPlan={() => openDestination('Plan', 'plan')} onOpenCalendar={() => openDestination('Calendar', 'calendar')} />}
         {surface === 'map' && !activeMapTrip && <MapSurface key={effectiveOwnerId ?? 'guest'} onOpenCatalog={openMapCatalog} catalog={catalogReadModel} exhibitors={exhibitors} infoTopics={infoTopics} infoFeed={infoFeed} onOpenObject={openObjectDetail} onOpenEvent={openMapEvent} events={displayedExploreEvents} walletReceipts={walletReceipts} currentPersonKey={mapReceiptPersonKey} currentOwnerId={effectiveOwnerId} currentPerson={currentCompanion?.name ?? 'Kavi'} selections={sharedSelectionRows} companions={companionMembers} onOpenTrip={() => openDestination('Trip', 'trip')} />}
-{surface === 'info' && <InfoSurface prizeTixCounter={<PrizeTixCounter value={prizeTixValue} onChange={savePrizeTix} disabled={prizeTixDisabled} />} onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
+{surface === 'info' && <InfoSurface prizeTixCounter={<PrizeTixCounter value={prizeTixValue} onChange={savePrizeTix} disabled={prizeTixDisabled} />} onViewChange={changeInfoView} showContent={showScreen} canWriteExhibitors={canWrite} exhibitors={exhibitors} exhibitorError={exhibitorError} savedItems={infoView === 'exhibitors' ? savedExhibitorItems(exhibitors, userSelections, contextNotesState, effectiveOwnerId, openObjectDetail, saveExhibitorItem) : undefined} savedExhibitorIds={exhibitors.filter(row => userSelections[selectionKey(exhibitorObjectId(row.id), 'saved')] === 'true').map(row => row.id)} onToggleExhibitor={async id => { if (!canWrite) return; const objectId = exhibitorObjectId(id); const result = await upsertUserSelection(objectId, 'exhibitor', 'saved', userSelections[selectionKey(objectId, 'saved')] === 'true' ? 'false' : 'true'); if (result === false) throw new Error('Save failed') }} topics={infoTopics} feed={infoFeed} catalogReadModel={catalogReadModel} currentOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} canEditCatalogInterest={catalogInterestQa || canWrite} canUseCatalogImport={isKaviOperator} canPromoteCatalog={canWrite && isKaviOperator} catalogInterestSavingOfferId={catalogInterestSavingOfferId} catalogPromotionSaving={catalogPromotionSaving} onPromoteCatalog={promoteReviewedCatalog} onToggleCatalogInterest={toggleCatalogInterest} onOpenObject={openObjectDetail} />}
         {surface === 'wallet' && qaFlags.includes('receipt-proof-ingest') && isKaviOperator && <ReceiptProofIngestLab />}
         {surface === 'wallet' && <WalletSurface key={effectiveOwnerId} flights={tripFlights} onShowPickup={() => showPlaceOnMap('league-pickup')} receipts={walletReceipts} onOpenFlights={openTripFlights} receiptStatus={designPreview || isPreviewOwnerMode ? "ready" : receiptStatus} onOpenObject={openObjectDetail} onOpenTrip={() => openDestination('Trip', 'trip')} notes={contextNotesState} currentOwnerId={effectiveOwnerId} onAddNote={addContextNote} onDeleteNote={deleteContextNote} canEditStoreNotes={canWrite || designPreview || isPreviewOwnerMode} prizeTixValue={prizeTixValue} proofRequest={walletProofRequest} onPrizeTixChange={savePrizeTix} prizeTixDisabled={prizeTixDisabled} />}
         {surface === 'trip' && <TripSurface onOpenObject={openObjectDetail} flights={tripFlights} flightsKnown={flightsKnown} />}
@@ -2697,7 +2714,7 @@ export default function App() {
         onPurchase={purchased => updateEventPurchase(selectedMapEvent.id, purchased)}
         onOpenPlan={() => openPlanEventContext(selectedMapEvent.id)} online={online} saving={saving} canCommit
       />}
-      <ObjectDetailLayer selections={userSelections} onSaveExhibitorItem={async (id, saved) => { if (canWrite && await upsertUserSelection(id, 'exhibitor', 'saved', String(saved)) === false) throw new Error('Bookmark failed') }} onShowOnMap={surface === 'info' && !activeMapTrip ? showPlaceOnMap : undefined} canWriteNotes={canWrite} detail={activeMapTrip && activeMapTrip === objectDetail?.mapPlaceId ? null : objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogInterestQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
+      <ObjectDetailLayer selections={userSelections} onSaveExhibitorItem={saveExhibitorItem} onShowOnMap={surface === 'info' && !activeMapTrip ? showPlaceOnMap : undefined} canWriteNotes={canWrite} detail={activeMapTrip && activeMapTrip === objectDetail?.mapPlaceId ? null : objectDetail} notes={contextNotesState} currentOwnerId={effectiveOwnerId} catalogOwnerId={catalogInterestQa ? catalogBrowserPreviewOwnerId : effectiveOwnerId} catalogReadModel={catalogReadModel} canEditCatalogInterest={catalogInterestQa || canWrite} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={toggleCatalogInterest} onAddNote={addContextNote} onDeleteNote={deleteContextNote} onClose={closeObjectDetail} onNavigate={navigateFromObjectDetail} onOpenObject={openObjectDetail} />
       {tutorialOpen && <OnboardingTutorial surface={surface} onNavigate={next => openDestination(surfaceTitle(next), next)} onMobileMenuChange={setMobileNavMenu} onClose={() => {
         setTutorialOpen(false)
         void upsertUserSelection('onboarding-tour', 'general', 'completed', 'true')
@@ -2935,7 +2952,7 @@ function surfaceFromNoteBacklink(note: ContextNote): Surface {
   if (note.objectId.startsWith('explore-')) return 'explore'
   if (note.objectId.startsWith('hotel-') || note.objectId.startsWith('trip-')) return 'trip'
   const backlink = note.backlink.toLowerCase()
-  if (backlink === 'home' || backlink === 'calendar' || backlink === 'plan' || backlink === 'explore' || backlink === 'map' || backlink === 'wallet' || backlink === 'trip' || backlink === 'artists' || backlink === 'notes' || backlink === 'activity') return backlink
+  if (backlink === 'home' || backlink === 'calendar' || backlink === 'plan' || backlink === 'explore' || backlink === 'map' || backlink === 'wallet' || backlink === 'trip' || backlink === 'artists' || backlink === 'notes' || backlink === 'activity' || backlink === 'info') return backlink
   return 'notes'
 }
 
@@ -3468,7 +3485,15 @@ function InfoReaderEvidence({ sources }: { sources: InfoSource[] }) {
   </article>)}</section>
 }
 
-function ObjectDetailLayer({ selections, onSaveExhibitorItem, onShowOnMap, canWriteNotes, detail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { selections?: Record<string, string>; onSaveExhibitorItem?: (id: string, saved: boolean) => Promise<void>; onShowOnMap?: (placeId: string) => void; canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+function ObjectDetailLayer({ selections, onSaveExhibitorItem, onShowOnMap, canWriteNotes, detail: requestedDetail, notes, currentOwnerId, catalogOwnerId, catalogReadModel, canEditCatalogInterest, catalogInterestSavingOfferId, onToggleCatalogInterest, onAddNote, onDeleteNote, onClose, onNavigate, onOpenObject }: { selections?: Record<string, string>; onSaveExhibitorItem?: (id: string, saved: boolean) => Promise<void>; onShowOnMap?: (placeId: string) => void; canWriteNotes: boolean; detail: ObjectDetail | null; notes: ContextNote[]; currentOwnerId?: string; catalogOwnerId?: string; catalogReadModel: CatalogReadModel; canEditCatalogInterest: boolean; catalogInterestSavingOfferId: string | null; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onAddNote: (input: AddContextNoteInput) => void; onDeleteNote: (id: string) => void; onClose: () => void; onNavigate: (destination: Surface) => void; onOpenObject: (detail: ObjectDetail) => void }) {
+  const sourceOffer = requestedDetail?.catalogOfferId && requestedDetail.focusedNoteId
+    ? catalogReadModel.offers.find(offer => offer.offer_id === requestedDetail.catalogOfferId)
+    : undefined
+  const detail = sourceOffer && requestedDetail ? {
+    ...catalogOfferDetail(sourceOffer, catalogOwnerId),
+    focusedNoteId: requestedDetail.focusedNoteId,
+    objectAnchor: requestedDetail.objectAnchor,
+  } : requestedDetail
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const bookmarks = useCatalogBookmark({ model: catalogReadModel, currentOwnerId: catalogOwnerId, canEditInterest: canEditCatalogInterest, savingOfferId: catalogInterestSavingOfferId, onToggleInterest: onToggleCatalogInterest, focusFallback: () => closeButtonRef.current, scopeKey: detail?.id ?? 'closed', onConfirmed: (offer, interested) => { if (interested) onOpenObject(catalogOfferDetail(offer, catalogOwnerId)) } })
   const closeRef = useRef(onClose)
@@ -3774,20 +3799,7 @@ function contextNotesToActivity(notes: ContextNote[], selections: Record<string,
       rationale: multi ? 'Notes about the same item are grouped into one conversation so Home stays compact.' : 'A recent contextual note is useful collaboration context without being a Hot interruption.',
       nextAction: 'Open the attached object for the full note and context.',
       reviewState,
-      objectDetail: multi ? {
-        id: `note-group-${cluster.id}`,
-        kind: 'note',
-        eyebrow: 'GROUPED NOTES',
-        title: `${cluster.notes.length} notes on ${latest.objectTitle}`,
-        summary: `Conversation with ${authors.join(', ')}. Open an individual note for its exact source context.`,
-        facts: cluster.notes.map(note => ({
-          label: noteGroupFactLabel(note),
-          value: note.body,
-          detail: noteSourceObjectDetail(note),
-        })),
-        rationale: 'These notes concern the same item, so Home keeps the conversation together.',
-        backlinks: [{ label: 'Notes', destination: 'notes' as const }, ...(sourceDetail.backlinks ?? [])],
-      } : sourceDetail,
+      objectDetail: sourceDetail,
     }
   })
 }
@@ -5935,6 +5947,34 @@ function InfoCatalogsPreview({ prizeTixCounter, initialFamily, refreshFailed = f
   </section>
 }
 
+function exhibitorOfferSections(exhibitor: DirectoryExhibitor) {
+  return [
+    { title: 'Vendor-posted offers', offers: exhibitor.specials ?? [] },
+    { title: 'Vendor-posted exclusives', offers: exhibitor.exclusives ?? [] },
+  ].filter(section => section.offers.length).map(section => ({
+    ...section,
+    offers: section.offers.map(offer => ({ ...offer, url: safeExhibitorUrl(offer.url || offer.link || '') })),
+  }))
+}
+
+function savedExhibitorItems(exhibitors: DirectoryExhibitor[], selections: Record<string, string>, notes: ContextNote[],
+  ownerId: string | undefined, open: (detail: ObjectDetail) => void, save: (id: string, saved: boolean) => Promise<void>,
+): NonNullable<ExhibitorDirectoryProps['savedItems']> {
+  return exhibitors.flatMap(exhibitor => {
+    const objectId = exhibitorObjectId(exhibitor.id)
+    return exhibitorOfferSections(exhibitor).flatMap(section => section.offers.flatMap(offer => {
+      const anchor = exhibitorOfferAnchor(section.title, offer)
+      const id = `${objectId}:offer:${anchor}`
+      if (selections[selectionKey(id, 'saved')] !== 'true') return []
+      const ownNotes = notes.filter(note => ownerId && note.ownerId === ownerId && note.objectId === objectId && note.objectAnchor === anchor)
+      return [{ id, title: offer.title || 'Exhibitor offer', exhibitor, notes: ownNotes,
+        open: () => open({ ...exhibitorToObjectDetail(exhibitor), objectAnchor: anchor, focusedNoteId: ownNotes[0]?.id }),
+        unsave: () => save(id, false),
+      }]
+    }))
+  })
+}
+
 function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
   const places = mapExhibitorPlaces.filter(place => matchMapRecord({ ...place, kind: 'vendor' }, [exhibitor]))
   const atBooth = places.filter(place => place.booth && exhibitor.booth?.split(/[,;\s]+/).includes(place.booth))
@@ -5954,16 +5994,13 @@ function exhibitorToObjectDetail(exhibitor: DirectoryExhibitor): ObjectDetail {
     exhibitorDescription: exhibitor.description,
     rationaleLabel: 'Worth knowing',
     links,
-    exhibitorOffers: [
-      { title: 'Vendor-posted offers', offers: exhibitor.specials ?? [] },
-      { title: 'Vendor-posted exclusives', offers: exhibitor.exclusives ?? [] },
-    ].filter(section => section.offers.length).map(section => ({ ...section, offers: section.offers.map(offer => ({ ...offer, url: safeExhibitorUrl(offer.url || offer.link || '') })) })),
+    exhibitorOffers: exhibitorOfferSections(exhibitor),
     source: { label: exhibitor.id.startsWith('qa-') ? 'QA sample content' : 'Official MagicCon Atlanta exhibitor directory', value: exhibitor.id.startsWith('qa-') ? 'Sample listing for local verification.' : 'Vendor-submitted descriptions, booths and offers. Confirm current terms with the exhibitor; listed offers are not stock or availability guarantees.' },
     backlinks: [{ label: 'Back to Info', destination: 'info' }],
   }
 }
 
-function InfoSurface({ prizeTixCounter, onViewChange, showContent, catalogRefreshFailed = false, canWriteExhibitors, exhibitors, exhibitorError, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { prizeTixCounter: ReactNode; onViewChange: (view: InfoView) => void; showContent: boolean; catalogRefreshFailed?: boolean; canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
+function InfoSurface({ prizeTixCounter, onViewChange, showContent, catalogRefreshFailed = false, canWriteExhibitors, exhibitors, exhibitorError, savedItems, savedExhibitorIds, onToggleExhibitor, topics, feed, catalogReadModel, currentOwnerId, canEditCatalogInterest, canUseCatalogImport, canPromoteCatalog, catalogInterestSavingOfferId, catalogPromotionSaving, onPromoteCatalog, onToggleCatalogInterest, onOpenObject }: { prizeTixCounter: ReactNode; onViewChange: (view: InfoView) => void; showContent: boolean; catalogRefreshFailed?: boolean; canWriteExhibitors: boolean; exhibitors: DirectoryExhibitor[]; exhibitorError: string; savedItems?: ExhibitorDirectoryProps['savedItems']; savedExhibitorIds: string[]; onToggleExhibitor: (id: string) => Promise<void>; topics: InfoTopic[]; feed: InfoFeedEntry[]; catalogReadModel: CatalogReadModel; currentOwnerId?: string; canEditCatalogInterest: boolean; canUseCatalogImport: boolean; canPromoteCatalog: boolean; catalogInterestSavingOfferId: string | null; catalogPromotionSaving: boolean; onPromoteCatalog: (plan: CatalogPromotionPlan) => Promise<void>; onToggleCatalogInterest: (offer: CatalogOffer, interested: boolean) => void | Promise<unknown>; onOpenObject: (detail: ObjectDetail) => void }) {
   const qaFlags = new URLSearchParams(window.location.search).get('qa')?.split(',') ?? []
   const catalogMatchReviewEnabled = canUseCatalogImport && qaFlags.includes('catalog-match-review')
   const catalogBrowserQa = canUseCatalogImport && qaFlags.includes('catalog-browser')
@@ -5999,7 +6036,7 @@ function InfoSurface({ prizeTixCounter, onViewChange, showContent, catalogRefres
     {mode === 'guide' && <InfoGuide topics={visibleTopics} feed={visibleFeed} onOpenObject={onOpenObject} />}
     {mode === 'exhibitors' && <>
       <ArtistAssetStatus urls={exhibitorAssetUrls(exhibitors).filter((url): url is string => Boolean(url))} missingImages={0} online={navigator.onLine} revision={0} label="Exhibitor images" />
-      <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />
+      <ExhibitorDirectory exhibitors={exhibitors} savedIds={savedExhibitorIds} savedItems={savedItems} onToggleSaved={onToggleExhibitor} onOpen={(exhibitor: Exhibitor) => onOpenObject(exhibitorToObjectDetail(exhibitor))} canWrite={canWriteExhibitors} error={exhibitorError} />
     </>}
     {(mode === 'prize_wall' || (mode === 'catalogs' && catalogsEnabled)) && <InfoCatalogsPreview key={mode} prizeTixCounter={prizeTixCounter} initialFamily={mode === 'prize_wall' ? 'prize_wall' : initialFamily === 'black_lotus' ? 'black_lotus' : undefined} refreshFailed={catalogRefreshFailed} onOpenObject={onOpenObject} showMatchReview={catalogMatchReviewEnabled} catalogReadModel={catalogReadModel} currentOwnerId={currentOwnerId} canEditCatalogInterest={canEditCatalogInterest} catalogInterestSavingOfferId={catalogInterestSavingOfferId} onToggleCatalogInterest={onToggleCatalogInterest} catalogBrowserQa={catalogBrowserQa} reviewOnly={atlantaMerchReview} />}
     {mode === 'import' && canUseCatalogImport && <Suspense fallback={<p role="status">Loading import…</p>}>
